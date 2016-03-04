@@ -1,0 +1,368 @@
+#include <bteifgl.h>
+
+struct BGBDT_TagStrTab_s {
+char *strtyn;
+char *pstrtab[256];
+char *strtab;
+char *strtabe;
+char *estrtab;
+char **strhash;
+int npstrtab;
+};
+
+struct BGBDT_TagStrTab16_s {
+char *strtyn;
+u16 *pstrtab[256];
+u16 *strtab;
+u16 *strtabe;
+u16 *estrtab;
+u16 **strhash;
+int npstrtab;
+};
+
+static int objty_tagstr=-1;
+static int objty_tagstr_l1=-1;
+static int objty_tagwstr=-1;
+static int objty_tagsym=-1;
+static int objty_tagkeyw=-1;
+
+void BGBDT_TagStr_InitTypes(void)
+{
+	if(objty_tagstr>=0)
+		return;
+
+	objty_tagstr=0;		//anti recursion hack
+	objty_tagstr=BGBDT_MM_GetIndexObjTypeName("_string_t");
+	objty_tagwstr=BGBDT_MM_GetIndexObjTypeName("_wstring_t");
+	objty_tagstr_l1=BGBDT_MM_GetIndexObjTypeName("_string_l1_t");
+
+	objty_tagsym=BGBDT_MM_GetIndexObjTypeName("_symbol_t");
+	objty_tagkeyw=BGBDT_MM_GetIndexObjTypeName("_keyword_t");
+}
+
+
+// BTEIFGL_API char *frgl_strdup(char *str)
+//	{ return(strdup(str)); }
+
+char *BGBDT_TagStr_TabStrdup(struct BGBDT_TagStrTab_s *tab, char *str)
+{
+	char *s, *t;
+	int i;
+
+	if(!str)
+	{
+//		*(int *)-1=-1;
+		return(NULL);
+	}
+
+	BGBDT_TagStr_InitTypes();
+
+//	if(!*str)return("");
+
+	if(!tab->strhash)
+	{
+//		tab->strtab=frgl_malloc(1<<20);
+//		tab->strtab=frgl_tyalloc("frgl_strtab_t", 1<<20);
+		tab->strtab=dtmAlloc(tab->strtyn, 1<<20);
+		tab->strtabe=tab->strtab+1;
+		tab->estrtab=tab->strtab+(1<<20);
+
+		tab->pstrtab[0]=tab->strtab;
+		tab->npstrtab=1;
+
+		i=4096*sizeof(char *);
+//		tab->strhash=frgl_malloc(i);
+		tab->strhash=dtmAlloc("tagstr_hash_t", i);
+		memset(tab->strhash, 0, i);
+	}
+
+	if(!*str)return(tab->pstrtab[0]);
+
+	if((tab->strtabe+(strlen(str)+2))>=tab->estrtab)
+	{
+//		tab->strtab=frgl_malloc(1<<20);
+//		tab->strtab=frgl_tyalloc("frgl_strtab_t", 1<<20);
+		tab->strtab=dtmAlloc(tab->strtyn, 1<<20);
+		tab->strtabe=tab->strtab;
+		tab->estrtab=tab->strtab+(1<<20);
+
+		tab->pstrtab[tab->npstrtab++]=tab->strtab;
+	}
+
+	i=0; s=str;
+	while(*s)i=i*251+(*s++);
+	i=((i*251)>>8)&0xFFF;
+//	i=((i*251)>>8)&0x3FFF;
+
+	t=tab->strhash[i];
+	while(t)
+	{
+		s=(char *)(((char **)t)+1);
+		t=*(char **)t;
+		if(!strcmp(s, str))return(s);
+	}
+
+	t=tab->strtabe;
+	tab->strtabe=t+strlen(str)+1+sizeof(char *);
+
+	s=(char *)(((char **)t)+1);
+	strcpy(s, str);
+
+	*(char **)t=tab->strhash[i];
+	tab->strhash[i]=t;
+	return(s);
+}
+
+int bgbdt_strcmp16(u16 *s1, u16 *s2)
+{
+	while(*s1 && *s2 && (*s1==*s2))
+		{ s1++; s2++; }
+	if(*s1>*s2)
+		return(1);
+	if(*s1<*s2)
+		return(-1);
+	return(0);
+}
+
+int bgbdt_strlen16(u16 *str)
+{
+	u16 *s;
+	s=str;
+	while(*s)s++;
+	return(s-str);
+}
+
+int bgbdt_strcpy16(u16 *sdst, u16 *ssrc)
+{
+	u16 *s, *t;
+	
+	s=ssrc;
+	t=sdst;
+	while(*s)
+		*t++=*s++;
+	*t++=0;
+}
+
+u16 *BGBDT_TagStr_TabStrdup16(struct BGBDT_TagStrTab16_s *tab, u16 *str)
+{
+	u16 *s, *t;
+	int i;
+
+	if(!str)
+	{
+//		*(int *)-1=-1;
+		return(NULL);
+	}
+
+	BGBDT_TagStr_InitTypes();
+
+	if(!tab->strhash)
+	{
+//		tab->strtab=frgl_malloc(1<<20);
+//		tab->strtab=frgl_tyalloc("frgl_strtab_t", 1<<20);
+		tab->strtab=dtmAlloc(tab->strtyn, 1<<20);
+		tab->strtabe=tab->strtab;
+		tab->estrtab=tab->strtab+(1<<19);
+
+		tab->pstrtab[0]=tab->strtab;
+		tab->npstrtab=1;
+
+		i=4096*sizeof(u16 *);
+//		tab->strhash=frgl_malloc(i);
+		tab->strhash=dtmAlloc("tagstr_hash_t", i);
+		memset(tab->strhash, 0, i);
+	}
+
+	if(!*str)return(tab->pstrtab[0]);
+
+	if((tab->strtabe+(bgbdt_strlen16(str)+2))>=tab->estrtab)
+	{
+//		tab->strtab=frgl_malloc(1<<20);
+//		tab->strtab=frgl_tyalloc("frgl_strtab_t", 1<<20);
+		tab->strtab=dtmAlloc(tab->strtyn, 1<<20);
+		tab->strtabe=tab->strtab;
+		tab->estrtab=tab->strtab+(1<<19);
+
+		tab->pstrtab[tab->npstrtab++]=tab->strtab;
+	}
+
+	i=0; s=str;
+	while(*s)i=i*251+(*s++);
+	i=((i*251)>>8)&0xFFF;
+//	i=((i*251)>>8)&0x3FFF;
+
+	t=tab->strhash[i];
+	while(t)
+	{
+		s=(u16 *)(((u16 **)t)+1);
+		t=*(u16 **)t;
+		if(!bgbdt_strcmp16(s, str))return(s);
+	}
+
+	t=tab->strtabe;
+	tab->strtabe=t+bgbdt_strlen16(str)+1+sizeof(u16 *);
+
+	s=(u16 *)(((u16 **)t)+1);
+	bgbdt_strcpy16(s, str);
+
+	*(u16 **)t=tab->strhash[i];
+	tab->strhash[i]=t;
+	return(s);
+}
+
+BTEIFGL_API char *BGBDT_TagStr_Strdup(char *str)
+{
+	static struct BGBDT_TagStrTab_s tab_strdup_u8={"_string_t"};
+	return(BGBDT_TagStr_TabStrdup(&tab_strdup_u8, str));
+}
+
+BTEIFGL_API char *BGBDT_TagStr_StrdupL1(char *str)
+{
+	static struct BGBDT_TagStrTab_s tab_strdup_l1={"_string_l1_t"};
+	return(BGBDT_TagStr_TabStrdup(&tab_strdup_l1, str));
+}
+
+BTEIFGL_API u16 *BGBDT_TagStr_Strdup16(u16 *str)
+{
+	static struct BGBDT_TagStrTab16_s tab_strdup_u16={"_wstring_t"};
+	return(BGBDT_TagStr_TabStrdup16(&tab_strdup_u16, str));
+}
+
+BTEIFGL_API char *BGBDT_TagStr_StrSymbol(char *str)
+{
+	static struct BGBDT_TagStrTab_s tab_strdup_u8={"_symbol_t"};
+	return(BGBDT_TagStr_TabStrdup(&tab_strdup_u8, str));
+}
+
+BTEIFGL_API char *BGBDT_TagStr_StrKeyword(char *str)
+{
+	static struct BGBDT_TagStrTab_s tab_strdup_u8={"_keyword_t"};
+	return(BGBDT_TagStr_TabStrdup(&tab_strdup_u8, str));
+}
+
+
+BTEIFGL_API dtVal BGBDT_TagStr_String(char *str)
+{
+	return(dtvWrapPtr(BGBDT_TagStr_Strdup(str)));
+}
+
+BTEIFGL_API dtVal BGBDT_TagStr_StringAsc(char *str)
+{
+	return(dtvWrapPtr(BGBDT_TagStr_StrdupL1(str)));
+}
+
+BTEIFGL_API dtVal BGBDT_TagStr_String16(u16 *str)
+{
+	return(dtvWrapPtr(BGBDT_TagStr_Strdup16(str)));
+}
+
+BTEIFGL_API dtVal BGBDT_TagStr_Symbol(char *str)
+{
+	return(dtvWrapPtr(BGBDT_TagStr_StrSymbol(str)));
+}
+
+BTEIFGL_API dtVal BGBDT_TagStr_Keyword(char *str)
+{
+	return(dtvWrapPtr(BGBDT_TagStr_StrKeyword(str)));
+}
+
+
+BTEIFGL_API int BGBDT_TagStr_IsStringP(dtVal val)
+{
+	int tag;
+
+	tag=dtvGetPtrTagF(val);
+
+	if((tag==objty_tagstr)|(tag==objty_tagwstr)|
+		(tag==objty_tagstr_l1))
+			return(1);
+
+//	if(dtvCheckPtrTagP(val, objty_tagstr))
+//		return(1);
+//	if(dtvCheckPtrTagP(val, objty_tagwstr))
+//		return(1);
+//	if(dtvCheckPtrTagP(val, objty_tagstr_l1))
+//		return(1);
+	return(0);
+}
+
+BTEIFGL_API int BGBDT_TagStr_IsSymbolP(dtVal val)
+{
+	int tag;
+	tag=dtvGetPtrTagF(val);
+	if((tag==objty_tagsym))
+			return(1);
+	return(0);
+}
+
+BTEIFGL_API int BGBDT_TagStr_IsKeywordP(dtVal val)
+{
+	int tag;
+	tag=dtvGetPtrTagF(val);
+	if((tag==objty_tagkeyw))
+			return(1);
+	return(0);
+}
+
+BTEIFGL_API char *BGBDT_TagStr_GetUtf8(dtVal val)
+{
+	char *tbuf;
+	char *str;
+	u16 *ws;
+	byte *s, *t;
+	int tag, len;
+	int i, j, k;
+
+	tag=dtvGetPtrTagF(val);
+	str=dtvUnwrapPtrF(val);
+	
+	if((tag==objty_tagstr) | (tag==objty_tagsym) |
+		(tag==objty_tagkeyw))
+	{
+		return(str);
+	}
+
+	if(tag==objty_tagstr_l1)
+	{
+		len=strlen(str);
+		tbuf=frgl_ralloc(len*2+1);
+		s=(byte *)str;	t=(byte *)tbuf;
+		while(*s)
+		{
+			if(*s<0x80)
+				{ *t++=*s++; continue; }
+			i=*s++;
+			*t++=0xC0|(i>>6);
+			*t++=0x80|(i&63);
+		}
+		*t++=0;
+		return(tbuf);
+	}
+
+	if(tag==objty_tagwstr)
+	{
+		len=bgbdt_strlen16((u16 *)str);
+		tbuf=frgl_ralloc(len*3+1);
+		ws=(u16 *)str;
+		t=(byte *)tbuf;
+		while(*s)
+		{
+			if(*ws<0x80)
+				{ *t++=*ws++; continue; }
+			i=*s++;
+			if(i<0x800)
+			{
+				*t++=0xC0|(i>>6);
+				*t++=0x80|(i&63);
+				continue;
+			}
+			*t++=0xE0|(i>>12);
+			*t++=0x80|((i>>6)&63);
+			*t++=0x80|(i&63);
+		}
+		*t++=0;
+		return(tbuf);
+	}
+	
+	return(NULL);
+}

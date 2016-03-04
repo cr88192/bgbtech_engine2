@@ -1,0 +1,17 @@
+#test
+
+*_log.txt
+
+randbits.txt
+
+resource/texcache.zip
+
+resource/mdlcache.zip
+
+**/*.dll
+
+**/*.exe
+
+*.obj
+*.pdn
+!resource/*.dll

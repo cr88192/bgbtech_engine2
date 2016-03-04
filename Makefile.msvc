@@ -1,0 +1,23 @@
+BUILD=.
+MKSUF=.msvc
+LIBSUF=.lib
+DLLSUF=.dll
+EXESUF=.exe
+BINSUF=.exe
+OBJSUF=.obj
+DLLPF=
+
+CC_OUTEXE=cl /Fe
+CC_OUTDLL=cl /LD /Fe
+CC_OUTOBJ=cl /c /Fo
+CC_OUTTOOL=cl /Fe
+
+CFLAGS=/Iinclude /Zi
+# CFLAGS=/Iinclude /O2 /Zi /arch:SSE2
+DLL_CFLAGS=$(CFLAGS) /DBTEIFGL_DLL
+DLL_LDFLAGS=opengl32.lib gdi32.lib user32.lib winmm.lib kernel32.lib \
+	ole32.lib ws2_32.lib
+LDFLAGS=btewsim.lib $(DLL_LDFLAGS)
+
+include Makefile.inc
+

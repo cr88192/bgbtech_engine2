@@ -1,0 +1,61 @@
+b: aa
+c: kth
+d: daa
+
+f: fh
+g: gaa
+h: yii
+
+j: ii
+k: ks
+l: luu
+
+m: meh
+n: naa
+p: loh
+
+q: kyuu
+r: raa
+s: sho
+
+t: ta
+v: yaa
+w: uu
+
+x: zeh
+y: ye
+z: zaa
+
+B: eh
+C: zha
+D: duu
+
+F: faa
+G: gn
+H: gl
+
+J: Y'
+K: K'
+L: lyeh
+
+M: m-
+N: -n
+P: tep
+
+Q: oh
+R: R'
+S: sez
+
+T: th'
+V: T'
+W: W'
+
+X: zz
+Y: yaa
+Z: zhah
+
+
+dgn: Dagon (daa-gaa-n)
+
+cul: Cthulu
+ftG: fhtagn = dreams

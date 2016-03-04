@@ -1,0 +1,4 @@
+BCD FGH JKL MNP QRS TVW XYZ
+bcd fgh jkl mnp qrs tvw xyz
+
+Encodes 16 bits into 3 characters.

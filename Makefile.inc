@@ -17,6 +17,7 @@ BTEIFGL_SRCS=\
 	base/math_m4.c \
 	\
 	base/gpio_rdtsc.c \
+	base/gpio_dummy_w32.c \
 	base/net_btemsg.c \
 	\
 	base/deflate.c \
@@ -64,6 +65,13 @@ BTEIFGL_SRCS=\
 	btews/btws_resistor.c \
 	btews/btws_transistor.c \
 	btews/btws_wire.c \
+	\
+	btews/msp430i/mspi_interp.c \
+	btews/msp430i/mspi_mmu.c \
+	btews/msp430i/mspi_oparith.c \
+	btews/msp430i/mspi_opcode.c \
+	btews/msp430i/mspi_opmisc.c \
+	
 
 SRCS=$(BTEIFGL_SRCS)
 
@@ -76,7 +84,8 @@ FORCE:
 
 libs: $(DLLPF)btewsim$(DLLSUF)
 
-apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) btewiresim0$(EXESUF)
+apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) \
+	btewiresim0$(EXESUF) msptst0$(EXESUF)
 
 includes: $(DEP_HDRS)
 
@@ -97,6 +106,9 @@ bsvm2tst0$(EXESUF): bsvm2tst0.c $(DEP_HDRS) libs
 
 btewiresim0$(EXESUF): btewiresim0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)btewiresim0$(EXESUF) btewiresim0.c $(CFLAGS) $(LDFLAGS)
+
+msptst0$(EXESUF): msptst0.c $(DEP_HDRS) libs
+	$(CC_OUTEXE)msptst0$(EXESUF) msptst0.c $(CFLAGS) $(LDFLAGS)
 
 clean:
 clean2:

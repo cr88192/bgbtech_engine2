@@ -29,6 +29,16 @@ BTEIFGL_API MSP430_Context *MSP430_NewContext(int ty, int szRam, int szRom)
 	ctx->szRam=szRam;
 	ctx->szRom=szRom;
 	ctx->vaRom=65536-szRom;
+	
+	ctx->drom[MSP430_DROM_CALDCO_1MHZ]=1;
+	ctx->drom[MSP430_DROM_CALBC1_1MHZ]=0;
+	ctx->drom[MSP430_DROM_CALDCO_8MHZ]=8;
+	ctx->drom[MSP430_DROM_CALBC1_8MHZ]=0;
+	ctx->drom[MSP430_DROM_CALDCO_12MHZ]=12;
+	ctx->drom[MSP430_DROM_CALBC1_12MHZ]=0;
+	ctx->drom[MSP430_DROM_CALDCO_16MHZ]=16;
+	ctx->drom[MSP430_DROM_CALBC1_16MHZ]=0;
+	
 	return(ctx);
 }
 
@@ -39,9 +49,8 @@ int msp430_readHexDigit(char ch)
 	if((ch>='A') && (ch<='F'))
 		return(10+(ch-'A'));
 	if((ch>='a') && (ch<='f'))
-		return(10+(ch-'a'));
-		
-	*(int *)-1=-1;
+		return(10+(ch-'a'));	
+//	*(int *)-1=-1;
 	return(-1);
 }
 
@@ -75,6 +84,7 @@ int msp430_readHexWord(char **rcs)
 		(msp430_readHexDigit(cs[1])<< 8)|
 		(msp430_readHexDigit(cs[2])<< 4)|
 		(msp430_readHexDigit(cs[3])    );
+	if(i<0)i=-1;
 	*rcs=cs+4;
 	return(i);
 }
@@ -87,6 +97,49 @@ int msp430_readHexDWord(char **rcs)
 	j=msp430_readHexWord(rcs);
 	k=(i<<16)|j;
 	return(k);
+}
+
+BTEIFGL_API double MSP430_GetCurrentMHz(MSP430_Context *ctx)
+{
+	int i, j;
+	
+//	i=ctx->perib[MSP430_PERIB_BCSCTL1];
+	i=ctx->perib[MSP430_PERIB_DCOCTL];
+	if(!i)i=1;
+	j=(i&31);
+	return(j);
+}
+
+BTEIFGL_API int MSP430_GetCurrentMips(MSP430_Context *ctx)
+{
+	int i, j;
+	
+//	i=ctx->perib[MSP430_PERIB_BCSCTL1];
+	i=ctx->perib[MSP430_PERIB_DCOCTL];
+	if(!i)i=1;
+//	j=(1<<24)/((i&31)+1);
+	j=(i&31)*1000000;
+	j=j*0.288;
+	return(j);
+}
+
+BTEIFGL_API int MSP430_GetOutputPinRunning(MSP430_Context *ctx)
+{
+	int i, j;
+	
+	j=0;
+	for(i=0; i<16; i++)
+	{
+		if(ctx->opincnt[i]>=128)
+		{
+			j=j|(1<<i);
+			ctx->opincnt[i]=128;
+		}else
+		{
+			ctx->opincnt[i]=127;
+		}
+	}
+	return(j);
 }
 
 BTEIFGL_API int MSP430_DecodeIHex(MSP430_Context *ctx, char *ibuf, int szBuf)
@@ -217,6 +270,120 @@ BTEIFGL_API int MSP430_LoadIHex(MSP430_Context *ctx, char *fname)
 	return(i);
 }
 
+BTEIFGL_API char *MSP430_LookupMapSymbol(
+	MSP430_Context *ctx, int addr, int *rbase)
+{
+	int bd, bi, d;
+	int i, j, k;
+	
+	if(addr&(~(0x000FFFFF)))
+		return(NULL);
+	
+	bi=-1; bd=999999;
+	for(i=0; i<ctx->szmap; i++)
+	{
+		if(ctx->mapaddr[i]==addr)
+		{
+			if(rbase)
+				*rbase=addr;
+			return(ctx->mapsym[i]);
+		}
+		
+		d=addr-ctx->mapaddr[i];
+		if(d<0)continue;
+		if(d<bd)
+			{ bi=i; bd=d; }
+	}
+	
+	if(bi<0)
+	{
+		return(NULL);
+	}
+	
+	if(rbase)
+		*rbase=ctx->mapaddr[bi];
+	return(ctx->mapsym[bi]);
+}
+
+BTEIFGL_API int MSP430_AddMapSymbol(
+	MSP430_Context *ctx, char *sym, int addr)
+{
+	int i, j, k;
+	
+	for(i=0; i<ctx->szmap; i++)
+	{
+		if(ctx->mapaddr[i]==addr)
+			return(i);
+	}
+	
+	i=ctx->szmap++;
+	ctx->mapaddr[i]=addr;
+	ctx->mapsym[i]=frgl_strdup(sym);
+	return(i);
+}
+
+BTEIFGL_API int MSP430_DecodeMap(MSP430_Context *ctx, char *ibuf, int szBuf)
+{
+	byte buf[256];
+	char *cs, *cs1, *cse;
+	char *ct;
+//	int n, o, t, ct, cv, sb;
+	int i, j, k;
+
+//	MSP430_FlushICache(ctx);
+
+	ctx->szmap=0;
+
+	cs=ibuf; cse=ibuf+szBuf;
+//	sb=0;
+	while(cs<cse)
+	{
+		cs1=cs;
+		i=msp430_readHexDWord(&cs1);
+		if((i>=0) && (cs1[0]==' ') && (cs1[1]==' ') && (cs1[2]!=' '))
+		{
+			cs1+=2;
+			ct=buf;
+			while((cs1<cse) && (*cs1>' '))
+				*ct++=*cs1++;
+			*ct++=0;
+			
+			MSP430_AddMapSymbol(ctx, buf, i);
+
+			cs=cs1;
+			while((cs<cse) && (*cs!='\n'))
+				cs++;
+			if((cs<cse) && (*cs=='\n'))
+				cs++;
+			continue;
+		}
+	
+		if(1)
+		{
+			while((cs<cse) && (*cs!='\n'))
+				cs++;
+			if((cs<cse) && (*cs=='\n'))
+				cs++;
+			continue;
+		}
+	}
+}
+
+BTEIFGL_API int MSP430_LoadMap(MSP430_Context *ctx, char *fname)
+{
+	byte *buf;
+	int fsz;
+	int i;
+
+	buf=vf_loadfile(fname, &fsz);
+	if(!buf)
+		return(-1);
+
+	i=MSP430_DecodeMap(ctx, buf, fsz);
+	frgl_free(buf);
+	return(i);
+}
+
 BTEIFGL_API int MSP430_FlushICache(MSP430_Context *ctx)
 {
 	MSP430_Opcode *cur, *nxt;
@@ -305,7 +472,7 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 				n1=ctx->wdtCycles;
 			n1r=n1;
 
-			while(cur && ((n1--)>0) && !ctx->errStatus)
+			while(cur && (n1>0) && !ctx->errStatus)
 			{
 #if 1
 				i=ctx->oprov;
@@ -315,9 +482,11 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 			
 	//			MSP430_DumpOpcode(ctx, cur);
 				cur=cur->Run(ctx, cur);
+				n1--;
 			}
 
 			n-=n1r-n1;
+			ctx->wdtCycles-=n1r-n1;
 
 			if(cur)
 			{
@@ -341,7 +510,7 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 		}
 	}else
 	{
-		while(cur && ((n--)>0) && !ctx->errStatus)
+		while(cur && (n>0) && !ctx->errStatus)
 		{
 #if 1
 			i=ctx->oprov;
@@ -351,6 +520,7 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 		
 //			MSP430_DumpOpcode(ctx, cur);
 			cur=cur->Run(ctx, cur);
+			n--;
 		}
 	}
 

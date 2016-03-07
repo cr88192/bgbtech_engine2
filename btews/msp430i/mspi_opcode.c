@@ -1583,14 +1583,32 @@ char *MSP430_DumpOpcode_NameForReg(MSP430_Context *ctx, int reg)
 void MSP430_DumpOpcode_Param(MSP430_Context *ctx, MSP430_Opcode *cur,
 	int fl, int reg, int offs)
 {
-	int a, v;
+	char *s;
+	int a, v, ab;
+
 	if(fl&MSP430_OPFL_MEM)
 	{
 		if(fl&MSP430_OPFL_ABS)
 		{
+			s=MSP430_LookupMapSymbol(ctx, offs, &ab);
+		
 			a=offs;
 //			printf("[0x%04X]", offs);
-			printf("[0x%05X]", offs&0xFFFFF);
+//			printf("[0x%05X]", offs&0xFFFFF);
+			
+			if(s && ((a-ab)<256))
+			{
+				if(a!=ab)
+				{
+					printf("[%s+0x%X]", s, a-ab);
+				}else
+				{
+					printf("[%s]", s, a-ab);
+				}
+			}else
+			{
+				printf("[0x%05X]", offs&0xFFFFF);
+			}
 		}else if(fl&MSP430_OPFL_AINC)
 		{
 			if(offs)
@@ -1655,12 +1673,25 @@ void MSP430_DumpOpcode_Param(MSP430_Context *ctx, MSP430_Opcode *cur,
 
 void MSP430_DumpOpcode(MSP430_Context *ctx, MSP430_Opcode *cur)
 {
+	char *s;
+	int a, ab;
 	int i, j, n;
 
 	if(!cur)
 		return;
 
-	printf("@%04X: ", cur->pc);
+	a=cur->pc;
+	s=MSP430_LookupMapSymbol(ctx, a, &ab);
+
+	if(s && ((a-ab)<256))
+	{
+		printf("@%04X(%s+0x%02X): ", cur->pc, s, a-ab);
+	}else
+	{
+		printf("@%04X: ", cur->pc);
+	}
+
+//	printf("@%04X: ", cur->pc);
 
 	n=(cur->pc2-cur->pc)/2;
 	for(i=0; i<n; i++)

@@ -1,6 +1,7 @@
 #define BTEWS_WFL_HORZ		0x0001	//can connect horizontally
 #define BTEWS_WFL_VERT		0x0002	//can connect vertically
 #define BTEWS_WFL_JOIN		0x0004	//connections join in center
+#define BTEWS_WFL_OUT		0x0008	//output only
 
 #define BTEWS_WFL_CN_LF		0x0010	//connect left
 #define BTEWS_WFL_CN_RT		0x0020	//connect right

@@ -79,7 +79,14 @@ VFILE *frgl_fopen(char *name, char *mode)
 	
 	sprintf(tb, "resource/%s", name);
 	fd=fopen(tb, mode);
-	return(fd);
+	if(fd)
+		return(fd);
+
+	fd=fopen(name, mode);
+	if(fd)
+		return(fd);
+	
+	return(NULL);
 }
 
 // #define vfclose		fclose

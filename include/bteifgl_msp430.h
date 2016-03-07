@@ -100,6 +100,11 @@
 #define MSP430_PERIB_ADC10AE0	0x004A		//ADC10 Input Enable 0
 #define MSP430_PERIB_ADC10AE1	0x004B		//ADC10 Input Enable 1
 
+#define MSP430_PERIB_DCOCTL		0x0056		//DCO Control
+#define MSP430_PERIB_BCSCTL1	0x0057		//Basic Clock Control 1
+#define MSP430_PERIB_BCSCTL2	0x0058		//Basic Clock Control 2
+#define MSP430_PERIB_BCSCTL3	0x0053		//Basic Clock Control 3
+
 #define MSP430_PERIW_IX(V)		((V-0x100)>>1)		//ADC10 Memory
 
 #define MSP430_PERIW_ADC10CTL0	MSP430_PERIW_IX(0x01B0)	//ADC10 Control 0
@@ -115,6 +120,18 @@
 #define MSP430_PERIW_RESLO	MSP430_PERIW_IX(0x013A)	//Result Low
 #define MSP430_PERIW_RESHI	MSP430_PERIW_IX(0x013C)	//Result High
 #define MSP430_PERIW_SUMEXT	MSP430_PERIW_IX(0x013E)	//Sum Extension
+
+#define MSP430_PERIW_WDTCTL	MSP430_PERIW_IX(0x0120)	//Watchdog Timer Control
+
+#define MSP430_DROM_IX(V)		(V-0x1000)			//DROM
+#define MSP430_DROM_CALDCO_16MHZ	MSP430_DROM_IX(0x10F8)	//Multiply
+#define MSP430_DROM_CALBC1_16MHZ	MSP430_DROM_IX(0x10F9)	//Multiply
+#define MSP430_DROM_CALDCO_12MHZ	MSP430_DROM_IX(0x10FA)	//Multiply
+#define MSP430_DROM_CALBC1_12MHZ	MSP430_DROM_IX(0x10FB)	//Multiply
+#define MSP430_DROM_CALDCO_8MHZ		MSP430_DROM_IX(0x10FC)	//Multiply
+#define MSP430_DROM_CALBC1_8MHZ		MSP430_DROM_IX(0x10FD)	//Multiply
+#define MSP430_DROM_CALDCO_1MHZ		MSP430_DROM_IX(0x10FE)	//Multiply
+#define MSP430_DROM_CALBC1_1MHZ		MSP430_DROM_IX(0x10FF)	//Multiply
 
 #define MSP430_ADC10_SC			0x0001		//ADC10 Transfer Start Address
 #define MSP430_ADC10_ENC		0x0002		//ADC10 Transfer Start Address
@@ -189,6 +206,9 @@ byte errStatus;
 u32 errParm1, errParm2;
 u64 runCycles;
 
+int wdtCycles;
+int wdtRstCnt;
+
 byte perib[256];
 u16 periw[128];
 byte drom[256];
@@ -201,4 +221,10 @@ byte dioprov;
 
 float lpinv[16];					//last pin input voltage
 float pinv[16];						//pin input voltage
+
+byte opincnt[16];
+
+char *mapsym[4096];
+int mapaddr[4096];
+int szmap;
 };

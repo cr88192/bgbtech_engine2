@@ -95,7 +95,7 @@ int MSP430_VaReadByte(MSP430_Context *ctx, int addr)
 int MSP430_VaWriteByte(MSP430_Context *ctx, int addr, int val)
 {
 	int addr2;
-	int i;
+	int i, j, k;
 
 	if(addr>=0xC0000000)
 	{
@@ -185,6 +185,39 @@ int MSP430_VaWriteByte(MSP430_Context *ctx, int addr, int val)
 //		if(i>=256)
 //			{ return(-1); }
 		ctx->perib[i]=val;
+		switch(i)
+		{
+		case MSP430_PERIB_P1OUT:
+			for(j=0; j<8; j++)
+			{
+				if(val&(1<<j))
+				{
+					if(ctx->opincnt[j]<255)
+						ctx->opincnt[j]++;
+				}else
+				{
+					if(ctx->opincnt[j]>0)
+						ctx->opincnt[j]--;
+				}
+			}
+			break;
+		case MSP430_PERIB_P2OUT:
+			for(j=0; j<8; j++)
+			{
+				if(val&(1<<j))
+				{
+					if(ctx->opincnt[8+j]<255)
+						ctx->opincnt[8+j]++;
+				}else
+				{
+					if(ctx->opincnt[8+j]>0)
+						ctx->opincnt[8+j]--;
+				}
+			}
+			break;
+		default:
+			break;
+		}
 		return(0);
 	}
 

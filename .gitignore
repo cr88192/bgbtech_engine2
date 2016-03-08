@@ -14,4 +14,7 @@ resource/mdlcache.zip
 
 *.obj
 *.pdn
+*.suo
+*.pdb
+*.ilk
 !resource/*.dll

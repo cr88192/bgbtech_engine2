@@ -94,6 +94,8 @@ typedef struct BTEWS_WireGrid_s BTEWS_WireGrid;
 typedef struct BTEWS_WireNode_s BTEWS_WireNode;
 typedef struct BTEWS_Component_s BTEWS_Component;
 
+typedef struct BTEWS_NetWire_s BTEWS_NetWire;
+typedef struct BTEWS_NetComponent_s BTEWS_NetComponent;
 
 struct BTEWS_WireGrid_s {
 int xs, ys;						//grid size
@@ -160,4 +162,23 @@ int cty;
 
 void (*Place)(BTEWS_Component *self,
 	BTEWS_WireGrid *grid, int x, int y);
+};
+
+
+struct BTEWS_NetWire_s {
+BTEWS_NetWire *next;
+int wid;
+double vcc;
+double icc;
+};
+
+struct BTEWS_NetComponent_s {
+BTEWS_NetComponent *next;	//next component in netlist
+BTEWS_NetComponent *cnext;	//next component in update chain
+BTEWS_NetComponent *tnext;	//next component in think chain
+int cid;			//component ID
+int cty;			//component type
+short pwid[64];			//pin wire ID
+void (*Update)(BTEWS_WireNode *self);			//inputs have changed
+void (*Think)(BTEWS_WireNode *self, double dt);		//time has elapsed
 };

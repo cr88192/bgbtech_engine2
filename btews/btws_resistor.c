@@ -5,15 +5,15 @@ void btews_resistor_UpdatePin(BTEWS_WireNode *self, double dt)
 	BTEWS_WireNode *npx, *nnx, *npy, *nny;
 	int dgt;
 
-	if((self->cc_y==1) ||
-		(self->cc_y==3))
-	{
-		return;
-	}
-	
-	if(self->wfl&BTEWS_WFL_OUT)
-		return;
-	
+//	if((self->cc_y==1) ||
+//		(self->cc_y==3))
+//	{
+//		return;
+//	}
+
+//	if(self->wfl&BTEWS_WFL_OUT)
+//		return;
+		
 	npx=BTEWS_GetNode(self->grid, self->x+1, self->y  );
 	nnx=BTEWS_GetNode(self->grid, self->x-1, self->y  );
 	npy=BTEWS_GetNode(self->grid, self->x  , self->y+1);
@@ -27,6 +27,30 @@ void btews_resistor_UpdatePin(BTEWS_WireNode *self, double dt)
 	
 	if(dgt)
 	{
+		if(self->cc_y==0)
+			self->wfl=(self->wfl&(~BTEWS_WFL_CN_UP));
+
+		if(self->cc_y==4)
+			self->wfl=(self->wfl&(~BTEWS_WFL_CN_DN));
+
+		if(self->cc_y==1)
+		{
+			nny=BTEWS_GetNode(self->grid, self->x  , self->y-1);
+			self->vnx=nny->vpy;		self->vpx=nny->vpy;
+			self->vny=nny->vpy;		self->vpy=nny->vpy;
+	//		self->wfl=(self->wfl&(~BTEWS_WFL_CN_UP));
+			return;
+		}
+
+		if(self->cc_y==3)
+		{
+			nny=BTEWS_GetNode(self->grid, self->x  , self->y+1);
+			self->vnx=nny->vpy;		self->vpx=nny->vpy;
+			self->vny=nny->vpy;		self->vpy=nny->vpy;
+	//		self->wfl=(self->wfl&(~BTEWS_WFL_CN_UP));
+			return;
+		}
+
 		btews_wire_UpdateDigital(self, dt);
 	}else
 	{
@@ -51,11 +75,11 @@ void btews_resistor_UpdateDigital(BTEWS_WireNode *self, double dt)
 
 		if(npy->dsttl>nny->dsttl)
 		{
-			i=(npy->wfl>>16)&15; dir=1;
+			i=(npy->wfl>>20)&15; dir=1;
 			ttl=npy->dsttl-1;
 		}else
 		{
-			i=(nny->wfl>>16)&15; dir=0;
+			i=(nny->wfl>>20)&15; dir=0;
 			ttl=nny->dsttl-1;
 		}
 
@@ -74,13 +98,19 @@ void btews_resistor_UpdateDigital(BTEWS_WireNode *self, double dt)
 		if(dir)
 		{
 			nny->wfl&=~(BTEWS_WFL_DGTL_ALL|BTEWS_WFL_DGTL2_ALL);
-			nny->wfl|=(j<<16)|(j<<20)|BTEWS_WFL_OUT;
+			nny->wfl|=(j<<16)|(j<<20);
+//			nny->wfl|=(j<<16)|(j<<20)|BTEWS_WFL_OUT;
 			nny->dsttl=ttl;
+			nny->vnx=v;	nny->vpx=v;
+			nny->vny=v;	nny->vpy=v;
 		}else
 		{
 			npy->wfl&=~(BTEWS_WFL_DGTL_ALL|BTEWS_WFL_DGTL2_ALL);
-			npy->wfl|=(j<<16)|(j<<20)|BTEWS_WFL_OUT;
+			npy->wfl|=(j<<16)|(j<<20);
+//			npy->wfl|=(j<<16)|(j<<20)|BTEWS_WFL_OUT;
 			npy->dsttl=ttl;
+			npy->vnx=v;	npy->vpx=v;
+			npy->vny=v;	npy->vpy=v;
 		}
 
 		self->vnx=v;	self->vpx=v;
@@ -144,8 +174,8 @@ void btews_resistor_Update(BTEWS_WireNode *self, double dt)
 		npy=BTEWS_GetNode(self->grid, self->x  , self->y+2);
 		nny=BTEWS_GetNode(self->grid, self->x  , self->y-2);
 
-		if((npy->wfl&BTEWS_WFL_DGTL_ALL) ||
-			(nny->wfl&BTEWS_WFL_DGTL_ALL))
+		if((npy->wfl&(BTEWS_WFL_DGTL_ALL|BTEWS_WFL_DGTL2_ALL)) ||
+			(nny->wfl&(BTEWS_WFL_DGTL_ALL|BTEWS_WFL_DGTL2_ALL)))
 		{
 			btews_resistor_UpdateDigital(self, dt);
 			return;

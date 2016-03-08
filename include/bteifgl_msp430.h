@@ -186,6 +186,7 @@ int opn;
 byte dreg, sreg;
 byte dfl, sfl;
 byte opid;
+byte clks;
 int doffs, soffs;
 MSP430_Opcode *(*Run)(MSP430_Context *ctx, MSP430_Opcode *op);
 };
@@ -205,6 +206,7 @@ int szRom, vaRom;
 byte errStatus;
 u32 errParm1, errParm2;
 u64 runCycles;
+u64 runOps;
 
 int wdtCycles;
 int wdtRstCnt;

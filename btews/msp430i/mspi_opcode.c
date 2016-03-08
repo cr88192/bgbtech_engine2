@@ -756,24 +756,24 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				if(opn&0x0040)
 					{ cur->dfl|=MSP430_OPFL_BYTE; }
 				if(opn&0x0040)
-					{ cur->Run=MSP430_OpRrcMB; }
+					{ cur->Run=MSP430_OpRrcMB; cur->clks=3; }
 				else
-					{ cur->Run=MSP430_OpRrcMW; }
+					{ cur->Run=MSP430_OpRrcMW; cur->clks=3; }
 			}else
 			{
 				if(opn&0x0040)
-					{ cur->Run=MSP430_OpRrcRB; }
+					{ cur->Run=MSP430_OpRrcRB; cur->clks=1; }
 				else
-					{ cur->Run=MSP430_OpRrcRW; }
+					{ cur->Run=MSP430_OpRrcRW; cur->clks=1; }
 			}
 			break;
 		case 1:
 			MSP430_DecodeOpcodeArgsUOp(ctx, cur, opn, raddr);
 			cur->opid=MSP430_OPID_SWPB;
 			if(cur->dfl&MSP430_OPFL_MEM)
-				{ cur->Run=MSP430_OpSwpbMW; }
+				{ cur->Run=MSP430_OpSwpbMW; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpSwpbRW; }
+				{ cur->Run=MSP430_OpSwpbRW; cur->clks=1; }
 			break;
 		case 2:
 			MSP430_DecodeOpcodeArgsUOp(ctx, cur, opn, raddr);
@@ -787,15 +787,15 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				if(opn&0x0040)
 					{ cur->dfl|=MSP430_OPFL_BYTE; }
 				if(opn&0x0040)
-					{ cur->Run=MSP430_OpRraMB; }
+					{ cur->Run=MSP430_OpRraMB; cur->clks=3; }
 				else
-					{ cur->Run=MSP430_OpRraMW; }
+					{ cur->Run=MSP430_OpRraMW; cur->clks=3; }
 			}else
 			{
 				if(opn&0x0040)
-					{ cur->Run=MSP430_OpRraRB; }
+					{ cur->Run=MSP430_OpRraRB; cur->clks=1; }
 				else
-					{ cur->Run=MSP430_OpRraRW; }
+					{ cur->Run=MSP430_OpRraRW; cur->clks=1; }
 			}
 			break;
 		case 3:
@@ -806,9 +806,9 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 			ctx->tmp_lsrop=cur;
 
 			if(cur->dfl&MSP430_OPFL_MEM)
-				{ cur->Run=MSP430_OpSxtMW; }
+				{ cur->Run=MSP430_OpSxtMW; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpSxtRW; }
+				{ cur->Run=MSP430_OpSxtRW; cur->clks=1; }
 			break;
 		case 4:
 			MSP430_DecodeOpcodeArgsUOp(ctx, cur, opn, raddr);
@@ -822,15 +822,15 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				if(opn&0x0040)
 					{ cur->dfl|=MSP430_OPFL_BYTE; }
 				if(opn&0x0040)
-					{ cur->Run=MSP430_OpPushMB; }
+					{ cur->Run=MSP430_OpPushMB; cur->clks=5; }
 				else
-					{ cur->Run=MSP430_OpPushMW; }
+					{ cur->Run=MSP430_OpPushMW; cur->clks=5; }
 			}else
 			{
 				if(opn&0x0040)
-					{ cur->Run=MSP430_OpPushRB; }
+					{ cur->Run=MSP430_OpPushRB; cur->clks=3; }
 				else
-					{ cur->Run=MSP430_OpPushRW; }
+					{ cur->Run=MSP430_OpPushRW; cur->clks=3; }
 			}
 			break;
 		case 5:
@@ -844,22 +844,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 			}
 			
 			if(cur->dfl&MSP430_OPFL_MEM)
-				{ cur->Run=MSP430_OpCallMW; }
+				{ cur->Run=MSP430_OpCallMW; cur->clks=5; }
 			else if(cur->dfl&MSP430_OPFL_IMM)
-				{ cur->Run=MSP430_OpCallIW; }
+				{ cur->Run=MSP430_OpCallIW; cur->clks=5; }
 			else
-				{ cur->Run=MSP430_OpCallRW; }
+				{ cur->Run=MSP430_OpCallRW; cur->clks=4; }
 			break;
 		case 6:
 			cur->opid=MSP430_OPID_RETI;
 
 			if(isdi)
 			{
-				cur->Run=MSP430_OpRetiDi;
+				cur->Run=MSP430_OpRetiDi; cur->clks=5;
 				break;
 			}
 
-			cur->Run=MSP430_OpReti;
+			cur->Run=MSP430_OpReti; cur->clks=5;
 			break;
 		default:
 			etr=1;
@@ -877,6 +877,7 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		cur->sreg=-1;
 		
 		ctx->tmp_lsrop=NULL;
+		cur->clks=2;
 
 		if(isdi)
 		{
@@ -969,7 +970,7 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				cur->sreg=-1;
 
 				cur->opid=MSP430_OPID_RET;
-				cur->Run=MSP430_OpRet;
+				cur->Run=MSP430_OpRet; cur->clks=3;
 				etr=1;
 				break;
 			}
@@ -980,7 +981,7 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				cur->sreg=-1;
 
 				cur->opid=MSP430_OPID_POP;
-				cur->Run=MSP430_OpPopRW;
+				cur->Run=MSP430_OpPopRW; cur->clks=2;
 				break;
 			}
 
@@ -990,7 +991,7 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				cur->sreg=-1;
 
 				cur->opid=MSP430_OPID_POP;
-				cur->Run=MSP430_OpPopRB;
+				cur->Run=MSP430_OpPopRB; cur->clks=2;
 				break;
 			}
 		}else
@@ -1001,7 +1002,7 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				cur->sreg=-1;
 
 				cur->opid=MSP430_OPID_RET;
-				cur->Run=MSP430_OpRetDi;
+				cur->Run=MSP430_OpRetDi; cur->clks=3;
 				etr=1;
 				break;
 			}
@@ -1013,7 +1014,7 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 				cur->sreg=-1;
 
 				cur->opid=MSP430_OPID_POP;
-				cur->Run=MSP430_OpPopRW;
+				cur->Run=MSP430_OpPopRW; cur->clks=2;
 				break;
 			}
 #endif
@@ -1026,23 +1027,23 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 			!isdi)
 		{
 			cur->opid=MSP430_OPID_BR;
-			cur->Run=MSP430_OpBrMW;
+			cur->Run=MSP430_OpBrMW; cur->clks=3;
 			etr=1;
 		}else if((cur->dfl&MSP430_OPFL_MEM) ||
 			(cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpMovMB; }
+				{ cur->Run=MSP430_OpMovMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpMovMW; }
+				{ cur->Run=MSP430_OpMovMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
-			{ cur->Run=MSP430_OpMovRIW; }
+			{ cur->Run=MSP430_OpMovRIW; cur->clks=2; }
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpMovRRB; }
+				{ cur->Run=MSP430_OpMovRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpMovRRW; }
+				{ cur->Run=MSP430_OpMovRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1058,9 +1059,9 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 			!isdi)
 		{
 			if(cur->sfl&MSP430_OPFL_MEM)
-				{ cur->Run=MSP430_OpAddPcMW; }
+				{ cur->Run=MSP430_OpAddPcMW; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpAddPcRW; }
+				{ cur->Run=MSP430_OpAddPcRW; cur->clks=3; }
 			etr=1;
 			break;
 		}
@@ -1068,22 +1069,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAddMB; }
+				{ cur->Run=MSP430_OpAddMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpAddMW; }
+				{ cur->Run=MSP430_OpAddMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAddRIB; }
+				{ cur->Run=MSP430_OpAddRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpAddRIW; }
+				{ cur->Run=MSP430_OpAddRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAddRRB; }
+				{ cur->Run=MSP430_OpAddRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpAddRRW; }
+				{ cur->Run=MSP430_OpAddRRW; cur->clks=1; }
 		}
 		break;
 	case 6:
@@ -1096,22 +1097,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAddcMB; }
+				{ cur->Run=MSP430_OpAddcMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpAddcMW; }
+				{ cur->Run=MSP430_OpAddcMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAddcRIB; }
+				{ cur->Run=MSP430_OpAddcRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpAddcRIW; }
+				{ cur->Run=MSP430_OpAddcRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAddcRRB; }
+				{ cur->Run=MSP430_OpAddcRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpAddcRRW; }
+				{ cur->Run=MSP430_OpAddcRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1125,22 +1126,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpSubcMB; }
+				{ cur->Run=MSP430_OpSubcMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpSubcMW; }
+				{ cur->Run=MSP430_OpSubcMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpSubcRIB; }
+				{ cur->Run=MSP430_OpSubcRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpSubcRIW; }
+				{ cur->Run=MSP430_OpSubcRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpSubcRRB; }
+				{ cur->Run=MSP430_OpSubcRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpSubcRRW; }
+				{ cur->Run=MSP430_OpSubcRRW; cur->clks=1; }
 		}
 		break;
 	case 8:
@@ -1153,22 +1154,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpSubMB; }
+				{ cur->Run=MSP430_OpSubMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpSubMW; }
+				{ cur->Run=MSP430_OpSubMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpSubRIB; }
+				{ cur->Run=MSP430_OpSubRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpSubRIW; }
+				{ cur->Run=MSP430_OpSubRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpSubRRB; }
+				{ cur->Run=MSP430_OpSubRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpSubRRW; }
+				{ cur->Run=MSP430_OpSubRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1182,22 +1183,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpCmpMB; }
+				{ cur->Run=MSP430_OpCmpMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpCmpMW; }
+				{ cur->Run=MSP430_OpCmpMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpCmpRIB; }
+				{ cur->Run=MSP430_OpCmpRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpCmpRIW; }
+				{ cur->Run=MSP430_OpCmpRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpCmpRRB; }
+				{ cur->Run=MSP430_OpCmpRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpCmpRRW; }
+				{ cur->Run=MSP430_OpCmpRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1211,22 +1212,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBitMB; }
+				{ cur->Run=MSP430_OpBitMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpBitMW; }
+				{ cur->Run=MSP430_OpBitMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBitRIB; }
+				{ cur->Run=MSP430_OpBitRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpBitRIW; }
+				{ cur->Run=MSP430_OpBitRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBitRRB; }
+				{ cur->Run=MSP430_OpBitRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpBitRRW; }
+				{ cur->Run=MSP430_OpBitRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1236,22 +1237,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBicMB; }
+				{ cur->Run=MSP430_OpBicMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpBicMW; }
+				{ cur->Run=MSP430_OpBicMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBicRIB; }
+				{ cur->Run=MSP430_OpBicRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpBicRIW; }
+				{ cur->Run=MSP430_OpBicRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBicRRB; }
+				{ cur->Run=MSP430_OpBicRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpBicRRW; }
+				{ cur->Run=MSP430_OpBicRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1261,22 +1262,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBisMB; }
+				{ cur->Run=MSP430_OpBisMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpBisMW; }
+				{ cur->Run=MSP430_OpBisMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBisRIB; }
+				{ cur->Run=MSP430_OpBisRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpBisRIW; }
+				{ cur->Run=MSP430_OpBisRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpBisRRB; }
+				{ cur->Run=MSP430_OpBisRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpBisRRW; }
+				{ cur->Run=MSP430_OpBisRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1290,22 +1291,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpXorMB; }
+				{ cur->Run=MSP430_OpXorMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpXorMW; }
+				{ cur->Run=MSP430_OpXorMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpXorRIB; }
+				{ cur->Run=MSP430_OpXorRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpXorRIW; }
+				{ cur->Run=MSP430_OpXorRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpXorRRB; }
+				{ cur->Run=MSP430_OpXorRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpXorRRW; }
+				{ cur->Run=MSP430_OpXorRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1319,22 +1320,22 @@ int MSP430_DecodeOpcodeI(MSP430_Context *ctx,
 		if((cur->dfl&MSP430_OPFL_MEM) || (cur->sfl&MSP430_OPFL_MEM))
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAndMB; }
+				{ cur->Run=MSP430_OpAndMB; cur->clks=3; }
 			else
-				{ cur->Run=MSP430_OpAndMW; }
+				{ cur->Run=MSP430_OpAndMW; cur->clks=3; }
 		}else if(cur->sfl&MSP430_OPFL_IMM)
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAndRIB; }
+				{ cur->Run=MSP430_OpAndRIB; cur->clks=2; }
 			else
-				{ cur->Run=MSP430_OpAndRIW; }
+				{ cur->Run=MSP430_OpAndRIW; cur->clks=2; }
 		}
 		else
 		{
 			if(cur->dfl&MSP430_OPFL_BYTE)
-				{ cur->Run=MSP430_OpAndRRB; }
+				{ cur->Run=MSP430_OpAndRRB; cur->clks=1; }
 			else
-				{ cur->Run=MSP430_OpAndRRW; }
+				{ cur->Run=MSP430_OpAndRRW; cur->clks=1; }
 		}
 		break;
 
@@ -1364,6 +1365,7 @@ MSP430_Opcode *MSP430_DecodeOpcode(MSP430_Context *ctx, int *raddr)
 	cur->opn=opn;
 	*raddr=addr+2;
 	
+	cur->clks=1;
 	cur->Run=MSP430_OpTrapInv;
 	etr=0;
 

@@ -1113,6 +1113,7 @@ int msp430_readHexWord(char **rcs);
 int msp430_readHexDWord(char **rcs);
 BTEIFGL_API double MSP430_GetCurrentMHz(MSP430_Context *ctx);
 BTEIFGL_API int MSP430_GetCurrentMips(MSP430_Context *ctx);
+BTEIFGL_API double MSP430_GetCurrentAvgMips(MSP430_Context *ctx);
 BTEIFGL_API int MSP430_GetOutputPinRunning(MSP430_Context *ctx);
 BTEIFGL_API int MSP430_DecodeIHex(MSP430_Context *ctx, char *ibuf, int szBuf);
 BTEIFGL_API int MSP430_LoadIHex(MSP430_Context *ctx, char *fname);

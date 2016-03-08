@@ -119,8 +119,19 @@ BTEIFGL_API int MSP430_GetCurrentMips(MSP430_Context *ctx)
 	if(!i)i=1;
 //	j=(1<<24)/((i&31)+1);
 	j=(i&31)*1000000;
-	j=j*0.288;
+//	j=j*0.288;
 	return(j);
+}
+
+BTEIFGL_API double MSP430_GetCurrentAvgMips(MSP430_Context *ctx)
+{
+	double fq, sc;
+	int i, j;
+
+	sc=(ctx->runOps+1.0)/(ctx->runCycles+1.0);
+	fq=MSP430_GetCurrentMHz(ctx);
+	
+	return(sc*fq);
 }
 
 BTEIFGL_API int MSP430_GetOutputPinRunning(MSP430_Context *ctx)
@@ -444,7 +455,7 @@ BTEIFGL_API int MSP430_Run(MSP430_Context *ctx)
 BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 {
 	MSP430_Opcode *cur;
-	int n, n1r, n1, wdtctl;
+	int n, n1r, n1, wdtctl, no;
 	int i, j, k;
 
 	if(ctx->errStatus)
@@ -460,7 +471,7 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 	cur=ctx->pc_op;
 	if(!cur)
 		{ cur=MSP430_GetDecodeOpcode(ctx, ctx->reg[MSP430_REG_PC]); }
-	n=cnt;
+	n=cnt; no=0;
 	if(n>ctx->wdtCycles)
 	{
 		wdtctl=ctx->periw[MSP430_PERIW_WDTCTL];
@@ -481,8 +492,9 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 #endif
 			
 	//			MSP430_DumpOpcode(ctx, cur);
+				n1-=cur->clks; no++;
 				cur=cur->Run(ctx, cur);
-				n1--;
+//				n1--;
 			}
 
 			n-=n1r-n1;
@@ -519,8 +531,9 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 #endif
 		
 //			MSP430_DumpOpcode(ctx, cur);
+			n-=cur->clks; no++;
 			cur=cur->Run(ctx, cur);
-			n--;
+//			n--;
 		}
 	}
 
@@ -537,6 +550,7 @@ BTEIFGL_API int MSP430_RunCount(MSP430_Context *ctx, int cnt)
 	
 	ctx->runCycles+=cnt-n;
 	ctx->wdtCycles-=(cnt-n);
+	ctx->runOps+=no;
 	
 	if(ctx->errStatus==MSP430_ERR_TRAP_SMC)
 	{

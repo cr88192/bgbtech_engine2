@@ -108,6 +108,12 @@ BTEWS_WireNode **node;			//node grid
 BTEWS_WireNode *live;			//ready to execute
 BTEWS_WireNode *liveend;		//ready to execute (list end)
 
+BTEWS_NetWire *netwire;			//netlist wire
+BTEWS_NetComponent *netcmp;		//netlist component
+
+BTEWS_NetWire *freenetwire;		//free netlist wire
+BTEWS_NetComponent *freenetcmp;	//free netlist component
+
 void (*DrawDefault)(BTEWS_WireGrid *grid, int x, int y,
 	float x0, float y0, float x1, float y1);
 };
@@ -168,17 +174,18 @@ void (*Place)(BTEWS_Component *self,
 struct BTEWS_NetWire_s {
 BTEWS_NetWire *next;
 int wid;
-double vcc;
-double icc;
+double vcc;					//wire voltage
+double icc;					//wire current
+short cwid[4];					//connection WID
 };
 
 struct BTEWS_NetComponent_s {
-BTEWS_NetComponent *next;	//next component in netlist
-BTEWS_NetComponent *cnext;	//next component in update chain
-BTEWS_NetComponent *tnext;	//next component in think chain
-int cid;			//component ID
-int cty;			//component type
-short pwid[64];			//pin wire ID
+BTEWS_NetComponent *next;		//next component in netlist
+BTEWS_NetComponent *cnext;		//next component in update chain
+BTEWS_NetComponent *tnext;		//next component in think chain
+int cid;						//component ID
+int cty;						//component type
+short pwid[64];					//pin wire ID
 void (*Update)(BTEWS_WireNode *self);			//inputs have changed
 void (*Think)(BTEWS_WireNode *self, double dt);		//time has elapsed
 };

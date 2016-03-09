@@ -1077,8 +1077,17 @@ BTEIFGL_API void BTEWS_MarkNodeDirty(BTEWS_WireGrid *grid,int x, int y);
 BTEIFGL_API void BTEWS_MarkNodeDirtyStar(BTEWS_WireGrid *grid,int x, int y);
 BTEIFGL_API void BTEWS_UpdateGridStep(BTEWS_WireGrid *grid, double dt);
 BTEIFGL_API void BTEWS_UpdateGrid(BTEWS_WireGrid *grid, double dt);
+BTEIFGL_API bool BTEWS_NodeIsWireJoin(BTEWS_WireGrid *grid,BTEWS_WireNode *self);
 BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,BTEWS_WireNode *self);
+BTEIFGL_API void BTEWS_FlushGridNetWires(BTEWS_WireGrid *grid);
 BTEIFGL_API void BTEWS_RebuildGridWid(BTEWS_WireGrid *grid);
+//AHSRC:btews/btws_netnode.c
+BTEIFGL_API BTEWS_NetWire *BTEWS_AllocNetWireNode(BTEWS_WireGrid *grid);
+BTEIFGL_API BTEWS_NetWire *BTEWS_LookupNetWireNode(BTEWS_WireGrid *grid, int wid);
+BTEIFGL_API BTEWS_NetWire *BTEWS_GetNetWireNode(BTEWS_WireGrid *grid, int wid);
+BTEIFGL_API BTEWS_NetComponent *BTEWS_AllocNetComponentNode(BTEWS_WireGrid *grid);
+BTEIFGL_API BTEWS_NetComponent *BTEWS_LookupNetComponentNode(BTEWS_WireGrid *grid, int cid);
+BTEIFGL_API BTEWS_NetComponent *BTEWS_GetNetComponentNode(BTEWS_WireGrid *grid, int cid);
 //AHSRC:btews/btws_resistor.c
 void btews_resistor_UpdatePin(BTEWS_WireNode *self, double dt);
 void btews_resistor_UpdateDigital(BTEWS_WireNode *self, double dt);

@@ -62,6 +62,7 @@ BTEIFGL_SRCS=\
 	btews/btws_diode.c \
 	btews/btws_dip.c \
 	btews/btws_grid.c \
+	btews/btws_netnode.c \
 	btews/btws_resistor.c \
 	btews/btws_transistor.c \
 	btews/btws_wire.c \

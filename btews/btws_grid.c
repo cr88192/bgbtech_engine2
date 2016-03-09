@@ -24,7 +24,8 @@ BTEIFGL_API BTEWS_Component *BTEWS_GetComponent(char *name)
 	cur=BTEWS_LookupComponent(name);
 	if(cur)return(cur);
 	
-	cur=frgl_talloc("_btews_component_t", sizeof(BTEWS_Component));
+//	cur=frgl_talloc("_btews_component_t", sizeof(BTEWS_Component));
+	cur=dtmAlloc("_btews_component_t", sizeof(BTEWS_Component));
 	cur->name=frgl_strdup(name);
 	
 	cur->next=btews_component_root;
@@ -37,8 +38,11 @@ BTEIFGL_API BTEWS_WireGrid *BTEWS_AllocGrid(int xs, int ys)
 {
 	BTEWS_WireGrid *tmp;
 	
-	tmp=frgl_talloc("_btews_wiregrid_t", sizeof(BTEWS_WireGrid));
-	tmp->node=frgl_malloc(xs*ys*sizeof(BTEWS_WireNode *));
+//	tmp=frgl_talloc("_btews_wiregrid_t", sizeof(BTEWS_WireGrid));
+	tmp=dtmAlloc("_btews_wiregrid_t", sizeof(BTEWS_WireGrid));
+//	tmp->node=frgl_malloc(xs*ys*sizeof(BTEWS_WireNode *));
+	tmp->node=dtmAlloc("_btews_wiregrid_data_t",
+		xs*ys*sizeof(BTEWS_WireNode *));
 	tmp->xs=xs; tmp->ys=ys;
 	return(tmp);
 }
@@ -66,7 +70,8 @@ BTEIFGL_API BTEWS_WireNode *BTEWS_GetAllocNode(BTEWS_WireGrid *grid,
 	ncur=grid->node[y*grid->xs+x];
 	if(!ncur)
 	{
-		ncur=frgl_talloc("_btews_wirenode_t", sizeof(BTEWS_WireNode));
+//		ncur=frgl_talloc("_btews_wirenode_t", sizeof(BTEWS_WireNode));
+		ncur=dtmAlloc("_btews_wirenode_t", sizeof(BTEWS_WireNode));
 		grid->node[y*grid->xs+x]=ncur;
 		ncur->grid=grid;
 		ncur->x=x;
@@ -144,7 +149,8 @@ BTEIFGL_API void BTEWS_DeleteNode2(BTEWS_WireGrid *grid,
 		}
 	}
 	
-	frgl_free(ncur);
+//	frgl_free(ncur);
+	dtmFree(ncur);
 
 	BTEWS_MarkNodeDirtyStar(grid, x, y);
 
@@ -309,6 +315,22 @@ BTEIFGL_API void BTEWS_UpdateGrid(BTEWS_WireGrid *grid, double dt)
 	}	
 }
 
+BTEIFGL_API bool BTEWS_NodeIsWireJoin(BTEWS_WireGrid *grid,
+	BTEWS_WireNode *self)
+{
+	if(self->wfl&BTEWS_WFL_JOIN)
+	{
+		if((self->wfl&BTEWS_WFL_CN_LFRT) &&
+			(self->wfl&BTEWS_WFL_CN_UPDN))
+		{
+			if(((self->wfl&BTEWS_WFL_CN_LFRT)==BTEWS_WFL_CN_LFRT) ||
+				((self->wfl&BTEWS_WFL_CN_UPDN)==BTEWS_WFL_CN_UPDN))
+					return(true);
+		}
+	}
+	return(false);
+}
+
 BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,
 	BTEWS_WireNode *self)
 {
@@ -333,7 +355,9 @@ BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,
 		if(self->wfl&BTEWS_WFL_CN_LF)
 		{
 //			if(!nnx->widx && (nnx->cty==BTEWS_CTY_WIRE))
-			if(nnx && !nnx->widx)
+//			if(nnx && !nnx->widx)
+			if(nnx && !nnx->widx &&
+				!BTEWS_NodeIsWireJoin(grid, nnx))
 			{
 				nnx->widx=self->widx;
 				if(nnx->wfl&BTEWS_WFL_JOIN)
@@ -345,7 +369,9 @@ BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,
 		if(self->wfl&BTEWS_WFL_CN_RT)
 		{
 //			if(!npx->widx && (npx->cty==BTEWS_CTY_WIRE))
-			if(npx && !npx->widx)
+//			if(npx && !npx->widx)
+			if(npx && !npx->widx &&
+				!BTEWS_NodeIsWireJoin(grid, npx))
 			{
 				npx->widx=self->widx;
 				if(npx->wfl&BTEWS_WFL_JOIN)
@@ -360,7 +386,9 @@ BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,
 		if(self->wfl&BTEWS_WFL_CN_DN)
 		{
 //			if(!nny->widy && (nny->cty==BTEWS_CTY_WIRE))
-			if(nny && !nny->widy)
+//			if(nny && !nny->widy)
+			if(nny && !nny->widy &&
+				!BTEWS_NodeIsWireJoin(grid, nny))
 			{
 				nny->widy=self->widy;
 				if(nny->wfl&BTEWS_WFL_JOIN)
@@ -372,7 +400,9 @@ BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,
 		if(self->wfl&BTEWS_WFL_CN_UP)
 		{
 //			if(!npy->widy && (npy->cty==BTEWS_CTY_WIRE))
-			if(npy && !npy->widy)
+//			if(npy && !npy->widy)
+			if(npy && !npy->widy &&
+				!BTEWS_NodeIsWireJoin(grid, npy))
 			{
 				npy->widy=self->widy;
 				if(npy->wfl&BTEWS_WFL_JOIN)
@@ -383,11 +413,84 @@ BTEIFGL_API void BTEWS_SpreadGridWireWid(BTEWS_WireGrid *grid,
 	}
 }
 
+BTEIFGL_API void BTEWS_RebuildGridWireLinks(
+	BTEWS_WireGrid *grid, BTEWS_WireNode *self)
+{
+	BTEWS_WireNode *npx, *nnx, *npy, *nny;
+	BTEWS_NetWire *nwself;
+	BTEWS_NetWire *nwpx, *nwnx, *nwpy, *nwny;
+
+	if(self->wfl&BTEWS_WFL_CN_LFRT)
+	{
+		npx=BTEWS_GetNode(self->grid, self->x+1, self->y  );
+		nnx=BTEWS_GetNode(self->grid, self->x-1, self->y  );
+	}
+	if(self->wfl&BTEWS_WFL_CN_UPDN)
+	{
+		npy=BTEWS_GetNode(self->grid, self->x  , self->y+1);
+		nny=BTEWS_GetNode(self->grid, self->x  , self->y-1);
+	}
+	
+	if(BTEWS_NodeIsWireJoin(grid, self))
+	{
+//		if(nnx)nwnx=BTEWS_LookupNetWireNode(grid, nnx->widx);
+//		if(npx)nwpx=BTEWS_LookupNetWireNode(grid, npx->widx);
+//		if(nny)nwny=BTEWS_LookupNetWireNode(grid, nny->widy);
+//		if(npy)nwpy=BTEWS_LookupNetWireNode(grid, npy->widy);
+
+		nwself=BTEWS_LookupNetWireNode(grid, self->widx);
+
+		if(nnx && (self->wfl&BTEWS_WFL_CN_LF))
+			nwself->cwid[0]=nnx->widx;
+		if(npx && (self->wfl&BTEWS_WFL_CN_RT))
+			nwself->cwid[1]=npx->widx;
+		if(nny && (self->wfl&BTEWS_WFL_CN_DN))
+			nwself->cwid[2]=nny->widy;
+		if(npy && (self->wfl&BTEWS_WFL_CN_UP))
+			nwself->cwid[3]=npy->widy;
+
+		return;
+	}
+
+	if(self->wfl&BTEWS_WFL_CN_LFRT)
+	{
+		nwself=BTEWS_LookupNetWireNode(grid, self->widx);
+
+		if(nnx && (self->wfl&BTEWS_WFL_CN_LF))
+		{
+			if(nnx->widx!=self->widx)
+				nwself->cwid[0]=nnx->widx;
+		}
+		if(npx && (self->wfl&BTEWS_WFL_CN_RT))
+		{
+			if(npx->widx!=self->widx)
+				nwself->cwid[1]=npx->widx;
+		}
+	}
+}
+
+BTEIFGL_API void BTEWS_FlushGridNetWires(BTEWS_WireGrid *grid)
+{
+	BTEWS_NetWire *cur, *nxt;
+	
+	cur=grid->netwire;
+	grid->netwire=NULL;
+	while(cur)
+	{
+		nxt=cur->next;
+		cur->next=grid->freenetwire;
+		grid->freenetwire=cur;
+		cur=nxt;
+	}
+}
+
 BTEIFGL_API void BTEWS_RebuildGridWid(BTEWS_WireGrid *grid)
 {
 	BTEWS_WireNode *ncur, *nnxt;
 	int wid;
 	int i, j, k;
+	
+	BTEWS_FlushGridNetWires(grid);
 	
 	for(i=0; i<grid->ys; i++)
 		for(j=0; j<grid->xs; j++)
@@ -399,7 +502,7 @@ BTEIFGL_API void BTEWS_RebuildGridWid(BTEWS_WireGrid *grid)
 		ncur->widy=0;
 	}
 	
-	wid=0;
+	wid=1;
 	for(i=0; i<grid->ys; i++)
 		for(j=0; j<grid->xs; j++)
 	{
@@ -409,7 +512,20 @@ BTEIFGL_API void BTEWS_RebuildGridWid(BTEWS_WireGrid *grid)
 		if(ncur->widx && ncur->widy)
 			continue;
 
+		/* Multi-way joins get their own special wire IDs */
+		if(BTEWS_NodeIsWireJoin(grid, ncur))
+		{
+			if(!ncur->widx && !ncur->widy)
+			{
+				k=wid++;
+				ncur->widx=k;
+				ncur->widy=k;
+			}
+			continue;
+		}
+
 		if(ncur->wfl&BTEWS_WFL_JOIN)
+//		if(0)
 		{
 //			k=wid++;
 			k=0;
@@ -431,9 +547,31 @@ BTEIFGL_API void BTEWS_RebuildGridWid(BTEWS_WireGrid *grid)
 				ncur->widx=wid++;
 			if(!ncur->widy && (ncur->wfl&BTEWS_WFL_CN_UPDN))
 				ncur->widy=wid++;
+
+			if(!ncur->widx && !(ncur->wfl&BTEWS_WFL_CN_LFRT))
+				ncur->widx=ncur->widy;
+			if(!ncur->widy && !(ncur->wfl&BTEWS_WFL_CN_UPDN))
+				ncur->widy=ncur->widx;
 		}
 
 		BTEWS_SpreadGridWireWid(grid, ncur);
+	}
+	
+	for(i=1; i<wid; i++)
+	{
+		BTEWS_GetNetWireNode(grid, i);
+	}
+
+	for(i=0; i<grid->ys; i++)
+		for(j=0; j<grid->xs; j++)
+	{
+		ncur=grid->node[i*grid->xs+j];
+		if(!ncur)
+			{ continue; }
+		if(!ncur->widx && !ncur->widy)
+			continue;
+
+		BTEWS_RebuildGridWireLinks(grid, ncur);
 	}
 }
 

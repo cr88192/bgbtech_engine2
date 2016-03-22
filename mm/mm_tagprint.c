@@ -23,6 +23,7 @@ BTEIFGL_API int BGBDT_MM_FreeParsePrintInfo(BGBDT_MM_ParsePrintInfo *inf)
 {
 	inf->next=bgbdt_mm_freeprint;
 	bgbdt_mm_freeprint=inf;
+	return(0);
 }
 
 int bgbdt_mm_strprint_putstr(BGBDT_MM_ParsePrintInfo *inf, char *str)

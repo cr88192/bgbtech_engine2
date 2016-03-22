@@ -1,6 +1,11 @@
 #include <bteifgl.h>
 
-dtVal BS2P_NewAstNode(char *tag)
+char *BS2P_StrSym(BS2CC_CompileContext *ctx, char *str)
+{
+	return(BGBDT_TagStr_StrSymbol(str));
+}
+
+dtVal BS2P_NewAstNode(BS2CC_CompileContext *ctx, char *tag)
 {
 	dtVal obj;
 	char *s;
@@ -24,6 +29,14 @@ void BS2P_SetAstNodeAttrS(dtVal obj, char *attr, char *val)
 //		BGBDT_TagStr_String(val));
 	BGBDT_MapObj_BindObjvSlotValueName(obj, attr,
 		BGBDT_TagStr_Symbol(val));
+}
+
+void BS2P_SetAstNodeAttrStr(dtVal obj, char *attr, char *val)
+{
+	BGBDT_MapObj_BindObjvSlotValueName(obj, attr,
+		BGBDT_TagStr_String(val));
+//	BGBDT_MapObj_BindObjvSlotValueName(obj, attr,
+//		BGBDT_TagStr_Symbol(val));
 }
 
 void BS2P_SetAstNodeAttrI(dtVal obj, char *attr, s64 val)
@@ -75,7 +88,7 @@ char *BS2P_GetAstNodeTag(dtVal obj)
 	return(s0);
 }
 
-dtVal BS2P_NewAstArray(int sz)
+dtVal BS2P_NewAstArray(BS2CC_CompileContext *ctx, int sz)
 {
 	dtVal arv;
 
@@ -99,12 +112,12 @@ void BS2P_SetAstArrayIdx(dtVal obj, int idx, dtVal val)
 	dtvArraySetIndexDtVal(obj, idx, val);
 }
 
-dtVal BS2P_NewAstWrapArray(dtVal *arrd, int sz)
+dtVal BS2P_NewAstWrapArray(BS2CC_CompileContext *ctx, dtVal *arrd, int sz)
 {
 	dtVal n0;
 	int i;
 
-	n0=BS2P_NewAstArray(sz);
+	n0=BS2P_NewAstArray(ctx, sz);
 	for(i=0; i<sz; i++)
 	{
 		BS2P_SetAstArrayIdx(n0, i, arrd[i]);
@@ -148,7 +161,7 @@ dtVal BS2P_ParseWrapSimpleCmd(BS2CC_CompileContext *ctx, char *str)
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("simplecmd");
+	obj=BS2P_NewAstNode(ctx, "simplecmd");
 	BS2P_SetAstNodeAttrS(obj, "cmd", str);
 	return(obj);
 }
@@ -159,7 +172,7 @@ dtVal BS2P_ParseWrapSimpleCmdInt(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("simplecmdi");
+	obj=BS2P_NewAstNode(ctx, "simplecmdi");
 	BS2P_SetAstNodeAttrS(obj, "cmd", str);
 	BS2P_SetAstNodeAttrI(obj, "value", val);
 	return(obj);
@@ -171,7 +184,7 @@ dtVal BS2P_ParseWrapSimpleCmdVal(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("simplecmdv");
+	obj=BS2P_NewAstNode(ctx, "simplecmdv");
 	BS2P_SetAstNodeAttrS(obj, "cmd", str);
 	BS2P_SetAstNodeAttr(obj, "value", val);
 	return(obj);
@@ -183,7 +196,7 @@ dtVal BS2P_ParseWrapSimpleCmdStr(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("simplecmds");
+	obj=BS2P_NewAstNode(ctx, "simplecmds");
 	BS2P_SetAstNodeAttrS(obj, "cmd", str);
 	BS2P_SetAstNodeAttrS(obj, "value", sval);
 	return(obj);
@@ -194,7 +207,7 @@ dtVal BS2P_ParseWrapSimpleTag(BS2CC_CompileContext *ctx, char *tag)
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	return(obj);
 }
 
@@ -204,7 +217,7 @@ dtVal BS2P_ParseWrapSimpleTagInt(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttrI(obj, "value", val);
 	return(obj);
 }
@@ -215,7 +228,7 @@ dtVal BS2P_ParseWrapSimpleTagVal(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttr(obj, "value", val);
 	return(obj);
 }
@@ -226,7 +239,7 @@ dtVal BS2P_ParseWrapSimpleTagStr(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttrS(obj, "value", sval);
 	return(obj);
 }
@@ -239,7 +252,7 @@ dtVal BS2P_ParseWrapUnTag(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(op);
+	obj=BS2P_NewAstNode(ctx, op);
 	BS2P_SetAstNodeAttr(obj, "value", ln);
 	return(obj);
 }
@@ -250,7 +263,7 @@ dtVal BS2P_ParseWrapBinTag(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(op);
+	obj=BS2P_NewAstNode(ctx, op);
 	BS2P_SetAstNodeAttr(obj, "lhs", ln);
 	BS2P_SetAstNodeAttr(obj, "rhs", rn);
 	return(obj);
@@ -262,7 +275,7 @@ dtVal BS2P_ParseWrapUnary(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("unary");
+	obj=BS2P_NewAstNode(ctx, "unary");
 	BS2P_SetAstNodeAttrS(obj, "op", op);
 	BS2P_SetAstNodeAttr(obj, "value", ln);
 	return(obj);
@@ -274,7 +287,7 @@ dtVal BS2P_ParseWrapBinary(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("binary");
+	obj=BS2P_NewAstNode(ctx, "binary");
 	BS2P_SetAstNodeAttrS(obj, "op", op);
 	BS2P_SetAstNodeAttr(obj, "lhs", ln);
 	BS2P_SetAstNodeAttr(obj, "rhs", rn);
@@ -287,7 +300,7 @@ dtVal BS2P_ParseWrapTern(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("tern");
+	obj=BS2P_NewAstNode(ctx, "tern");
 	BS2P_SetAstNodeAttr(obj, "cond", cc);
 	BS2P_SetAstNodeAttr(obj, "lhs", ln);
 	BS2P_SetAstNodeAttr(obj, "rhs", rn);
@@ -300,7 +313,7 @@ dtVal BS2P_ParseWrapTagIf(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttr(obj, "cond", cc);
 	BS2P_SetAstNodeAttr(obj, "then", ln);
 	return(obj);
@@ -312,7 +325,7 @@ dtVal BS2P_ParseWrapTagIfElse(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttr(obj, "cond", cc);
 	BS2P_SetAstNodeAttr(obj, "then", ln);
 	BS2P_SetAstNodeAttr(obj, "else", rn);
@@ -325,7 +338,7 @@ dtVal BS2P_ParseWrapTagFor(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttr(obj, "init", in);
 	BS2P_SetAstNodeAttr(obj, "cond", cc);
 	BS2P_SetAstNodeAttr(obj, "step", st);
@@ -339,7 +352,7 @@ dtVal BS2P_ParseWrapTagBinary(BS2CC_CompileContext *ctx,
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode(tag);
+	obj=BS2P_NewAstNode(ctx, tag);
 	BS2P_SetAstNodeAttrS(obj, "op", op);
 	BS2P_SetAstNodeAttr(obj, "lhs", ln);
 	BS2P_SetAstNodeAttr(obj, "rhs", rn);
@@ -351,7 +364,7 @@ dtVal BS2P_ParseWrapArray(BS2CC_CompileContext *ctx, dtVal lst)
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("array");
+	obj=BS2P_NewAstNode(ctx, "array");
 	BS2P_SetAstNodeAttr(obj, "value", lst);
 	return(obj);
 }
@@ -361,7 +374,7 @@ dtVal BS2P_ParseWrapObject(BS2CC_CompileContext *ctx, dtVal lst)
 	dtVal obj;
 	char *s;
 	
-	obj=BS2P_NewAstNode("object");
+	obj=BS2P_NewAstNode(ctx, "object");
 	BS2P_SetAstNodeAttr(obj, "value", lst);
 	return(obj);
 }

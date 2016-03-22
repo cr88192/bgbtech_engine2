@@ -13,7 +13,7 @@ dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx)
 		if(!strcmp(t0, "Ibreak"))
 		{
 			BS2P_NextToken(ctx);
-			i=0;
+			i=1;
 			
 			t0=BS2P_PeekToken(ctx, 0);
 			if(*t0=='|')
@@ -88,9 +88,9 @@ dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx)
 dtVal BS2P_ParseStatementBlock(BS2CC_CompileContext *ctx)
 {
 	dtVal n0, n1, n2, n3;
-	char *t0, *t1, *t2;
+	char *t0, *t1, *t2, *lfn;
 	dtVal stmt[4096];
-	int nstmt;
+	int nstmt, lln;
 
 	nstmt=0;
 	t0=BS2P_PeekToken(ctx, 0);
@@ -98,7 +98,18 @@ dtVal BS2P_ParseStatementBlock(BS2CC_CompileContext *ctx)
 	{
 		if(!strcmp(t0, "X}"))
 			break;
-		stmt[nstmt++]=BS2P_ParseBlockStatement(ctx);
+
+		BS2P_GetCurSourceLine(ctx, &lfn, &lln);
+
+		n0=BS2P_ParseBlockStatement(ctx);
+
+		if(BGBDT_MapObj_IsObjectP(n0))
+		{
+			BS2P_SetAstNodeAttrStr(n0, "fn", lfn);
+			BS2P_SetAstNodeAttrI(n0, "ln", lln);
+		}
+		
+		stmt[nstmt++]=n0;
 		t0=BS2P_PeekToken(ctx, 0);
 	}
 	
@@ -113,7 +124,7 @@ dtVal BS2P_ParseStatementBlock(BS2CC_CompileContext *ctx)
 		return(stmt[0]);
 	}
 	
-	n1=BS2P_NewAstWrapArray(stmt, nstmt);
+	n1=BS2P_NewAstWrapArray(ctx, stmt, nstmt);
 	n0=BS2P_ParseWrapSimpleTagVal(ctx, "block", n1);
 	return(n0);
 }
@@ -297,9 +308,9 @@ dtVal BS2P_ParsePackageStatement(BS2CC_CompileContext *ctx)
 dtVal BS2P_ParsePackageStatementBlock(BS2CC_CompileContext *ctx)
 {
 	dtVal n0, n1, n2, n3;
-	char *t0, *t1, *t2;
+	char *t0, *t1, *t2, *lfn;
 	dtVal stmt[4096];
-	int nstmt;
+	int nstmt, lln;
 
 	nstmt=0;
 	t0=BS2P_PeekToken(ctx, 0);
@@ -307,11 +318,20 @@ dtVal BS2P_ParsePackageStatementBlock(BS2CC_CompileContext *ctx)
 	{
 		if(!strcmp(t0, "X}"))
 			break;
-		stmt[nstmt++]=BS2P_ParsePackageStatement(ctx);
+		BS2P_GetCurSourceLine(ctx, &lfn, &lln);
+		n0=BS2P_ParsePackageStatement(ctx);
+		
+		if(BGBDT_MapObj_IsObjectP(n0))
+		{
+			BS2P_SetAstNodeAttrStr(n0, "fn", lfn);
+			BS2P_SetAstNodeAttrI(n0, "ln", lln);
+		}
+		
+		stmt[nstmt++]=n0;
 		t0=BS2P_PeekToken(ctx, 0);
 	}
 	
-	n1=BS2P_NewAstWrapArray(stmt, nstmt);
+	n1=BS2P_NewAstWrapArray(ctx, stmt, nstmt);
 	n0=BS2P_ParseWrapSimpleTagVal(ctx, "psblock", n1);
 	return(n0);
 }

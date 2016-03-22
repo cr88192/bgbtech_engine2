@@ -378,6 +378,7 @@ BTEIFGL_API int MSP430_DecodeMap(MSP430_Context *ctx, char *ibuf, int szBuf)
 			continue;
 		}
 	}
+	return(0);
 }
 
 BTEIFGL_API int MSP430_LoadMap(MSP430_Context *ctx, char *fname)

@@ -26,6 +26,7 @@ BTEIFGL_API int Draw_SetSolid_2D(
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glColor4f(1,1,1,1);
+	return(0);
 }
 
 BTEIFGL_API int Draw_SetSolid2_2D(float aspect, float size,
@@ -79,6 +80,7 @@ BTEIFGL_API int Draw_SetSolid2_2D(float aspect, float size,
 	glEnable(GL_SCISSOR_TEST);
 
 	glColor4f(1,1,1,1);
+	return(0);
 }
 
 
@@ -126,6 +128,7 @@ BTEIFGL_API int Draw_SetOrtho_3D(float aspect, float size,
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	return(0);
 }
 
 BTEIFGL_API int Draw_SetSolid3_2D(float lxs, float lys,
@@ -172,6 +175,7 @@ BTEIFGL_API int Draw_SetSolid3_2D(float lxs, float lys,
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
 		GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	return(0);
 }
 
 BTEIFGL_API int Draw_SetSolid4_2D(
@@ -230,6 +234,7 @@ BTEIFGL_API int Draw_SetSolid4_2D(
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
 		GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	return(0);
 }
 
 BTEIFGL_API int Draw_SetPerspective_3D(
@@ -308,6 +313,7 @@ BTEIFGL_API int Draw_SetPerspective_3D(
 	glColor4f(0,0,0,1);
 
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	return(0);
 }
 
 BTEIFGL_API int Draw_SetPerspective2_3D(
@@ -393,6 +399,7 @@ BTEIFGL_API int Draw_SetPerspective2_3D(
 	glColor4f(0,0,0,1);
 
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	return(0);
 }
 
 BTEIFGL_API void FRGL_Setup2D()

@@ -363,7 +363,7 @@ BTEIFGL_API int FRGL_LastKeyDown(int key)
 
 BTEIFGL_API int FRGL_GetKeyMap(byte *map)
 {
-	memset(map, frgl_keymap, 32);
+	memcpy(map, frgl_keymap, 32);
 	return(0);
 }
 

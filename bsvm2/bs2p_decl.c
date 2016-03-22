@@ -132,7 +132,7 @@ dtVal BS2P_ParseQNameList(BS2CC_CompileContext *ctx)
 	if(arrn==1)
 		return(arr[0]);
 
-	n0=BS2P_NewAstWrapArray(arr, arrn);
+	n0=BS2P_NewAstWrapArray(ctx, arr, arrn);
 	return(n0);
 }
 
@@ -195,7 +195,7 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 		return(DTV_NULL);
 	}
 	
-	n0=BS2P_NewAstNode("type");
+	n0=BS2P_NewAstNode(ctx, "type");
 	BS2P_SetAstNodeAttrS(n0, "name", tb);
 	if(ptrlvl)
 		BS2P_SetAstNodeAttrI(n0, "ptrlvl", ptrlvl);
@@ -237,7 +237,7 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 	{
 		if(arrlvl>1)
 		{
-			n1=BS2P_NewAstWrapArray(arr, arrlvl);
+			n1=BS2P_NewAstWrapArray(ctx, arr, arrlvl);
 			BS2P_SetAstNodeAttr(n0, "arrays", n1);
 		}else
 		{
@@ -295,7 +295,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 		
 		if(!strcmp(t0, "X,") || !strcmp(t0, "X;"))
 		{
-			n0=BS2P_NewAstNode("var");
+			n0=BS2P_NewAstNode(ctx, "var");
 			BS2P_SetAstNodeAttrS(n0, "name", tn);
 //			BS2P_SetAstNodeAttr(n0, "type", tyexp);
 			BS2P_SetAstNodeAttr(n0, "type", ty2);
@@ -336,7 +336,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 
 			n2=BS2P_ParseBlockStatement(ctx);
 
-			n0=BS2P_NewAstNode("func");
+			n0=BS2P_NewAstNode(ctx, "func");
 			BS2P_SetAstNodeAttrS(n0, "name", tn);
 //			BS2P_SetAstNodeAttr(n0, "type", tyexp);
 			BS2P_SetAstNodeAttr(n0, "type", ty2);
@@ -359,7 +359,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 	
 	if(nvars>1)
 	{
-		n1=BS2P_NewAstWrapArray(varlst, nvars);
+		n1=BS2P_NewAstWrapArray(ctx, varlst, nvars);
 		n0=BS2P_ParseWrapSimpleTagVal(ctx, "vars", n1);
 		return(n0);
 	}
@@ -414,7 +414,7 @@ dtVal BS2P_TryParseDecl(BS2CC_CompileContext *ctx)
 
 			n2=BS2P_ParseBlockStatement(ctx);
 
-			n0=BS2P_NewAstNode("func");
+			n0=BS2P_NewAstNode(ctx, "func");
 			BS2P_SetAstNodeAttrS(n0, "name", fn);
 //			BS2P_SetAstNodeAttr(n0, "type", tyexp);
 			if(dtvTrueP(ty2))
@@ -438,7 +438,7 @@ dtVal BS2P_TryParseDecl(BS2CC_CompileContext *ctx)
 			n2=BS2P_ParsePackageStatement(ctx);
 //			i=0;
 
-			n0=BS2P_NewAstNode("package");
+			n0=BS2P_NewAstNode(ctx, "package");
 			
 			if(dtvTrueP(modi))
 				BS2P_SetAstNodeAttr(n0, "modi", modi);
@@ -458,7 +458,7 @@ dtVal BS2P_TryParseDecl(BS2CC_CompileContext *ctx)
 
 			BS2P_ParseExpectOptToken(ctx, "X;");
 
-			n0=BS2P_NewAstNode("import");
+			n0=BS2P_NewAstNode(ctx, "import");
 			
 			if(dtvTrueP(modi))
 				BS2P_SetAstNodeAttr(n0, "modi", modi);
@@ -492,7 +492,7 @@ dtVal BS2P_TryParseDecl(BS2CC_CompileContext *ctx)
 //			i=0;
 
 //			n0=BS2P_NewAstNode("class");
-			n0=BS2P_NewAstNode(t0+1);
+			n0=BS2P_NewAstNode(ctx, t0+1);
 			
 			if(dtvTrueP(modi))
 				BS2P_SetAstNodeAttr(n0, "modi", modi);
@@ -562,7 +562,7 @@ dtVal BS2P_TryParseDeclSingle(BS2CC_CompileContext *ctx,
 		BS2P_ParseExpectToken(ctx, "X)");
 		n2=BS2P_ParseBlockStatement(ctx);
 
-		n0=BS2P_NewAstNode("func");
+		n0=BS2P_NewAstNode(ctx, "func");
 		BS2P_SetAstNodeAttrS(n0, "name", tn);
 		BS2P_SetAstNodeAttr(n0, "type", tyexp);
 		if(dtvTrueP(modif))
@@ -576,7 +576,7 @@ dtVal BS2P_TryParseDeclSingle(BS2CC_CompileContext *ctx,
 		varlst[nvars++]=n0;
 	}else
 	{
-		n0=BS2P_NewAstNode("var");
+		n0=BS2P_NewAstNode(ctx, "var");
 		BS2P_SetAstNodeAttrS(n0, "name", tn);
 		BS2P_SetAstNodeAttr(n0, "type", tyexp);
 		if(dtvTrueP(modif))
@@ -628,8 +628,8 @@ dtVal BS2P_TryParseArgDecl(BS2CC_CompileContext *ctx)
 		}else
 			{ n1=DTV_NULL; }
 
-		n0=BS2P_NewAstNode("var");
-		BS2P_SetAstNodeAttrS(n0, "name", tn);
+		n0=BS2P_NewAstNode(ctx, "var");
+		BS2P_SetAstNodeAttrS(n0, "name", fn);
 		BS2P_SetAstNodeAttr(n0, "type", tyid);
 //		if(dtvTrueP(modif))
 //			BS2P_SetAstNodeAttr(n0, "modi", modif);
@@ -678,6 +678,6 @@ dtVal BS2P_ParseFunVars(BS2CC_CompileContext *ctx)
 	if(nvars<1)
 		return(DTV_NULL);
 	
-	n1=BS2P_NewAstWrapArray(vars, nvars);
+	n1=BS2P_NewAstWrapArray(ctx, vars, nvars);
 	return(n1);
 }

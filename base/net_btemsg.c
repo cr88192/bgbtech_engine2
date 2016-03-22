@@ -293,6 +293,7 @@ int BTEIFGL_NET_ProcessSubMsgTWOCC(
 {
 	frgl_printf("Got Msg Sz=%d, tcc=%s(%08X)\n",
 		frgl_twocc2str(fcc), sz, fcc);
+	return(0);
 }
 
 int BTEIFGL_NET_ProcessSubMsgFOURCC(
@@ -392,6 +393,7 @@ int BTEIFGL_NET_ProcessSubMsgFOURCC(
 
 	frgl_printf("Unhandled Msg Sz=%d, fcc=%s(%08X)\n",
 		sz, frgl_fourcc2str(fcc), fcc);
+	return(0);
 }
 
 int BTEIFGL_NET_CheckSync(byte *cs, byte *cse)

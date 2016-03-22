@@ -473,6 +473,7 @@ BTEIFGL_API int GfxFont_DrawCharMode(int c,
 	font_mode=m;
 	GfxFont_DrawChar(c, x, y, w, h, r, g, b, a);
 	font_mode=tm;
+	return(0);
 }
 
 BTEIFGL_API int GfxFont_DrawCharModeQI(int c,

@@ -33,28 +33,171 @@
 #define BS2CC_TYFL_DLLEXPORT		0x40000000
 #define BS2CC_TYFL_DLLIMPORT		0x80000000
 
+#define BS2CC_ERRN_TMASK			0xF000
+#define BS2CC_ERRN_ERROR			0x1000
+#define BS2CC_ERRN_WARNING			0x2000
+#define BS2CC_ERRN_HINT				0x3000
+#define BS2CC_ERRN_FATAL			0x4000
+
+#define BS2CC_ERRN_CASEERROR		(BS2CC_ERRN_ERROR|1)
+#define BS2CC_ERRN_STUBERROR		(BS2CC_ERRN_ERROR|2)
+#define BS2CC_ERRN_DIVZERROR		(BS2CC_ERRN_ERROR|3)
+#define BS2CC_ERRN_ERRNODECL		(BS2CC_ERRN_ERROR|4)
+#define BS2CC_ERRN_ERRTOOFEWARGS	(BS2CC_ERRN_ERROR|5)
+#define BS2CC_ERRN_ERRTOOMANYARGS	(BS2CC_ERRN_ERROR|6)
+#define BS2CC_ERRN_ERRBADCONV		(BS2CC_ERRN_ERROR|7)
+
+#define BS2CC_ERRN_CONSTRANGE		(BS2CC_ERRN_WARNING|1)
+
+#define BS2CC_ERRN_FATALERRCNT		(BS2CC_ERRN_FATAL|1)
+
+#define BS2CC_VITYPE_UNKNOWN		0
+#define BS2CC_VITYPE_GBLVAR			1
+#define BS2CC_VITYPE_GBLFUNC		2
+#define BS2CC_VITYPE_STRVAR			3
+#define BS2CC_VITYPE_STRFUNC		4
+#define BS2CC_VITYPE_STRUCT			5
+#define BS2CC_VITYPE_CLASS			6
+#define BS2CC_VITYPE_IFACE			7
+
+//Type IDs:
+//  0..   15: Core Types
+// 16..  255: Extended Core Types
+//256..65535: Composite Types
+
+
+#define BS2CC_TYZ_MASK		0x0000000F		//Core (Major) Type
+#define BS2CC_TYE_MASK		0x0000FFFF		//Exteded Type (Fptr/Obj)
+#define BS2CC_TYI_MASK		0x00070000		//Indirection Levels
+#define BS2CC_TYS_MASK		0x3FF80000		//Array Size
+#define BS2CC_TYT_MASK		0xC0000000		//Type Type
+
+#define BS2CC_TYZ_SHR		0				//Core (Major) Type
+#define BS2CC_TYE_SHR		0				//Exteded Type (Fptr/Obj)
+#define BS2CC_TYI_SHR		16				//Indirection Levels
+#define BS2CC_TYS_SHR		19				//Array Size
+#define BS2CC_TYT_SHR		30				//Type Type
+
+#define BS2CC_TYZ_MASK2		0x000F			//Core (Major) Type
+#define BS2CC_TYE_MASK2		0xFFFF			//Exteded Type (Fptr/Obj)
+#define BS2CC_TYI_MASK2		0x0007			//Indirection Levels
+#define BS2CC_TYS_MASK2		0x07FF			//Array Size
+#define BS2CC_TYT_MASK2		0x0003			//Type Type
+
+#define BS2CC_TYI_A0		0x00000000		//T
+#define BS2CC_TYI_A1		0x00010000		//T[]
+#define BS2CC_TYI_A2		0x00020000		//T[][]
+#define BS2CC_TYI_A3		0x00030000		//T[][][]
+#define BS2CC_TYI_A4		0x00040000		//T[][][][]
+#define BS2CC_TYI_P1		0x00050000		//*T
+#define BS2CC_TYI_P2		0x00060000		//**T
+#define BS2CC_TYI_P3		0x00070000		//***T
+
+#define BS2CC_TYT_BASIC		0x00000000		//Basic Type
+#define BS2CC_TYT_OVF		0x40000000		//Overflow
+
+#define BS2CC_TYZ_INT		0x0000
+#define BS2CC_TYZ_LONG		0x0001
+#define BS2CC_TYZ_FLOAT		0x0002
+#define BS2CC_TYZ_DOUBLE	0x0003
+#define BS2CC_TYZ_ADDRESS	0x0004
+#define BS2CC_TYZ_UINT		0x0005
+#define BS2CC_TYZ_UBYTE		0x0006
+#define BS2CC_TYZ_SHORT		0x0007
+#define BS2CC_TYZ_SBYTE		0x0008
+#define BS2CC_TYZ_USHORT	0x0009
+#define BS2CC_TYZ_ULONG		0x000A
+#define BS2CC_TYZ_CONST		0x000B
+
+#define BS2CC_TYZ_ADDR		0x0004
+#define BS2CC_TYZ_VOID		0x000B
+#define BS2CC_TYZ_VARIANT	0x0010
+
 
 typedef struct BS2CC_CompileContext_s BS2CC_CompileContext;
 
 typedef struct BS2CC_VarInfo_s BS2CC_VarInfo;
 typedef struct BS2CC_CcFrame_s BS2CC_CcFrame;
+typedef struct BS2CC_PkgFrame_s BS2CC_PkgFrame;
 
 struct BS2CC_VarInfo_s
 {
-char *name;
-byte bty;
-int bmfl;
+BS2CC_VarInfo *next;		//next in list
+BS2CC_VarInfo *pknext;		//next in package
+BS2CC_PkgFrame *pkg;		//owning package (globals)
+BS2CC_VarInfo *obj;			//owning object (fields/methods)
+char *name;					//name (local)
+char *qname;				//name (fully qualified)
+char *sig;
+int bty;					//base type ID
+int rty;					//return type ID
+s64 bmfl;					//base flags
+int gid;					//var ID
+int vitype;					//varinfo type
+
+BS2CC_VarInfo *args[256];
+int nargs;
+BS2CC_CcFrame *body;
+dtVal typeExp;				//AST for variable type
+dtVal bodyExp;				//AST for function body
+dtVal initExp;				//AST for variable initialization
 };
 
 struct BS2CC_CcFrame_s
 {
 byte *ct;
+byte *cts;
+byte *cte;
+byte newtrace;
+byte zpf, zpo;
+int szt;
 
-byte stack_bty[256];	//temporary stack base-type
-int stackpos;			//stack pos for temp stack
+byte *cs;
+byte *cse;
 
-BS2CC_VarInfo locals[256];
+BS2CC_VarInfo *func;		//parent function
+
+byte stack_bty[256];		//temporary stack base-type
+int stackpos;				//stack pos for temp stack
+
+BS2CC_VarInfo *locals[256];
 int nlocals;
+int bargs;				//start of arguments list
+
+int tlbl_id[256];
+int tlbl_ct[256];
+int ntlbl;
+
+int trlc_id[256];
+int trlc_ct[256];
+int ntrlc;
+
+int nlbl_id[256];
+char *nlbl_n[256];
+int nnlbl;
+
+int constk[64];			//continue stack
+int brkstk[64];			//break stack
+int constkpos;			//continue stack pos
+int brkstkpos;			//break stack pos
+
+int gbltab[256];
+int littab[256];
+int ngbl;
+int nlit;
+};
+
+struct BS2CC_PkgFrame_s
+{
+BS2CC_PkgFrame *next;
+BS2CC_PkgFrame *parent;
+char *name;
+char *qname;
+
+BS2CC_VarInfo *vars;		//declarations
+
+BS2CC_PkgFrame *imps[256];
+int nimps;
 };
 
 struct BS2CC_CompileContext_s
@@ -69,6 +212,40 @@ int tok;
 char *cname;
 
 /* Bytecode Generation */
+BS2CC_CcFrame *frmstack[256];
+int frmstackpos;
+
+BS2CC_PkgFrame *pkg_first;
+
 BS2CC_CcFrame *frm;
+BS2CC_PkgFrame *pkg;
+BS2CC_VarInfo *obj;
+int gsseq;
+
+BS2CC_VarInfo *objstk[16];
+BS2CC_PkgFrame *pkgstk[16];
+int objstkpos;
+int pkgstkpos;
+
+// char *curpkg;
+BS2CC_VarInfo *globals[4096];
+int nglobals;
+
+
+int cwarnln[256];	//warning line number
+u16 cwarn[256];		//warning and hint types
+int cerrln[256];	//error line number
+u16 cerr[256];		//error type
+int cfatalln[16];	//fatal line number
+u16 cfatal[16];		//fatal type
+int ncwarn;			//number of warnings
+int ncerr;			//number of errors
+int ncfatal;		//number of fatal errors
+
+char *srcfns[256];
+int nsrcfns;
+
+char *srcfn;		//source file name
+int srcln;			//source line number
 };
 

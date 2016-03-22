@@ -192,6 +192,7 @@ int GfxDrv_V_SetWindowedMode()
 	MoveWindow(mainwindow, 0, 0, window_width, window_height, TRUE );
 		
 	GfxDrv_V_CenterWindow(mainwindow, window_width, window_height);
+	return(0);
 }
 
 int GfxDrv_V_GetDesktopSize()
@@ -214,6 +215,7 @@ int GfxDrv_V_GetDesktopSize()
 		{ window_max_width=window_fullscreen_width; }
 	if(window_fullscreen_height>window_max_height)
 		{ window_max_height=window_fullscreen_height; }
+	return(0);
 }
 
 int GfxDrv_V_SetFullscreenMode()
@@ -715,6 +717,7 @@ BTEIFGL_API int GfxDrv_Start()
 	{
 		GfxDrv_V_SetWindowedMode();
 	}
+	return(0);
 }
 
 BTEIFGL_API int GfxDrv_SetupThreadShareLists()
@@ -767,6 +770,7 @@ BTEIFGL_API int GfxDrv_TeardownThreadShareLists()
 	wglMakeCurrent(NULL, NULL);
 	if(hrc)
 		wglDeleteContext(hrc);
+	return(0);
 }
 
 BTEIFGL_API int GfxDrv_Init(void *hInstance, int nCmdShow, int *rkill)
@@ -774,6 +778,7 @@ BTEIFGL_API int GfxDrv_Init(void *hInstance, int nCmdShow, int *rkill)
 	gfxdrv_hInstance=hInstance;
 	gfxdrv_nCmdShow=nCmdShow;
 	gfxdrv_rkill=rkill;
+	return(0);
 }
 
 BTEIFGL_API int GfxDrv_SetInstance(void *hInstance, int nCmdShow)
@@ -781,11 +786,13 @@ BTEIFGL_API int GfxDrv_SetInstance(void *hInstance, int nCmdShow)
 	gfxdrv_hInstance=hInstance;
 	gfxdrv_nCmdShow=nCmdShow;
 //	gfxdrv_rkill=rkill;
+	return(0);
 }
 
 BTEIFGL_API int GfxDrv_SetKill(int *rkill)
 {
 	gfxdrv_rkill=rkill;
+	return(0);
 }
 
 #endif

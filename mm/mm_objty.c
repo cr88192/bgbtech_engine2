@@ -189,6 +189,7 @@ void *BGBDT_MM_AllocLLn(char *type, int size, char *fn, int ln)
 	tid=BGBDT_MM_GetIndexObjTypeName(type);
 	lid=BGBDT_MM_GetIndexObjLLn(fn, ln);
 	ptr=BGBDT_MM_AllocObject(tid, size, lid);
+	return(ptr);
 }
 
 void BGBDT_MM_FreeAny(void *ptr)

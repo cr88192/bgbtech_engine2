@@ -109,6 +109,8 @@ char *BS2P_ReadUtf8(char *sb, int *rv)
 		*rv=v;
 		return((char *)s);
 	}
+	
+	return(NULL);
 }
 
 char *BS2P_EmitUtf8(char *t, int v)
@@ -139,6 +141,8 @@ char *BS2P_EmitUtf8(char *t, int v)
 		*t++=0x80|(v&0x3F);
 		return(t);
 	}
+	
+	return(NULL);
 }
 
 char *BS2P_ParseTokenBasic(char *s, char *tb)
@@ -518,6 +522,8 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 	ctx->tokarr=lexarr;
 	ctx->ntok=ntok;
 	ctx->tok=0;
+
+	return(0);
 }
 
 char *BS2P_PeekToken(BS2CC_CompileContext *ctx, int idx)
@@ -565,4 +571,35 @@ int BS2P_GetCurPosition(BS2CC_CompileContext *ctx)
 void BS2P_SetCurPosition(BS2CC_CompileContext *ctx, int tok)
 {
 	ctx->tok=tok;
+}
+
+int BS2P_GetCurSourceLine(BS2CC_CompileContext *ctx,
+	char **rlfn, int *rlln)
+{
+	char *cs1, *cs2;
+	char *fn;
+	int ln;
+	
+	cs2=BS2P_GetCurSrcPosition(ctx, 0);
+	cs1=ctx->srcbuf;
+	
+	fn="unknown";
+	ln=1;
+	while(cs1<cs2)
+	{
+		while(*cs1 && *cs1!='\n')
+			cs1++;
+		if(*cs1=='\n')
+		{
+			cs1++;
+			ln++;
+			continue;
+		}
+//		break;
+		return(-1);
+	}
+	
+	*rlfn=fn;
+	*rlln=ln;
+	return(0);
 }

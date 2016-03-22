@@ -525,6 +525,7 @@ BTEIFGL_API int Tex_HalfSample(byte *src, int w, int h)
 			(src[((i2*w+j2)<<2)+3]+		src[((i2*w+(j2+1))<<2)+3]+
 			src[(((i2+1)*w+j2)<<2)+3]+	src[(((i2+1)*w+(j2+1))<<2)+3])>>2;
 	}
+	return(0);
 }
 #endif
 
@@ -560,6 +561,7 @@ BTEIFGL_API int Tex_HalfSample2(byte *src, int w, int h)
 		if(k>255)k=255;
 		src[((i*w2+j)<<2)+3]=k;
 	}
+	return(0);
 }
 
 BTEIFGL_API double Tex_Sinc(double x)
@@ -865,6 +867,7 @@ BTEIFGL_API int Tex_SplinePolateRGBA8(byte *src, int w, int h,
 //		g=tva[2]+yg*(tva[2]-tva[3]);
 //		rgba[k]=f*yg+g*yf;
 	}
+	return(0);
 }
 
 BTEIFGL_API int Tex_ResampleSpline(byte *src, int iw, int ih,
@@ -1215,6 +1218,7 @@ static int tex_use_colorfmt=-1;
 BTEIFGL_API int Tex_SetUseColorFormat(int clrfmt)
 {
 	tex_use_colorfmt=clrfmt;
+	return(0);
 }
 
 BTEIFGL_API int Tex_GetLastColorFormat()
@@ -2852,13 +2856,15 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 		if(i>=0) { tex_hash2[hi]=i; return(i); }
 #endif
 
-		t=sprintf(tb1, "%s.bmp", name);
+//		t=sprintf(tb1, "%s.bmp", name);
+		sprintf(tb1, "%s.bmp", name);
 		i=Tex_LoadFile(tb1, w, h);
 //		t=gcrsprint("%s.bmp", name);
 //		i=Tex_LoadFile(t, w, h);
 		if(i>=0) { tex_hash2[hi]=i; return(i); }
 
-		t=sprintf(tb1, "%s.pcx", name);
+//		t=sprintf(tb1, "%s.pcx", name);
+		sprintf(tb1, "%s.pcx", name);
 		i=Tex_LoadFile(tb1, w, h);
 //		t=gcrsprint("%s.pcx", name);
 //		i=Tex_LoadFile(t, w, h);
@@ -3245,11 +3251,12 @@ BTEIFGL_API int Tex_LoadFileBaseSuffix(
 BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 	byte *imgbuf, int imgsz, int *rw, int *rh)
 {
-	VFILE *fd;
+//	VFILE *fd;
 	byte *buf;
 	char *t;
 
 	buf=NULL;
+	t=type;
 
 #if 0
 	if(!stricmp(type, "jpg") || !stricmp(type, "jpeg"))
@@ -3287,12 +3294,13 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 #endif
 
 #if 1
-	if(!stricmp(t, "png"))
+	if(!stricmp(type, "png"))
 	{
 //		printf("load png %s\n", name);
 //		buf=PDPNG_Load(fd, w, h);
-		buf=Img_LoadPNG(fd, rw, rh);
-		vfclose(fd);
+//		buf=Img_LoadPNG(fd, rw, rh);
+		buf=BGBBTJ_BufPNG_Decode(imgbuf, imgsz, rw, rh);
+//		vfclose(fd);
 	}
 #endif
 

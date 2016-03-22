@@ -726,6 +726,7 @@ BTEIFGL_API int frglEnableVertexAttribArray(int idx)
 	}
 
 	fcn(idx);
+	return(0);
 }
 
 BTEIFGL_API int frglDisableVertexAttribArray(int idx)
@@ -741,6 +742,7 @@ BTEIFGL_API int frglDisableVertexAttribArray(int idx)
 	}
 
 	fcn(idx);
+	return(0);
 }
 
 BTEIFGL_API int frglActiveTexture(int idx)
@@ -756,6 +758,7 @@ BTEIFGL_API int frglActiveTexture(int idx)
 	}
 
 	fcn(GL_TEXTURE0+idx);
+	return(0);
 }
 
 BTEIFGL_API int frglMultiTexCoord1f(int idx, float s)

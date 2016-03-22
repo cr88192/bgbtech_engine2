@@ -360,3 +360,6 @@ BTEIFGL_API double GPIO_GetDeltaTimeRtcUS(s64 *rt0)
 	t=dt;
 	return(t);
 }
+
+BTEIFGL_API s64 GPIO_GetTimeRtcUS2(void)
+	{ return(GPIO_GetTimeRtcUS()); }

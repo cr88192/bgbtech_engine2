@@ -231,6 +231,7 @@ int BGBDT_VoxMesh_EmitQuad(BGBDT_VoxChunkMesh *mesh,
 {
 	BGBDT_VoxMesh_EmitTriangle(mesh, v0, v1, v2, mat, atxy, light);
 	BGBDT_VoxMesh_EmitTriangle(mesh, v0, v2, v3, mat, atxy, light);
+	return(0);
 }
 
 int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
@@ -382,6 +383,7 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 				x, y, z, td, tds);
 		}
 	}
+	return(0);
 }
 
 #if 0

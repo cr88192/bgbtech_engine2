@@ -85,7 +85,7 @@ void GPIO_DummyInitPin(int pin)
 //	gpio_pdm_pinusec[pin]=GPIO_GetTimeUS();	
 
 	if(!GPIO_WavGetTimeUS)
-		GPIO_WavGetTimeUS=GPIO_GetTimeRtcUS;
+		GPIO_WavGetTimeUS=GPIO_GetTimeRtcUS2;
 
 //	gpio_pdm_pinusec=GPIO_GetTimeUS();	
 //	gpio_pdm_pinusec=GPIO_GetTimeRtcUS();

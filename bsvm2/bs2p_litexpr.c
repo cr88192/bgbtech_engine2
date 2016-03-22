@@ -422,13 +422,13 @@ dtVal BS2P_ParseExprPostfix(BS2CC_CompileContext *ctx)
 			if(BS2P_CheckAstNodeTag(n0, "ident"))
 			{
 				t2=BS2P_GetAstNodeAttrS(n0, "value");
-				n0=BS2P_NewAstNode("call");
+				n0=BS2P_NewAstNode(ctx, "call");
 				BS2P_SetAstNodeAttrS(n0, "name", t2);
 				BS2P_SetAstNodeAttr(n0, "args", n1);
 			}else
 			{
 				n2=n0;
-				n0=BS2P_NewAstNode("call");
+				n0=BS2P_NewAstNode(ctx, "call");
 				BS2P_SetAstNodeAttr(n0, "func", n2);
 				BS2P_SetAstNodeAttr(n0, "args", n1);
 			}
@@ -849,7 +849,7 @@ dtVal BS2P_ParseExprList(BS2CC_CompileContext *ctx)
 	if(ndtna==1)
 		return(dtna[0]);
 	
-	n0=BS2P_NewAstArray(ndtna);
+	n0=BS2P_NewAstArray(ctx, ndtna);
 	for(i=0; i<ndtna; i++)
 	{
 		BS2P_SetAstArrayIdx(n0, i, dtna[i]);

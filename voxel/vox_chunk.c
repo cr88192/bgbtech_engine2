@@ -248,6 +248,7 @@ int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,
 			continue;
 		}
 	}
+	return(0);
 }
 
 int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
@@ -411,6 +412,7 @@ int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,
 	}
 	
 	BGBDT_Rice_FreeContext(ctx);
+	return(0);
 }
 
 int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,
@@ -940,6 +942,8 @@ int BGBDT_WorldTouchAdjacentChunks(BGBDT_VoxWorld *world,
 	xyz1.x=xyz.x; xyz1.y=xyz.y; xyz1.z=xyz.z+BGBDT_XYZ_OFS_VOXEL;
 	chk=BGBDT_WorldGetChunk(world, xyz1, acc2);
 	if(chk) { chk->flags|=fl; }
+
+	return(0);
 }
 
 BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,

@@ -270,6 +270,27 @@ static_inline int dtvTrueP(dtVal val)
 //	return((val.hi>>16)==tag);
 }
 
+static_inline bool dtvIsBoolP(dtVal val)
+{
+	int ret;
+	
+	if(val.hi==BGBDT_TAG_MCONST)
+	{
+		switch(val.lo)
+		{
+		case 2: case 3:
+			ret=1;
+			break;
+		default:
+			ret=0;
+		}
+		return(ret);
+	}
+	
+	return(0);
+}
+
+
 static_inline int dtvEqqP(dtVal val1, dtVal val2)
 {
 	return(val1.vi==val2.vi);
@@ -282,18 +303,24 @@ static_inline int dtvNeqP(dtVal val1, dtVal val2)
 
 static_inline s32 dtvUnwrapIntF(dtVal val)
 	{ return((s32)val.lo); }
-
 static_inline dtVal dtvWrapIntF(s32 v)
 	{ dtVal val; val.lo=(u32)v; val.hi=BGBDT_TAG_INT32; return(val); }
 
+// static_inline s32 dtvUnwrapInt(dtVal val)
+//	{ return(dtvUnwrapIntF(val)); }
+static_inline dtVal dtvWrapInt(s32 v)
+	{ return(dtvWrapIntF(v)); }
+
 static_inline u32 dtvUnwrapUIntF(dtVal val)
 	{ return(val.lo); }
-
 static_inline dtVal dtvWrapUIntF(u32 v)
 	{ dtVal val; val.lo=v; val.hi=BGBDT_TAG_UINT32; return(val); }
 
 static_inline dtVal dtvWrapChar(s32 v)
 	{ dtVal val; val.lo=(u32)v; val.hi=BGBDT_TAG_MCHAR; return(val); }
+
+static_inline dtVal dtvWrapBool(int v)
+	{ dtVal val; val.lo=v?3:2; val.hi=BGBDT_TAG_MCONST; return(val); }
 
 
 static_inline float dtvUnwrapFloatF(dtVal val)
@@ -306,6 +333,9 @@ static_inline dtVal dtvWrapFloatF(float v)
 	val.hi=BGBDT_TAG_FLOAT32;
 	return(val);
 }
+
+static_inline dtVal dtvWrapFloat(float v)
+	{ return(dtvWrapFloatF(v)); }
 
 
 static_inline s64 dtvUnwrapLongF(dtVal val)
@@ -348,6 +378,9 @@ static_inline dtVal dtvWrapDoubleF(double v)
 	return(val);
 }
 
+static_inline dtVal dtvWrapDouble(float v)
+	{ return(dtvWrapDoubleF(v)); }
+
 static_inline dtVal dtvWrapLong(s64 v)
 {
 	dtVal val;
@@ -364,6 +397,94 @@ static_inline dtVal dtvWrapLong(s64 v)
 	val.vi=h;
 	val.hi|=0x40000000U;
 	return(val);
+}
+
+static_inline int dtvIsSmallLongP(dtVal val)
+{
+	int v;
+	switch(val.hi>>28)
+	{
+	case 0:
+		v=0;
+		break;
+	case 1:
+		if(val.hi==BGBDT_TAG_INT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_UINT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_FLOAT32)
+			{ v=0; break; }
+		if(val.hi==BGBDT_TAG_MCONST)
+		{
+			switch(val.lo)
+			{
+			case 0: case 1:
+				v=0; break;
+			case 2: case 3:
+				v=1; break;
+			default:	v=0; break;
+			}
+			break;
+		}
+		if(val.hi==BGBDT_TAG_MCHAR)
+			{ v=1; break; }
+		if((val.hi>>24)==0x10)
+			{ v=1; break; }
+		v=0;
+		break;
+	case 4: case 5: case 6: case 7:
+		v=1; break;
+	case 8: case 9: case 10: case 11:
+		v=0; break;
+	default:
+		v=0;
+		break;
+	}
+	return(v);
+}
+
+static_inline int dtvIsSmallDoubleP(dtVal val)
+{
+	int v;
+	switch(val.hi>>28)
+	{
+	case 0:
+		v=0;
+		break;
+	case 1:
+		if(val.hi==BGBDT_TAG_INT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_UINT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_FLOAT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_MCONST)
+		{
+			switch(val.lo)
+			{
+			case 0: case 1:
+				v=0; break;
+			case 2: case 3:
+				v=1; break;
+			default:	v=0; break;
+			}
+			break;
+		}
+		if(val.hi==BGBDT_TAG_MCHAR)
+			{ v=1; break; }
+		if((val.hi>>24)==0x10)
+			{ v=1; break; }
+		v=0;
+		break;
+	case 4: case 5: case 6: case 7:
+		v=1; break;
+	case 8: case 9: case 10: case 11:
+		v=1; break;
+	default:
+		v=0;
+		break;
+	}
+	return(v);
 }
 
 static_inline s64 dtvUnwrapLong(dtVal val)
@@ -453,6 +574,11 @@ static_inline double dtvUnwrapDouble(dtVal val)
 	return(v);
 }
 
+static_inline int dtvUnwrapInt(dtVal val)
+{
+	return(dtvUnwrapLong(val));
+}
+
 
 BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty);
 
@@ -467,6 +593,8 @@ static_inline int dtvIsArrayP(dtVal arv)
 		objty_arrhead=BGBDT_MM_GetIndexObjTypeName(
 			"bgbdt_tagarrhead_t");
 	}
+	if((arv.hi>>28)==12)
+		return(1);
 	return(dtvCheckPtrTagP(arv, objty_arrhead));
 }
 

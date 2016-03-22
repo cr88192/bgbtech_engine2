@@ -185,8 +185,20 @@ Ix: Variable Index
 *  80-BF, Variable 0080-3FFF
 
 Jx: Variable Pair
-*  00-7F, I (High 3), J (Low 4)
-*  80-BF, I (High 7), J (Low 7)
+*  00-7F, I (High  3), J (Low  4)
+*  80-BF, I (High  7), J (Low  7)
+*  C0-DF, I (High 10), J (Low 11)
+
+Kx: Variable+Constant
+*  00-7F, I (High  3), C (Low  4)
+*  80-BF, I (High  5), C (Low  9)
+*  C0-DF, I (High  8), C (Low 13)
+*  E0-EF, I (High  8), C (Low 20)
+*  F0-F7, I (High  8), C (Low 27)
+*  F8-FB, I (High 10), C (Low 32)
+*  FC/FD, I (High 10), C (Low 39)
+*  FE   , I (High 12), C (Low 44)
+*  FF   , I (High 12), C (Low 52)
 
 Cx: Constant (Depends on Type)
 *  Signed Int Types, Interpreted as a sign-folded VLI
@@ -194,8 +206,18 @@ Cx: Constant (Depends on Type)
 *  Float/Double, Fx
 *  Address, VLI interpreted as constant pool index.
 *  Special Value, Interpreted as a magic number.
+**  00-7F
+**  80-BF XX
+**  C0-DF XX(x2)
+**  E0-EF XX(x3)
+**  F0-F7 XX(x4)
+**  F8-FB XX(x5)
+**  FC-FD XX(x6)
+**  FE    XX(x7)
+**  FF    XX(x8)
 
 Fx: Variable Length Packed Float
+* (Drop): Direct Coding:
 *  00-7F XX, S.5.9
 **    Float15 (Shave H-Float)
 *  80-BF XX XX, S.8.13
@@ -208,42 +230,57 @@ Fx: Variable Length Packed Float
 **    Shave Double
 *  FE XX XX XX XX, Float32
 *  FF XX XX XX XX XX XX XX XX, Double
+* (New) Coded the same as Kx.
+** First value encodes exponent.
+** Second value encodes fractional bits.
+** The mantissa is represented as an integer which is scaled by 2^e.
 
 Gx: Global Index
+
+Ax: Address
+* Encoded as a Signed VLI
+* The VLI encodes an offset relative to the end of the instruction.
 
 Za: Type+Count
 *  Used for arg lists, which use a basic RLE scheme.
 *  A indicates how many args use this type.
 
 Zi: Type+Local
-*  Z0-Z7: 0-7
-*  Z8-ZB: 8-1023
-*  ZC/ZD: 1024-131071
+* (Drop)  Z0-Z7: 0-7
+* (Drop)  Z8-ZB: 8-1023
+* (Drop)  ZC/ZD: 1024-131071
+* (New) It consists of a VLI value with Z coded in the low 4 bits.
 
 Zn: Type+Count
 
+Zo: Type+Binary
+Zc: Type+Compare
 
 Zx: Type+Constant
-*  Z0-Z7: 0-7
-*  Z8-ZB: 8-1023
-*  ZC/ZD: 1024-131071
-*  ZE: Raw 32-bit Value
-*  ZF: Raw 64-bit Value
+* (Drop)  Z0-Z7: 0-7
+* (Drop)  Z8-ZB: 8-1023
+* (Drop)  ZC/ZD: 1024-131071
+* (Drop)  ZE: Raw 32-bit Value
+* (Drop)  ZF: Raw 64-bit Value
+* (New) It consists of a VLI value with Z stuck in the 4 low bits.
 *  Likewise, the type determines the interpretation of the value.
 ** Float/Double
-** Z0-Z7: -4.0 .. 3.0 (Integer)
-** Z8-ZB: Value/10.0
-** ZC: Value/100.0
-** ZD: Half-Float
-** ZE: Float
-** ZF: Double (N/A for Float)
+** (Drop) Z0-Z7: -4.0 .. 3.0 (Integer)
+** (Drop) Z8-ZB: Value/10.0
+** (Drop) ZC: Value/100.0
+** (Drop) ZD: Half-Float
+** (Drop) ZE: Float
+** (Drop) ZF: Double (N/A for Float)
+** (New) Zx value encodes exponent.
+** (New) Another VLI follows encoding the mantissa bits.
 
-Special Value:
+Zx: Z=Special Value:
 *  0, null (A)
 *  1, undefined (A)
 *  2, true (A)
 *  3, false (A)
 *  4, this (A)
+
 
 Instructions
 * 00, ADDI	//A B => A+B
@@ -303,18 +340,18 @@ Instructions
 * 2F Jx, MVD		//MOV I to J
 ** Move a value between a pair of registers.
 
-* 30 AA AA, JEQ		//Jump Equal ( (A==0) => )
-* 31 AA AA, JNE		//Jump Not-Equal ( (A!=0) => )
-* 32 AA AA, JLT		//Jump Less Than ( (A<0) => )
-* 33 AA AA, JGT		//Jump Greater Than ( (A>0) => )
-* 34 AA AA, JLE		//Jump Less Equal ( (A<=0) => )
-* 35 AA AA, JGE		//Jump Greater Equal ( (A>=0) => )
+* 30 Ax, JEQ		//Jump Equal ( (A==0) => )
+* 31 Ax, JNE		//Jump Not-Equal ( (A!=0) => )
+* 32 Ax, JLT		//Jump Less Than ( (A<0) => )
+* 33 Ax, JGT		//Jump Greater Than ( (A>0) => )
+* 34 Ax, JLE		//Jump Less Equal ( (A<=0) => )
+* 35 Ax, JGE		//Jump Greater Equal ( (A>=0) => )
 ** Compare the item on the top of the stack with 0 and jump accordingly.
 
-* 36 ZO AA AA, JCMP	//Jump-Compare ( (A op B) =>)
+* 36 ZO Ax, JCMP	//Jump-Compare ( (A op B) =>)
 ** Compare two stack items and jump according to the operator.
 
-* 37 AA AA, JMP		//Jump
+* 37 Ax, JMP		//Jump
 ** Performs an unconditional jump.
 
 * 38, CMPI			//Compare Int
@@ -381,18 +418,18 @@ Instructions
 * 64 ZO Jx, BINOPLL		//Binary Operator (I op J)
 * 65 ZO Jx, CMPOPLL		//Compare Operator (I op J)
 * 66 ZO Cx, BINOPC		//Binary Operator (A op C)
-* 67 ZO Ix Cx, BINOPLC	//Binary Operator (I op C)
+* 67 ZO Kx, BINOPLC	//Binary Operator (I op C)
 * 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
-* 69 ZO Ix Cx, CMPOPLC	//Compare Operator (I op C)
+* 69 ZO Kx, CMPOPLC	//Compare Operator (I op C)
 
 ** Binary compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
 
-* 6A Zn, PUSH				//Push n Items (null/zero)
-* 6B Zn, POP				//Pop n Items
-* 6C Zn, SWAP				//Swap top-of-stack with Item n
-* 6D Zn, ROTL				//Rotate Left 1 position over n items.
-* 6E Zn, ROTR				//Rotate Right 1 position over n items.
-* 6F Zn, DUP				//Duplicate Top n items.
+* 6A Zn, PUSHN				//Push n Items (null/zero)
+* 6B Zn, POPN				//Pop n Items
+* 6C Zn, SWAPN				//Swap top-of-stack with Item n
+* 6D Zn, ROTLN				//Rotate Left 1 position over n items.
+* 6E Zn, ROTRN				//Rotate Right 1 position over n items.
+* 6F Zn, DUPN				//Duplicate Top n items.
 
 ** Stack operations. May work on groups of items.
 ** The items are required to be of the base type given by Z.
@@ -400,7 +437,7 @@ Instructions
 * 70 Gx, CALLG			//Call Static/Global Function
 * 71 Gx, CALLA			//Call Function Reference (Pops Func)
 * 72 Gx, CALLV			//Call Virtual Method (Pops Obj)
-* 73 Gx Ix, CALLL			//Call Local Function Reference
+* 73 Gx Ix, CALLL		//Call Local Function Reference
 
 ** These call operations use fixed argument lists. The argument list comes from the signature of the referenced global. This is either a function or a function prototype.
 
@@ -437,7 +474,7 @@ Instructions
 * 80 Ix, LDRL				//Load Ref To Local
 * 81 Gx, LDROS			//Load Ref to Instance Variable, ( O => A )
 * 82 Gx, LDRGS			//Load Ref to Global Variable, ( => A )
-* 83 Ix, LDRL				//Load Ref To Lexical
+* 83 Ix, LDRLX				//Load Ref To Lexical
 
 ** Load a reference to a variable. This reference is only valid while the variable is in scope. The reference may be accessed as a single element array of the same type as the variable.
 ** Normally, the reference will be to the base type, rather than the canonical type.
@@ -517,6 +554,25 @@ Instructions
 * BE Ix, SHLIL		//A B => A<<I
 * BF Ix, SARIL		//A B => A>>I
 ** Integer arithmetic operations with between a stack item and a constant or local.
+
+* C0, HNOEX			//Non-Execute, Trace
+* C1, HNOEX1		//Non-Execute, 1 Op
+* C2, HNOEX2		//Non-Execute, 2 Ops
+* C3, HNOEX3		//Non-Execute, 3 Ops
+** These indicate that the following instructions are unreachable.
+** It is invalid for any control-flow path to target a NOEX or its ops.
+** HNOEX indicates a non-executable sequence terminated by a LABEL.
+** HNOEX1..HNOEX3 indicate 1-3 non-executable instructions.
+*** A new trace will be started following these instructions.
+
+* C4 Zc, RETC			//Return Constant
+
+* C6, UCMPI				//Unsigned Compare Int
+* C7, UCMPL				//Unsigned Compare Long
+* C8 Cx, CMPIC			//Compare Int Const
+* C9 Ix, CMPIL			//Compare Int Local
+* CA Kx, CMPILC			//Compare Int Local Const
+* CB Jx, CMPILL			//Compare Int Local Local
 
 * E1 00, ADDAA			//Variant Add
 * E1 01, SUBAA			//Variant Subtract

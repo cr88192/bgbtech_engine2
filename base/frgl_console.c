@@ -369,6 +369,7 @@ BTEIFGL_API int Con_ReInit()
 		con->xs=wxs/8;
 		con->ys=wys/8;
 	}
+	return(0);
 }
 
 BTEIFGL_API int Con_RenderBackground()
@@ -426,6 +427,7 @@ BTEIFGL_API int Con_RenderBackgroundInfo(FRGL_ConsoleInfo *con)
 		}
 	}
 	frglEnd();
+	return(0);
 }
 
 BTEIFGL_API int Con_Render()
@@ -608,6 +610,7 @@ BTEIFGL_API int Con_RenderBackgroundVBO(
 		}
 	}
 	FRGL_TextVBO_End(vbo);
+	return(0);
 }
 
 BTEIFGL_API int Con_RenderTextVBO(
@@ -756,6 +759,7 @@ BTEIFGL_API int Con_RenderInfo2(FRGL_ConsoleInfo *con)
 	}
 
 	FRGL_TextVBO_Draw(vbo);
+	return(0);
 }
 
 void cb_scrollup()
@@ -1049,6 +1053,7 @@ BTEIFGL_API int Con_HandleKey(int num, int down)
 	if(con_info->HandleKey)
 		con_info->HandleKey(con_info, num, down);
 //	return(Con_HandleKeyInfo(con_info, num, down));
+	return(0);
 }
 
 BTEIFGL_API int Con_HandleKeyInfo(FRGL_ConsoleInfo *con, int num, int down)

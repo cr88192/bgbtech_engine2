@@ -132,7 +132,7 @@ int bgbdt_strlen16(u16 *str)
 	return(s-str);
 }
 
-int bgbdt_strcpy16(u16 *sdst, u16 *ssrc)
+void bgbdt_strcpy16(u16 *sdst, u16 *ssrc)
 {
 	u16 *s, *t;
 	
@@ -345,11 +345,11 @@ BTEIFGL_API char *BGBDT_TagStr_GetUtf8(dtVal val)
 		tbuf=frgl_ralloc(len*3+1);
 		ws=(u16 *)str;
 		t=(byte *)tbuf;
-		while(*s)
+		while(*ws)
 		{
 			if(*ws<0x80)
 				{ *t++=*ws++; continue; }
-			i=*s++;
+			i=*ws++;
 			if(i<0x800)
 			{
 				*t++=0xC0|(i>>6);

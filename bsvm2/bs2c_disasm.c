@@ -84,22 +84,22 @@ char *name;
 {"4D",        "STIXA"},
 {"4E",        "STIXB"},
 {"4F",        "STIXS"},
-{"50Cx",      "LDIXIC"},
-{"51Cx",      "LDIXLC"},
-{"52Cx",      "LDIXFC"},
-{"53Cx",      "LDIXDC"},
-{"54Cx",      "STIXIC"},
-{"55Cx",      "STIXLC"},
-{"56Cx",      "STIXFC"},
-{"57Cx",      "STIXDC"},
-{"58Cx",      "LDIXSBC"},
-{"59Cx",      "LDIXUBC"},
-{"5ACx",      "LDIXSSC"},
-{"5BCx",      "LDIXUSC"},
-{"5CCx",      "LDIXAC"},
-{"5DCx",      "STIXAC"},
-{"5ECx",      "STIXBC"},
-{"5FCx",      "STIXSC"},
+{"50Ci",      "LDIXIC"},
+{"51Ci",      "LDIXLC"},
+{"52Ci",      "LDIXFC"},
+{"53Ci",      "LDIXDC"},
+{"54Ci",      "STIXIC"},
+{"55Ci",      "STIXLC"},
+{"56Ci",      "STIXFC"},
+{"57Ci",      "STIXDC"},
+{"58Ci",      "LDIXSBC"},
+{"59Ci",      "LDIXUBC"},
+{"5ACi",      "LDIXSSC"},
+{"5BCi",      "LDIXUSC"},
+{"5CCi",      "LDIXAC"},
+{"5DCi",      "STIXAC"},
+{"5ECi",      "STIXBC"},
+{"5FCi",      "STIXSC"},
 {"60Zo",      "BINOP"},
 {"61Zo",      "CMPOP"},
 {"62ZoIx",    "BINOPL"},
@@ -221,7 +221,7 @@ char *name;
 {"C4Zx",      "RETC"},
 {"C6",        "UCMPI"},
 {"C7",        "UCMPL"},
-{"C8Cx",      "CMPIC"},
+{"C8Ci",      "CMPIC"},
 {"C9Ix",      "CMPIL"},
 {"CAKx",      "CMPILC"},
 {"CBJx",      "CMPILL"},
@@ -828,6 +828,7 @@ int bs2c_disasm_PrintItem(
 
 	double f;
 	s64 li;
+	char *s;
 	char *ps, *ips;
 	int i, j;
 
@@ -870,7 +871,7 @@ int bs2c_disasm_PrintItem(
 			ps+=2;
 			cs=bs2c_disasm_ReadFxVLI(cs, &f);
 
-			BGBDT_MM_PrintPutPrintf(prn, "%f", f);
+			BGBDT_MM_PrintPutPrintf(prn, "%f%c", f, pat_zz[frm->zpf]);
 			if(*ps)
 				BGBDT_MM_PrintPutPrintf(prn, ", ");
 
@@ -894,7 +895,7 @@ int bs2c_disasm_PrintItem(
 			break;
 		}
 
-		BGBDT_MM_PrintPutPrintf(prn, "%d", i);
+		BGBDT_MM_PrintPutPrintf(prn, "%d%c", i, pat_zz[frm->zpf]);
 		if(*ps)
 			BGBDT_MM_PrintPutPrintf(prn, ", ");
 
@@ -961,7 +962,7 @@ int bs2c_disasm_PrintItem(
 			li=(li>>1)^((li<<63)>>63);
 			f=li*pow(2.0, j);
 
-			BGBDT_MM_PrintPutPrintf(prn, "%f", f);
+			BGBDT_MM_PrintPutPrintf(prn, "%f%c", f, pat_zz[frm->zpf]);
 			if(*ps)
 				BGBDT_MM_PrintPutPrintf(prn, ", ");
 
@@ -1080,10 +1081,11 @@ int bs2c_disasm_PrintItem(
 		if((i==BSVM2_OPZ_FLOAT) || (i==BSVM2_OPZ_DOUBLE))
 		{
 			cs=bs2c_disasm_ReadVLI2(cs, &li);
+			j=(j>>1)^((j<<31)>>31);
 			li=(li>>1)^((li<<63)>>63);
 			f=li*pow(2.0, j);
 
-			BGBDT_MM_PrintPutPrintf(prn, "%f", f);
+			BGBDT_MM_PrintPutPrintf(prn, "%f%c", f, pat_zz[i]);
 			if(*ps)
 				BGBDT_MM_PrintPutPrintf(prn, ", ");
 
@@ -1106,6 +1108,27 @@ int bs2c_disasm_PrintItem(
 				*rpa1=ps;
 				return(1);
 			}
+		}
+
+		if(i==BSVM2_OPZ_VOID)
+		{
+			switch(j)
+			{
+			case 0: s="NULL"; break;
+			case 1: s="UNDEF"; break;
+			case 2: s="TRUE"; break;
+			case 3: s="FALSE"; break;
+			case 4: s="THIS"; break;
+			default: s="?UNK"; break;
+			}
+			
+			BGBDT_MM_PrintPutPrintf(prn, "%s", s);
+			if(*ps)
+				BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+			*rcs1=cs;
+			*rpa1=ps;
+			return(1);
 		}
 
 		switch(i)
@@ -1163,7 +1186,7 @@ int bs2c_disasm_PrintItem(
 	return(0);
 }
 
-void BS2C_DisAsmOp(
+int BS2C_DisAsmOp(
 	BGBDT_MM_ParsePrintInfo *prn,
 	BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm)
 {
@@ -1175,7 +1198,7 @@ void BS2C_DisAsmOp(
 	frm->zpf=0;
 	frm->zpo=0;
 
-	cs0=frm->cs; pn=0;
+	cs0=frm->cs; pn=-1;
 	for(i=0; bs2c_insns[i].frmt; i++)
 	{
 		if(bs2c_disasm_matchPrefix(
@@ -1185,6 +1208,13 @@ void BS2C_DisAsmOp(
 				pn=i;
 				break;
 			}
+	}
+	
+	if(pn<0)
+	{
+		BGBDT_MM_PrintPutPrintf(prn, "%04X:%04X <Error>\n",
+			frm->func->gid, (cs0-frm->cts));
+		return(-1);
 	}
 	
 	ps2=ps1; cs2=cs1;
@@ -1213,18 +1243,22 @@ void BS2C_DisAsmOp(
 	BGBDT_MM_PrintPutPrintf(prn, "\n");
 	
 	frm->cs=cs2;
+	return(0);
 }
 
 void BS2C_DisAsmFuncBody(
 	BGBDT_MM_ParsePrintInfo *prn,
 	BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm)
 {
+	int i;
+
 	frm->cs=frm->cts;
 	frm->cse=frm->cts+frm->szt;
 	
 	while(frm->cs<frm->cse)
 	{
-		BS2C_DisAsmOp(prn, ctx, frm);
+		i=BS2C_DisAsmOp(prn, ctx, frm);
+		if(i<0)break;
 	}
 }
 

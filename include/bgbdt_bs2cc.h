@@ -146,11 +146,15 @@ int gid;					//var ID
 int vitype;					//varinfo type
 
 BS2CC_VarInfo *args[256];
-int nargs;
+BS2CC_VarInfo *iface[256];
+BS2CC_VarInfo *super;
+int nargs, niface;
 BS2CC_CcFrame *body;
 dtVal typeExp;				//AST for variable type
 dtVal bodyExp;				//AST for function body
 dtVal initExp;				//AST for variable initialization
+dtVal extsExp;				//AST for extends
+dtVal implExp;				//AST for implements
 };
 
 struct BS2CC_CcFrame_s

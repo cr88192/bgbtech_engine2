@@ -736,6 +736,11 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		return;
 	}
 
+	if(!strcmp(tag, "empty_block"))
+	{
+		return;
+	}
+
 	BS2C_CompileExpr(ctx, expr, BSVM2_OPZ_VOID);
 }
 
@@ -1026,6 +1031,9 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	if(!strcmp(tag, "throw"))
 		return;
 
+	if(!strcmp(tag, "empty_block"))
+		return;
+
 	BS2C_CaseError(ctx);
 }
 
@@ -1111,10 +1119,7 @@ void BS2C_CompileStructFunc(BS2CC_CompileContext *ctx, dtVal expr)
 		vi->qname=vi->name;
 	}
 
-	if(dtvNullP(na))
-	{
-		vi->nargs=0;
-	}else if(dtvIsArrayP(na))
+	if(dtvIsArrayP(na))
 	{
 		vi->nargs=0;
 		l=dtvArrayGetSize(na);
@@ -1123,11 +1128,14 @@ void BS2C_CompileStructFunc(BS2CC_CompileContext *ctx, dtVal expr)
 			n0=dtvArrayGetIndexDtVal(na, i);
 			BS2C_CompileTopFuncArg(ctx, vi, n0);
 		}
-	}else
+	}else if(dtvTrueP(na))
 	{
 		vi->nargs=0;
 		BS2C_CompileTopFuncArg(ctx, vi, na);
-	}
+	}else
+	{
+		vi->nargs=0;
+	} 
 	
 	vi->bodyExp=nb;
 }
@@ -1313,10 +1321,7 @@ void BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr)
 		vi->qname=vi->name;
 	}
 
-	if(dtvNullP(na))
-	{
-		vi->nargs=0;
-	}else if(dtvIsArrayP(na))
+	if(dtvIsArrayP(na))
 	{
 		vi->nargs=0;
 		l=dtvArrayGetSize(na);
@@ -1325,12 +1330,15 @@ void BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr)
 			n0=dtvArrayGetIndexDtVal(na, i);
 			BS2C_CompileTopFuncArg(ctx, vi, n0);
 		}
-	}else
+	}else if(dtvTrueP(na))
 	{
 		vi->nargs=0;
 		BS2C_CompileTopFuncArg(ctx, vi, na);
+	}else
+	{
+		vi->nargs=0;
 	}
-	
+	 	
 	vi->bodyExp=nb;
 }
 
@@ -1378,7 +1386,7 @@ void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr)
 {
 	char tb[256];
 	dtVal n0, n1, n2, n3;
-	dtVal nn, nt, na, nb;
+	dtVal nn, nt, na, nb, ne, ni;
 	BS2CC_VarInfo *vi;
 	BS2CC_CcFrame *frm;
 	char *name, *tag;
@@ -1386,6 +1394,8 @@ void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr)
 	int i, j, k, l;
 
 	name=BS2P_GetAstNodeAttrS(expr, "name");
+	ne=BS2P_GetAstNodeAttr(expr, "exts");
+	ni=BS2P_GetAstNodeAttr(expr, "impl");
 	nb=BS2P_GetAstNodeAttr(expr, "body");
 	tag=BS2P_GetAstNodeTag(expr);
 	
@@ -1401,6 +1411,9 @@ void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr)
 	
 	vi->name=BS2P_StrSym(ctx, name);
 	vi->bty=BSVM2_OPZ_ADDRESS;
+
+	vi->extsExp=ne;
+	vi->implExp=ni;
 
 	if(ctx->pkg)
 	{
@@ -1595,6 +1608,38 @@ void BS2C_CompileRebuildFuncType(
 	vari->sig=BS2P_StrSym(ctx, tb);
 }
 
+void BS2C_CompileRebuildStructType(
+	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari)
+{
+	BS2CC_VarInfo *vi2;
+	dtVal ne;
+	char *fn;
+	int i, j, k;
+	
+	ne=vari->extsExp;
+	if(dtvIsArrayP(ne))
+	{
+		ne=dtvArrayGetIndexDtVal(ne, 0);
+		fn=BGBDT_TagStr_GetUtf8(ne);
+		i=BS2C_LookupVariGlobal(ctx, vari, fn);
+		if(i>=0)
+			{ vi2=ctx->globals[i]; }
+		else
+			{ vi2=NULL; }
+		vari->super=vi2;
+
+	}else if(dtvTrueP(ne))
+	{
+		fn=BGBDT_TagStr_GetUtf8(ne);
+		i=BS2C_LookupVariGlobal(ctx, vari, fn);
+		if(i>=0)
+			{ vi2=ctx->globals[i]; }
+		else
+			{ vi2=NULL; }
+		vari->super=vi2;
+	}
+}
+
 BTEIFGL_API void BS2C_CompileFuncs(
 	BS2CC_CompileContext *ctx)
 {
@@ -1619,6 +1664,14 @@ BTEIFGL_API void BS2C_CompileFuncs(
 			(vari->vitype==BS2CC_VITYPE_STRFUNC))
 		{
 			BS2C_CompileRebuildFuncType(ctx, vari);
+			continue;
+		}
+
+		if((vari->vitype==BS2CC_VITYPE_STRUCT) ||
+			(vari->vitype==BS2CC_VITYPE_CLASS) ||
+			(vari->vitype==BS2CC_VITYPE_IFACE))
+		{
+			BS2C_CompileRebuildStructType(ctx, vari);
 			continue;
 		}
 	}

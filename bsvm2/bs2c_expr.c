@@ -1,366 +1,5 @@
 #include <bteifgl.h>
 
-int BS2C_LookupLocal(BS2CC_CompileContext *ctx, char *name)
-{
-	BS2CC_VarInfo *vari;
-	int i, j;
-	
-	for(i=0; i<ctx->frm->nlocals; i++)
-	{
-		vari=ctx->frm->locals[i];
-		if(!strcmp(vari->name, name))
-			return(i);
-	}
-	return(-1);
-}
-
-int BS2C_LookupGlobal(BS2CC_CompileContext *ctx, char *name)
-{
-	BS2CC_VarInfo *vari;
-	int i, j;
-	
-	for(i=0; i<ctx->nglobals; i++)
-	{
-		vari=ctx->globals[i];
-		if(!vari->qname)
-			continue;
-		
-//		if(!strcmp(vari->name, name))
-		if(!strcmp(vari->qname, name))
-			return(i);
-	}
-	return(-1);
-}
-
-int BS2C_IndexFrameGlobal(BS2CC_CompileContext *ctx, int gix)
-{
-	BS2CC_VarInfo *vari;
-	int i, j;
-	
-	for(i=0; i<ctx->frm->ngbl; i++)
-	{
-		j=ctx->frm->gbltab[i];
-//		vari=ctx->globals[j];
-//		if(!strcmp(vari->name, name))
-		if(j==gix)
-		{
-			return(i);
-//			return(j);
-		}
-	}
-
-	j=gix;
-	if(j>=0)
-	{
-		i=ctx->frm->ngbl++;
-		ctx->frm->gbltab[i]=j;
-		return(i);
-//		return(j);
-	}
-	return(-1);
-}
-
-int BS2C_LookupFrameGlobal(BS2CC_CompileContext *ctx, char *name)
-{
-	BS2CC_VarInfo *vari;
-	int i, j;
-	
-	for(i=0; i<ctx->frm->ngbl; i++)
-	{
-		j=ctx->frm->gbltab[i];
-		vari=ctx->globals[j];
-		if(!strcmp(vari->name, name))
-		{
-			return(i);
-//			return(j);
-		}
-	}
-
-	j=-1;
-	if(ctx->frm->func)
-	{
-		j=BS2C_LookupVariGlobal(ctx,
-			ctx->frm->func, name);
-	}
-
-	if(j<0)
-		j=BS2C_LookupGlobal(ctx, name); 
-
-	if(j>=0)
-	{
-		i=ctx->frm->ngbl++;
-		ctx->frm->gbltab[i]=j;
-		return(i);
-//		return(j);
-	}
-	return(-1);
-}
-
-int BS2C_LookupPkgGlobal(
-	BS2CC_CompileContext *ctx,
-	BS2CC_PkgFrame *pkg,
-	char *name)
-{
-	BS2CC_VarInfo *cur;
-	
-	if(!pkg)
-		return(-1);
-	
-	cur=pkg->vars;
-	while(cur)
-	{
-		if(!strcmp(cur->name, name))
-			{ return(cur->gid); }
-		cur=cur->pknext;
-	}
-	return(-1);
-}
-
-int BS2C_LookupPkgImpGlobal(
-	BS2CC_CompileContext *ctx,
-	BS2CC_PkgFrame *pkg,
-	char *name)
-{
-	BS2CC_VarInfo *cur;
-	int i, j, k, l;
-	
-	if(!pkg)
-		return(-1);
-	
-	i=BS2C_LookupPkgGlobal(ctx, pkg, name);
-	if(i>=0)
-		return(i);
-
-	for(i=0; i<pkg->nimps; i++)
-	{
-		j=BS2C_LookupPkgGlobal(ctx, pkg->imps[i], name);
-		if(j>=0)
-			return(j);
-	}
-
-	return(-1);
-}
-
-int BS2C_LookupVariGlobal(
-	BS2CC_CompileContext *ctx,
-	BS2CC_VarInfo *vari,
-	char *name)
-{
-	int i, j;
-
-	i=BS2C_LookupPkgImpGlobal(ctx, vari->pkg, name);
-	if(i>=0)
-		return(i);
-
-	i=BS2C_LookupGlobal(ctx, name);
-	if(i>=0)
-		return(i);
-	return(-1);
-}
-
-BS2CC_VarInfo *BS2C_GetFrameGlobalInfo(BS2CC_CompileContext *ctx, int idx)
-{
-	int i, j;
-//	j=idx;
-	j=ctx->frm->gbltab[idx];
-	return(ctx->globals[j]);
-}
-
-int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
-{
-	BS2CC_VarInfo *vari;
-	int bty;
-	int i, j, k;
-	
-	i=BS2C_LookupLocal(ctx, name);
-	if(i>=0)
-	{
-		vari=ctx->frm->locals[i];
-		bty=vari->bty;
-		
-		switch(bty)
-		{
-		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
-		case BSVM2_OPZ_UBYTE:	case BSVM2_OPZ_SBYTE:
-		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDI);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			j=ctx->frm->stackpos++;
-			ctx->frm->stack_bty[j]=bty;
-			break;
-		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDL);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			j=ctx->frm->stackpos++;
-			ctx->frm->stack_bty[j]=bty;
-			break;
-		case BSVM2_OPZ_FLOAT:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDF);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			j=ctx->frm->stackpos++;
-			ctx->frm->stack_bty[j]=bty;
-			break;
-		case BSVM2_OPZ_DOUBLE:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDD);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			j=ctx->frm->stackpos++;
-			ctx->frm->stack_bty[j]=bty;
-			break;
-		case BSVM2_OPZ_ADDRESS:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDA);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			j=ctx->frm->stackpos++;
-			ctx->frm->stack_bty[j]=bty;
-			break;
-		}
-		return(0);
-	}
-
-//	if(ctx->frm->func && ctx->frm->func->obj &&
-//		(ctx->frm->func->vitype!=BS2CC_VITYPE_GBLFUNC))
-	if(ctx->frm->func && ctx->frm->func->obj)
-	{
-		vari=BS2C_LookupObjectFieldName(ctx,
-			ctx->frm->func->obj, name);
-//		if(vari)
-		if(vari && (vari->vitype==BS2CC_VITYPE_STRVAR) &&
-			(ctx->frm->func->vitype!=BS2CC_VITYPE_GBLFUNC))
-		{
-			bty=vari->bty;
-
-			i=BS2C_IndexFrameGlobal(ctx, vari->gid);
-
-//			BS2C_CompileExpr(ctx, ln, lt);
-			BS2C_CompileExprPushType(ctx, bty);
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDTHIS);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			return(0);
-		}
-
-		if(vari && (vari->vitype==BS2CC_VITYPE_GBLVAR))
-		{
-			bty=vari->bty;
-			i=BS2C_IndexFrameGlobal(ctx, vari->gid);
-			BS2C_CompileExprPushType(ctx, bty);
-			BS2C_EmitOpcode(ctx, BSVM2_OP_LDGS);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			return(0);
-		}
-	}
-
-	i=BS2C_LookupFrameGlobal(ctx, name);
-	if(i>=0)
-	{
-		vari=BS2C_GetFrameGlobalInfo(ctx, i);
-		bty=vari->bty;
-
-		BS2C_EmitOpcode(ctx, BSVM2_OP_LDGS);
-		BS2C_EmitOpcodeIdx(ctx, i);
-		j=ctx->frm->stackpos++;
-		ctx->frm->stack_bty[j]=bty;
-
-		return(0);
-	}
-	
-	BS2C_ErrNoDecl(ctx, name);
-	return(-1);
-}
-
-int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
-{
-	BS2CC_VarInfo *vari;
-	int bty;
-	int i, j, k;
-	
-	i=BS2C_LookupLocal(ctx, name);
-	if(i>=0)
-	{
-		vari=ctx->frm->locals[i];
-		bty=vari->bty;
-		
-		switch(bty)
-		{
-		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
-		case BSVM2_OPZ_UBYTE:	case BSVM2_OPZ_SBYTE:
-		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STI);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			break;
-		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STL);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			break;
-		case BSVM2_OPZ_FLOAT:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STF);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			break;
-		case BSVM2_OPZ_DOUBLE:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STD);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			break;
-		case BSVM2_OPZ_ADDRESS:
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STA);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			break;
-		}
-		return(0);
-	}
-
-//	if(ctx->frm->func && ctx->frm->func->obj &&
-//		(ctx->frm->func->vitype!=BS2CC_VITYPE_GBLFUNC))
-	if(ctx->frm->func && ctx->frm->func->obj)
-	{
-		vari=BS2C_LookupObjectFieldName(ctx,
-			ctx->frm->func->obj, name);
-//		if(vari)
-		if(vari && (vari->vitype==BS2CC_VITYPE_STRVAR) &&
-			(ctx->frm->func->vitype!=BS2CC_VITYPE_GBLFUNC))
-		{
-			bty=vari->bty;
-
-			i=BS2C_IndexFrameGlobal(ctx, vari->gid);
-
-//			BS2C_CompileExpr(ctx, ln, lt);
-//			BS2C_CompileExprPushType(ctx, bty);
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STTHIS);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			return(0);
-		}
-
-		if(vari && (vari->vitype==BS2CC_VITYPE_GBLVAR))
-		{
-			bty=vari->bty;
-			i=BS2C_IndexFrameGlobal(ctx, vari->gid);
-			BS2C_EmitOpcode(ctx, BSVM2_OP_STGS);
-			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
-			return(0);
-		}
-	}
-
-	i=BS2C_LookupFrameGlobal(ctx, name);
-	if(i>=0)
-	{
-		vari=BS2C_GetFrameGlobalInfo(ctx, i);
-		bty=vari->bty;
-
-		BS2C_EmitOpcode(ctx, BSVM2_OP_STGS);
-		BS2C_EmitOpcodeIdx(ctx, i);
-		ctx->frm->stackpos--;
-
-		return(0);
-	}
-
-	BS2C_ErrNoDecl(ctx, name);
-	return(-1);
-}
-
 void BS2C_CompileConvType(BS2CC_CompileContext *ctx, int dty)
 {
 	int sty;
@@ -912,17 +551,46 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 	fn=BS2P_GetAstNodeAttrS(expr, "func");
 	if(fn)
 	{
-		ix=BS2C_LookupFrameGlobal(ctx, fn);
-		if(ix<0)
+		if(!strcmp(fn, "super"))
 		{
-			BS2C_ErrNoDecl(ctx, fn);
+			BS2C_CompileCallSuper(ctx, expr, dty);
 			return;
 		}
 
-		stp=ctx->frm->stackpos;
+		vari=NULL; ix=-1;
 
-		vari=BS2C_GetFrameGlobalInfo(ctx, ix);
-		bty=vari->bty;
+		if(ctx->frm->func && ctx->frm->func->obj)
+		{
+			vari=BS2C_LookupObjectFuncName(ctx,
+				ctx->frm->func->obj, fn);
+			if(vari && (vari->vitype==BS2CC_VITYPE_STRFUNC) &&
+				(ctx->frm->func->vitype!=BS2CC_VITYPE_GBLFUNC))
+			{
+				bty=vari->bty;
+				ix=BS2C_IndexFrameGlobal(ctx, vari->gid);
+			}
+
+			if(vari && (vari->vitype==BS2CC_VITYPE_GBLFUNC))
+			{
+				bty=vari->bty;
+				ix=BS2C_IndexFrameGlobal(ctx, vari->gid);
+			}
+		}
+
+		if(ix<0)
+		{
+			ix=BS2C_LookupFrameGlobal(ctx, fn);
+			if(ix<0)
+			{
+				BS2C_ErrNoDecl(ctx, fn);
+				return;
+			}
+
+			vari=BS2C_GetFrameGlobalInfo(ctx, ix);
+			bty=vari->bty;
+		}
+
+		stp=ctx->frm->stackpos;
 
 		if(vari->nargs>=1)
 		{
@@ -1003,8 +671,15 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 		}
 
 		ctx->frm->stackpos=stp;
-		BS2C_EmitOpcode(ctx, BSVM2_OP_CALLG);
-		BS2C_EmitOpcodeIdx(ctx, ix);
+		if(vari->vitype==BS2CC_VITYPE_STRFUNC)
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CALLTH);
+			BS2C_EmitOpcodeIdx(ctx, ix);
+		}else
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CALLG);
+			BS2C_EmitOpcodeIdx(ctx, ix);
+		}
 
 		if((vari->rty!=BSVM2_OPZ_VOID) && (dty!=BSVM2_OPZ_VOID))
 		{
@@ -1034,6 +709,13 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 void BS2C_CompileObjMethodCall(BS2CC_CompileContext *ctx,
 	int clsty, char *name,
 	dtVal args, int dty)
+{
+	BS2C_CompileObjMethodCallB(ctx, clsty, name, args, dty, 0);
+}
+
+void BS2C_CompileObjMethodCallB(BS2CC_CompileContext *ctx,
+	int clsty, char *name,
+	dtVal args, int dty, int flag)
 {
 	int aty[256];
 	BS2CC_VarInfo *vari, *clzi;
@@ -1164,10 +846,17 @@ void BS2C_CompileObjMethodCall(BS2CC_CompileContext *ctx,
 		}
 
 		ctx->frm->stackpos=stp;
-		BS2C_CompileExprPopType1(ctx);
-
-		BS2C_EmitOpcode(ctx, BSVM2_OP_CALLV);
-		BS2C_EmitOpcodeIdx(ctx, ix);
+		
+		if(flag&1)
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CALLTH);
+			BS2C_EmitOpcodeIdx(ctx, ix);
+		}else
+		{
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CALLV);
+			BS2C_EmitOpcodeIdx(ctx, ix);
+		}
 
 		if((vari->rty!=BS2CC_TYZ_VOID) && (dty!=BS2CC_TYZ_VOID))
 		{
@@ -1192,6 +881,35 @@ void BS2C_CompileObjMethodCall(BS2CC_CompileContext *ctx,
 
 	BS2C_CaseError(ctx);
 	return;
+}
+
+void BS2C_CompileCallSuper(BS2CC_CompileContext *ctx, dtVal expr, int dty)
+{
+	BS2CC_VarInfo *vari;
+	BS2CC_VarInfo *vai;
+	dtVal n0, n1;
+	dtVal an;
+	char *fn;
+	int ix, bty, stp;
+	int i, j, k, l, l2;
+
+	an=BS2P_GetAstNodeAttr(expr, "args");
+//	fn=BS2P_GetAstNodeAttrS(expr, "func");
+
+	if(!ctx->frm->func->obj || !ctx->frm->func->obj->super)
+	{
+		BS2C_CaseError(ctx);
+		return;
+	}
+
+	BS2C_CompileExprPushType(ctx, dty);
+	BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+	BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_VOID, 4);
+
+	ix=ctx->frm->func->obj->gid;
+	bty=ix+256;
+
+	BS2C_CompileObjMethodCallB(ctx, bty, "$CTOR$", an, BS2CC_TYZ_VOID, 1);
 }
 
 void BS2C_CompileExprNew(BS2CC_CompileContext *ctx, dtVal expr, int dty)
@@ -1622,6 +1340,21 @@ void BS2C_CompileExprPushConstInt(
 		return;
 	}
 
+	if(dty==BSVM2_OPZ_FLOAT)
+	{
+		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_FLOAT);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+		BS2C_EmitOpcodeZxF(ctx, li);
+		return;
+	}
+	if(dty==BSVM2_OPZ_DOUBLE)
+	{
+		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_DOUBLE);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+		BS2C_EmitOpcodeZxD(ctx, li);
+		return;
+	}
+
 	BS2C_CaseError(ctx);
 }
 
@@ -1815,6 +1548,74 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_INT);
 		BS2C_CompileConvType(ctx, dty);
+		return;
+	}
+
+	if(!strcmp(tag, "unary"))
+	{
+		ln=BS2P_GetAstNodeAttr(expr, "value");
+		op=BS2P_GetAstNodeAttrS(expr, "op");
+
+		ln=BS2C_ReduceExpr(ctx, ln);
+		lt=BS2C_InferExpr(ctx, ln);
+
+		if(!strcmp(op, "-"))
+		{
+			o=-1;
+			if(BS2C_InferTypeSmallIntP(ctx, dty))
+				{ o=BSVM2_OP_NEGI; }
+			else if(BS2C_InferTypeSmallLongP(ctx, dty))
+				{ o=BSVM2_OP_NEGL; }
+			else if(BS2C_InferTypeSmallFloatP(ctx, dty))
+				{ o=BSVM2_OP_NEGF; }
+			else if(BS2C_InferTypeSmallDoubleP(ctx, dty))
+				{ o=BSVM2_OP_NEGD; }
+			
+			if(o>=0)
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+		}
+
+		if(!strcmp(op, "~"))
+		{
+			o=-1;
+			if(BS2C_InferTypeSmallIntP(ctx, dty))
+				{ o=BSVM2_OP_NOTI; }
+			else if(BS2C_InferTypeSmallLongP(ctx, dty))
+				{ o=BSVM2_OP_NOTL; }
+			
+			if(o>=0)
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+		}
+
+		if(!strcmp(op, "!"))
+		{
+			o=-1;
+			if(BS2C_InferTypeSmallIntP(ctx, dty))
+				{ o=BSVM2_OP_LNTI; }
+			else if(BS2C_InferTypeSmallLongP(ctx, dty))
+				{ o=BSVM2_OP_LNTL; }
+			
+			if(o>=0)
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+		}
+
+		BS2C_CaseError(ctx);
+//		BS2C_CompileExprBinary(ctx, op, ln, rn, dty);
 		return;
 	}
 

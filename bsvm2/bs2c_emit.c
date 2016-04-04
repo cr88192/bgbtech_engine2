@@ -165,6 +165,7 @@ void BS2C_EmitOpcodeUCx(BS2CC_CompileContext *ctx, u64 ix)
 		BS2C_EmitByte(ctx, ix>>16);
 		BS2C_EmitByte(ctx, ix>> 8);
 		BS2C_EmitByte(ctx, ix    );
+		return;
 	}
 
 	if(ix<0x40000000000ULL)
@@ -175,6 +176,7 @@ void BS2C_EmitOpcodeUCx(BS2CC_CompileContext *ctx, u64 ix)
 		BS2C_EmitByte(ctx, ix>>16);
 		BS2C_EmitByte(ctx, ix>> 8);
 		BS2C_EmitByte(ctx, ix    );
+		return;
 	}
 
 	if(ix<0x2000000000000ULL)
@@ -186,11 +188,13 @@ void BS2C_EmitOpcodeUCx(BS2CC_CompileContext *ctx, u64 ix)
 		BS2C_EmitByte(ctx, ix>>16);
 		BS2C_EmitByte(ctx, ix>> 8);
 		BS2C_EmitByte(ctx, ix    );
+		return;
 	}
 
 	if(ix<0x100000000000000ULL)
 	{
-		BS2C_EmitByte(ctx, 0xFE|(ix>>56));
+//		BS2C_EmitByte(ctx, 0xFE|(ix>>56));
+		BS2C_EmitByte(ctx, 0xFE);
 		BS2C_EmitByte(ctx, ix>>48);
 		BS2C_EmitByte(ctx, ix>>40);
 		BS2C_EmitByte(ctx, ix>>32);
@@ -198,6 +202,7 @@ void BS2C_EmitOpcodeUCx(BS2CC_CompileContext *ctx, u64 ix)
 		BS2C_EmitByte(ctx, ix>>16);
 		BS2C_EmitByte(ctx, ix>> 8);
 		BS2C_EmitByte(ctx, ix    );
+		return;
 	}
 
 	BS2C_EmitByte(ctx, 0xFF);
@@ -504,6 +509,11 @@ void BS2C_EmitOpcodeSZx(BS2CC_CompileContext *ctx, int z, s64 ix)
 
 void BS2C_EmitOpcodeZxF(BS2CC_CompileContext *ctx, double f)
 {
+	BS2C_EmitOpcodeZxFI(ctx, f, BSVM2_OPZ_FLOAT);
+}
+
+void BS2C_EmitOpcodeZxFI(BS2CC_CompileContext *ctx, double f, int z)
+{
 	float fc;
 	u32 ix;
 	int m;
@@ -527,15 +537,24 @@ void BS2C_EmitOpcodeZxF(BS2CC_CompileContext *ctx, double f)
 	if(ix>>31)
 		{ m=-m; }
 	
-	BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_FLOAT, e);
+	BS2C_EmitOpcodeSZx(ctx, z, e);
 	BS2C_EmitOpcodeSCx(ctx, m);
 }
 
 void BS2C_EmitOpcodeZxD(BS2CC_CompileContext *ctx, double f)
 {
+	double er;
+	float g;
 	u64 ix;
 	s64 m;
 	int e;
+
+	g=f; er=f-g;
+	if(fabs(er<0.0000001))
+	{
+		BS2C_EmitOpcodeZxFI(ctx, f, BSVM2_OPZ_DOUBLE);
+		return;
+	}
 
 	ix=*(u64 *)(&f);
 

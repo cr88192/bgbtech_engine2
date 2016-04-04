@@ -46,13 +46,16 @@ BTEIFGL_SRCS=\
 	bsvm2/bs2p_stmt.c \
 	bsvm2/bs2p_token.c \
 	\
+	bsvm2/bs2c_compile.c \
 	bsvm2/bs2c_disasm.c \
 	bsvm2/bs2c_emit.c \
 	bsvm2/bs2c_expr.c \
 	bsvm2/bs2c_infer.c \
 	bsvm2/bs2c_jcond.c \
 	bsvm2/bs2c_reduce.c \
+	bsvm2/bs2c_scope.c \
 	bsvm2/bs2c_stmt.c \
+	bsvm2/bs2c_type.c \
 	\
 	entity/ent_tagval.c \
 	\

@@ -440,7 +440,20 @@ char *BS2P_ParseTokenBasic(char *s, char *tb)
 	case '@':
 	case '\\':
 	case ';': case ':':
-	case ',': case '.':
+	case ',':
+		*t++=*s++;
+		*t++=0;
+		break;
+	
+	case '.':
+		if((s[1]=='.') && (s[2]=='.'))
+		{
+			*t++=*s++;
+			*t++=*s++;
+			*t++=*s++;
+			*t++=0;
+			break;
+		}
 		*t++=*s++;
 		*t++=0;
 		break;

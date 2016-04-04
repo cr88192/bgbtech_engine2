@@ -289,6 +289,8 @@ int n_prim;
 int m_prim;
 }FRGL_TextVBO;
 
+typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
+
 #include <libvecmath.h>
 
 #include <bteifgl_keys.h>
@@ -310,8 +312,6 @@ int m_prim;
 
 #include <bteifgl_wire.h>
 #include <bteifgl_msp430.h>
-
-typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 
 struct BGBDT_MM_ParsePrintInfo_s {
 BGBDT_MM_ParsePrintInfo *next;

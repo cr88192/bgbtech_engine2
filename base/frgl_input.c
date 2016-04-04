@@ -143,6 +143,11 @@ BTEIFGL_API void *vf_loadfile(char *name, int *rsz)
 	return(buf);
 }
 
+BTEIFGL_API void vf_freefdbuf(void *buf)
+{
+	frgl_free(buf);
+}
+
 int FRGL_ParseChar(char **rs)
 {
 	unsigned char *s;

@@ -87,6 +87,7 @@ int BGBDT_FindFreeCellsChk(BGBDT_MM_ChunkInfo *chk, int cells)
 //			chk->rov=j;
 			return(i);
 		}
+		i=j;
 	}
 	return(-1);
 }

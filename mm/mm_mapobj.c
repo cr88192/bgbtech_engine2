@@ -554,7 +554,10 @@ BTEIFGL_API int BGBDT_MapObj_BindObjvSlotValueName(
 {
 	BGBDT_MapObjHead *obj;
 	
-	obj=dtvUnwrapPtrF(objv);
+	obj=dtvUnwrapPtr(objv);
+	if(!obj)
+		return(-1);
+	
 	return(BGBDT_MapObj_BindObjSlotValueName(obj, name, val));
 }
 
@@ -563,7 +566,9 @@ BTEIFGL_API dtVal BGBDT_MapObj_GetObjvSlotValue(dtVal objv, int sli)
 	BGBDT_MapObjHead *obj;
 	dtVal *trv;
 	
-	obj=dtvUnwrapPtrF(objv);
+	obj=dtvUnwrapPtr(objv);
+	if(!obj)
+		return(DTV_UNDEFINED);
 
 	trv=BGBDT_MapObj_LookupObjSlotSoftRef(obj, sli);
 	if(trv)return(*trv);
@@ -576,7 +581,9 @@ BTEIFGL_API dtVal BGBDT_MapObj_GetObjvSlotValueName(dtVal objv, char *name)
 	dtVal *trv;
 	int sli;
 	
-	obj=dtvUnwrapPtrF(objv);
+	obj=dtvUnwrapPtr(objv);
+	if(!obj)
+		return(DTV_UNDEFINED);
 
 	sli=BGBDT_MapObj_GetFieldIndex(name, NULL, NULL);
 	trv=BGBDT_MapObj_LookupObjSlotSoftRef(obj, sli);
@@ -634,7 +641,9 @@ BTEIFGL_API int BGBDT_MapObj_GetObjSlotCount(dtVal objv)
 	BGBDT_MapObjHead *obj;
 	int i;
 	
-	obj=dtvUnwrapPtrF(objv);
+	obj=dtvUnwrapPtr(objv);
+	if(!obj)
+		return(-1);
 	
 	if(obj->node)
 	{
@@ -651,7 +660,9 @@ BTEIFGL_API int BGBDT_MapObj_QueryObjSlotList(
 	BGBDT_MapObjHead *obj;
 	int i, n;
 	
-	obj=dtvUnwrapPtrF(objv);
+	obj=dtvUnwrapPtr(objv);
+	if(!obj)
+		return(-1);
 
 	if(obj->node)
 	{

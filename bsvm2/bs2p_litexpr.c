@@ -287,6 +287,32 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 	
 	if(*t0=='I')
 	{
+		if(!strcmp(t0, "Inew"))
+		{
+			BS2P_NextToken(ctx);
+
+			n1=BS2P_ParseTypeExpr(ctx);
+
+			t0=BS2P_PeekToken(ctx, 0);
+			if(!strcmp(t0, "X("))
+			{
+				BS2P_NextToken(ctx);
+//				n2=BS2P_ParseFunVars(ctx);
+				n2=BS2P_ParseExprList(ctx);
+				BS2P_ParseExpectToken(ctx, "X)");
+			}else
+			{
+				n2=DTV_NULL;
+			}
+
+			n0=BS2P_NewAstNode(ctx, "new");
+			BS2P_SetAstNodeAttr(n0, "type", n1);
+			if(dtvTrueP(n2))
+				BS2P_SetAstNodeAttr(n0, "args", n2);
+
+			return(n0);
+		}
+	
 		BS2P_NextToken(ctx);
 		return(BS2P_ParseWrapIdentifier(ctx, t0+1));
 	}
@@ -463,7 +489,7 @@ dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx)
 //	n0=BS2P_ParseLitExpr(ctx);
 	
 	t0=BS2P_PeekToken(ctx, 0);
-//	t1=BS2P_PeekToken(ctx, 1);
+	t1=BS2P_PeekToken(ctx, 1);
 //	t2=BS2P_PeekToken(ctx, 2);
 	
 	if(!strcmp(t0, "X++"))
@@ -488,6 +514,27 @@ dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx)
 	{
 		BS2P_NextToken(ctx);
 		n0=BS2P_ParseExprPrefix(ctx);
+
+		if(!strcmp(t0, "X-"))
+		{
+			if(dtvIsFixIntP(n0) || dtvIsFixUIntP(n0))
+				{ return(dtvWrapInt(-dtvUnwrapInt(n0))); }
+			if(dtvIsFixLongP(n0))
+				{ return(dtvWrapLong(-dtvUnwrapLong(n0))); }
+			if(dtvIsFixFloatP(n0))
+				{ return(dtvWrapFloat(-dtvUnwrapFloat(n0))); }
+			if(dtvIsFixDoubleP(n0))
+				{ return(dtvWrapDouble(-dtvUnwrapDouble(n0))); }
+		}
+
+		if(!strcmp(t0, "X~"))
+		{
+			if(dtvIsFixIntP(n0) || dtvIsFixUIntP(n0))
+				{ return(dtvWrapInt(~dtvUnwrapInt(n0))); }
+			if(dtvIsFixLongP(n0))
+				{ return(dtvWrapLong(~dtvUnwrapLong(n0))); }
+		}
+
 		n0=BS2P_ParseWrapUnary(ctx, t0+1, n0);
 		return(n0);
 	}

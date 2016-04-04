@@ -318,6 +318,9 @@ BTEIFGL_API int Con_Init()
 		con_info->y=59;
 		con_info->xs=80;
 		con_info->ys=60;
+		con_info->chxs=8;
+		con_info->chys=8;
+
 		con_info->WriteString=Con_WriteString2;
 		con_info->Update=Con_UpdateInfo;
 		con_info->HandleKey=Con_HandleKeyInfo;
@@ -355,19 +358,31 @@ BTEIFGL_API int Con_Init()
 BTEIFGL_API int Con_ReInit()
 {
 	FRGL_ConsoleInfo *con;
-	int wxs, wys;
+	int wxs, wys, cxs;
 	int i;
 
 	GfxDrv_GetWindowSize(&con_screen_xs, &con_screen_ys);
 	wxs=con_screen_xs; wys=con_screen_ys;
 
+	cxs=wxs/80;
+	cxs=cxs&(~1);
+	if(cxs<8)cxs=8;
+	if(cxs>16)cxs=16;
+
 	for(i=0; i<9; i++)
 	{
 		con=con_context[i];
 		con->x=0;
-		con->y=(wys/8)-1;
-		con->xs=wxs/8;
-		con->ys=wys/8;
+//		con->y=(wys/8)-1;
+//		con->xs=wxs/8;
+//		con->ys=wys/8;
+
+		con->chxs=cxs;
+		con->chys=cxs;
+
+		con->y=(wys/con->chys)-1;
+		con->xs=wxs/con->chxs;
+		con->ys=wys/con->chys;
 	}
 	return(0);
 }
@@ -406,8 +421,8 @@ BTEIFGL_API int Con_RenderBackgroundInfo(FRGL_ConsoleInfo *con)
 			}
 //			Draw_Square((j*8)-400, (i*8)-300, 8, 8);
 
-			x=(j*8)-wxs2;
-			y=(i*8)-wys2;
+			x=(j*con->chxs)-wxs2;
+			y=(i*con->chys)-wys2;
 #if 0
 //			glBegin(GL_QUADS);
 			frglVertex2f(x,	y);
@@ -417,13 +432,13 @@ BTEIFGL_API int Con_RenderBackgroundInfo(FRGL_ConsoleInfo *con)
 //			glEnd();
 #endif
 
-			frglVertex2f(x,	y);
-			frglVertex2f(x,	y+8);
-			frglVertex2f(x+8,	y+8);
+			frglVertex2f(x			,	y);
+			frglVertex2f(x			,	y+con->chys);
+			frglVertex2f(x+con->chxs,	y+con->chys);
 
-			frglVertex2f(x,	y);
-			frglVertex2f(x+8,	y+8);
-			frglVertex2f(x+8,	y);
+			frglVertex2f(x			,	y);
+			frglVertex2f(x+con->chxs,	y+con->chys);
+			frglVertex2f(x+con->chxs,	y);
 		}
 	}
 	frglEnd();
@@ -452,7 +467,7 @@ BTEIFGL_API int Con_RenderInfo(FRGL_ConsoleInfo *con)
 	wxs2=wxs/2; wys2=wys/2;
 
 //	GfxFont_SetFont("fixed", 0);
-	GfxFont_SetFontSize("fixed", 0, 8);
+	GfxFont_SetFontSize("fixed", 0, con->chys);
 
 //	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
@@ -525,7 +540,7 @@ BTEIFGL_API int Con_RenderInfo(FRGL_ConsoleInfo *con)
 			}
 
 			GfxFont_DrawCharModeQI(c,
-				(j*8)-wxs2, (i*8)-wys2, 8, 8,
+				(j*con->chxs)-wxs2, (i*con->chys)-wys2, con->chxs, con->chys,
 				cr, cg, cb, ca, cm);
 		}
 	}
@@ -535,22 +550,22 @@ BTEIFGL_API int Con_RenderInfo(FRGL_ConsoleInfo *con)
 	if(con_down)
 	{
 		GfxFont_DrawChar(con_mchar[con_down],
-			-wxs2, -wys2, 8, 8, 255, 255, 255, 255);
+			-wxs2, -wys2, con->chxs, con->chys, 255, 255, 255, 255);
 	}else
 	{
 		GfxFont_DrawChar('X',
-			-wxs2, -wys2, 8, 8, 255, 0, 0, 255);
+			-wxs2, -wys2, con->chxs, con->chys, 255, 0, 0, 255);
 	}
 
 	j=con_strlen(con->promptbuf);
 	for(i=j; i<con->xs; i++)
 		GfxFont_DrawChar(con->completebuf[i],
-			-wxs2+16+(i*8), -wys2, 8, 8,
+			-wxs2+((i+2)*con->chxs), -wys2, con->chxs, con->chys,
 			127, 127, 127, 255);
 
 	for(i=0; i<con->xs; i++)
 		GfxFont_DrawChar(con->promptbuf[i],
-			-wxs2+16+(i*8), -wys2, 8, 8,
+			-wxs2+((i+2)*con->chxs), -wys2, con->chxs, con->chys,
 			255, 255, 255, 255);
 
 //	for(i=0; i<80; i++)
@@ -561,7 +576,7 @@ BTEIFGL_API int Con_RenderInfo(FRGL_ConsoleInfo *con)
 	j=con->promptpos;
 
 	if(i)GfxFont_DrawChar('_',
-		-wxs2+16+(j*8), -wys2, 8, 8,
+		-wxs2+((j+2)*con->chxs), -wys2, con->chxs, con->chys,
 		255, 255, 255, 255);
 
 //	if(i)Draw_Character(-1000+(promptpos+1)*25, -750, 25, 25, '_');
@@ -597,16 +612,16 @@ BTEIFGL_API int Con_RenderBackgroundVBO(
 			}
 //			Draw_Square((j*8)-400, (i*8)-300, 8, 8);
 
-			x=(j*8)-wxs2;
-			y=(i*8)-wys2;
+			x=(j*con->chxs)-wxs2;
+			y=(i*con->chys)-wys2;
 
-			FRGL_TextVBO_Vertex2f(vbo, x,	y);
-			FRGL_TextVBO_Vertex2f(vbo, x,	y+8);
-			FRGL_TextVBO_Vertex2f(vbo, x+8,	y+8);
+			FRGL_TextVBO_Vertex2f(vbo, x		,	y);
+			FRGL_TextVBO_Vertex2f(vbo, x		,	y+con->chys);
+			FRGL_TextVBO_Vertex2f(vbo, x+con->chxs,	y+con->chys);
 
-			FRGL_TextVBO_Vertex2f(vbo, x,	y);
-			FRGL_TextVBO_Vertex2f(vbo, x+8,	y+8);
-			FRGL_TextVBO_Vertex2f(vbo, x+8,	y);
+			FRGL_TextVBO_Vertex2f(vbo, x		,	y);
+			FRGL_TextVBO_Vertex2f(vbo, x+con->chxs,	y+con->chys);
+			FRGL_TextVBO_Vertex2f(vbo, x+con->chxs,	y);
 		}
 	}
 	FRGL_TextVBO_End(vbo);
@@ -627,7 +642,7 @@ BTEIFGL_API int Con_RenderTextVBO(
 	wxs2=wxs/2; wys2=wys/2;
 
 //	GfxFont_SetFont("fixed", 0);
-	GfxFont_SetFontSize("fixed", 0, 8);
+	GfxFont_SetFontSize("fixed", 0, con->chys);
 
 	if(con_down)
 	{
@@ -678,7 +693,8 @@ BTEIFGL_API int Con_RenderTextVBO(
 			}
 
 			FRGL_TextVBO_DrawCharModeQI2(vbo, c,
-				(j*8)-wxs2, (i*8)-wys2, 8, 8,
+				(j*con->chxs)-wxs2, (i*con->chys)-wys2,
+				con->chxs, con->chys,
 				cr, cg, cb, ca, cm);
 		}
 	}
@@ -688,22 +704,22 @@ BTEIFGL_API int Con_RenderTextVBO(
 	if(con_down)
 	{
 		FRGL_TextVBO_DrawCharModeQI2(vbo, con_mchar[con_down],
-			-wxs2, -wys2, 8, 8, 255, 255, 255, 255, 0);
+			-wxs2, -wys2, con->chxs, con->chys, 255, 255, 255, 255, 0);
 	}else
 	{
 		FRGL_TextVBO_DrawCharModeQI2(vbo, 'X',
-			-wxs2, -wys2, 8, 8, 255, 0, 0, 255, 0);
+			-wxs2, -wys2, con->chxs, con->chys, 255, 0, 0, 255, 0);
 	}
 
 	j=con_strlen(con->promptbuf);
 	for(i=j; i<con->xs; i++)
 		FRGL_TextVBO_DrawCharModeQI2(vbo, con->completebuf[i],
-			-wxs2+16+(i*8), -wys2, 8, 8,
+			-wxs2+((i+2)*con->chxs), -wys2, con->chxs, con->chys,
 			127, 127, 127, 255, 0);
 
 	for(i=0; i<con->xs; i++)
 		FRGL_TextVBO_DrawCharModeQI2(vbo, con->promptbuf[i],
-			-wxs2+16+(i*8), -wys2, 8, 8,
+			-wxs2+((i+2)*con->chxs), -wys2, con->chxs, con->chys,
 			255, 255, 255, 255, 0);
 
 //	for(i=0; i<80; i++)
@@ -714,7 +730,7 @@ BTEIFGL_API int Con_RenderTextVBO(
 	j=con->promptpos;
 
 	if(i)FRGL_TextVBO_DrawCharModeQI2(vbo, '_',
-		-wxs2+16+(j*8), -wys2, 8, 8,
+		-wxs2+((j+2)*con->chxs), -wys2, con->chxs, con->chys,
 		255, 255, 255, 255, 0);
 
 	FRGL_TextVBO_DrawCharModeQI2(vbo, -2, 0,0,0,0, 0,0,0,0, 0);

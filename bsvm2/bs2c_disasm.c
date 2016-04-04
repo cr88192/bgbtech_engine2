@@ -141,8 +141,8 @@ char *name;
 {"86Zn",      "DCLX"},
 {"87Zn",      "DELX"},
 {"88Gx",      "NEWOBJ"},
-{"89",        "DELOBJ"},
-{"8AZn",      "NEWARR"},
+{"89Zn",      "NEWARR"},
+{"8A",        "DELOBJ"},
 {"8B",        "DELARR"},
 {"8C",        "MOVOBJ"},
 {"8D",        "MOVARR"},
@@ -180,14 +180,14 @@ char *name;
 {"AD",        "PUSHL"},
 {"AE",        "PUSHF"},
 {"AF",        "PUSHD"},
-{"B0Cx",      "ADDIC"},
-{"B1Cx",      "SUBIC"},
-{"B2Cx",      "MULIC"},
-{"B3Cx",      "ANDIC"},
-{"B4Cx",      "ORIC"},
-{"B5Cx",      "XORIC"},
-{"B6Cx",      "SHLIC"},
-{"B7Cx",      "SARIC"},
+{"B0Cj",      "ADDIC"},
+{"B1Cj",      "SUBIC"},
+{"B2Ci",      "MULIC"},
+{"B3Ci",      "ANDIC"},
+{"B4Ci",      "ORIC"},
+{"B5Ci",      "XORIC"},
+{"B6Ci",      "SHLIC"},
+{"B7Ci",      "SARIC"},
 {"B8Ix",      "ADDIL"},
 {"B9Ix",      "SUBIL"},
 {"BAIx",      "MULIL"},
@@ -196,19 +196,39 @@ char *name;
 {"BDIx",      "XORIL"},
 {"BEIx",      "SHLIL"},
 {"BFIx",      "SARIL"},
+
+{"C1A0",        "NX.POPI"},
+{"C1A1",        "NX.POPL"},
+{"C1A2",        "NX.POPF"},
+{"C1A3",        "NX.POPD"},
+{"C1A4",        "NX.DUPI"},
+{"C1A5",        "NX.DUPL"},
+{"C1A6",        "NX.DUPF"},
+{"C1A7",        "NX.DUPD"},
+{"C1A8",        "NX.POPA"},
+{"C1A9",        "NX.DUPA"},
+{"C1AA",        "NX.SWAPA"},
+{"C1AB",        "NX.PUSHA"},
+{"C1AC",        "NX.PUSHI"},
+{"C1AD",        "NX.PUSHL"},
+{"C1AE",        "NX.PUSHF"},
+{"C1AF",        "NX.PUSHD"},
+
 {"C0",        "HNOEX"},
 {"C1",        "HNOEX1"},
 {"C2",        "HNOEX2"},
 {"C3",        "HNOEX3"},
 {"C4Zx",      "RETC"},
-
 {"C6",        "UCMPI"},
 {"C7",        "UCMPL"},
 {"C8Cx",      "CMPIC"},
 {"C9Ix",      "CMPIL"},
 {"CAKx",      "CMPILC"},
 {"CBJx",      "CMPILL"},
-
+{"CC",        "INCI"},
+{"CD",        "DECI"},
+{"CEIx",      "INCIL"},
+{"CFIx",      "DECIL"},
 
 {"E100",      "ADDAA"},
 {"E101",      "SUBAA"},
@@ -224,6 +244,33 @@ char *name;
 {"E10B",      "NEGAA"},
 {"E10C",      "NOTAA"},
 {"E10D",      "LNOTAA"},
+{"E10E",      "CMPAA"},
+{"E10FZy",    "LDCA"},
+{"E110",      "CVTI2AA"},
+{"E111",      "CVTL2AA"},
+{"E112",      "CVTF2AA"},
+{"E113",      "CVTD2AA"},
+{"E114",      "CVTAA2I"},
+{"E115",      "CVTAA2L"},
+{"E116",      "CVTAA2F"},
+{"E117",      "CVTAA2D"},
+{"E118",      "CVTAA2IN"},
+{"E119",      "CVTAA2LN"},
+{"E11A",      "CVTAA2FN"},
+{"E11B",      "CVTAA2DN"},
+{"E11CKx",    "MVIC"},
+{"E11DKx",    "MVLC"},
+{"E11EKx",    "MVFC"},
+{"E11FKx",    "MVDC"},
+{"E120Gx",    "LDTHIS"},
+{"E121Gx",    "STTHIS"},
+{"E122Gx",    "CALLTH"},
+
+{"E124Ci",    "DCMPIC"},
+{"E125CiAx",  "DCJEQIC"},
+{"E126CiAx",  "DCJLTIC"},
+{"E127CiAx",  "DCJGTIC"},
+
 {NULL,        NULL}
 };
 
@@ -687,7 +734,9 @@ int bs2c_disasm_matchItem(
 	ps=pat;
 	if(!strncmp(ps, "Ix", 2) ||
 		!strncmp(ps, "Jx", 2) ||
-		!strncmp(ps, "Gx", 2))
+		!strncmp(ps, "Gx", 2) ||
+		!strncmp(ps, "Ci", 2) ||
+		!strncmp(ps, "Cj", 2))
 	{
 		ps+=2;
 		cs=bs2c_disasm_ReadVLI(cs, &i);
@@ -737,7 +786,7 @@ int bs2c_disasm_matchItem(
 		return(1);
 	}
 
-	if(!strncmp(ps, "Zx", 2))
+	if(!strncmp(ps, "Zx", 2) || !strncmp(ps, "Zy", 2))
 	{
 		ps+=2;
 		cs=bs2c_disasm_ReadZxVLI(cs, &i, &j);
@@ -769,7 +818,7 @@ int bs2c_disasm_PrintItem(
 	byte *cs, char *pat,
 	byte **rcs1, char **rpa1)
 {
-	char *pat_zz="ILFDAUBSCTMV....";
+	char *pat_zz="ilfdaubsctmv....";
 	char *pat_zo[]={
 		"+","-","*","&","|","^","<<",">>",
 		">>>","/","%","*.", "*^", "/.", "?", "?"};
@@ -779,10 +828,10 @@ int bs2c_disasm_PrintItem(
 
 	double f;
 	s64 li;
-	char *ps;
+	char *ps, *ips;
 	int i, j;
 
-	ps=pat;
+	ps=pat; ips=ps;
 	if(!strncmp(ps, "Ix", 2))
 	{
 		ps+=2;
@@ -801,8 +850,11 @@ int bs2c_disasm_PrintItem(
 	{
 		ps+=2;
 		cs=bs2c_disasm_ReadVLI(cs, &i);
+		
+		j=frm->gbltab[i];
 
-		BGBDT_MM_PrintPutPrintf(prn, "G%d", i);
+		BGBDT_MM_PrintPutPrintf(prn, "G%d(%s)", i,
+			frm->ctx->globals[j]->qname);
 		if(*ps)
 			BGBDT_MM_PrintPutPrintf(prn, ", ");
 
@@ -851,6 +903,35 @@ int bs2c_disasm_PrintItem(
 		return(1);
 	}
 
+ 	if(!strncmp(ps, "Ci", 2))
+	{
+		ps+=2;
+		cs=bs2c_disasm_ReadVLI(cs, &i);
+		i=(i>>1)^((i<<31)>>31);
+
+		BGBDT_MM_PrintPutPrintf(prn, "%d", i);
+		if(*ps)
+			BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+		*rcs1=cs;
+		*rpa1=ps;
+		return(1);
+	}
+
+ 	if(!strncmp(ps, "Cj", 2))
+	{
+		ps+=2;
+		cs=bs2c_disasm_ReadVLI(cs, &i);
+
+		BGBDT_MM_PrintPutPrintf(prn, "%d", i);
+		if(*ps)
+			BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+		*rcs1=cs;
+		*rpa1=ps;
+		return(1);
+	}
+
 	if(!strncmp(ps, "Jx", 2))
 	{
 		ps+=2;
@@ -871,7 +952,8 @@ int bs2c_disasm_PrintItem(
 //		cs=bs2c_disasm_ReadSplit2VLI(cs, &i, &j);
 		cs=bs2c_disasm_ReadSplit2VLI(cs, &i, &li);
 
-		if((i==BSVM2_OPZ_FLOAT) || (i==BSVM2_OPZ_DOUBLE))
+		if((frm->zpf==BSVM2_OPZ_FLOAT) ||
+			(frm->zpf==BSVM2_OPZ_DOUBLE))
 		{
 			j=li;
 			
@@ -990,7 +1072,7 @@ int bs2c_disasm_PrintItem(
 		return(1);
 	}
 	
-	if(!strncmp(ps, "Zx", 2))
+	if(!strncmp(ps, "Zx", 2) || !strncmp(ps, "Zy", 2))
 	{
 		ps+=2;
 		cs=bs2c_disasm_ReadZxVLI(cs, &i, &j);
@@ -1008,6 +1090,22 @@ int bs2c_disasm_PrintItem(
 			*rcs1=cs;
 			*rpa1=ps;
 			return(1);
+		}
+
+		if(!strncmp(ips, "Zy", 2))
+		{
+			if((i==BSVM2_OPZ_SBYTE) ||
+				(i==BSVM2_OPZ_UBYTE))
+			{
+				BGBDT_MM_PrintPutPrintf(prn, "S%d:", j);
+				BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+j);
+				if(*ps)
+					BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+				*rcs1=cs;
+				*rpa1=ps;
+				return(1);
+			}
 		}
 
 		switch(i)
@@ -1104,7 +1202,7 @@ void BS2C_DisAsmOp(
 	for(; i<8; i++)
 		{ BGBDT_MM_PrintPutPrintf(prn, "  ", cs0[i]); }
 
-	BGBDT_MM_PrintPutPrintf(prn, "%-6s ", bs2c_insns[pn].name);
+	BGBDT_MM_PrintPutPrintf(prn, "%-9s ", bs2c_insns[pn].name);
 
 	ps2=ps1; cs2=cs1;
 	while(*ps2)

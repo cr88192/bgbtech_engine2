@@ -81,6 +81,7 @@ int nstuffcmd;
 
 int x, y;		//cursor XY
 int xs, ys;		//console size
+int chxs, chys;
 int flags;
 
 FRGL_ConEdit *edit;		//console edit context

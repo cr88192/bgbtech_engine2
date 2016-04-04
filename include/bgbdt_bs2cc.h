@@ -46,16 +46,18 @@
 #define BS2CC_ERRN_ERRTOOFEWARGS	(BS2CC_ERRN_ERROR|5)
 #define BS2CC_ERRN_ERRTOOMANYARGS	(BS2CC_ERRN_ERROR|6)
 #define BS2CC_ERRN_ERRBADCONV		(BS2CC_ERRN_ERROR|7)
+#define BS2CC_ERRN_ERRCANTDEREF		(BS2CC_ERRN_ERROR|8)
 
 #define BS2CC_ERRN_CONSTRANGE		(BS2CC_ERRN_WARNING|1)
 
 #define BS2CC_ERRN_FATALERRCNT		(BS2CC_ERRN_FATAL|1)
+#define BS2CC_ERRN_FATALNOFILE		(BS2CC_ERRN_FATAL|2)
 
 #define BS2CC_VITYPE_UNKNOWN		0
-#define BS2CC_VITYPE_GBLVAR			1
-#define BS2CC_VITYPE_GBLFUNC		2
-#define BS2CC_VITYPE_STRVAR			3
-#define BS2CC_VITYPE_STRFUNC		4
+#define BS2CC_VITYPE_GBLVAR			1		//Global/Pkg or Static Var
+#define BS2CC_VITYPE_GBLFUNC		2		//Global/Pkg or Static Func
+#define BS2CC_VITYPE_STRVAR			3		//Instance Variable
+#define BS2CC_VITYPE_STRFUNC		4		//Virtual Method
 #define BS2CC_VITYPE_STRUCT			5
 #define BS2CC_VITYPE_CLASS			6
 #define BS2CC_VITYPE_IFACE			7
@@ -112,6 +114,14 @@
 #define BS2CC_TYZ_ADDR		0x0004
 #define BS2CC_TYZ_VOID		0x000B
 #define BS2CC_TYZ_VARIANT	0x0010
+#define BS2CC_TYZ_STRING	0x0011
+#define BS2CC_TYZ_VARARG	0x0012
+#define BS2CC_TYZ_CHAR		0x0013
+#define BS2CC_TYZ_CHAR8		0x0014
+#define BS2CC_TYZ_CSTRING	0x0015
+#define BS2CC_TYZ_NLONG		0x0016
+#define BS2CC_TYZ_UNLONG	0x0017
+#define BS2CC_TYZ_BOOL		0x0018
 
 
 typedef struct BS2CC_CompileContext_s BS2CC_CompileContext;
@@ -150,19 +160,21 @@ byte *cts;
 byte *cte;
 byte newtrace;
 byte zpf, zpo;
+byte wasret;
 int szt;
 
 byte *cs;
 byte *cse;
 
+BS2CC_CompileContext *ctx;	//owning context
 BS2CC_VarInfo *func;		//parent function
 
-byte stack_bty[256];		//temporary stack base-type
+u32 stack_bty[256];			//temporary stack base-type
 int stackpos;				//stack pos for temp stack
 
 BS2CC_VarInfo *locals[256];
 int nlocals;
-int bargs;				//start of arguments list
+int bargs;					//start of arguments list
 
 int tlbl_id[256];
 int tlbl_ct[256];
@@ -247,5 +259,12 @@ int nsrcfns;
 
 char *srcfn;		//source file name
 int srcln;			//source line number
+
+BGBDT_MM_ParsePrintInfo *dbgprn;
+
+char *strtab;
+char *strtabe;
+char *strct;
+
 };
 

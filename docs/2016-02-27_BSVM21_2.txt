@@ -79,14 +79,14 @@ Narrower types will implicitly widen to their parent core type, with the narrowe
 
 
 Signature Characters:
-* a, sbyte
+*  a, sbyte (signed byte)
 *  b, bool (byte)
 *  c, char8
 *  d, double
 *  e, (long double)
 *  f, float
 *  g, float128
-*  h, ubyte
+*  h, ubyte (unsigned byte)
 *  i, int
 *  j, uint
 *  k, float16
@@ -105,11 +105,13 @@ Signature Characters:
 *  x, long
 *  y, ulong
 *  z, vararg (array of remaining arguments)
+*  Cs, string
 *  R*, Reference
 *  P*, Pointer
 *  Q*, Array (array reference)
 *  X(id), struct (inline value object)
 *  L(id), class or interface (object reference)
+*  U(id), extended non-core types.
 
 Function/Method signatures:
 *  (args*)ret*
@@ -177,7 +179,7 @@ Operation Type (Z)
 *	8, SByte
 *	9, UShort
 *	A, ULong
-*	B, Special Value (Const), or Void
+*	B, Special Value, or Void
 *	C-F, Resv
 
 Ix: Variable Index
@@ -216,6 +218,9 @@ Cx: Constant (Depends on Type)
 **  FE    XX(x7)
 **  FF    XX(x8)
 
+Ci: Constant Signed Integer
+Cj: Constant Unsigned Integer
+
 Fx: Variable Length Packed Float
 * (Drop): Direct Coding:
 *  00-7F XX, S.5.9
@@ -246,10 +251,8 @@ Za: Type+Count
 *  A indicates how many args use this type.
 
 Zi: Type+Local
-* (Drop)  Z0-Z7: 0-7
-* (Drop)  Z8-ZB: 8-1023
-* (Drop)  ZC/ZD: 1024-131071
-* (New) It consists of a VLI value with Z coded in the low 4 bits.
+* Consists of a VLI value with Z coded in the low 4 bits.
+* The remaining bits encode the index of the local.
 
 Zn: Type+Count
 
@@ -257,22 +260,11 @@ Zo: Type+Binary
 Zc: Type+Compare
 
 Zx: Type+Constant
-* (Drop)  Z0-Z7: 0-7
-* (Drop)  Z8-ZB: 8-1023
-* (Drop)  ZC/ZD: 1024-131071
-* (Drop)  ZE: Raw 32-bit Value
-* (Drop)  ZF: Raw 64-bit Value
-* (New) It consists of a VLI value with Z stuck in the 4 low bits.
+* Consists of a VLI value with Z stuck in the 4 low bits.
 *  Likewise, the type determines the interpretation of the value.
 ** Float/Double
-** (Drop) Z0-Z7: -4.0 .. 3.0 (Integer)
-** (Drop) Z8-ZB: Value/10.0
-** (Drop) ZC: Value/100.0
-** (Drop) ZD: Half-Float
-** (Drop) ZE: Float
-** (Drop) ZF: Double (N/A for Float)
-** (New) Zx value encodes exponent.
-** (New) Another VLI follows encoding the mantissa bits.
+** Zx value encodes exponent.
+** Another VLI follows encoding the mantissa bits.
 
 Zx: Z=Special Value:
 *  0, null (A)
@@ -280,6 +272,9 @@ Zx: Z=Special Value:
 *  2, true (A)
 *  3, false (A)
 *  4, this (A)
+
+Zy: Type+Constant (Variant)
+* I/L/F/D/UI/UL: Interpreted as in Zx, just target type is variant.
 
 
 Instructions
@@ -333,12 +328,12 @@ Instructions
 * 2A Zx, LDC		//Load Constant
 ** Load a constant encoded in Zx.
 
-* 2B Jx, MVA		//MOV I to J
-* 2C Jx, MVI		//MOV I to J
-* 2D Jx, MVL		//MOV I to J
-* 2E Jx, LVF		//MOV I to J
-* 2F Jx, MVD		//MOV I to J
-** Move a value between a pair of registers.
+* 2B Jx, MVA		//MOV J to I
+* 2C Jx, MVI		//MOV J to I
+* 2D Jx, MVL		//MOV J to I
+* 2E Jx, LVF		//MOV J to I
+* 2F Jx, MVD		//MOV J to I
+** Move a value between a pair of local variables.
 
 * 30 Ax, JEQ		//Jump Equal ( (A==0) => )
 * 31 Ax, JNE		//Jump Not-Equal ( (A!=0) => )
@@ -487,10 +482,10 @@ Instructions
 ** Manage lexical environment.
 ** In this VM, the lexical environment will behave as a stack of variables with relative indices.
 
-* 88 Gx, NEWOBJ			//Create object instance.
-* 89, DELOBJ				//Delete object instance.
-* 8A Zn, NEWARR			//Create array instance.
-* 8B, DELARR				//Delete array instance.
+* 88 Gx, NEWOBJ				//Create object instance.
+* 89 Zn, NEWARR				//Create array instance.
+* 8A, DELETE				//Delete object or array instance.
+* 8B, DELNGBL				//Delete if not global.
 
 * 8C, MOVOBJ				//Copy object contents ( A B => )
 * 8D, MOVARR				//Copy array contents ( A B => )
@@ -537,14 +532,14 @@ Instructions
 * AF, PUSHD				//Push Double 0.0
 ** Perform type-specific stack operations on a single item.
 
-* B0 Cx, ADDIC		//A B => A+C
-* B1 Cx, SUBIC		//A B => A-C
-* B2 Cx, MULIC		//A B => A*C
-* B3 Cx, ANDIC		//A B => A&C
-* B4 Cx, ORIC			//A B => A|C
-* B5 Cx, XORIC		//A B => A^C
-* B6 Cx, SHLIC		//A B => A<<C
-* B7 Cx, SARIC		//A B => A>>C
+* B0 Cj, ADDIC		//A B => A+C
+* B1 Cj, SUBIC		//A B => A-C
+* B2 Ci, MULIC		//A B => A*C
+* B3 Ci, ANDIC		//A B => A&C
+* B4 Ci, ORIC			//A B => A|C
+* B5 Ci, XORIC		//A B => A^C
+* B6 Ci, SHLIC		//A B => A<<C, A>>>(-C)
+* B7 Ci, SARIC		//A B => A>>C
 * B8 Ix, ADDIL		//A B => A+I
 * B9 Ix, SUBIL		//A B => A-I
 * BA Ix, MULIL		//A B => A*I
@@ -574,11 +569,16 @@ Instructions
 * CA Kx, CMPILC			//Compare Int Local Const
 * CB Jx, CMPILL			//Compare Int Local Local
 
+* CC, INCI				//Increment Integer ( A => A+1 )
+* CD, DECI				//Decrement Integer ( A => A-1 )
+* CE Ix, INCIL			//Increment Integer Local ( I++; )
+* CF Ix, DECIL			//Decrement Integer Local ( I--; )
+
 * E1 00, ADDAA			//Variant Add
 * E1 01, SUBAA			//Variant Subtract
 * E1 02, MULAA			//Variant Multiply
 * E1 03, ANDAA			//Variant And
-* E1 04, ORAA				//Variant Or
+* E1 04, ORAA			//Variant Or
 * E1 05, XORAA			//Variant Xor
 * E1 06, SHLAA			//Variant Shl
 * E1 07, SARAA			//Variant Sar
@@ -588,5 +588,55 @@ Instructions
 * E1 0B, NEGAA			//Variant Negate
 * E1 0C, NOTAA			//Variant Not
 * E1 0D, LNOTAA			//Variant LNot
-
 ** Arithmetic operations on variant.
+
+* E1 0E, CMPAA			//Variant Compare
+** Compare two variant values resulting in an integer.
+
+* E1 0F Zx, LDCA		//Load Constant As Variant
+** Load Constant as Variant
+** Int/Load/Float/Double/UInt/ULong: Load variant constant.
+** Address, load as type.
+** SByte(8): Narrow String (ASCII/8859-1)
+** UByte(6): Narrow String (UTF-8)
+** Short(7): Wide String.
+
+* E1 10, CVTI2AA		//Convert Int->Variant
+* E1 11, CVTL2AA		//Convert Long->Variant
+* E1 12, CVTF2AA		//Convert Float->Variant
+* E1 13, CVTD2AA		//Convert Double->Variant
+** Convert base types to variant.
+
+* E1 14, CVTAA2I		//Convert Variant->Int
+* E1 15, CVTAA2L		//Convert Variant->Long
+* E1 16, CVTAA2F		//Convert Variant->Float
+* E1 17, CVTAA2D		//Convert Variant->Double
+** Convert variant to base types.
+** Invalid conversions will result in a value of 0.
+
+* E1 18, CVTAA2IN		//Convert Variant->Int (Strict)
+* E1 19, CVTAA2LN		//Convert Variant->Long (Strict)
+* E1 1A, CVTAA2FN		//Convert Variant->Float (Strict)
+* E1 1B, CVTAA2DN		//Convert Variant->Double (Strict)
+** Convert variant to base types (strict).
+** Invalid conversions will throw an exception.
+
+* E1 1C Kx, MVIC		//MOV C to I
+* E1 1D Kx, MVLC		//MOV C to I
+* E1 1E Kx, LVFC		//MOV C to I
+* E1 1F Kx, MVDC		//MOV C to I
+** Move a constant to a local variable.
+
+* E1 20 Gx, LDTHIS		//Load This Variable, ( => A )
+* E1 21 Gx, STTHIS		//Store This Variable ( V => )
+** Load/Store an instance variable from 'this'.
+** These ops may not be used in global functions or static methods.
+
+* E1 22 Gx, CALLTH		//Call This Method
+** Calls a virtual method from 'this'.
+
+* E1 24 Cx, DCMPIC		//Dup+Compare Int Const
+* E1 25 Cx Ax, DCJEQIC	//DUPI+CMPI+JEQ
+* E1 26 Cx Ax, DCJLTIC	//DUPI+CMPI+JLT
+* E1 27 Cx Ax, DCJGTIC	//DUPI+CMPI+JGT
+

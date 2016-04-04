@@ -41,7 +41,7 @@
 #define BSVM2_OPZ_CONST		11
 
 #define BSVM2_OPZ_ADDR		4
-#define BSVM2_OPZ_VARIANT	4
+// #define BSVM2_OPZ_VARIANT	4
 #define BSVM2_OPZ_VOID		11
 
 #define BSVM2_OP_ADDI		0x00	//Add Int (A+B)
@@ -87,11 +87,11 @@
 #define BSVM2_OP_LDA		0x28	// => I
 #define BSVM2_OP_STA		0x29	// A =>
 #define BSVM2_OP_LDC		0x2A	//Load Constant
-#define BSVM2_OP_MVA		0x2B	//MOV I to J
-#define BSVM2_OP_MVI		0x2C	//MOV I to J
-#define BSVM2_OP_MVL		0x2D	//MOV I to J
-#define BSVM2_OP_LVF		0x2E	//MOV I to J
-#define BSVM2_OP_MVD		0x2F	//MOV I to J
+#define BSVM2_OP_MVA		0x2B	//MOV J to I
+#define BSVM2_OP_MVI		0x2C	//MOV J to I
+#define BSVM2_OP_MVL		0x2D	//MOV J to I
+#define BSVM2_OP_MVF		0x2E	//MOV J to I
+#define BSVM2_OP_MVD		0x2F	//MOV J to I
 #define BSVM2_OP_JEQ		0x30	//Jump Equal ( (A==0) => )
 #define BSVM2_OP_JNE		0x31	//Jump Not-Equal ( (A!=0) => )
 #define BSVM2_OP_JLT		0x32	//Jump Less Than ( (A<0) => )
@@ -181,9 +181,9 @@
 #define BSVM2_OP_DCLX		0x86	//Declare Lexical Variables
 #define BSVM2_OP_DELX		0x87	//Delete Lexical Variables
 #define BSVM2_OP_NEWOBJ		0x88	//Create object instance.
-#define BSVM2_OP_DELOBJ		0x89	//Delete object instance.
-#define BSVM2_OP_NEWARR		0x8A	//Create array instance.
-#define BSVM2_OP_DELARR		0x8B	//Delete array instance.
+#define BSVM2_OP_NEWARR		0x89	//Create array instance.
+#define BSVM2_OP_DELETE		0x8A	//Delete object/array instance.
+#define BSVM2_OP_DELNGBL	0x8B	//Delete instance if not global.
 #define BSVM2_OP_MOVOBJ		0x8C	//Copy object contents ( A B => )
 #define BSVM2_OP_MOVARR		0x8D	//Copy array contents ( A B => )
 #define BSVM2_OP_INCREF		0x8E	//Increment object reference count
@@ -236,20 +236,62 @@
 #define BSVM2_OP_XORIL		0xBD	//A B => A^I
 #define BSVM2_OP_SHLIL		0xBE	//A B => A<<I
 #define BSVM2_OP_SARIL		0xBF	//A B => A>>I
-
 #define BSVM2_OP_HNOEX		0xC0	//Non-Execute (Trace)
 #define BSVM2_OP_HNOEX1		0xC1	//Non-Execute (1 Op)
 #define BSVM2_OP_HNOEX2		0xC2	//Non-Execute (2 Op)
 #define BSVM2_OP_HNOEX3		0xC3	//Non-Execute (3 Op)
 #define BSVM2_OP_RETC		0xC4	//Return Constant
-
 #define BSVM2_OP_UCMPI		0xC6	//Unsigned Compare Int
 #define BSVM2_OP_UCMPL		0xC7	//Unsigned Compare Long
-
 #define BSVM2_OP_CMPIC		0xC8	//Compare Int Const
 #define BSVM2_OP_CMPIL		0xC9	//Compare Int Local
 #define BSVM2_OP_CMPILC		0xCA	//Compare Int Local/Const
 #define BSVM2_OP_CMPILL		0xCB	//Compare Int Local/Local
+#define BSVM2_OP_INCI		0xCC	//Increment Integer
+#define BSVM2_OP_DECI		0xCD	//Decrement Integer
+#define BSVM2_OP_INCIL		0xCE	//Increment Integer Local
+#define BSVM2_OP_DECIL		0xCF	//Decrement Integer Local
+
+#define BSVM2_OP_ADDAA		0x0100	//Variant Add
+#define BSVM2_OP_SUBAA		0x0101	//Variant Subtract
+#define BSVM2_OP_MULAA		0x0102	//Variant Multiply
+#define BSVM2_OP_ANDAA		0x0103	//Variant And
+#define BSVM2_OP_ORAA		0x0104	//Variant Or
+#define BSVM2_OP_XORAA		0x0105	//Variant Xor
+#define BSVM2_OP_SHLAA		0x0106	//Variant Shl
+#define BSVM2_OP_SARAA		0x0107	//Variant Sar
+#define BSVM2_OP_SHRAA		0x0108	//Variant Shr
+#define BSVM2_OP_DIVAA		0x0109	//Variant Divide
+#define BSVM2_OP_MODAA		0x010A	//Variant Modulo
+#define BSVM2_OP_NEGAA		0x010B	//Variant Negate
+#define BSVM2_OP_NOTAA		0x010C	//Variant Not
+#define BSVM2_OP_LNOTAA		0x010D	//Variant LNot
+#define BSVM2_OP_CMPAA		0x010E	//Variant Compare
+#define BSVM2_OP_LDCA		0x010F	//Load Constant As Variant
+#define BSVM2_OP_CVTI2AA	0x0110	//Convert Int->Variant
+#define BSVM2_OP_CVTL2AA	0x0111	//Convert Long->Variant
+#define BSVM2_OP_CVTF2AA	0x0112	//Convert Float->Variant
+#define BSVM2_OP_CVTD2AA	0x0113	//Convert Double->Variant
+#define BSVM2_OP_CVTAA2I	0x0114	//Convert Variant->Int
+#define BSVM2_OP_CVTAA2L	0x0115	//Convert Variant->Long
+#define BSVM2_OP_CVTAA2F	0x0116	//Convert Variant->Float
+#define BSVM2_OP_CVTAA2D	0x0117	//Convert Variant->Double
+#define BSVM2_OP_CVTAA2IN	0x0118	//Convert Variant->Int (Strict)
+#define BSVM2_OP_CVTAA2LN	0x0119	//Convert Variant->Long (Strict)
+#define BSVM2_OP_CVTAA2FN	0x011A	//Convert Variant->Float (Strict)
+#define BSVM2_OP_CVTAA2DN	0x011B	//Convert Variant->Double (Strict)
+#define BSVM2_OP_MVIC		0x011C	//MOV C to I
+#define BSVM2_OP_MVLC		0x011D	//MOV C to I
+#define BSVM2_OP_MVFC		0x011E	//MOV C to I
+#define BSVM2_OP_MVDC		0x011F	//MOV C to I
+#define BSVM2_OP_LDTHIS		0x0120	//Load This Variable ( => A )
+#define BSVM2_OP_STTHIS		0x0121	//Store This Variable ( V => )
+#define BSVM2_OP_CALLTH		0x0122	//Call This Method
+
+#define BSVM2_OP_DCMPIC		0x0124	//
+#define BSVM2_OP_DCJEQIC	0x0125	//
+#define BSVM2_OP_DCJLTIC	0x0126	//
+#define BSVM2_OP_DCJGTIC	0x0127	//
 
 
 typedef union BSVM2_Value_u BSVM2_Value;

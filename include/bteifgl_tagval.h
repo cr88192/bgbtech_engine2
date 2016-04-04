@@ -579,6 +579,11 @@ static_inline int dtvUnwrapInt(dtVal val)
 	return(dtvUnwrapLong(val));
 }
 
+static_inline float dtvUnwrapFloat(dtVal val)
+{
+	return(dtvUnwrapDouble(val));
+}
+
 
 BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty);
 
@@ -687,3 +692,13 @@ static_inline void dtvArraySetIndexByte(dtVal arv, int idx, int val)
 	{ (*(byte *)dtvArrayGetIndexAddr(arv, idx))=val; }
 static_inline void dtvArraySetIndexShort(dtVal arv, int idx, int val)
 	{ (*(s16 *)dtvArrayGetIndexAddr(arv, idx))=val; }
+
+
+static_inline void *dtvUnwrapPtr(dtVal val)
+{
+	if((val.hi>>28)==0)
+		return(dtvUnwrapPtrF(val));
+	if((val.hi>>28)==BGBDT_HTAG_TAGARR)
+		return(dtvArrayGetIndexAddr(val, 0));
+	return(NULL);
+}

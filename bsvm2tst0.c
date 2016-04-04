@@ -3,6 +3,8 @@
 #undef printf
 
 char *bsvmt_tstprg=
+"package foo.bar {"
+"struct foo_s { int x, y; double z; }\n"
 "int i, j;\n"
 "int[] arr;\n"
 "int fib(int x)\n"
@@ -10,15 +12,57 @@ char *bsvmt_tstprg=
 "	if(x<2)return(1);\n"
 "	return(fib(x-1)+fib(x-2));\n"
 "}\n"
+"}\n"
 ;
+
+void BS2C_DumpErrors2(
+	BS2CC_CompileContext *ctx)
+{
+	int i, j, k;
+	
+	if(!ctx->ncerr && !ctx->ncfatal)
+	{
+		for(i=0; i<ctx->ncwarn; i++)
+		{
+			printf("%d:%d %04X\n",
+				(ctx->cwarnln[i]>>20), ctx->cwarnln[i]&0xFFFFF,
+				ctx->cwarn[i]);
+		}
+		printf("%d warnings\n", ctx->ncwarn);
+	}
+	
+	for(i=0; i<ctx->ncerr; i++)
+	{
+		printf("%d:%d %04X\n",
+			(ctx->cerrln[i]>>20), ctx->cerrln[i]&0xFFFFF,
+			ctx->cerr[i]);
+	}
+	printf("%d errors\n", ctx->ncerr);
+
+	if(ctx->ncfatal)
+	{
+		for(i=0; i<ctx->ncfatal; i++)
+		{
+			printf("%d:%d %04X\n",
+				(ctx->cfatalln[i]>>20), ctx->cfatalln[i]&0xFFFFF,
+				ctx->cfatal[i]);
+		}
+		printf("%d fatal errors\n", ctx->ncfatal);
+	}
+}
 
 int main()
 {
+	static char *mods[]={
+		"bstest.fib",
+		NULL
+	};
 	BGBDT_MM_ParsePrintInfo *prn;
 	BS2CC_CompileContext *ctx;
 
-	char tb[16384];
+	char tb[1<<18];
 	dtVal v0, v1, v2, v3;
+
 	printf("BSVM Test0\n");
 	
 	v0=dtvWrapIntF(314159);
@@ -61,9 +105,28 @@ int main()
 	printf("TB v3: %s\n", tb);
 	
 	ctx=BS2CC_AllocCompileContext();
+//	prn=BGBDT_MM_NewStringPrinter(tb, 16383);
+	prn=BGBDT_MM_NewStringPrinter(tb, (1<<18)-1);
+	ctx->dbgprn=prn;
+
+	BS2C_CompileModuleList(ctx, NULL, mods);
+
+	printf("%s\n", tb);
+
+#if 0
 	v0=BS2P_ParseBuffer(ctx, bsvmt_tstprg, strlen(bsvmt_tstprg));
 
 //	BGBDT_MM_PrintValueToStrBuf(tb, 1023, v0);
 	BGBDT_MM_FormatValueToStrBuf(tb, 16383, v0);
 	printf("TB v0: %s\n", tb);
+	
+	BS2C_CompileTopStatement(ctx, v0);
+	BS2C_CompileFuncs(ctx);
+	BS2C_DumpErrors2(ctx);
+
+	prn=BGBDT_MM_NewStringPrinter(tb, 16383);
+	BS2C_DisAsmFuncs(prn, ctx);
+	printf("%s\n", tb);
+#endif
+
 }

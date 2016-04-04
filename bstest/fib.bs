@@ -1,0 +1,65 @@
+native void printf(cstring str, ...);
+
+package bstest {
+	public struct Foo {
+		int x, y;
+		double z;
+	}
+
+	private int i, j;
+	private int[] arr;
+	private byte[256] arr2;
+
+	public int fib(int x)
+	{
+		if(x<2)return(1);
+		return(fib(x-1)+fib(x-2));
+	}
+	
+	public class Fib {
+		Foo foo;
+	
+		public Fib(int x, int y)
+		{
+			foo.x=x;
+			foo.y=y;
+		}
+
+		public int tst_switch(int i)
+		{
+			int j;
+			switch(i)
+			{
+			case 0:		j=  1; break;
+			case 1:		j=  4; break;
+			case 2:		j=  9; break;
+			case 3:		j= 16; break;
+			case 4:		j= 25; break;
+			case 5:		j= 36; break;
+			case 6:		j= 49; break;
+			case 7:		j= 64; break;
+			case 8:		j= 81; break;
+			case 9:		j=100; break;
+			case 10:	j=121; break;
+			case 11:	j=144; break;
+
+			default:	j=-1; break;
+			}
+			return(j);
+		}
+	
+		public static void main(string[] argv)
+		{
+			Fib tfib;
+			int i;
+			
+			printf("%d\n", fib(28));
+			
+			arr=new int[64];
+			for(i=0; i<32; i++)
+				arr[i]=fib(i);
+			
+			tfib=new Fib(2, 3);
+		}
+	}
+}

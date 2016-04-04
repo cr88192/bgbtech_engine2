@@ -56,7 +56,7 @@ dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx)
 		{
 			BS2P_NextToken(ctx);
 			n1=BS2P_ParseExpr(ctx);
-			n0=BS2P_ParseWrapSimpleCmdVal(ctx, "goto", n1);
+			n0=BS2P_ParseWrapSimpleTagVal(ctx, "goto", n1);
 			return(n0);
 		}
 
@@ -154,7 +154,7 @@ dtVal BS2P_ParseBlockStatement(BS2CC_CompileContext *ctx)
 			n1=BS2P_ParseExpr(ctx);
 			BS2P_ParseExpectToken(ctx, "X:");
 
-			n0=BS2P_ParseWrapSimpleCmdVal(ctx, "case", n1);
+			n0=BS2P_ParseWrapSimpleTagVal(ctx, "case", n1);
 			return(n0);
 		}
 
@@ -164,7 +164,7 @@ dtVal BS2P_ParseBlockStatement(BS2CC_CompileContext *ctx)
 //			n1=BS2P_ParseExpr(ctx);
 			BS2P_ParseExpectToken(ctx, "X:");
 
-			n0=BS2P_ParseWrapSimpleCmd(ctx, "case_default");
+			n0=BS2P_ParseWrapSimpleTag(ctx, "case_default");
 			return(n0);
 		}
 

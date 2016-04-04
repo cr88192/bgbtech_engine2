@@ -216,6 +216,237 @@ void BS2C_EmitOpcodeSCx(BS2CC_CompileContext *ctx, s64 ix)
 	BS2C_EmitOpcodeUCx(ctx, (ix<<1)^(ix>>63));
 }
 
+void BS2C_EmitOpcodeSuCx(BS2CC_CompileContext *ctx, int z, s64 ix)
+{
+	if((z==BSVM2_OPZ_INT) || (z==BSVM2_OPZ_LONG) ||
+		(z==BSVM2_OPZ_SBYTE) || (z==BSVM2_OPZ_SHORT))
+	{
+		BS2C_EmitOpcodeUCx(ctx, (ix<<1)^(ix>>63));
+		return;
+	}
+
+	if((z==BSVM2_OPZ_FLOAT) || (z==BSVM2_OPZ_DOUBLE))
+	{
+		BS2C_EmitOpcodeFxD(ctx, ix);
+		return;
+	}
+
+	BS2C_EmitOpcodeUCx(ctx, ix);
+}
+
+void BS2C_EmitOpcodeFxD(BS2CC_CompileContext *ctx, double f)
+{
+	u64 ix;
+	s64 m;
+	int e;
+
+	ix=*(u64 *)(&f);
+
+	m=(s64)((ix&0x000FFFFFFFFFFFFFULL)|
+		0x0010000000000000ULL);
+	e=((ix>>52)&2047)-(1023+52);
+
+	while(!(m&255))
+		{ m=m>>8; e=e+8; }
+	while(!(m&1))
+		{ m=m>>1; e++; }
+	
+	if(ix>>63)
+		{ m=-m; }
+	
+	BS2C_EmitOpcodeSCx(ctx, e);
+	BS2C_EmitOpcodeSCx(ctx, m);
+}
+
+void BS2C_EmitOpcodeJx(BS2CC_CompileContext *ctx, int vi, int vj)
+{
+	int k;
+	
+	if((vi<8) && (vj<16))
+	{
+		k=(vi<<4)|vj;
+		BS2C_EmitByte(ctx, k);
+		return;
+	}
+
+	if((vi<128) && (vj<128))
+	{
+		k=(vi<<7)|vj;
+		BS2C_EmitOpcodeUCx(ctx, k);
+		return;
+	}
+
+	if((vi<1024) && (vj<2048))
+	{
+		k=(vi<<11)|vj;
+		BS2C_EmitOpcodeUCx(ctx, k);
+		return;
+	}
+}
+
+void BS2C_EmitOpcodeUKx(BS2CC_CompileContext *ctx, int vi, u64 vj)
+{
+	u64 lk;
+	int k;
+	
+	if((vi<8) && (vj<16))
+	{
+		k=(vi<<4)|vj;
+		BS2C_EmitByte(ctx, k);
+		return;
+	}
+
+	if((vi<32) && (vj<512))
+	{
+		k=(vi<<9)|vj;
+		BS2C_EmitByte(ctx, 0x80|(k>>8));
+		BS2C_EmitByte(ctx, (k   )&255);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+		return;
+	}
+
+	if((vi<256) && (vj<8192))
+	{
+		k=(vi<<13)|vj;
+		BS2C_EmitByte(ctx, 0xC0|(k>>16));
+		BS2C_EmitByte(ctx, (k>>8)&255);
+		BS2C_EmitByte(ctx, (k   )&255);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+		return;
+	}
+
+	if((vi<256) && (vj<(1<<20)))
+	{
+		k=(vi<<20)|vj;
+		BS2C_EmitByte(ctx, 0xE0|(k>>24));
+		BS2C_EmitByte(ctx, (k>>16)&255);
+		BS2C_EmitByte(ctx, (k>> 8)&255);
+		BS2C_EmitByte(ctx, (k    )&255);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+		return;
+	}
+
+	if((vi<256) && (vj<(1<<27)))
+	{
+		lk=(((u64)vi)<<27)|vj;
+
+		BS2C_EmitByte(ctx, 0xF0|(lk>>32));
+		BS2C_EmitByte(ctx, (lk>>24)&255);
+		BS2C_EmitByte(ctx, (lk>>16)&255);
+		BS2C_EmitByte(ctx, (lk>> 8)&255);
+		BS2C_EmitByte(ctx, (lk    )&255);
+
+//		BS2C_EmitOpcodeUCx(ctx, lk);
+		return;
+	}
+
+	if((vi<1024) && (vj<(1LL<<32)))
+	{
+		lk=(((u64)vi)<<32)|vj;
+		BS2C_EmitByte(ctx, 0xF8|(lk>>40));
+		BS2C_EmitByte(ctx, (lk>>32)&255);
+		BS2C_EmitByte(ctx, (lk>>24)&255);
+		BS2C_EmitByte(ctx, (lk>>16)&255);
+		BS2C_EmitByte(ctx, (lk>> 8)&255);
+		BS2C_EmitByte(ctx, (lk    )&255);
+//		BS2C_EmitOpcodeUCx(ctx, lk);
+		return;
+	}
+
+	if((vi<1024) && (vj<(1LL<<39)))
+	{
+		lk=(((u64)vi)<<39)|vj;
+		BS2C_EmitByte(ctx, 0xFC|(lk>>48));
+		BS2C_EmitByte(ctx, (lk>>40)&255);
+		BS2C_EmitByte(ctx, (lk>>32)&255);
+		BS2C_EmitByte(ctx, (lk>>24)&255);
+		BS2C_EmitByte(ctx, (lk>>16)&255);
+		BS2C_EmitByte(ctx, (lk>> 8)&255);
+		BS2C_EmitByte(ctx, (lk    )&255);
+//		BS2C_EmitOpcodeUCx(ctx, lk);
+		return;
+	}
+
+	if((vi<4096) && (vj<(1LL<<44)))
+	{
+		lk=(((u64)vi)<<44)|vj;
+		BS2C_EmitByte(ctx, 0xFE|(lk>>56));
+		BS2C_EmitByte(ctx, (lk>>48)&255);
+		BS2C_EmitByte(ctx, (lk>>40)&255);
+		BS2C_EmitByte(ctx, (lk>>32)&255);
+		BS2C_EmitByte(ctx, (lk>>24)&255);
+		BS2C_EmitByte(ctx, (lk>>16)&255);
+		BS2C_EmitByte(ctx, (lk>> 8)&255);
+		BS2C_EmitByte(ctx, (lk    )&255);
+//		BS2C_EmitOpcodeUCx(ctx, lk);
+		return;
+	}
+
+	if((vi<4096) && (vj<(1LL<<52)))
+	{
+		lk=(((u64)vi)<<52)|vj;
+		BS2C_EmitByte(ctx, 0xFF);
+		BS2C_EmitByte(ctx, (lk>>56)&255);
+		BS2C_EmitByte(ctx, (lk>>48)&255);
+		BS2C_EmitByte(ctx, (lk>>40)&255);
+		BS2C_EmitByte(ctx, (lk>>32)&255);
+		BS2C_EmitByte(ctx, (lk>>24)&255);
+		BS2C_EmitByte(ctx, (lk>>16)&255);
+		BS2C_EmitByte(ctx, (lk>> 8)&255);
+		BS2C_EmitByte(ctx, (lk    )&255);
+//		BS2C_EmitOpcodeUCx(ctx, lk);
+		return;
+	}
+}
+
+void BS2C_EmitOpcodeSKx(BS2CC_CompileContext *ctx, int i, s64 ix)
+{
+	BS2C_EmitOpcodeUKx(ctx, i, (ix<<1)^(ix>>63));
+}
+
+void BS2C_EmitOpcodeSuKx(BS2CC_CompileContext *ctx, int z, int vi, s64 ix)
+{
+	if((z==BSVM2_OPZ_INT) || (z==BSVM2_OPZ_LONG) ||
+		(z==BSVM2_OPZ_SBYTE) || (z==BSVM2_OPZ_SHORT))
+	{
+		BS2C_EmitOpcodeSKx(ctx, vi, ix);
+		return;
+	}
+
+	if((z==BSVM2_OPZ_FLOAT) || (z==BSVM2_OPZ_DOUBLE))
+	{
+		BS2C_EmitOpcodeFKxD(ctx, vi, ix);
+		return;
+	}
+
+	BS2C_EmitOpcodeUKx(ctx, vi, ix);
+}
+
+void BS2C_EmitOpcodeFKxD(BS2CC_CompileContext *ctx, int vi, double f)
+{
+	u64 ix;
+	s64 m;
+	int e;
+
+	ix=*(u64 *)(&f);
+
+	m=(s64)((ix&0x000FFFFFFFFFFFFFULL)|
+		0x0010000000000000ULL);
+	e=((ix>>52)&2047)-(1023+52);
+
+	while(!(m&255))
+		{ m=m>>8; e=e+8; }
+	while(!(m&1))
+		{ m=m>>1; e++; }
+	
+	if(ix>>63)
+		{ m=-m; }
+	
+	BS2C_EmitOpcodeSKx(ctx, vi, e);
+	BS2C_EmitOpcodeSCx(ctx, m);
+}
+
+
 void BS2C_EmitOpcodeUZx(BS2CC_CompileContext *ctx, int z, u64 ix)
 {
 	BS2C_EmitOpcodeUCx(ctx, (ix<<4)|(z&15));
@@ -432,4 +663,111 @@ void BS2C_FixupLabels(BS2CC_CompileContext *ctx)
 //		ctx->frm->trlc_id[i]=tid;
 //		ctx->frm->trlc_ct[i]=ctx->frm->ct-ctx->frm->cts;
 	}
+}
+
+
+int BS2C_ImgLookupString(BS2CC_CompileContext *ctx, char *str)
+{
+	char *cs;
+
+	if(!str)
+		return(0);
+	if(!(*str))
+		return(1);
+	if(!ctx->strtab)
+		return(-1);
+	
+	cs=ctx->strtab+2;
+	while(cs<ctx->strct)
+	{
+		if(!strcmp(cs, str))
+			return(cs-ctx->strtab);
+		cs=cs+strlen(cs)+1;
+	}
+	return(-1);
+}
+
+int BS2C_ImgGetString(BS2CC_CompileContext *ctx, char *str)
+{
+	char *cs;
+	int i, j, k, l;
+
+	i=BS2C_ImgLookupString(ctx, str);
+	if(i>=0)return(i);
+	
+	if(!ctx->strtab)
+	{
+		ctx->strtab=frgl_malloc(1<<16);
+		ctx->strtabe=ctx->strtab+(1<<16);
+		ctx->strct=ctx->strtab+2;
+	}
+	
+	l=strlen(str);
+	if((ctx->strct+l+1)>=ctx->strtabe)
+	{
+		i=ctx->strct-ctx->strtab;
+		k=ctx->strtabe-ctx->strtab;
+		while((i+l+1)>=k)
+			k=k+(k>>1);
+		ctx->strtab=frgl_realloc(ctx->strtab, k);
+		ctx->strtabe=ctx->strtab+k;
+		ctx->strct=ctx->strtab+i;
+	}
+	
+	cs=ctx->strct;
+	strcpy(cs, str);
+	ctx->strct=cs+l+1;
+	
+	return(cs-ctx->strtab);
+}
+
+void BS2C_EmitReturnV(BS2CC_CompileContext *ctx)
+{
+	int cty;
+
+	cty=ctx->frm->func->rty;
+
+	if(cty==BSVM2_OPZ_VOID)
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETV);
+		return;
+	}
+
+	if(BS2C_InferTypeSmallIntP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETC);
+		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_INT, 0);
+		return;
+	}
+
+	if(BS2C_InferTypeSmallLongP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETC);
+		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_LONG, 0);
+		return;
+	}
+
+	if(BS2C_InferTypeSmallFloatP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHF);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETF);
+		return;
+	}
+
+	if(BS2C_InferTypeSmallDoubleP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHD);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETD);
+		return;
+	}
+
+	if(BS2C_InferTypeAddressP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHA);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETA);
+		return;
+	}
+
+	BS2C_CaseError(ctx);
+	return;
 }

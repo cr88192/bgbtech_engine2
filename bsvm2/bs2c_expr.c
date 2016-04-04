@@ -902,9 +902,9 @@ void BS2C_CompileCallSuper(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 		return;
 	}
 
-	BS2C_CompileExprPushType(ctx, dty);
-	BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
-	BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_VOID, 4);
+//	BS2C_CompileExprPushType(ctx, dty);
+//	BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+//	BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_VOID, 4);
 
 	ix=ctx->frm->func->obj->gid;
 	bty=ix+256;

@@ -75,4 +75,5 @@ BTEIFGL_API int BS2C_CompileModuleList(
 	{
 		BS2C_DisAsmFuncs(ctx->dbgprn, ctx);
 	}
+	return(0);
 }

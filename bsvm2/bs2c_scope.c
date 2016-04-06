@@ -273,7 +273,7 @@ BS2CC_VarInfo *BS2C_LookupObjectFuncNameArgs(
 int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 {
 	BS2CC_VarInfo *vari;
-	int bty;
+	int bty, z;
 	int i, j, k;
 	
 	i=BS2C_LookupLocal(ctx, name);
@@ -281,8 +281,10 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 	{
 		vari=ctx->frm->locals[i];
 		bty=vari->bty;
+
+		z=BS2C_GetTypeBaseZ(ctx, bty);
 		
-		switch(bty)
+		switch(z)
 		{
 		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
 		case BSVM2_OPZ_UBYTE:	case BSVM2_OPZ_SBYTE:
@@ -373,7 +375,7 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 {
 	BS2CC_VarInfo *vari;
-	int bty;
+	int bty, z;
 	int i, j, k;
 	
 	i=BS2C_LookupLocal(ctx, name);
@@ -381,8 +383,10 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 	{
 		vari=ctx->frm->locals[i];
 		bty=vari->bty;
+
+		z=BS2C_GetTypeBaseZ(ctx, bty);
 		
-		switch(bty)
+		switch(z)
 		{
 		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
 		case BSVM2_OPZ_UBYTE:	case BSVM2_OPZ_SBYTE:

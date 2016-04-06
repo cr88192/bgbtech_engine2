@@ -93,7 +93,7 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		rt=BS2C_InferExpr(ctx, rn);
 		cty=BS2C_InferSuperType(ctx, lt, rt);
 
-		if(BS2C_InferTypeSmallLongP(ctx, cty) &&
+		if(BS2C_TypeSmallLongP(ctx, cty) &&
 			dtvIsSmallLongP(ln) && dtvIsSmallLongP(rn))
 		{
 			li=dtvUnwrapLong(ln);
@@ -120,14 +120,14 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			}
 			
 			lk=BS2C_ReduceClampConstRangeL(ctx, lk, cty);			
-			if(BS2C_InferTypeSmallIntP(ctx, cty))
+			if(BS2C_TypeSmallIntP(ctx, cty))
 				{ tn=dtvWrapInt(lk); }
 			else
 				{ tn=dtvWrapLong(lk); }
 			return(tn);
 		}
 
-		if(BS2C_InferTypeSmallDoubleP(ctx, cty) &&
+		if(BS2C_TypeSmallDoubleP(ctx, cty) &&
 			dtvIsSmallDoubleP(ln) && dtvIsSmallDoubleP(rn))
 		{
 			lf=dtvUnwrapDouble(ln);
@@ -150,7 +150,7 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			}
 			
 //			lk=BS2C_ReduceClampConstRangeL(ctx, lk, cty);			
-			if(BS2C_InferTypeSmallFloatP(ctx, cty))
+			if(BS2C_TypeSmallFloatP(ctx, cty))
 				{ tn=dtvWrapFloat(lh);}
 			else
 				{ tn=dtvWrapDouble(lh); }
@@ -173,7 +173,7 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		rt=BS2C_InferExpr(ctx, rn);
 		cty=BS2C_InferSuperType(ctx, lt, rt);
 
-		if(BS2C_InferTypeSmallLongP(ctx, cty) &&
+		if(BS2C_TypeSmallLongP(ctx, cty) &&
 			dtvIsSmallLongP(ln) && dtvIsSmallLongP(rn))
 		{
 			li=dtvUnwrapLong(ln);
@@ -195,7 +195,7 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			return(tn);
 		}
 
-		if(BS2C_InferTypeSmallDoubleP(ctx, cty) &&
+		if(BS2C_TypeSmallDoubleP(ctx, cty) &&
 			dtvIsSmallDoubleP(ln) && dtvIsSmallDoubleP(rn))
 		{
 			lf=dtvUnwrapDouble(ln);
@@ -246,13 +246,13 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		ln=BS2C_ReduceExpr(ctx, ln);
 //		rn=BS2C_ReduceExpr(ctx, rn);
 
-		cty=BS2C_InferTypeBaseType(ctx, rn);
+		cty=BS2C_TypeBaseType(ctx, rn);
 
-		if(BS2C_InferTypeSmallLongP(ctx, cty) && dtvIsSmallLongP(ln))
+		if(BS2C_TypeSmallLongP(ctx, cty) && dtvIsSmallLongP(ln))
 		{
 			li=dtvUnwrapLong(ln);
 			lk=BS2C_ReduceClampConstRangeL(ctx, li, cty);
-			if(BS2C_InferTypeSmallIntP(ctx, cty))
+			if(BS2C_TypeSmallIntP(ctx, cty))
 				{ tn=dtvWrapInt(lk); }
 			else
 				{ tn=dtvWrapLong(lk); }

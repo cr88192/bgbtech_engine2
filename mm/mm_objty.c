@@ -172,7 +172,7 @@ byte *BGBDT_MM_AllocObject(int tyid, int size, int lln)
 	objh=(BGBDT_MM_ObjHead *)BGBDT_MM_AllocObjectInner(size);
 	objh->ty=tyid;
 	objh->lln=lln&4095;
-	objh->pad1=0;
+	objh->mrgn=0;
 	objh->pad2=0;
 	
 	h=BGBDT_MM_QHashBytes((byte *)objh, sizeof(BGBDT_MM_ObjHead));
@@ -209,6 +209,25 @@ void BGBDT_MM_Free(void *ptr)
 		return;
 	
 	bptr=((byte *)ptr)-sizeof(BGBDT_MM_ObjHead);
+	BGBDT_MM_FreeObjectInner(bptr);
+}
+
+void BGBDT_MM_Destroy(void *ptr)
+{
+	BGBDT_MM_ObjTypeInfo *oti;
+	BGBDT_MM_ObjHead *objh;
+	void *bptr;
+
+	if(!ptr)
+		return;
+	
+	bptr=((byte *)ptr)-sizeof(BGBDT_MM_ObjHead);
+	objh=bptr;
+
+	oti=&(bgbdt_mm_objtype[objh->ty&4095]);
+	if(oti->vt && oti->vt->Destroy)
+		{ oti->vt->Destroy(ptr); }
+
 	BGBDT_MM_FreeObjectInner(bptr);
 }
 

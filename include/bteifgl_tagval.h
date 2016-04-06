@@ -290,6 +290,15 @@ static_inline bool dtvIsBoolP(dtVal val)
 	return(0);
 }
 
+static_inline bool dtvIsCharP(dtVal val)
+{
+	int ret;
+	
+	if(val.hi==BGBDT_TAG_MCHAR)
+		return(1);
+	return(0);
+}
+
 
 static_inline int dtvEqqP(dtVal val1, dtVal val2)
 {
@@ -582,6 +591,11 @@ static_inline int dtvUnwrapInt(dtVal val)
 static_inline float dtvUnwrapFloat(dtVal val)
 {
 	return(dtvUnwrapDouble(val));
+}
+
+static_inline int dtvUnwrapChar(dtVal val)
+{
+	return(dtvUnwrapInt(val));
 }
 
 

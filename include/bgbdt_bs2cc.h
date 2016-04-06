@@ -61,6 +61,8 @@
 #define BS2CC_VITYPE_STRUCT			5
 #define BS2CC_VITYPE_CLASS			6
 #define BS2CC_VITYPE_IFACE			7
+#define BS2CC_VITYPE_LCLVAR			8		//Local Var
+#define BS2CC_VITYPE_LXLVAR			8		//Lexical Var
 
 //Type IDs:
 //  0..   15: Core Types
@@ -146,7 +148,7 @@ int gid;					//var ID
 int vitype;					//varinfo type
 
 BS2CC_VarInfo *args[256];
-BS2CC_VarInfo *iface[256];
+BS2CC_VarInfo *iface[32];
 BS2CC_VarInfo *super;
 int nargs, niface;
 BS2CC_CcFrame *body;
@@ -201,6 +203,7 @@ int gbltab[256];
 int littab[256];
 int ngbl;
 int nlit;
+int jcleanup;
 };
 
 struct BS2CC_PkgFrame_s

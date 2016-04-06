@@ -752,35 +752,35 @@ void BS2C_EmitReturnV(BS2CC_CompileContext *ctx)
 		return;
 	}
 
-	if(BS2C_InferTypeSmallIntP(ctx, cty))
+	if(BS2C_TypeSmallIntP(ctx, cty))
 	{
 		BS2C_EmitOpcode(ctx, BSVM2_OP_RETC);
 		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_INT, 0);
 		return;
 	}
 
-	if(BS2C_InferTypeSmallLongP(ctx, cty))
+	if(BS2C_TypeSmallLongP(ctx, cty))
 	{
 		BS2C_EmitOpcode(ctx, BSVM2_OP_RETC);
 		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_LONG, 0);
 		return;
 	}
 
-	if(BS2C_InferTypeSmallFloatP(ctx, cty))
+	if(BS2C_TypeSmallFloatP(ctx, cty))
 	{
 		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHF);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_RETF);
 		return;
 	}
 
-	if(BS2C_InferTypeSmallDoubleP(ctx, cty))
+	if(BS2C_TypeSmallDoubleP(ctx, cty))
 	{
 		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHD);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_RETD);
 		return;
 	}
 
-	if(BS2C_InferTypeAddressP(ctx, cty))
+	if(BS2C_TypeAddressP(ctx, cty))
 	{
 		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHA);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_RETA);

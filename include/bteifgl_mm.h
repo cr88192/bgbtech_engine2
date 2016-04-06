@@ -34,8 +34,11 @@ typedef struct BGBDT_MM_ChunkInfo_s BGBDT_MM_ChunkInfo;
 typedef struct BGBDT_MM_LObjInfo_s BGBDT_MM_LObjInfo;
 
 typedef struct BGBDT_MM_ObjHead_s BGBDT_MM_ObjHead;
+typedef struct BGBDT_MM_ObjTypeVtable_s BGBDT_MM_ObjTypeVtable;
 typedef struct BGBDT_MM_ObjTypeInfo_s BGBDT_MM_ObjTypeInfo;
 typedef struct BGBDT_MM_ObjLLnInfo_s BGBDT_MM_ObjLLnInfo;
+
+typedef struct BGBDT_MM_RegionInfo_s BGBDT_MM_RegionInfo;
 
 struct BGBDT_MM_ChunkInfo_s {
 byte *data;		//data region
@@ -58,16 +61,33 @@ struct BGBDT_MM_ObjHead_s {
 u32 sz;		//object size, up to 4GB
 u16 ty;		//object type, low 12 bits, high 4=ref cnt
 u16 lln;	//src file/line number, low 12, high 4=check
-u32 pad1;	//reserved
+u32 mrgn;	//memory region, 0-11=Level, 12-23=Region ID
 u32 pad2;	//reserved
+};
+
+struct BGBDT_MM_ObjTypeVtable_s {
+void (*Destroy)(void *ptr);
 };
 
 struct BGBDT_MM_ObjTypeInfo_s {
 char *name;
 int tyid;
+BGBDT_MM_ObjTypeVtable *vt;
 };
 
 struct BGBDT_MM_ObjLLnInfo_s {
 char *fn;
 int ln;
+};
+
+struct BGBDT_MM_RegionInfo_s {
+BGBDT_MM_RegionInfo *next;
+u16 rgnid;
+int rifree;
+
+int rilvl[4096];
+
+void **ri_ptr;
+int *ri_next;
+int ri_nptr, ri_mptr;
 };

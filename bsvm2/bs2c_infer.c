@@ -79,7 +79,7 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 {
 	dtVal ln, rn;
 	BS2CC_VarInfo *vi, *vi2;
-	char *tag, *fn;
+	char *tag, *fn, *op;
 	int lt, rt, ty;
 	int i;
 
@@ -93,6 +93,9 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		{ return(BS2CC_TYZ_FLOAT); }
 	if(dtvIsFixDoubleP(expr))
 		{ return(BS2CC_TYZ_DOUBLE); }
+
+	if(dtvIsCharP(expr))
+		{ return(BS2CC_TYZ_CHAR); }
 
 	if(BGBDT_TagStr_IsSymbolP(expr))
 	{
@@ -138,9 +141,10 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 	{
 		ln=BS2P_GetAstNodeAttr(expr, "lhs");
 		rn=BS2P_GetAstNodeAttr(expr, "rhs");
+		op=BS2P_GetAstNodeAttrS(expr, "op");
 		lt=BS2C_InferExpr(ctx, ln);
 		rt=BS2C_InferExpr(ctx, rn);
-		ty=BS2C_InferSuperType(ctx, lt, rt);
+		ty=BS2C_TypeBinarySuperType(ctx, op, lt, rt);
 		return(ty);
 	}
 
@@ -196,8 +200,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 //		rt=BS2C_InferExpr(ctx, rn);
 //		ty=BS2C_InferSuperType(ctx, lt, rt);
 //		ty=rt;
-//		ty=BS2C_InferTypeBaseType(ctx, rn);
-		ty=BS2C_InferTypeExtType(ctx, rn);
+//		ty=BS2C_TypeBaseType(ctx, rn);
+		ty=BS2C_TypeExtType(ctx, rn);
 		return(ty);
 	}
 
@@ -217,8 +221,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 	if(!strcmp(tag, "new"))
 	{
 		rn=BS2P_GetAstNodeAttr(expr, "type");
-//		ty=BS2C_InferTypeBaseType(ctx, rn);
-		ty=BS2C_InferTypeExtType(ctx, rn);
+//		ty=BS2C_TypeBaseType(ctx, rn);
+		ty=BS2C_TypeExtType(ctx, rn);
 		return(ty);
 	}
 
@@ -226,7 +230,7 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 	{
 		ln=BS2P_GetAstNodeAttr(expr, "lhs");
 		lt=BS2C_InferExpr(ctx, ln);
-//		ty=BS2C_InferTypeExtType(ctx, rn);
+//		ty=BS2C_TypeExtType(ctx, rn);
 		ty=BS2C_TypeDerefType(ctx, lt);
 		return(ty);
 	}

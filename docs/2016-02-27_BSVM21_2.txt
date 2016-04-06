@@ -278,39 +278,39 @@ Zy: Type+Constant (Variant)
 
 
 Instructions
-* 00, ADDI	//A B => A+B
-* 01, SUBI	//A B => A-B
-* 02, MULI	//A B => A*B
-* 03, ANDI	//A B => A&B
-* 04, ORI		//A B => A|B
-* 05, XORI	//A B => A^B
-* 06, SHLI	//A B => A<<B
-* 07, SARI	//A B => A>>B
-* 08, ADDL	//A B => A+B
-* 09, SUBL	//A B => A-B
-* 0A, MULL	//A B => A*B
-* 0B, ANDL	//A B => A&B
-* 0C, ORL		//A B => A|B
-* 0D, XORL	//A B => A^B
-* 0E, SHLL	//A B => A<<B
-* 0F, SARL	//A B => A>>B
-* 10, ADDF	//A B => A+B
-* 11, SUBF	//A B => A-B
-* 12, MULF	//A B => A*B
-* 13, DIVF	//A B => A/B
-* 14, ADDD	//A B => A+B
-* 15, SUBD	//A B => A-B
-* 16, MULD	//A B => A*B
-* 17, DIVD	//A B => A/B
+* 00, ADDI			//A B => A+B
+* 01, SUBI			//A B => A-B
+* 02, MULI			//A B => A*B
+* 03, ANDI			//A B => A&B
+* 04, ORI			//A B => A|B
+* 05, XORI			//A B => A^B
+* 06, SHLI			//A B => A<<B
+* 07, SARI			//A B => A>>B
+* 08, ADDL			//A B => A+B
+* 09, SUBL			//A B => A-B
+* 0A, MULL			//A B => A*B
+* 0B, ANDL			//A B => A&B
+* 0C, ORL			//A B => A|B
+* 0D, XORL			//A B => A^B
+* 0E, SHLL			//A B => A<<B
+* 0F, SARL			//A B => A>>B
+* 10, ADDF			//A B => A+B
+* 11, SUBF			//A B => A-B
+* 12, MULF			//A B => A*B
+* 13, DIVF			//A B => A/B
+* 14, ADDD			//A B => A+B
+* 15, SUBD			//A B => A-B
+* 16, MULD			//A B => A*B
+* 17, DIVD			//A B => A/B
 ** Perform basic arithmetic operations on a pair of stack items.
-* 18, NEGI	//A => -A
-* 19, NEGL	//A => -A
-* 1A, NEGF	//A => -A
-* 1B, NEGD	//A => -A
-* 1C, NOTI	//A => ~A
-* 1D, NOTL	//A => ~A
-* 1E, LNTI	//A => !A
-* 1F, LNTL	//A => !A
+* 18, NEGI			//A => -A
+* 19, NEGL			//A => -A
+* 1A, NEGF			//A => -A
+* 1B, NEGD			//A => -A
+* 1C, NOTI			//A => ~A
+* 1D, NOTL			//A => ~A
+* 1E, LNTI			//A => !A
+* 1F, LNTL			//A => !A
 ** Perform basic unary arithmetic ops.
 
 * 20 Ix, LDI		// => I
@@ -342,6 +342,7 @@ Instructions
 * 34 Ax, JLE		//Jump Less Equal ( (A<=0) => )
 * 35 Ax, JGE		//Jump Greater Equal ( (A>=0) => )
 ** Compare the item on the top of the stack with 0 and jump accordingly.
+** The value is interpreted as an integer.
 
 * 36 ZO Ax, JCMP	//Jump-Compare ( (A op B) =>)
 ** Compare two stack items and jump according to the operator.
@@ -413,11 +414,11 @@ Instructions
 * 64 ZO Jx, BINOPLL		//Binary Operator (I op J)
 * 65 ZO Jx, CMPOPLL		//Compare Operator (I op J)
 * 66 ZO Cx, BINOPC		//Binary Operator (A op C)
-* 67 ZO Kx, BINOPLC	//Binary Operator (I op C)
+* 67 ZO Kx, BINOPLC		//Binary Operator (I op C)
 * 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
-* 69 ZO Kx, CMPOPLC	//Compare Operator (I op C)
+* 69 ZO Kx, CMPOPLC		//Compare Operator (I op C)
 
-** Binary compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
+** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
 
 * 6A Zn, PUSHN				//Push n Items (null/zero)
 * 6B Zn, POPN				//Pop n Items
@@ -490,8 +491,8 @@ Instructions
 * 8C, MOVOBJ				//Copy object contents ( A B => )
 * 8D, MOVARR				//Copy array contents ( A B => )
 
-* 8E, INCREF				//Increment object reference count
-* 8F, DECREF				//Decrement object reference count
+* 8E, INCREF				//Increment object reference count ( A => A )
+* 8F, DECREF				//Decrement object reference count ( A => A )
 ** Adjust reference counts.
 ** If reference counting is used, it is managed explicitly by the language.
 ** Similar applies to the handling of value types.
@@ -508,11 +509,13 @@ Instructions
 * 99, CVTD2I				//Convert Double->Int
 * 9A, CVTD2L				//Convert Double->Long
 * 9B, CVTD2F				//Convert Double->Float
+** Convert between types.
+
 * 9C, CVTSB2I				//Convert SByte->Int
 * 9D, CVTUB2I				//Convert UByte->Int
 * 9E, CVTSS2I				//Convert Short->Int
 * 9F, CVTUS2I				//Convert UShort->Int
-** Convert between types.
+** Sign or zero extend value to the wider size.
 
 * A0, POPI				//Pop Int
 * A1, POPL				//Pop Long
@@ -635,8 +638,33 @@ Instructions
 * E1 22 Gx, CALLTH		//Call This Method
 ** Calls a virtual method from 'this'.
 
-* E1 24 Cx, DCMPIC		//Dup+Compare Int Const
-* E1 25 Cx Ax, DCJEQIC	//DUPI+CMPI+JEQ
-* E1 26 Cx Ax, DCJLTIC	//DUPI+CMPI+JLT
-* E1 27 Cx Ax, DCJGTIC	//DUPI+CMPI+JGT
+* E1 23 Cx, DCMPIC		//Dup+Compare Int Const
 
+* E1 24 Cx Ax, DCJEQIC	//DUPI+CMPIC+JEQ
+* E1 25 Cx Ax, DCJNEIC	//DUPI+CMPIC+JNE
+* E1 26 Cx Ax, DCJLTIC	//DUPI+CMPIC+JLT
+* E1 27 Cx Ax, DCJGTIC	//DUPI+CMPIC+JGT
+* E1 28 Cx Ax, DCJLEIC	//DUPI+CMPIC+JLE
+* E1 29 Cx Ax, DCJGEIC	//DUPI+CMPIC+JGE
+
+* E1 30, LEARI			//Offset Array, Int ( A I => B )
+* E1 31, LEARL			//Offset Array, Long ( A I => B )
+* E1 32, LEARF			//Offset Array, Float ( A I => B )
+* E1 33, LEARD			//Offset Array, Double ( A I => B )
+* E1 34, LEARA			//Offset Array, Address ( A I => B )
+* E1 35, LEARB			//Offset Array, Byte ( A I => B )
+* E1 36, LEARS			//Offset Array, Short ( A I => B )
+* E1 37, LEAST			//Offset String ( A I => B )
+* E1 38 Ci, LEARIC		//Offset Array, Int ( I; A => B )
+* E1 39 Ci, LEARLC		//Offset Array, Long ( I; A => B )
+* E1 3A Ci, LEARFC		//Offset Array, Float ( I; A => B )
+* E1 3B Ci, LEARDC		//Offset Array, Double ( I; A => B )
+* E1 3C Ci, LEARAC		//Offset Array, Address ( I; A => B )
+* E1 3D Ci, LEARBC		//Offset Array, Byte ( I; A => B )
+* E1 3E Ci, LEARSC		//Offset Array, Short ( I; A => B )
+* E1 3F Ci, LEASTC		//Offset String ( I; A => B )
+
+* E1 40 Ix Gx, IFXOBJ		//Init Fixed Object (Struct)
+* E1 41 Ix Zn, IFXARR		//Init Fixed Array
+* E1 42 Ix Gx, DFXOBJ		//Delete Fixed Object
+* E1 43 Ix Zn, DFXARR		//Delete Fixed Array

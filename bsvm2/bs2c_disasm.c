@@ -265,11 +265,30 @@ char *name;
 {"E120Gx",    "LDTHIS"},
 {"E121Gx",    "STTHIS"},
 {"E122Gx",    "CALLTH"},
-
-{"E124Ci",    "DCMPIC"},
+{"E123Ci",    "DCMPIC"},
+{"E124CiAx",  "DCJEQIC"},
 {"E125CiAx",  "DCJEQIC"},
 {"E126CiAx",  "DCJLTIC"},
 {"E127CiAx",  "DCJGTIC"},
+{"E128CiAx",  "DCJLEIC"},
+{"E129CiAx",  "DCJGEIC"},
+
+{"E130",      "LEARI"},
+{"E131",      "LEARL"},
+{"E132",      "LEARF"},
+{"E133",      "LEARD"},
+{"E134",      "LEARA"},
+{"E135",      "LEARB"},
+{"E136",      "LEARS"},
+{"E137",      "LEAST"},
+{"E138Ci",    "LEARIC"},
+{"E139Ci",    "LEARLC"},
+{"E13ACi",    "LEARFC"},
+{"E13BCi",    "LEARDC"},
+{"E13CCi",    "LEARAC"},
+{"E13DCi",    "LEARBC"},
+{"E13ECi",    "LEARSC"},
+{"E13FCi",    "LEASTC"},
 
 {NULL,        NULL}
 };

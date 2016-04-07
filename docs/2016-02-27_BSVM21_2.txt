@@ -646,6 +646,7 @@ Instructions
 * E1 27 Cx Ax, DCJGTIC	//DUPI+CMPIC+JGT
 * E1 28 Cx Ax, DCJLEIC	//DUPI+CMPIC+JLE
 * E1 29 Cx Ax, DCJGEIC	//DUPI+CMPIC+JGE
+** Duplicate item, compare with a constant, and jump.
 
 * E1 30, LEARI			//Offset Array, Int ( A I => B )
 * E1 31, LEARL			//Offset Array, Long ( A I => B )
@@ -663,8 +664,23 @@ Instructions
 * E1 3D Ci, LEARBC		//Offset Array, Byte ( I; A => B )
 * E1 3E Ci, LEARSC		//Offset Array, Short ( I; A => B )
 * E1 3F Ci, LEASTC		//Offset String ( I; A => B )
+** These are used to offset an array.
+** Result is a new array which maps to an offset version of the old array.
+** Writes to the new array are reflected in the old array.
+** Accesses are required to be within the bounds of the original array.
 
 * E1 40 Ix Gx, IFXOBJ		//Init Fixed Object (Struct)
 * E1 41 Ix Zn, IFXARR		//Init Fixed Array
 * E1 42 Ix Gx, DFXOBJ		//Delete Fixed Object
 * E1 43 Ix Zn, DFXARR		//Delete Fixed Array
+** Init and Delete fixed objects.
+** These are used for structs and fixed arrays.
+** These are not used for class instances.
+
+* E1 44, LBLCLNP			//Cleanup Label
+** Declare a label which indicates the start of the cleanup sequence.
+** This may implicitly do a noex-push of the return type.
+** All jumps to this label are assumed to have the return value on the stack.
+** The cleanup sequence is optional, and not present if no cleanup is needed.
+** This may only appear at most once per function block.
+** The cleanup sequence may not loop or branch.

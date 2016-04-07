@@ -378,6 +378,11 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 		return(n0);
 	}
 
+	if(!strcmp(t0, "X,"))
+		return(DTV_NULL);
+	if(!strcmp(t0, "X;"))
+		return(DTV_NULL);
+
 	BS2P_RaiseError1(ctx, "ParserUnexpectedToken", t0);
 	return(DTV_UNDEFINED);
 }
@@ -479,10 +484,11 @@ dtVal BS2P_ParseExprPostfix(BS2CC_CompileContext *ctx)
 	return(n0);
 }
 
-dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx)
+dtVal BS2P_ParseExprPrefixCast(BS2CC_CompileContext *ctx)
 {
-	dtVal n0, n1, n2;
+	dtVal n0, n1, n2, n3;
 	char *t0, *t1, *t2;
+	int i0, i1, i2;
 	s64 li;
 	int i, j, k;
 	
@@ -491,7 +497,55 @@ dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx)
 	t0=BS2P_PeekToken(ctx, 0);
 	t1=BS2P_PeekToken(ctx, 1);
 //	t2=BS2P_PeekToken(ctx, 2);
+
+	if(!strcmp(t0, "X("))
+	{
+		i0=BS2P_GetCurPosition(ctx);
+		BS2P_NextToken(ctx);
+		n1=BS2P_ParseModifierList(ctx);
+		n2=BS2P_ParseTypeExpr(ctx);
+		t0=BS2P_PeekToken(ctx, 0);
+		t1=BS2P_PeekToken(ctx, 1);
+		if(dtvTrueP(n2) && !strcmp(t0, "X)") &&
+			strcmp(t1, "X,") && strcmp(t1, "X;"))
+		{
+			BS2P_NextToken(ctx);
+			n3=BS2P_ParseExprPrefixCast(ctx);
+			
+			if(dtvTrueP(n2) && dtvTrueP(n3))
+			{
+//				n0=BS2P_ParseWrapUnTag(ctx, "prefix_cast", n3);
+//				n0=BS2P_ParseWrapTagBinary(ctx, )
+				n0=BS2P_ParseWrapTagBinary(ctx,
+					"prefix_cast", NULL, n3, n2);
+//				BS2P_SetAstNodeAttr(n0, "type", n2);
+				if(dtvTrueP(n1))
+					BS2P_SetAstNodeAttr(n0, "modi", n1);
+				return(n0);
+			}
+		}
+
+		BS2P_SetCurPosition(ctx, i0);
+	}
+
+	n0=BS2P_ParseExprPostfix(ctx);
+	return(n0);
+}
+
+dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx)
+{
+	dtVal n0, n1, n2;
+	char *t0, *t1, *t2;
+//	int i0, i1, i2;
+	s64 li;
+	int i, j, k;
 	
+//	n0=BS2P_ParseLitExpr(ctx);
+	
+	t0=BS2P_PeekToken(ctx, 0);
+	t1=BS2P_PeekToken(ctx, 1);
+//	t2=BS2P_PeekToken(ctx, 2);
+
 	if(!strcmp(t0, "X++"))
 	{
 		BS2P_NextToken(ctx);
@@ -539,7 +593,8 @@ dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx)
 		return(n0);
 	}
 
-	n0=BS2P_ParseExprPostfix(ctx);
+//	n0=BS2P_ParseExprPostfix(ctx);
+	n0=BS2P_ParseExprPrefixCast(ctx);
 	return(n0);
 }
 

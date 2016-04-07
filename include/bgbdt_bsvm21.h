@@ -312,6 +312,12 @@
 #define BSVM2_OP_LEARSC		0x013E
 #define BSVM2_OP_LEASTC		0x013F
 
+#define BSVM2_OP_IFXOBJ		0x0140
+#define BSVM2_OP_IFXARR		0x0141
+#define BSVM2_OP_DFXOBJ		0x0142
+#define BSVM2_OP_DFXARR		0x0143
+#define BSVM2_OP_LBLCLNP	0x0144
+
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
 typedef struct BSVM2_TailOpcode_s BSVM2_TailOpcode;

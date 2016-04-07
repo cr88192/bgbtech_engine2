@@ -16,13 +16,28 @@ package bstest {
 		return(fib(x-1)+fib(x-2));
 	}
 	
-	public class Fib2 extends Fib {
+	public interface IFoo {
+		public void doSomething();
+	}
+	
+	public class Fib2 extends Fib implements IFoo {
 		public Fib2()
 		{
+			int[16] ta;
+			char c;
+			int i;
+
+			i=(int)(3.9*4.1);
+
 			super(2, 3);
 			foo.z=4;
 			foo.z=3.14159;
+			tst_switch(5);
+			c='A';
 		}
+
+		public void doSomething()
+			{ /* does nothing*/ }
 	}
 	
 	public class Fib {
@@ -32,6 +47,7 @@ package bstest {
 		{
 			foo.x=x;
 			foo.y=y;
+			foo.z=foo.x+foo.y;
 		}
 
 		public int tst_switch(int i)

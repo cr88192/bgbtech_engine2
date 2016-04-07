@@ -353,7 +353,7 @@ dtVal BS2P_ParseWrapTagBinary(BS2CC_CompileContext *ctx,
 	char *s;
 	
 	obj=BS2P_NewAstNode(ctx, tag);
-	BS2P_SetAstNodeAttrS(obj, "op", op);
+	if(op)BS2P_SetAstNodeAttrS(obj, "op", op);
 	BS2P_SetAstNodeAttr(obj, "lhs", ln);
 	BS2P_SetAstNodeAttr(obj, "rhs", rn);
 	return(obj);

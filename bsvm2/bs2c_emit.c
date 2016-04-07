@@ -790,3 +790,123 @@ void BS2C_EmitReturnV(BS2CC_CompileContext *ctx)
 	BS2C_CaseError(ctx);
 	return;
 }
+
+void BS2C_EmitReturnVal(BS2CC_CompileContext *ctx)
+{
+	int cty;
+
+	cty=ctx->frm->func->rty;
+
+	if(cty==BSVM2_OPZ_VOID)
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETV);
+		return;
+	}
+
+	if(BS2C_TypeSmallIntP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETI);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallLongP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETL);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallFloatP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETF);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallDoubleP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETD);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	if(BS2C_TypeAddressP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_RETA);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	BS2C_CaseError(ctx);
+	return;
+}
+
+
+void BS2C_EmitReturnCleanupV(BS2CC_CompileContext *ctx, int last)
+{
+	int cty;
+
+	cty=ctx->frm->func->rty;
+
+	if(cty==BSVM2_OPZ_VOID)
+	{
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_RETV);
+		if(!(last&1))
+			{ BS2C_EmitTempJump(ctx, ctx->frm->jcleanup); }
+
+		return;
+	}
+
+	if(BS2C_TypeSmallIntP(ctx, cty))
+	{
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_RETC);
+//		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_INT, 0);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+		BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+		BS2C_CompileNoexPop(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallLongP(ctx, cty))
+	{
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_RETC);
+//		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_LONG, 0);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHL);
+		BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+		BS2C_CompileNoexPop(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallFloatP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHF);
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_RETF);
+		BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+		BS2C_CompileNoexPop(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallDoubleP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHD);
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_RETD);
+		BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+		BS2C_CompileNoexPop(ctx);
+		return;
+	}
+
+	if(BS2C_TypeAddressP(ctx, cty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHA);
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_RETA);
+		BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+		BS2C_CompileNoexPop(ctx);
+		return;
+	}
+
+	BS2C_CaseError(ctx);
+	return;
+}

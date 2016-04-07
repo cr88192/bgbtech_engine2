@@ -135,7 +135,7 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 	ni=BS2P_GetAstNodeAttr(expr, "init");
 
 	ix=BS2C_LookupLocal(ctx, name);
-	if(ix<=0)
+	if(ix<0)
 	{
 		return;
 	}
@@ -148,9 +148,17 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 		sz=BS2C_TypeGetArraySize(ctx, bty);
 		z=BS2C_GetTypeBaseZ(ctx, bty);
 
-		BS2C_EmitOpcode(ctx, BSVM2_OP_NEWARR);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_IFXARR);
+		BS2C_EmitOpcodeUCx(ctx, ix);
 		BS2C_EmitOpcodeUZx(ctx, z, sz);
-		BS2C_CompileStoreName(ctx, name);
+
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_NEWARR);
+//		BS2C_EmitOpcodeUZx(ctx, z, sz);
+//		BS2C_CompileStoreName(ctx, name);
+
+		if(ctx->frm->jcleanup<=0)
+			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
+
 		return;
 	}
 
@@ -624,6 +632,15 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		
 		if(dtvNullP(nt))
 		{
+			if(ctx->frm->jcleanup>0)
+			{
+				BS2C_CompilePushDummy(ctx, cty);
+				BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+				if(cty!=BSVM2_OPZ_VOID)
+					BS2C_CompileNoexPop(ctx);
+				return;
+			}
+
 			if(cty==BSVM2_OPZ_VOID)
 			{
 				BS2C_EmitOpcode(ctx, BSVM2_OP_RETV);
@@ -677,6 +694,16 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 			}
 
 			BS2C_CaseError(ctx);
+			return;
+		}
+
+		if(ctx->frm->jcleanup>0)
+		{
+//			BS2C_CompilePushDummy(ctx, cty);
+			BS2C_CompileExpr(ctx, nt, cty);
+			BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+			if(cty!=BSVM2_OPZ_VOID)
+				BS2C_CompileNoexPop(ctx);
 			return;
 		}
 
@@ -929,6 +956,7 @@ void BS2C_CompileSetupVarInfo(
 
 void BS2C_CompileFunVar(BS2CC_CompileContext *ctx, dtVal expr)
 {
+	char tb[256];
 	BS2CC_VarInfo *vi;
 	s64 bmfl;
 	int i;
@@ -1406,6 +1434,59 @@ void BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr)
 	vi->bodyExp=nb;
 }
 
+void BS2C_CompileFuncBodyCleanupVar(
+	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix)
+{
+	int bty, sz, z;
+
+	bty=vi->bty;
+
+	if(BS2C_TypeSizedArrayP(ctx, bty))
+	{
+		sz=BS2C_TypeGetArraySize(ctx, bty);
+		z=BS2C_GetTypeBaseZ(ctx, bty);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_DFXARR);
+		BS2C_EmitOpcodeUCx(ctx, ix);
+		BS2C_EmitOpcodeUZx(ctx, z, sz);
+
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_NEWARR);
+//		BS2C_EmitOpcodeUZx(ctx, z, sz);
+//		BS2C_CompileStoreName(ctx, name);
+
+		if(ctx->frm->jcleanup<=0)
+			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
+
+		return;
+	}
+}
+
+void BS2C_CompileFuncBodyCleanup(
+	BS2CC_CompileContext *ctx)
+{
+	BS2CC_VarInfo *vi;
+	int i, j, k, l;
+
+	if(ctx->frm->jcleanup<=0)
+		return;
+
+//	BS2C_CompileNoexPush(ctx, ctx->frm->func->rty);
+//	BS2C_EmitTempLabelB(ctx, ctx->frm->jcleanup);
+
+	BS2C_CompileExprPushType(ctx, ctx->frm->func->rty);
+	BS2C_EmitOpcode(ctx, BSVM2_OP_LBLCLNP);
+	ctx->frm->newtrace=1;
+	BS2C_EmitTempLabelB(ctx, ctx->frm->jcleanup);
+
+	for(i=0; i<ctx->frm->nlocals; i++)
+	{
+		vi=ctx->frm->locals[i];
+		BS2C_CompileFuncBodyCleanupVar(ctx, vi, i);
+	}
+	
+	BS2C_EmitReturnVal(ctx);
+}
+
 void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func)
 {
 	BS2CC_CcFrame *frm;
@@ -1435,7 +1516,15 @@ void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func)
 	
 	if(!ctx->frm->wasret)
 	{
-		BS2C_EmitReturnV(ctx);
+		if(ctx->frm->jcleanup>0)
+			{ BS2C_EmitReturnCleanupV(ctx, 1); }
+		else
+			{ BS2C_EmitReturnV(ctx); }
+	}
+	
+	if(ctx->frm->jcleanup>0)
+	{
+		BS2C_CompileFuncBodyCleanup(ctx);
 	}
 	
 	BS2C_FixupLabels(ctx);

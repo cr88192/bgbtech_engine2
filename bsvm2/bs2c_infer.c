@@ -192,7 +192,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		return(BS2CC_TYZ_INT);
 	}
 
-	if(!strcmp(tag, "cast") || !strcmp(tag, "cast_strict"))
+	if(!strcmp(tag, "cast") || !strcmp(tag, "cast_strict") ||
+		!strcmp(tag, "prefix_cast"))
 	{
 //		ln=BS2P_GetAstNodeAttr(expr, "lhs");
 		rn=BS2P_GetAstNodeAttr(expr, "rhs");

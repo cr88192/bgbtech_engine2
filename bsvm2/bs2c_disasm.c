@@ -289,6 +289,11 @@ char *name;
 {"E13DCi",    "LEARBC"},
 {"E13ECi",    "LEARSC"},
 {"E13FCi",    "LEASTC"},
+{"E140IxGx",  "IFXOBJ"},
+{"E141IxZn",  "IFXARR"},
+{"E142IxGx",  "DFXOBJ"},
+{"E143IxZn",  "DFXARR"},
+{"E144",      "LBLCLNP"},
 
 {NULL,        NULL}
 };

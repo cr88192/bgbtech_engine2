@@ -141,8 +141,11 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 	char tb[256];
 	dtVal arr[64];
 	dtVal n0, n1, n2;
+	int i0, i1, i2;
 	char *t0, *t1, *t2;
 	int ptrlvl, reflvl, arrlvl;
+
+	i0=BS2P_GetCurPosition(ctx);
 
 	t0=BS2P_PeekToken(ctx, 0);
 
@@ -192,6 +195,7 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 		}
 	}else
 	{
+		BS2P_SetCurPosition(ctx, i0);
 		return(DTV_NULL);
 	}
 	

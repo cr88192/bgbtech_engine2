@@ -276,6 +276,48 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		return(-1);
 	}
 
+	if(!strcmp(tag, "array"))
+	{
+		ln=BS2P_GetAstNodeAttr(expr, "value");
+		fn=BS2P_GetAstNodeAttrS(expr, "sfx");
+
+//		l=dtvArrayGetSize(ln);
+
+		ty=BS2CC_TYZ_VARIANT;
+		
+		if(fn)
+		{
+			if(!strcmp(fn, "SI"))
+				ty=BS2CC_TYZ_INT;
+			if(!strcmp(fn, "UI"))
+				ty=BS2CC_TYZ_UINT;
+			if(!strcmp(fn, "SL"))
+				ty=BS2CC_TYZ_LONG;
+			if(!strcmp(fn, "UL"))
+				ty=BS2CC_TYZ_ULONG;
+			if(!strcmp(fn, "F"))
+				ty=BS2CC_TYZ_FLOAT;
+			if(!strcmp(fn, "D"))
+				ty=BS2CC_TYZ_DOUBLE;
+			if(!strcmp(fn, "SB"))
+				ty=BS2CC_TYZ_SBYTE;
+			if(!strcmp(fn, "UB"))
+				ty=BS2CC_TYZ_UBYTE;
+			if(!strcmp(fn, "SS"))
+				ty=BS2CC_TYZ_SHORT;
+			if(!strcmp(fn, "US"))
+				ty=BS2CC_TYZ_USHORT;
+		}
+		
+		ty=ty|BS2CC_TYI_A1;
+		return(ty);
+	}
+
+	if(!strcmp(tag, "object"))
+	{
+		return(BS2CC_TYZ_VARIANT);
+	}
+
 	BS2C_CaseError(ctx);
 	return(-1);
 }

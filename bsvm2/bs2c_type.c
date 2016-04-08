@@ -33,9 +33,15 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 	int al, asz, bty;
 	int i, j, k;
 	
-	al =(ty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
-	asz=(ty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
-	bty=(ty>>BS2CC_TYE_SHR)&BS2CC_TYE_MASK2;
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		al =(ty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
+		asz=(ty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
+		bty=(ty>>BS2CC_TYE_SHR)&BS2CC_TYE_MASK2;
+	}else
+	{
+		return(NULL);
+	}
 	
 	t=tb;
 	if(asz)
@@ -44,7 +50,7 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		t+=strlen(t);
 	}
 	
-	if((al>=1) && (al<=4))
+	if((al>=1) && (al<=3))
 	{
 		i=al;
 		while(i--)
@@ -56,6 +62,9 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		while(i--)
 			*t++='P';
 		*t=0;
+	}else if(al==5)
+	{
+		*t++='R';
 	}
 	
 	if(bty<256)
@@ -114,13 +123,17 @@ BS2CC_VarInfo *BS2C_GetTypeObject(BS2CC_CompileContext *ctx, int ty)
 	if(ty<0)
 		return(NULL);
 
-	bty=(ty>>BS2CC_TYE_SHR)&BS2CC_TYE_MASK2;
-
-	if(bty>=256)
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
 	{
-		vi=ctx->globals[bty-256];
-		return(vi);
+		bty=(ty>>BS2CC_TYE_SHR)&BS2CC_TYE_MASK2;
+		if(bty>=256)
+		{
+			vi=ctx->globals[bty-256];
+			return(vi);
+		}
+		return(NULL);
 	}
+	
 	return(NULL);
 }
 
@@ -208,19 +221,29 @@ int BS2C_TypeAddressP(BS2CC_CompileContext *ctx, int ty)
 {
 	int i;
 	
-	i=ty&BS2CC_TYE_MASK;
-	if(i>=256)
-		return(1);
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		i=ty&BS2CC_TYE_MASK;
+		if(i>=256)
+			return(1);
+		return(ty==BS2CC_TYZ_ADDRESS);
+	}
 	
-	return(ty==BS2CC_TYZ_ADDRESS);
+	return(0);
 }
 
 int BS2C_TypeArrayP(BS2CC_CompileContext *ctx, int ty)
 {
-	if(ty&BS2CC_TYS_MASK)
-		return(1);
-	if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
-		return(1);
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		if(ty&BS2CC_TYS_MASK)
+			return(1);
+//		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
+		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_R1))
+			return(1);
+		return(0);
+	}
+
 	return(0);
 }
 
@@ -249,10 +272,14 @@ int BS2C_TypeDoubleP(BS2CC_CompileContext *ctx, int ty)
 
 int BS2C_TypeSizedArrayP(BS2CC_CompileContext *ctx, int ty)
 {
-	if(ty&BS2CC_TYS_MASK)
-		return(1);
-//	if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
-//		return(1);
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		if(ty&BS2CC_TYS_MASK)
+			return(1);
+//		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
+//			return(1);
+		return(0);
+	}
 	return(0);
 }
 
@@ -287,7 +314,8 @@ int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)
 			return(ty);
 		}
 		
-		if((al==1) || (al==5))
+//		if((al==1) || (al==5))
+		if((al==1) || (al==5) || (al==4))
 		{
 			ty1=ty&BS2CC_TYE_MASK;
 			return(ty1);
@@ -301,8 +329,35 @@ int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)
 	return(-1);
 }
 
+int BS2C_TypeRefType(BS2CC_CompileContext *ctx, int ty)
+{
+	int ty1;
+
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		if(ty&BS2CC_TYS_MASK)
+		{
+			BS2C_CaseError(ctx);
+			return(-1);
+		}
+
+		if(ty&BS2CC_TYI_MASK)
+		{
+			BS2C_CaseError(ctx);
+			return(-1);
+		}
+		
+		ty1=ty|BS2CC_TYI_R1;
+		return(ty1);
+	}
+
+	BS2C_CaseError(ctx);
+	return(-1);
+}
+
 int BS2C_TypeGetArraySize(BS2CC_CompileContext *ctx, int ty)
 {
+	BS2CC_TypeOverflow *ovf;
 	int ty1, sz;
 	int al;
 
@@ -321,6 +376,16 @@ int BS2C_TypeGetArraySize(BS2CC_CompileContext *ctx, int ty)
 			return(0);
 		}
 		return(0);
+	}
+
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_OVF)
+	{
+		ovf=ctx->tyovf[ty&BS2CC_TYO_MASK];
+		
+		if(ovf->an>=1)
+		{
+			return(ovf->asz[0]);
+		}
 	}
 
 	BS2C_CaseError(ctx);
@@ -419,6 +484,7 @@ int BS2C_TypeBinarySuperType(
 int BS2C_TypeCompatibleP(
 	BS2CC_CompileContext *ctx, int dty, int sty)
 {
+	BS2CC_TypeOverflow *ovf;
 	BS2CC_VarInfo *lvi, *rvi;
 	int lbt, rbt, lal, ral, lsz, rsz;
 	int i, j, k, l;
@@ -428,13 +494,32 @@ int BS2C_TypeCompatibleP(
 
 	if((dty<0) || (sty<0))
 		return(0);
-	
-	lbt=dty&BS2CC_TYE_MASK;
-	rbt=sty&BS2CC_TYE_MASK;
-	lal=(dty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
-	ral=(sty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
-	lsz=(dty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
-	rsz=(sty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
+
+	if((dty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		lbt=dty&BS2CC_TYE_MASK;
+		lal=(dty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
+		lsz=(dty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
+	}else if((dty&BS2CC_TYT_MASK)==BS2CC_TYT_OVF)
+	{
+		ovf=ctx->tyovf[dty&BS2CC_TYO_MASK];
+		lbt=ovf->base;
+		lal=ovf->al;
+		lsz=ovf->asz[0];
+	}
+
+	if((sty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		rbt=sty&BS2CC_TYE_MASK;
+		ral=(sty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
+		rsz=(sty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
+	}else if((sty&BS2CC_TYT_MASK)==BS2CC_TYT_OVF)
+	{
+		ovf=ctx->tyovf[dty&BS2CC_TYO_MASK];
+		rbt=ovf->base;
+		ral=ovf->al;
+		rsz=ovf->asz[0];
+	}
 	
 	if((lal==1) || (lal==5))
 	{

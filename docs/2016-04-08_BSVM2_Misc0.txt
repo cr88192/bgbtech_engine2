@@ -1,0 +1,13 @@
+Arrays:
+* All arrays are internally 1D.
+* Multidimensional arrays are arrays of arrays.
+* Arrays are bounds checked.
+
+Variable References (VarRefs):
+* May refer to a variable in a given scope.
+* Can be read from or written to.
+* May not be offset or accessed by index.
+
+Pointers:
+* Supertype of Arrays and References.
+* Arrays and VarRefs may "decay" into pointers.

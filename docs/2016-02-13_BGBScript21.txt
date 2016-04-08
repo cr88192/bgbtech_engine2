@@ -288,7 +288,7 @@ Pointer conversions are to require casts. The compiler should not allow implicit
 The VM is may check and throw for memory accesses outside the bounds of the pointed-to memory region. Memory accesses via pointers are to be bounds-checked by the VM (for pointers produced within the scope of the VM). Accessing a variable outside the allowed range is to throw an exception.
 
 
-The '&' unary operator may be used to gain a pointer to a variable. The pointer type is to be the same as that of the variable. The results of the operation are undefined if a variable is accessed as a different type from that of the variable. However, like with other memory objects, the VM should not allow operations outside the bounds of the memory covered by this variable.
+The '&' unary operator may be used to gain a pointer or reference to a variable. The pointer type is to be the same as that of the variable. The results of the operation are undefined if a variable is accessed as a different type from that of the variable. However, like with other memory objects, the VM should not allow operations outside the bounds of the memory covered by this variable.
 
 The '*' unary operator may access the first element of an array or string. In most respects, '*expr' will be regarded as equivalent to 'expr[0]'.
 

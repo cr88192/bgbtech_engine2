@@ -239,6 +239,24 @@ void BS2C_EmitOpcodeSuCx(BS2CC_CompileContext *ctx, int z, s64 ix)
 	BS2C_EmitOpcodeUCx(ctx, ix);
 }
 
+void BS2C_EmitOpcodeSuCxD(BS2CC_CompileContext *ctx, int z, double v)
+{
+	if((z==BSVM2_OPZ_INT) || (z==BSVM2_OPZ_LONG) ||
+		(z==BSVM2_OPZ_SBYTE) || (z==BSVM2_OPZ_SHORT))
+	{
+		BS2C_EmitOpcodeSuCx(ctx, z, v);
+		return;
+	}
+
+	if((z==BSVM2_OPZ_FLOAT) || (z==BSVM2_OPZ_DOUBLE))
+	{
+		BS2C_EmitOpcodeFxD(ctx, v);
+		return;
+	}
+
+	BS2C_EmitOpcodeUCx(ctx, v);
+}
+
 void BS2C_EmitOpcodeFxD(BS2CC_CompileContext *ctx, double f)
 {
 	u64 ix;

@@ -184,9 +184,28 @@ void BS2C_CompileStmtSwitchDiR(BS2CC_CompileContext *ctx,
 	
 //	if(swn<7)
 //	if(swn<5)
-//	if(swn<3)
-	if(swn<4)
+	if(swn<3)
+//	if(swn<4)
 	{
+//		if((swn==1) && (swtgt[1]>0) && (swval[1]==(swval[0]+1)))
+//		{
+//			BS2C_EmitTempJump(ctx, swtgt[0]);
+//			return;
+//		}
+
+		if((swtgt[swn]>0) && (swval[swn]==(swval[swn-1]+1)))
+		{
+			for(i=0; i<(swn-1); i++)
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_DCJEQIC);
+				BS2C_EmitOpcodeSCx(ctx, swval[i]);
+				BS2C_EmitTempJAddr(ctx, swtgt[i]);
+			}
+
+			BS2C_EmitTempJump(ctx, swtgt[swn-1]);
+			return;
+		}
+	
 		for(i=0; i<swn; i++)
 		{
 //			BS2C_EmitOpcode(ctx, BSVM2_OP_DUPI);
@@ -206,6 +225,7 @@ void BS2C_CompileStmtSwitchDiR(BS2CC_CompileContext *ctx,
 		return;
 	}
 
+#if 0
 	tl=BS2C_GenTempLabel(ctx);
 	tg=BS2C_GenTempLabel(ctx);
 
@@ -240,6 +260,26 @@ void BS2C_CompileStmtSwitchDiR(BS2CC_CompileContext *ctx,
 	BS2C_EmitTempLabelB(ctx, tg);
 	j=i+1;
 	BS2C_CompileStmtSwitchDiR(ctx, swtgt+j, swval+j, swn-j, swdfl);
+#endif
+
+#if 1
+//	tl=BS2C_GenTempLabel(ctx);
+	tg=BS2C_GenTempLabel(ctx);
+
+	i=swn>>1;
+
+	BS2C_EmitOpcode(ctx, BSVM2_OP_DCJGEIC);
+	BS2C_EmitOpcodeSCx(ctx, swval[i]);
+	BS2C_EmitTempJAddr(ctx, tg);
+
+//	BS2C_EmitTempJump(ctx, tl);
+//	BS2C_EmitTempLabelB(ctx, tl);
+
+	BS2C_CompileStmtSwitchDiR(ctx, swtgt, swval, i, swdfl);
+
+	BS2C_EmitTempLabelB(ctx, tg);
+	BS2C_CompileStmtSwitchDiR(ctx, swtgt+i, swval+i, swn-i, swdfl);
+#endif
 }
 
 void BS2C_CompileStmtSwitch(BS2CC_CompileContext *ctx, dtVal expr)
@@ -311,6 +351,8 @@ void BS2C_CompileStmtSwitch(BS2CC_CompileContext *ctx, dtVal expr)
 			k=sw2_tgt[i]; sw2_tgt[i]=sw2_tgt[j]; sw2_tgt[j]=k;
 		}
 	}
+	sw2_tgt[swn]=0;
+	sw2_val[swn]=0;
 
 	t0=BS2C_GenTempLabel(ctx);
 	swgdfl=0;

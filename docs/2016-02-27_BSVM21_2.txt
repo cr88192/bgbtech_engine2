@@ -57,11 +57,15 @@ Sub-Types:
 
 Implementation may treat arrays and pointers as siblings, both existing nominally as an offset relative to a base object. This base object will nominally be an array.
 
-A pointer will then exist as a type of special Null-Array, which extends over the entire address space.
+A raw pointer will then exist as a type of special Null-Array, which may extends over the entire address space.
 
 Normally, the address will need to track what type it is. Addresses in this VM will generally not be raw pointers.
 
 Logical comparison of an address values will depend on the type of objects involved. Strict comparisons will compare the bit patterns.
+
+Operations on array and pointer types will be interchangable.
+
+Variable References will exist as a disjoint type. In certain cases, a reference may be converted to a pointer, but pointer or array operations may not be used on references, nor reference operations on pointers or arrays.
 
 
 Strings will be treated as immutable character arrays. Normal strings will be either narrow (8859-1) or wide (UCS-2 / UTF-16). As a variable, char will be represented as a signed 32-bit integer, however its storage in strings or arrays will be narrower. In arrays, char will be represented as an unsigned short.
@@ -254,7 +258,7 @@ Zi: Type+Local
 * Consists of a VLI value with Z coded in the low 4 bits.
 * The remaining bits encode the index of the local.
 
-Zn: Type+Count
+Zn: Type+Count / Type+Index
 
 Zo: Type+Binary
 Zc: Type+Compare
@@ -387,22 +391,22 @@ Instructions
 
 ** Load/Store Array Index, given as a signed integer.
 
-* 50 Cx, LDIXIC			//Load Index Int ( I; A => B )
-* 51 Cx, LDIXLC			//Load Index Long ( I; A => B )
-* 52 Cx, LDIXFC			//Load Index Float ( I; A => B )
-* 53 Cx, LDIXDC			//Load Index Double ( I; A => B )
-* 54 Cx, STIXIC			//Store Index Int ( I; A V => )
-* 55 Cx, STIXLC			//Store Index Long ( I; A V => )
-* 56 Cx, STIXFC			//Store Index Float ( I; A V => )
-* 57 Cx, STIXDC			//Store Index Double ( I; A V => )
-* 58 Cx, LDIXSBC			//Load Index Signed Byte ( I; A => B )
-* 59 Cx, LDIXUBC			//Load Index Unsigned Byte ( I; A => B )
-* 5A Cx, LDIXSSC			//Load Index Signed Short ( I; A => B )
-* 5B Cx, LDIXUSC			//Load Index Unsigned Short ( I; A => B )
-* 5C Cx, LDIXAC			//Load Index Address ( I; A => B )
-* 5D Cx, STIXAC			//Store Index Address ( I; A V => )
-* 5E Cx, STIXBC			//Store Index Byte ( I; A V => )
-* 5F Cx, STIXSC			//Store Index Short ( I; A V => )
+* 50 Ci, LDIXIC			//Load Index Int ( I; A => B )
+* 51 Ci, LDIXLC			//Load Index Long ( I; A => B )
+* 52 Ci, LDIXFC			//Load Index Float ( I; A => B )
+* 53 Ci, LDIXDC			//Load Index Double ( I; A => B )
+* 54 Ci, STIXIC			//Store Index Int ( I; A V => )
+* 55 Ci, STIXLC			//Store Index Long ( I; A V => )
+* 56 Ci, STIXFC			//Store Index Float ( I; A V => )
+* 57 Ci, STIXDC			//Store Index Double ( I; A V => )
+* 58 Ci, LDIXSBC			//Load Index Signed Byte ( I; A => B )
+* 59 Ci, LDIXUBC			//Load Index Unsigned Byte ( I; A => B )
+* 5A Ci, LDIXSSC			//Load Index Signed Short ( I; A => B )
+* 5B Ci, LDIXUSC			//Load Index Unsigned Short ( I; A => B )
+* 5C Ci, LDIXAC			//Load Index Address ( I; A => B )
+* 5D Ci, STIXAC			//Store Index Address ( I; A V => )
+* 5E Ci, STIXBC			//Store Index Byte ( I; A V => )
+* 5F Ci, STIXSC			//Store Index Short ( I; A V => )
 
 ** Load/Store Array Index using constant, given as a signed integer constant.
 ** Note that for many types of arrays, indices may be negative.
@@ -467,10 +471,10 @@ Instructions
 ** OS expects and object, and references a description of the object field.
 ** GS instead references the variable to be loaded/stored.
 
-* 80 Ix, LDRL				//Load Ref To Local
-* 81 Gx, LDROS			//Load Ref to Instance Variable, ( O => A )
-* 82 Gx, LDRGS			//Load Ref to Global Variable, ( => A )
-* 83 Ix, LDRLX				//Load Ref To Lexical
+* 80 Zi, LDRL				//Load Ref To Local
+* 81 Gx, LDROS				//Load Ref to Instance Variable, ( O => A )
+* 82 Gx, LDRGS				//Load Ref to Global Variable, ( => A )
+* 83 Zi, LDRLX				//Load Ref To Lexical
 
 ** Load a reference to a variable. This reference is only valid while the variable is in scope. The reference may be accessed as a single element array of the same type as the variable.
 ** Normally, the reference will be to the base type, rather than the canonical type.
@@ -646,7 +650,15 @@ Instructions
 * E1 27 Cx Ax, DCJGTIC	//DUPI+CMPIC+JGT
 * E1 28 Cx Ax, DCJLEIC	//DUPI+CMPIC+JLE
 * E1 29 Cx Ax, DCJGEIC	//DUPI+CMPIC+JGE
-** Duplicate item, compare with a constant, and jump.
+** Duplicate int, compare int with a constant, and jump if condition is true.
+
+* E1 2A Cx Ax, CJEQIC	//CMPIC+JEQ
+* E1 2B Cx Ax, CJNEIC	//CMPIC+JNE
+* E1 2C Cx Ax, CJLTIC	//CMPIC+JLT
+* E1 2D Cx Ax, CJGTIC	//CMPIC+JGT
+* E1 2E Cx Ax, CJLEIC	//CMPIC+JLE
+* E1 2F Cx Ax, CJGEIC	//CMPIC+JGE
+** Compare int with a constant and jump if condition is true.
 
 * E1 30, LEARI			//Offset Array, Int ( A I => B )
 * E1 31, LEARL			//Offset Array, Long ( A I => B )
@@ -684,3 +696,46 @@ Instructions
 ** The cleanup sequence is optional, and not present if no cleanup is needed.
 ** This may only appear at most once per function block.
 ** The cleanup sequence may not loop or branch.
+
+* E1 45 Zn Cx, STIXNC			//Store Index Constant ( I, J; A => )
+* E1 46 Zn Cx, DSTIXNC			//Dup Store Index Constant ( I, J; A => A )
+* E1 47, NEWDYO					//New Dynamic Object
+* E1 48 Gx, SBOS				//Bind Object Slot ( O V => )
+* E1 49 Gx, DSBOS				//Dup Bind Object Slot ( O V => O )
+* E1 4A Gx, DSTOS				//Dup Store Object Slot ( O V => )
+
+* E1 50, LDDRI					//Load Deref Ref Int ( R => V )
+* E1 51, LDDRL					//Load Deref Ref Long ( R => V )
+* E1 52, LDDRF					//Load Deref Ref Float ( R => V )
+* E1 53, LDDRD					//Load Deref Ref Double ( R => V )
+* E1 54, STDRI					//Store Deref Ref Int ( V R => )
+* E1 55, STDRL					//Store Deref Ref Long ( V R => )
+* E1 56, STDRF					//Store Deref Ref Float ( V R => )
+* E1 57, STDRD					//Store Deref Ref Double ( V R => )
+* E1 58, LDDRA					//Load Deref Ref Address
+* E1 59, STDRA					//Store Deref Ref Address
+* E1 5A Ix, LDDRIL				//Load Deref Ref Int Local ( I; => V )
+* E1 5B Ix, STDRIL				//Store Deref Ref Int Local ( I; V => )
+* E1 5C Ix, LDDRDL				//Load Deref Ref Double Local
+* E1 5D Ix, STDRDL				//Store Deref Ref Double Local
+* E1 5E Ix, LDDRAL				//Load Deref Ref Address Local
+* E1 5F Ix, STDRAL				//Store Deref Ref Address Local
+** Load/Store values from References
+
+* E1 60, LDDPI					//Load Deref Ptr Int ( P => V )
+* E1 61, LDDPL					//Load Deref Ptr Long ( P => V )
+* E1 62, LDDPF					//Load Deref Ptr Float ( P => V )
+* E1 63, LDDPD					//Load Deref Ptr Double ( P => V )
+* E1 64, STDPI					//Store Deref Ptr Int ( V P => )
+* E1 65, STDPL					//Store Deref Ptr Long ( V P => )
+* E1 66, STDPF					//Store Deref Ptr Float ( V P => )
+* E1 67, STDPD					//Store Deref Ptr Double ( V P => )
+* E1 68, LDDPA					//Load Deref Ptr Address
+* E1 69, STDPA					//Store Deref Ptr Address
+* E1 6A Ix, LDDPIL				//Load Deref Ptr Int Local ( I; => V )
+* E1 6B Ix, STDPIL				//Store Deref Ptr Int Local ( I; V => )
+* E1 6C Ix, LDDPDL				//Load Deref Ptr Double Local
+* E1 6D Ix, STDPDL				//Store Deref Ptr Double Local
+* E1 6E Ix, LDDPAL				//Load Deref Ptr Address Local
+* E1 6F Ix, STDPAL				//Store Deref Ptr Address Local
+** Load/Store values from Arrays/Pointers

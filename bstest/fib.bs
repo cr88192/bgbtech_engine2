@@ -24,6 +24,8 @@ package bstest {
 		public Fib2()
 		{
 			int[16] ta;
+			int[] tb;
+			variant vo;
 			char c;
 			int i;
 
@@ -34,6 +36,10 @@ package bstest {
 			foo.z=3.14159;
 			tst_switch(5);
 			c='A';
+			
+			tb=[1,2,3,4,5]i;
+			
+			vo={x: 2, y: 3};
 		}
 
 		public void doSomething()

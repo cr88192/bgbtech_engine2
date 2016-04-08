@@ -468,3 +468,138 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 	BS2C_ErrNoDecl(ctx, name);
 	return(-1);
 }
+
+
+int BS2C_CompileLoadRefName(BS2CC_CompileContext *ctx, char *name)
+{
+	BS2CC_VarInfo *vari;
+	int bty, cty, z;
+	int i, j, k;
+	
+	i=BS2C_LookupLocal(ctx, name);
+	if(i>=0)
+	{
+		vari=ctx->frm->locals[i];
+		bty=vari->bty;
+		cty=BS2C_TypeRefType(ctx, bty);
+
+		z=BS2C_GetTypeBaseZ(ctx, bty);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDRL);
+		BS2C_EmitOpcodeUZx(ctx, z, i);
+		BS2C_CompileExprPushType(ctx, cty);
+		return(0);
+	}
+
+	if(ctx->frm->func && ctx->frm->func->obj)
+	{
+		vari=BS2C_LookupObjectFieldName(ctx,
+			ctx->frm->func->obj, name);
+		if(vari && (vari->vitype==BS2CC_VITYPE_STRVAR) &&
+			(ctx->frm->func->vitype!=BS2CC_VITYPE_GBLFUNC))
+		{
+			bty=vari->bty;
+			cty=BS2C_TypeRefType(ctx, bty);
+
+			i=BS2C_IndexFrameGlobal(ctx, vari->gid);
+
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+			BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_VOID, 4);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDROS);
+			BS2C_EmitOpcodeIdx(ctx, i);
+			BS2C_CompileExprPushType(ctx, cty);
+			return(0);
+		}
+
+		if(vari && (vari->vitype==BS2CC_VITYPE_GBLVAR))
+		{
+			bty=vari->bty;
+			cty=BS2C_TypeRefType(ctx, bty);
+
+			i=BS2C_IndexFrameGlobal(ctx, vari->gid);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDRGS);
+			BS2C_EmitOpcodeIdx(ctx, i);
+			BS2C_CompileExprPushType(ctx, cty);
+			return(0);
+		}
+	}
+
+	i=BS2C_LookupFrameGlobal(ctx, name);
+	if(i>=0)
+	{
+		vari=BS2C_GetFrameGlobalInfo(ctx, i);
+		bty=vari->bty;
+			cty=BS2C_TypeRefType(ctx, bty);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDRGS);
+		BS2C_EmitOpcodeIdx(ctx, i);
+		BS2C_CompileExprPushType(ctx, cty);
+
+		return(0);
+	}
+	
+	BS2C_ErrNoDecl(ctx, name);
+	return(-1);
+}
+
+
+int BS2C_LookupDynamicSlotName(
+	BS2CC_CompileContext *ctx, char *name)
+{
+	char tb[256];
+	BS2CC_VarInfo *vari;
+	int i, j;
+	
+	sprintf(tb, "$DY$/%s", name);
+	
+	for(i=0; i<ctx->nglobals; i++)
+	{
+		vari=ctx->globals[i];
+		if(!vari->qname)
+			continue;
+		
+		if(vari->vitype!=BS2CC_VITYPE_STRVAR)
+			continue;
+		
+//		if(!strcmp(vari->name, name))
+		if(!strcmp(vari->qname, tb))
+			return(i);
+	}
+	return(-1);
+}
+
+int BS2C_GetDynamicSlotName(
+	BS2CC_CompileContext *ctx, char *name)
+{
+	char tb[256];
+	BS2CC_VarInfo *vi;
+	int i, j;
+	
+	i=BS2C_LookupDynamicSlotName(ctx, name);
+	if(i>=0)return(i);
+
+	sprintf(tb, "$DY$/%s", name);
+
+	vi=BS2C_AllocVarInfo(ctx);
+
+	i=ctx->nglobals++;
+	ctx->globals[i]=vi;
+	vi->gid=i;
+	vi->bty=BS2CC_TYZ_VARIANT;
+	vi->vitype=BS2CC_VITYPE_STRVAR;
+
+	vi->name=BS2P_StrSym(ctx, name);
+	vi->qname=BS2P_StrSym(ctx, tb);
+
+	return(i);
+}
+
+int BS2C_GetFrameDynamicSlotName(
+	BS2CC_CompileContext *ctx, char *name)
+{
+	int i, j;
+	
+	i=BS2C_GetDynamicSlotName(ctx, name);
+	j=BS2C_IndexFrameGlobal(ctx, i);
+	return(j);
+}

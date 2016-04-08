@@ -76,6 +76,8 @@
 #define BS2CC_TYS_MASK		0x3FF80000		//Array Size
 #define BS2CC_TYT_MASK		0xC0000000		//Type Type
 
+#define BS2CC_TYO_MASK		0x000FFFFF		//Overflowed Type
+
 #define BS2CC_TYZ_SHR		0				//Core (Major) Type
 #define BS2CC_TYE_SHR		0				//Exteded Type (Fptr/Obj)
 #define BS2CC_TYI_SHR		16				//Indirection Levels
@@ -92,7 +94,8 @@
 #define BS2CC_TYI_A1		0x00010000		//T[]
 #define BS2CC_TYI_A2		0x00020000		//T[][]
 #define BS2CC_TYI_A3		0x00030000		//T[][][]
-#define BS2CC_TYI_A4		0x00040000		//T[][][][]
+//#define BS2CC_TYI_A4		0x00040000		//T[][][][]
+#define BS2CC_TYI_R1		0x00040000		//&T
 #define BS2CC_TYI_P1		0x00050000		//*T
 #define BS2CC_TYI_P2		0x00060000		//**T
 #define BS2CC_TYI_P3		0x00070000		//***T
@@ -129,6 +132,7 @@
 typedef struct BS2CC_CompileContext_s BS2CC_CompileContext;
 
 typedef struct BS2CC_VarInfo_s BS2CC_VarInfo;
+typedef struct BS2CC_TypeOverflow_s BS2CC_TypeOverflow;
 typedef struct BS2CC_CcFrame_s BS2CC_CcFrame;
 typedef struct BS2CC_PkgFrame_s BS2CC_PkgFrame;
 
@@ -157,6 +161,16 @@ dtVal bodyExp;				//AST for function body
 dtVal initExp;				//AST for variable initialization
 dtVal extsExp;				//AST for extends
 dtVal implExp;				//AST for implements
+};
+
+struct BS2CC_TypeOverflow_s
+{
+int base;		//base type
+byte al;		//array level
+byte pl;		//pointer level
+byte rf;		//reference
+byte an;		//fixed array levels
+int asz[16];	//fixed array sizes
 };
 
 struct BS2CC_CcFrame_s
@@ -249,6 +263,9 @@ int pkgstkpos;
 // char *curpkg;
 BS2CC_VarInfo *globals[4096];
 int nglobals;
+
+BS2CC_TypeOverflow *tyovf[4096];
+int ntyovf;
 
 
 int cwarnln[256];	//warning line number

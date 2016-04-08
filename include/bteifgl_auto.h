@@ -867,6 +867,8 @@ dtVal BS2P_ParseExprAssignOp(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExpr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseOptExpr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprList(BS2CC_CompileContext *ctx);
+dtVal BS2P_ParseNameExpr(BS2CC_CompileContext *ctx);
+dtVal BS2P_ParseNameExprList(BS2CC_CompileContext *ctx);
 //AHSRC:bsvm2/bs2p_stmt.c
 dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseStatementBlock(BS2CC_CompileContext *ctx);
@@ -921,6 +923,7 @@ void BS2C_EmitOpcodeIdx(BS2CC_CompileContext *ctx, int ix);
 void BS2C_EmitOpcodeUCx(BS2CC_CompileContext *ctx, u64 ix);
 void BS2C_EmitOpcodeSCx(BS2CC_CompileContext *ctx, s64 ix);
 void BS2C_EmitOpcodeSuCx(BS2CC_CompileContext *ctx, int z, s64 ix);
+void BS2C_EmitOpcodeSuCxD(BS2CC_CompileContext *ctx, int z, double v);
 void BS2C_EmitOpcodeFxD(BS2CC_CompileContext *ctx, double f);
 void BS2C_EmitOpcodeJx(BS2CC_CompileContext *ctx, int vi, int vj);
 void BS2C_EmitOpcodeUKx(BS2CC_CompileContext *ctx, int vi, u64 vj);
@@ -1000,6 +1003,10 @@ BS2CC_VarInfo *BS2C_LookupObjectFuncName(BS2CC_CompileContext *ctx, BS2CC_VarInf
 BS2CC_VarInfo *BS2C_LookupObjectFuncNameArgs(BS2CC_CompileContext *ctx,  BS2CC_VarInfo *obj, char *name, int *aty, int na);
 int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name);
+int BS2C_CompileLoadRefName(BS2CC_CompileContext *ctx, char *name);
+int BS2C_LookupDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
+int BS2C_GetDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
+int BS2C_GetFrameDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
 //AHSRC:bsvm2/bs2c_stmt.c
 int BS2C_CompileErrorGetSourceLine(BS2CC_CompileContext *ctx);
 void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn);
@@ -1060,6 +1067,7 @@ int BS2C_TypeSizedArrayP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVoidP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVariantP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeRefType(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeGetArraySize(BS2CC_CompileContext *ctx, int ty);
 int BS2C_InferSuperType(BS2CC_CompileContext *ctx, int lty, int rty);
 int BS2C_TypeAssignSuperType(BS2CC_CompileContext *ctx, int lty, int rty);

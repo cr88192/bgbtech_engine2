@@ -294,6 +294,12 @@ char *name;
 {"E142IxGx",  "DFXOBJ"},
 {"E143IxZn",  "DFXARR"},
 {"E144",      "LBLCLNP"},
+{"E145ZnCx",  "STIXNC"},
+{"E146ZnCx",  "DSTIXNC"},
+{"E147",      "NEWDYO"},
+{"E148Gx",    "SBOS"},
+{"E149Gx",    "DSBOS"},
+{"E14AGx",    "DSTOS"},
 
 {NULL,        NULL}
 };

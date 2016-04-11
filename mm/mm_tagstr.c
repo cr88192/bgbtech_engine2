@@ -240,6 +240,52 @@ BTEIFGL_API char *BGBDT_TagStr_StrKeyword(char *str)
 	return(BGBDT_TagStr_TabStrdup(&tab_strdup_u8, str));
 }
 
+BTEIFGL_API u16 *BGBDT_TagStr_Strdup16u8(char *str)
+{
+	u16 *tbuf;
+	u16 *t;
+	byte *s;
+	int i, j, k, l;
+
+	l=strlen(str);
+	tbuf=frgl_ralloc(l*2+3);
+	
+	s=(byte *)str;
+	t=tbuf;
+	
+	while(*s)
+	{
+		if(*s>=0x80)
+		{
+			if((*s&0xE0)==0xC0)
+				{ i=((s[0]&0x3F)<<6)|(s[1]&63); s+=2; }
+			else if((*s&0xF0)==0xE0)
+				{ i=((s[0]&0x1F)<<12)|((s[1]&63)<<6)|(s[2]&63); s+=3; }
+			else if((*s&0xF8)==0xF0)
+			{
+				i=((s[0]&0x0F)<<18)|((s[1]&63)<<12)|
+					((s[2]&63)<<6)|(s[3]&63);
+				s+=4;
+			}else
+			{
+				i=*s++;
+			}
+			if(i>=0x10000)
+			{
+				i=i-0x10000;
+				*t++=0xD800+((i>>10)&1023);
+				*t++=0xDC00+((i    )&1023);
+				continue;
+			}
+			*t++=i;
+			continue;
+		}
+		*t++=*s++;
+	}
+	*t++=0;
+	
+	return(BGBDT_TagStr_Strdup16(tbuf));
+}
 
 BTEIFGL_API dtVal BGBDT_TagStr_String(char *str)
 {
@@ -254,6 +300,11 @@ BTEIFGL_API dtVal BGBDT_TagStr_StringAsc(char *str)
 BTEIFGL_API dtVal BGBDT_TagStr_String16(u16 *str)
 {
 	return(dtvWrapPtr(BGBDT_TagStr_Strdup16(str)));
+}
+
+BTEIFGL_API dtVal BGBDT_TagStr_String16u8(byte *str)
+{
+	return(dtvWrapPtr(BGBDT_TagStr_Strdup16u8(str)));
 }
 
 BTEIFGL_API dtVal BGBDT_TagStr_Symbol(char *str)
@@ -365,4 +416,123 @@ BTEIFGL_API char *BGBDT_TagStr_GetUtf8(dtVal val)
 	}
 	
 	return(NULL);
+}
+
+
+BTEIFGL_API dtVal BGBDT_TagStr_StringAdjustOffset(dtVal val, int idx)
+{
+	char *tbuf;
+	char *str;
+	u16 *ws;
+	byte *s, *t;
+	int tag, len;
+	int i, j, k;
+
+	tag=dtvGetPtrTagF(val);
+	str=dtvUnwrapPtrF(val);
+	
+	if((tag==objty_tagstr) | (tag==objty_tagsym) |
+		(tag==objty_tagkeyw))
+	{
+		s=(byte *)str;
+		if(idx>0)
+		{
+			i=idx;
+			while(i--)
+			{
+				if(!*s)break;
+				if(*s<0x80)
+					{ s++; continue; }
+				if(	(((*(s+0))&0xE0)==0xC0) &&
+					(((*(s+1))&0xC0)==0x80))
+						{ s+=2; continue; }
+				if(	(((*(s+0))&0xF0)==0xE0) &&
+					(((*(s+1))&0xC0)==0x80) &&
+					(((*(s+2))&0xC0)==0x80))
+						{ s+=3; continue; }
+				s++;
+			}
+			if(i>0)return(DTV_NULL);
+			return(dtvWrapPtr(s));
+		}else if(idx<0)
+		{
+			i=idx;
+			while(i--)
+			{
+				if(!*(s-1))break;
+				if(*(s-1)<0x80)
+					{ s--; continue; }
+				if(	(((*(s-1))&0xC0)==0x80) &&
+					(((*(s-2))&0xE0)==0xC0))
+						{ s-=2; continue; }
+				if(	(((*(s-1))&0xC0)==0x80) &&
+					(((*(s-2))&0xC0)==0x80) &&
+					(((*(s-3))&0xE0)==0xC0))
+						{ s-=3; continue; }
+				s--;
+			}
+			if(i>0)return(DTV_NULL);
+			return(dtvWrapPtr(s));
+		}
+//		s=str+idx;
+		return(dtvWrapPtr(s));
+	}
+
+	if(tag==objty_tagstr_l1)
+	{
+		s=(byte *)str;
+		if(idx>0)
+		{
+			i=idx;
+			while(i--)
+			{
+				if(!*s)break;
+				s++;
+			}
+			if(i>0)return(DTV_NULL);
+			return(dtvWrapPtr(s));
+		}else if(idx<0)
+		{
+			i=idx;
+			while(i--)
+			{
+				if(!*(s-1))break;
+				s--;
+			}
+			if(i>0)return(DTV_NULL);
+			return(dtvWrapPtr(s));
+		}
+//		s=str+idx;
+		return(dtvWrapPtr(s));
+	}
+
+	if(tag==objty_tagwstr)
+	{
+		ws=(u16 *)str;
+		if(idx>0)
+		{
+			i=idx;
+			while(i--)
+			{
+				if(!*ws)break;
+				ws++;
+			}
+			if(i>0)return(DTV_NULL);
+			return(dtvWrapPtr(ws));
+		}else if(idx<0)
+		{
+			i=idx;
+			while(i--)
+			{
+				if(!*(ws-1))break;
+				ws--;
+			}
+			if(i>0)return(DTV_NULL);
+			return(dtvWrapPtr(ws));
+		}
+//		ws=ws+idx;
+		return(dtvWrapPtr(ws));
+	}
+	
+	return(DTV_NULL);
 }

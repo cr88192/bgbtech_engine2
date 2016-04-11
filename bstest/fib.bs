@@ -45,6 +45,12 @@ package bstest {
 		public void doSomething()
 			{ /* does nothing*/ }
 	}
+
+//	public int tst_ref(&int i, &int j)
+//	{
+//		i=i+j;
+//		return(j);
+//	}
 	
 	public class Fib {
 		Foo foo;
@@ -78,11 +84,17 @@ package bstest {
 			}
 			return(j);
 		}
+
+		public static int tst_ref(&int i, &int j)
+		{
+			i=i+j;
+			return(j);
+		}
 	
 		public static void main(string[] argv)
 		{
 			Fib tfib;
-			int i;
+			int i, j;
 			
 			printf("%d\n", fib(28));
 			
@@ -91,6 +103,8 @@ package bstest {
 				arr[i]=fib(i);
 			
 			tfib=new Fib(2, 3);
+
+			tst_ref(i, j);
 		}
 	}
 }

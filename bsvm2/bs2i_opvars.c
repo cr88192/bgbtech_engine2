@@ -1,3 +1,5 @@
+#include <bteifgl.h>
+
 
 void BSVM2_Op_LDI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].i=frm->local[op->i0].i; }
@@ -42,3 +44,14 @@ void BSVM2_Op_MVD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->local[op->i0].d=frm->local[op->i1].d; }
 void BSVM2_Op_MVA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->local[op->i0].a=frm->local[op->i1].a; }
+
+void BSVM2_Op_MVIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->local[op->i0].i=op->v.i; }
+void BSVM2_Op_MVLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->local[op->i0].l=op->v.l; }
+void BSVM2_Op_MVFC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->local[op->i0].f=op->v.f; }
+void BSVM2_Op_MVDC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->local[op->i0].d=op->v.d; }
+void BSVM2_Op_MVAC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->local[op->i0].a=op->v.a; }

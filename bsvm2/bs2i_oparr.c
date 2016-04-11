@@ -1,3 +1,5 @@
+#include <bteifgl.h>
+
 void BSVM2_Op_LDIXI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	frm->stack[op->t0].i=dtvArrayGetIndexInt(
@@ -206,4 +208,101 @@ void BSVM2_Op_STIXSC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	dtvArraySetIndexShort(
 		frm->stack[op->t0].a, op->v.i,
 		frm->stack[op->t1].i);
+}
+
+
+void BSVM2_Op_LEARI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB4(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB8(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB4(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB8(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB8(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARB(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB1(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARS(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB2(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEARIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB4(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEARLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB8(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEARFC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB4(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEARDC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB8(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEARAC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB8(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEARBC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB1(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEARSC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=dtvArrayAdjustOffsetB2(
+		frm->stack[op->t0].a, op->v.i);
+}
+
+void BSVM2_Op_LEAST(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=BGBDT_TagStr_StringAdjustOffset(
+		frm->stack[op->t0].a, frm->stack[op->t1].i);
+}
+
+void BSVM2_Op_LEASTC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].a=BGBDT_TagStr_StringAdjustOffset(
+		frm->stack[op->t0].a, op->v.i);
 }

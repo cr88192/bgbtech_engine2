@@ -11,6 +11,12 @@ int BS2C_InferName(BS2CC_CompileContext *ctx, char *name)
 	{
 		vari=ctx->frm->locals[i];
 		bty=vari->bty;
+
+		if(BS2C_TypeVarRefP(ctx, bty))
+		{
+			bty=BS2C_TypeDerefType(ctx, bty);
+		}
+
 		return(bty);
 	}
 	

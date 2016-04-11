@@ -1,10 +1,10 @@
 BSVM 2-1 Bytecode.
 
 Model:
-  Args/Locals
-  Stack
-  Lexical
-  ...
+*  Args/Locals
+*  Stack
+*  Lexical
+*  ...
   
 Like JVM, Args will be locals 1-N, with local variables following args.
 
@@ -32,36 +32,39 @@ Core Types:
   A, Address
 
 Sub-Types:
-  Int
-    byte/sbyte/ubyte
-    short/ushort
-    int/uint
-    char (16 bit, in storage)
-    char8 (8 bit)
-  Long
-    long/ulong (64 bit)
-    nlong/unlong (32 or 64 bit, non-core storage)
-  Float
-    float
-    hfloat (16-bit in storage)
-  Double
-    double
-  Address
-    object
-    array
-    pointer
-    variant
-    string
-    reference
-    ...
+*  Int
+**    byte/sbyte/ubyte
+**    short/ushort
+**    int/uint
+**    char (16 bit, in storage)
+**    char8 (8 bit)
+*  Long
+**    long/ulong (64 bit)
+**    nlong/unlong (32 or 64 bit, non-core storage)
+*  Float
+**    float
+**    hfloat (16-bit in storage)
+*  Double
+**    double
+*  Address
+**    object
+**    array
+**    pointer
+**    variant
+**    string
+**    reference
+**    ...
 
 Implementation may treat arrays and pointers as siblings, both existing nominally as an offset relative to a base object. This base object will nominally be an array.
 
-A raw pointer will then exist as a type of special Null-Array, which may extends over the entire address space.
+A raw pointer may then exist as a type of special Null-Array, which may extend over the entire address space.
 
 Normally, the address will need to track what type it is. Addresses in this VM will generally not be raw pointers.
 
 Logical comparison of an address values will depend on the type of objects involved. Strict comparisons will compare the bit patterns.
+
+Logical relative comparisions of array values will compare the relative base offset within a single array. Comparisons between different arrays are undefined. The behavior of strict relative comparisons is undefined for arrays.
+
 
 Operations on array and pointer types will be interchangable.
 
@@ -317,15 +320,15 @@ Instructions
 * 1F, LNTL			//A => !A
 ** Perform basic unary arithmetic ops.
 
-* 20 Ix, LDI		// => I
-* 21 Ix, LDL		// => I
-* 22 Ix, LDF		// => I
-* 23 Ix, LDD		// => I
+* 20 Ix, LDI		// => A
+* 21 Ix, LDL		// => A
+* 22 Ix, LDF		// => A
+* 23 Ix, LDD		// => A
 * 24 Ix, STI		// A =>
 * 25 Ix, STL		// A =>
 * 26 Ix, STF		// A =>
 * 27 Ix, STD		// A =>
-* 28 Ix, LDA		// => I
+* 28 Ix, LDA		// => A
 * 29 Ix, STA		// A =>
 ** Load or store a local variable to/from the top of stack.
 
@@ -566,6 +569,8 @@ Instructions
 ** HNOEX indicates a non-executable sequence terminated by a LABEL.
 ** HNOEX1..HNOEX3 indicate 1-3 non-executable instructions.
 *** A new trace will be started following these instructions.
+** Only a small subset of opcodes will be allowed in NOEX blocks.
+*** Its intent is mostly to be used for stack manipulation.
 
 * C4 Zc, RETC			//Return Constant
 
@@ -594,7 +599,7 @@ Instructions
 * E1 0A, MODAA			//Variant Modulo
 * E1 0B, NEGAA			//Variant Negate
 * E1 0C, NOTAA			//Variant Not
-* E1 0D, LNOTAA			//Variant LNot
+* E1 0D, LNTAA			//Variant LNot
 ** Arithmetic operations on variant.
 
 * E1 0E, CMPAA			//Variant Compare
@@ -683,11 +688,11 @@ Instructions
 
 * E1 40 Ix Gx, IFXOBJ		//Init Fixed Object (Struct)
 * E1 41 Ix Zn, IFXARR		//Init Fixed Array
-* E1 42 Ix Gx, DFXOBJ		//Delete Fixed Object
+* E1 42 Ix Gx, DFXOBJ		//Delete Fixed Object (Struct)
 * E1 43 Ix Zn, DFXARR		//Delete Fixed Array
 ** Init and Delete fixed objects.
-** These are used for structs and fixed arrays.
-** These are not used for class instances.
+** These are used for structs and fixed arrays stored in local variables.
+** These are not used for class instances (which use NEWOBJ/DELETE).
 
 * E1 44, LBLCLNP			//Cleanup Label
 ** Declare a label which indicates the start of the cleanup sequence.
@@ -704,38 +709,33 @@ Instructions
 * E1 49 Gx, DSBOS				//Dup Bind Object Slot ( O V => O )
 * E1 4A Gx, DSTOS				//Dup Store Object Slot ( O V => )
 
-* E1 50, LDDRI					//Load Deref Ref Int ( R => V )
-* E1 51, LDDRL					//Load Deref Ref Long ( R => V )
-* E1 52, LDDRF					//Load Deref Ref Float ( R => V )
-* E1 53, LDDRD					//Load Deref Ref Double ( R => V )
-* E1 54, STDRI					//Store Deref Ref Int ( V R => )
-* E1 55, STDRL					//Store Deref Ref Long ( V R => )
-* E1 56, STDRF					//Store Deref Ref Float ( V R => )
-* E1 57, STDRD					//Store Deref Ref Double ( V R => )
-* E1 58, LDDRA					//Load Deref Ref Address
-* E1 59, STDRA					//Store Deref Ref Address
-* E1 5A Ix, LDDRIL				//Load Deref Ref Int Local ( I; => V )
-* E1 5B Ix, STDRIL				//Store Deref Ref Int Local ( I; V => )
-* E1 5C Ix, LDDRDL				//Load Deref Ref Double Local
-* E1 5D Ix, STDRDL				//Store Deref Ref Double Local
-* E1 5E Ix, LDDRAL				//Load Deref Ref Address Local
-* E1 5F Ix, STDRAL				//Store Deref Ref Address Local
-** Load/Store values from References
+* E1 4B Ix Gx, IFXOBJA			//Init Fixed Object Argument
+** This is used to initialize incomming struct arguments.
+** This is required prior to any mutable operations on the structure.
+** This may be omitted if no mutable operations are performed.
+** Note that IFXOBJA/DFXOBJ are paired, so either both or neither are used.
 
-* E1 60, LDDPI					//Load Deref Ptr Int ( P => V )
-* E1 61, LDDPL					//Load Deref Ptr Long ( P => V )
-* E1 62, LDDPF					//Load Deref Ptr Float ( P => V )
-* E1 63, LDDPD					//Load Deref Ptr Double ( P => V )
-* E1 64, STDPI					//Store Deref Ptr Int ( V P => )
-* E1 65, STDPL					//Store Deref Ptr Long ( V P => )
-* E1 66, STDPF					//Store Deref Ptr Float ( V P => )
-* E1 67, STDPD					//Store Deref Ptr Double ( V P => )
-* E1 68, LDDPA					//Load Deref Ptr Address
-* E1 69, STDPA					//Store Deref Ptr Address
-* E1 6A Ix, LDDPIL				//Load Deref Ptr Int Local ( I; => V )
-* E1 6B Ix, STDPIL				//Store Deref Ptr Int Local ( I; V => )
-* E1 6C Ix, LDDPDL				//Load Deref Ptr Double Local
-* E1 6D Ix, STDPDL				//Store Deref Ptr Double Local
-* E1 6E Ix, LDDPAL				//Load Deref Ptr Address Local
-* E1 6F Ix, STDPAL				//Store Deref Ptr Address Local
-** Load/Store values from Arrays/Pointers
+* E1 4C Zi, LDDRAL				//Load Deref Array Local
+* E1 4D Zi, LDDRVL				//Load Deref VarRef Local
+* E1 4E Zi, STDRAL				//Store Deref Array Local
+* E1 4F Zi, STDRVL				//Store Deref VarRef Local
+** Load or Store from Array or VarRef in Local.
+* E1 50, LDDRI					//Load Deref Array Int ( R => V )
+* E1 51, LDDRL					//Load Deref Array Long ( R => V )
+* E1 52, LDDRF					//Load Deref Array Float ( R => V )
+* E1 53, LDDRD					//Load Deref Array Double ( R => V )
+* E1 54, STDRI					//Store Deref Array Int ( V R => )
+* E1 55, STDRL					//Store Deref Array Long ( V R => )
+* E1 56, STDRF					//Store Deref Array Float ( V R => )
+* E1 57, STDRD					//Store Deref Array Double ( V R => )
+* E1 58, LDDRSB					//Load Deref Array Int ( R => V )
+* E1 59, LDDRUB					//Load Deref Array Int ( R => V )
+* E1 5A, LDDRSS					//Load Deref Array Int ( R => V )
+* E1 5B, LDDRUS					//Load Deref Array Int ( R => V )
+* E1 5C, LDDRA					//Load Deref Array Address
+* E1 5D, STDRA					//Store Deref Array Address
+* E1 5E, STDRB					//Store Deref Array Address
+* E1 5F, STDRS					//Store Deref Array Address
+** Load/Store values from Arrays or Pointers.
+** These operations may also be used on VarRefs.
+** However, LDIX/STIX may not be used on VarRefs.

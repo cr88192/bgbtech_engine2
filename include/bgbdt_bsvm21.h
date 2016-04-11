@@ -265,7 +265,7 @@
 #define BSVM2_OP_MODAA		0x010A	//Variant Modulo
 #define BSVM2_OP_NEGAA		0x010B	//Variant Negate
 #define BSVM2_OP_NOTAA		0x010C	//Variant Not
-#define BSVM2_OP_LNOTAA		0x010D	//Variant LNot
+#define BSVM2_OP_LNTAA		0x010D	//Variant LNot
 #define BSVM2_OP_CMPAA		0x010E	//Variant Compare
 #define BSVM2_OP_LDCA		0x010F	//Load Constant As Variant
 #define BSVM2_OP_CVTI2AA	0x0110	//Convert Int->Variant
@@ -328,12 +328,51 @@
 #define BSVM2_OP_DSBOS		0x0149
 #define BSVM2_OP_DSTOS		0x014A
 
+// #define BSVM2_OP_LDDRVIL	0x014C
+// #define BSVM2_OP_LDDRVAL	0x014D
+// #define BSVM2_OP_STDRVIL	0x014E
+// #define BSVM2_OP_STDRVAL	0x014F
+
+#define BSVM2_OP_LDDRAL		0x014C
+#define BSVM2_OP_LDDRVL		0x014D
+#define BSVM2_OP_STDRAL		0x014E
+#define BSVM2_OP_STDRVL		0x014F
+#define BSVM2_OP_LDDRI		0x0150
+#define BSVM2_OP_LDDRL		0x0151
+#define BSVM2_OP_LDDRF		0x0152
+#define BSVM2_OP_LDDRD		0x0153
+#define BSVM2_OP_STDRI		0x0154
+#define BSVM2_OP_STDRL		0x0155
+#define BSVM2_OP_STDRF		0x0156
+#define BSVM2_OP_STDRD		0x0157
+#define BSVM2_OP_LDDRSB		0x0158
+#define BSVM2_OP_LDDRUB		0x0159
+#define BSVM2_OP_LDDRSS		0x015A
+#define BSVM2_OP_LDDRUS		0x015B
+#define BSVM2_OP_LDDRA		0x015C
+#define BSVM2_OP_STDRA		0x015D
+#define BSVM2_OP_STDRB		0x015E
+#define BSVM2_OP_STDRS		0x015F
+
+//#define BSVM2_OP_LDDRA		0x0158
+//#define BSVM2_OP_STDRA		0x0159
+//#define BSVM2_OP_LDDRIL		0x015A
+//#define BSVM2_OP_STDRIL		0x015B
+//#define BSVM2_OP_LDDRDL		0x015C
+//#define BSVM2_OP_STDRDL		0x015D
+//#define BSVM2_OP_LDDRAL		0x015E
+//#define BSVM2_OP_STDRAL		0x015F
+
+
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
 typedef struct BSVM2_TailOpcode_s BSVM2_TailOpcode;
 typedef struct BSVM2_Trace_s BSVM2_Trace;
 typedef struct BSVM2_Frame_s BSVM2_Frame;
 typedef struct BSVM2_Context_s BSVM2_Context;
+
+typedef struct BSVM2_CodeBlock_s BSVM2_CodeBlock;
+typedef struct BSVM2_CodeImage_s BSVM2_CodeImage;
 
 union BSVM2_Value_u {
 struct { s32 i, j; };
@@ -357,6 +396,7 @@ BSVM2_Trace *(*Run)(BSVM2_Frame *frm,
 	BSVM2_TailOpcode *op);
 BSVM2_Trace *nexttrace;
 BSVM2_Trace *jmptrace;
+byte *jcs;
 int i0, i1;
 int t0, t1;
 };
@@ -364,24 +404,54 @@ int t0, t1;
 struct BSVM2_Trace_s {
 BSVM2_Opcode **ops;
 BSVM2_TailOpcode *top;
+BSVM2_Trace *(*Run)(BSVM2_Frame *frm,
+	BSVM2_Trace *tr);
+BSVM2_Trace *jnext;		//next trace to jump to
+byte *cs;				//bytecode addr for trace
+byte *jcs;				//bytecode addr for jump
+void *t_ops[6];
+int n_ops;
 };
 
 struct BSVM2_Frame_s {
 BSVM2_Context *ctx;		//owning context
 BSVM2_Value *stack;		//stack base
 BSVM2_Value *local;		//locals base
+
+BSVM2_Frame *rnext;		//return frame
+BSVM2_Trace *rtrace;	//return trace
+int rcsrv;				//return call save return value
 };
 
 struct BSVM2_Context_s {
+BSVM2_Context *next;		//next context
 BSVM2_Frame *cstack;		//call stack
 BSVM2_Value *tstack;		//temp stack (locals and stack)
 int tstackref;				//ref position of temp stack
+
+BSVM2_Frame *freeframe;		//free frames
+
+BSVM2_Frame *frame;			//current frame
+BSVM2_Trace *trace;			//current trace
+int status;
 };
 
 struct BSVM2_CodeBlock_s {
-byte *cs;
+BSVM2_CodeImage *img;
+byte *cs, *cse;
 byte *code;
-byte *ecode;
+BSVM2_Trace **trace;
+int ntrace;
+int szcode;
 int stkpos;
 };
 
+struct BSVM2_CodeImage_s {
+byte *data;		//image data
+int szdata;		//size of image data
+byte *strtab;	//string table
+
+BSVM2_Opcode *opfree;
+BSVM2_TailOpcode *topfree;
+BSVM2_Trace *trfree;
+};

@@ -62,7 +62,7 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		while(i--)
 			*t++='P';
 		*t=0;
-	}else if(al==5)
+	}else if(al==4)
 	{
 		*t++='R';
 	}
@@ -240,6 +240,39 @@ int BS2C_TypeArrayP(BS2CC_CompileContext *ctx, int ty)
 			return(1);
 //		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
 		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_R1))
+			return(1);
+		return(0);
+	}
+
+	return(0);
+}
+
+int BS2C_TypeVarRefP(BS2CC_CompileContext *ctx, int ty)
+{
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+//		if(ty&BS2CC_TYS_MASK)
+//			return(0);
+//		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
+//		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_R1))
+		if((ty&BS2CC_TYI_MASK)==BS2CC_TYI_R1)
+			return(1);
+		return(0);
+	}
+
+	return(0);
+}
+
+int BS2C_TypePointerP(BS2CC_CompileContext *ctx, int ty)
+{
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		if(ty&BS2CC_TYS_MASK)
+			return(1);
+//		if((ty&BS2CC_TYI_MASK) && ((ty&BS2CC_TYI_MASK)<BS2CC_TYI_P1))
+		if((ty&BS2CC_TYI_MASK) &&
+				((ty&BS2CC_TYI_MASK)>=BS2CC_TYI_P1) &&
+				((ty&BS2CC_TYI_MASK)<=BS2CC_TYI_P3))
 			return(1);
 		return(0);
 	}
@@ -587,6 +620,10 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 	if(i)
 		return(BS2CC_TYZ_ADDRESS);
 
+	i=BS2P_GetAstNodeAttrI(expr, "reflvl");
+	if(i)
+		return(BS2CC_TYZ_ADDRESS);
+
 	tyn=BS2P_GetAstNodeAttrS(expr, "name");
 	
 	if(tyn)
@@ -659,7 +696,7 @@ int BS2C_TypeRefinedType(
 	dtVal n0, n1;
 	char *tyn;
 	char *tag;
-	int al, pl, asz, bt, ty;
+	int al, pl, rl, asz, bt, ty;
 	int i, j, k, l;
 
 	arrs=BS2P_GetAstNodeAttr(expr, "arrays");
@@ -703,8 +740,12 @@ int BS2C_TypeRefinedType(
 	}
 
 	pl=BS2P_GetAstNodeAttrI(expr, "ptrlvl");
+	rl=BS2P_GetAstNodeAttrI(expr, "reflvl");
 //	if(pl)
 //		return(BS2CC_TYZ_ADDRESS);
+
+	if(pl)al=5+pl;
+	if(rl)al=4;
 
 	tyn=BS2P_GetAstNodeAttrS(expr, "name");
 	

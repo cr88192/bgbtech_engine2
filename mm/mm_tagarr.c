@@ -26,9 +26,17 @@ BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty)
 {
 	BGBDT_TagArrHead *arh;
 	dtVal arv;
-	int str, sz, sz2, szh;
+	int str, sz, sz2, szh, stsh;
 	
 	str=BGBDT_TagArr_BaseTypeSize(bty);
+	switch(str)
+	{
+	case 1: stsh=0; break;
+	case 2: stsh=1; break;
+	case 4: stsh=2; break;
+	case 8: stsh=3; break;
+	case 16: stsh=4; break;
+	}
 	
 	sz=size*str;
 	if(sz<=256)
@@ -41,6 +49,8 @@ BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty)
 		arh->sz=size;
 		arh->str=str;
 		arh->bty=bty;
+		arh->strsh=stsh;
+
 		arh->data=((byte *)arh)+szh;
 	}else
 	{
@@ -48,6 +58,7 @@ BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty)
 		arh->sz=size;
 		arh->str=str;
 		arh->bty=bty;
+		arh->strsh=stsh;
 	
 		arh->data=dtmAlloc("bgbdt_tagarrdata_t", size*str);
 	}

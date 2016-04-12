@@ -58,9 +58,9 @@
 #define BS2CC_VITYPE_GBLFUNC		2		//Global/Pkg or Static Func
 #define BS2CC_VITYPE_STRVAR			3		//Instance Variable
 #define BS2CC_VITYPE_STRFUNC		4		//Virtual Method
-#define BS2CC_VITYPE_STRUCT			5
-#define BS2CC_VITYPE_CLASS			6
-#define BS2CC_VITYPE_IFACE			7
+#define BS2CC_VITYPE_STRUCT			5		//Structure
+#define BS2CC_VITYPE_CLASS			6		//Class
+#define BS2CC_VITYPE_IFACE			7		//Interface
 #define BS2CC_VITYPE_LCLVAR			8		//Local Var
 #define BS2CC_VITYPE_LXLVAR			8		//Lexical Var
 

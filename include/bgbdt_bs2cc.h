@@ -33,6 +33,8 @@
 #define BS2CC_TYFL_DLLEXPORT		0x40000000
 #define BS2CC_TYFL_DLLIMPORT		0x80000000
 
+#define BS2CC_TYFL_CANREACH			0x000100000000LL
+
 #define BS2CC_ERRN_TMASK			0xF000
 #define BS2CC_ERRN_ERROR			0x1000
 #define BS2CC_ERRN_WARNING			0x2000
@@ -62,7 +64,8 @@
 #define BS2CC_VITYPE_CLASS			6		//Class
 #define BS2CC_VITYPE_IFACE			7		//Interface
 #define BS2CC_VITYPE_LCLVAR			8		//Local Var
-#define BS2CC_VITYPE_LXLVAR			8		//Lexical Var
+#define BS2CC_VITYPE_LXLVAR			9		//Lexical Var
+#define BS2CC_VITYPE_PACKAGE		10		//Package
 
 //Type IDs:
 //  0..   15: Core Types
@@ -191,6 +194,7 @@ BS2CC_VarInfo *func;		//parent function
 
 u32 stack_bty[256];			//temporary stack base-type
 int stackpos;				//stack pos for temp stack
+int stacksize;				//max size of stack frame
 
 BS2CC_VarInfo *locals[256];
 int nlocals;
@@ -231,6 +235,7 @@ BS2CC_VarInfo *vars;		//declarations
 
 BS2CC_PkgFrame *imps[256];
 int nimps;
+int gid;
 };
 
 struct BS2CC_CompileContext_s

@@ -912,14 +912,25 @@ BS2CC_PkgFrame *BS2C_GetPkgFrame(
 	BS2CC_CompileContext *ctx, char *qname)
 {
 	BS2CC_PkgFrame *pkg;
+	BS2CC_VarInfo *vi;
+	int i;
 	
 	pkg=BS2C_LookupPkgFrame(ctx, qname);
 	if(pkg)
 		return(pkg);
-	
+
 	pkg=BS2C_AllocPkgFrame(ctx);
 	pkg->qname=BS2P_StrSym(ctx, qname);
-	
+
+	vi=BS2C_AllocVarInfo(ctx);
+	i=ctx->nglobals++;
+	ctx->globals[i]=vi;
+	vi->gid=i;
+	vi->vitype=BS2CC_VITYPE_PACKAGE;
+	vi->pkg=pkg;
+	vi->qname=pkg->qname;
+
+	pkg->gid=i;
 	pkg->next=ctx->pkg_first;
 	ctx->pkg_first=pkg;
 	return(pkg);

@@ -267,6 +267,8 @@ void BS2C_CompileExprPushType(BS2CC_CompileContext *ctx, int dty)
 	
 	i=ctx->frm->stackpos++;
 	ctx->frm->stack_bty[i]=dty;
+	if(ctx->frm->stackpos>ctx->frm->stacksize)
+		ctx->frm->stacksize=ctx->frm->stackpos;
 }
 
 int BS2C_CompileExprPopType(BS2CC_CompileContext *ctx)
@@ -275,6 +277,13 @@ int BS2C_CompileExprPopType(BS2CC_CompileContext *ctx)
 	
 	ctx->frm->stackpos--;
 	i=ctx->frm->stackpos;
+	
+	if(i<0)
+	{
+		BS2C_CaseError(ctx);
+		return(-1);
+	}
+	
 	return(ctx->frm->stack_bty[i]);
 }
 

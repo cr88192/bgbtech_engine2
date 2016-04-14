@@ -1,7 +1,7 @@
 #include <bteifgl.h>
 
-#define BS2CC_IMG_TWOCC(a, b)			(((a)<<8)|(b))
-#define BS2CC_IMG_FOURCC(a, b, c, d)	(((a)<<24)|((b)<<16)|((c)<<8)|(d))
+#define BS2CC_IMG_TWOCC(a, b)			(((b)<<8)|(a))
+#define BS2CC_IMG_FOURCC(a, b, c, d)	(((d)<<24)|((c)<<16)|((b)<<8)|(a))
 
 #define BS2CC_IFCC_BS2I	BS2C_IMG_FOURCC('B', 'S', '2', 'I')
 #define BS2CC_IFCC_STRS	BS2C_IMG_FOURCC('S', 'T', 'R', 'S')
@@ -16,13 +16,13 @@
 #define BS2CC_ITCC_SF	BS2C_IMG_TWOCC('S', 'F')
 #define BS2CC_ITCC_ST	BS2C_IMG_TWOCC('S', 'T')
 #define BS2CC_ITCC_SV	BS2C_IMG_TWOCC('S', 'V')
+#define BS2CC_ITCC_SA	BS2C_IMG_TWOCC('S', 'A')
 
 #define BS2CC_I1CC_NAME		'N'
 #define BS2CC_I1CC_QNAME	'Q'
 #define BS2CC_I1CC_SIG		'S'
 #define BS2CC_I1CC_FLAGS	'F'
 #define BS2CC_I1CC_PACKAGE	'P'
-
 
 #define BS2CC_I1CC_NARGS	'A'
 #define BS2CC_I1CC_BARGS	'B'
@@ -62,8 +62,8 @@ byte *BS2C_Image_EmitTag(byte *ct, u32 tag, int sz)
 			*ct++=(sz1>>16)&255;
 			*ct++=(sz1>> 8)&255;
 			*ct++=(sz1    )&255;
-			*ct++=(tag>>8)&255;
-			*ct++=(tag   )&255;
+			*ct++=(tag    )&255;
+			*ct++=(tag>> 8)&255;
 			return(ct);
 		}
 	}
@@ -75,8 +75,8 @@ byte *BS2C_Image_EmitTag(byte *ct, u32 tag, int sz)
 			sz1=sz+4;
 			*ct++=0x80+((sz1>>8)&0x0F);
 			*ct++=sz1&255;
-			*ct++=(tag>>8)&255;
 			*ct++=(tag   )&255;
+			*ct++=(tag>>8)&255;
 			return(ct);
 		}
 
@@ -87,8 +87,8 @@ byte *BS2C_Image_EmitTag(byte *ct, u32 tag, int sz)
 			*ct++=(sz1>>16)&255;
 			*ct++=(sz1>> 8)&255;
 			*ct++=(sz1    )&255;
-			*ct++=(tag>>8)&255;
-			*ct++=(tag   )&255;
+			*ct++=(tag    )&255;
+			*ct++=(tag>> 8)&255;
 			return(ct);
 		}
 	}
@@ -98,10 +98,10 @@ byte *BS2C_Image_EmitTag(byte *ct, u32 tag, int sz)
 		sz1=sz+6;
 		*ct++=0xA0+((sz1>>8)&0x0F);
 		*ct++=sz1&255;
-		*ct++=(tag>>24)&255;
-		*ct++=(tag>>16)&255;
-		*ct++=(tag>> 8)&255;
 		*ct++=(tag    )&255;
+		*ct++=(tag>> 8)&255;
+		*ct++=(tag>>16)&255;
+		*ct++=(tag>>24)&255;
 		return(ct);
 	}
 
@@ -112,10 +112,10 @@ byte *BS2C_Image_EmitTag(byte *ct, u32 tag, int sz)
 		*ct++=(sz1>>16)&255;
 		*ct++=(sz1>> 8)&255;
 		*ct++=(sz1    )&255;
-		*ct++=(tag>>24)&255;
-		*ct++=(tag>>16)&255;
-		*ct++=(tag>> 8)&255;
 		*ct++=(tag    )&255;
+		*ct++=(tag>> 8)&255;
+		*ct++=(tag>>16)&255;
+		*ct++=(tag>>24)&255;
 		return(ct);
 	}
 }
@@ -247,6 +247,20 @@ byte *BS2C_Image_EmitTagSVLI(byte *ct, u32 tag, s64 val)
 		return(ct);
 	}
 
+	if((tag>='0') && (tag<='4'))
+	{
+		*ct++=0x1B+(tag-'A');
+		ct=BS2C_Image_EmitSVLI(ct, val);
+		return(ct);
+	}
+
+	if((tag>='5') && (tag<='9'))
+	{
+		*ct++=0x3B+(tag-'5');
+		ct=BS2C_Image_EmitSVLI(ct, val);
+		return(ct);
+	}
+
 	ct1=BS2C_Image_EmitSVLI(tb, val);
 	ct=BS2C_Image_EmitTagData(ct, tag, ct1-tb, tb);
 	return(ct);
@@ -372,6 +386,15 @@ byte *BS2C_Image_FlattenGlobalInfo_StructI(
 		ct=BS2C_Image_EmitTagSVLI(ct, BS2CC_I1CC_PACKAGE, i);
 	}
 
+	ct1=ct+16; ct2=ct1;
+	for(i=0; i<vari->nargs; i++)
+	{
+		ct2=BS2C_Image_EmitSVLI(ct2,
+			vari->args[i]->gid);
+	}
+
+	ct=BS2C_Image_EmitTagData(ct, BS2CC_ITCC_SA, ct2-ct1, ct1);
+	return(ct);4157
 }
 
 byte *BS2C_Image_FlattenGlobalInfo(
@@ -381,7 +404,7 @@ byte *BS2C_Image_FlattenGlobalInfo(
 {
 	if(vari->vitype==BS2CC_VITYPE_GBLVAR)
 	{
-		ct=BS2C_Image_FlattenGlobalInfo_GblVar(ctx, vari, ct);
+		ct=BS2C_Ima4ge_FlattenGlobalInfo_GblVar(ctx, vari, ct);
 		return(ct);
 	}
 

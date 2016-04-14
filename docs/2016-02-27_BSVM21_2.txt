@@ -283,6 +283,13 @@ Zx: Z=Special Value:
 Zy: Type+Constant (Variant)
 * I/L/F/D/UI/UL: Interpreted as in Zx, just target type is variant.
 
+NACHO:
+* Not Abstract Core, High Overhead
+* These operations may either be really fast, or really slow.
+* Efficient implementation requires a considerable code-size overhead.
+* Implementing them naively requires a notable runtime overhead.
+** Baseline compilers should not use these operations.
+
 
 Instructions
 * 00, ADDI			//A B => A+B
@@ -353,6 +360,7 @@ Instructions
 
 * 36 ZO Ax, JCMP	//Jump-Compare ( (A op B) =>)
 ** Compare two stack items and jump according to the operator.
+** (NACHO).
 
 * 37 Ax, JMP		//Jump
 ** Performs an unconditional jump.
@@ -425,6 +433,7 @@ Instructions
 * 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
 * 69 ZO Kx, CMPOPLC		//Compare Operator (I op C)
 
+** (NACHO).
 ** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
 
 * 6A Zn, PUSHN				//Push n Items (null/zero)
@@ -433,6 +442,7 @@ Instructions
 * 6D Zn, ROTLN				//Rotate Left 1 position over n items.
 * 6E Zn, ROTRN				//Rotate Right 1 position over n items.
 * 6F Zn, DUPN				//Duplicate Top n items.
+** (NACHO).
 
 ** Stack operations. May work on groups of items.
 ** The items are required to be of the base type given by Z.

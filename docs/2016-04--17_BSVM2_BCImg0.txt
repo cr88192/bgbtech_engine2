@@ -1,0 +1,201 @@
+== TLV Packaging ==
+
+TLV Packaging:
+* 00..1F: T=A..Z, 0..4, Value=SVLI
+* 20..3F: T=a..z, 5..9, Value=SVLI
+** These tags use an SVLI as the value.
+** Tag IDs range from 1..26 which are mapped to letters.
+** Tag 0 is reserved/invalid.
+** Tags 27..31 are mapped to digits.
+* 40..5F TT: L=32, T=BYTE
+** 40 XX XX TT: L=64kB, T=BYTE
+** 41 XX XX XX XX TT: L=4GB, T=BYTE
+* 60..7F XX TT: L=8kB, T=BYTE
+** ONECC Tag meanings depend on context.
+* 8X XX TT TT, L=4kB, T=TWOCC
+* 9X XX XX XX TT TT, L=256MB, T=TWOCC
+* AX XX TT TT TT TT, L=4kB, T=FOURCC
+* BX XX XX XX TT TT TT TT, L=256MB, T=FOURCC
+* C0..C3 XX XX XX TT(x8), L=64MB, T=EIGHTCC
+* C4..C7 XX(x7) TT(x8), L=256PB, T=EIGHTCC
+* C8..CB XX XX XX TT(x16), L=64MB, T=SIXTEENCC
+* CC..CF XX(x7) TT(x16), L=256PB, T=SIXTEENCC
+* D0..EE: Reserved
+* EF HH HH HH: Sync Marker
+** Followed by a hash of the following marker.
+
+Tags are stored with the length as the absolute length of the tag, not as the size of the payload.
+** Lengths less than the tag itself are reserved.
+
+Values:
+* Length values are interpreted as MSB first.
+* A narrower tag may use a larger storage size by zero-extending it to the larger size.
+** The tag is zero-extended on the right hand side.
+** Semantically, a padded tag will still behave as the narrower tag.
+* High order 'byte' of the tag value indicates its interpretation:
+** 00: Invalid
+** 01..3F: Private, Must Understand
+** 40..5F: Public, Must Understand
+** 60..7F: Public, Optional
+** 80..BF: Private, Optional
+** C0..FF: Reserved
+* Valid Public tags may only contain bytes which lie within the 7-bit printable ASCII range (20..7F).
+* Part of the SIXTEENCC private space will be interpreted as a UUID space.
+** A UUID expressed in big-endian order may be used as an ID.
+
+Tag Scope:
+* ONECC tags will always depend on the meaning of the parent tag.
+* TWOCC tags may depend either on the parent tag or extend to the scope of the format.
+** Private tags assumed context specific.
+* FOURCC tags will generally extend to the scope of the file format.
+** Private tags are implied context-specific or format scope.
+* EIGHTCC and SIXTEENCC are intended for universal tags.
+** Private tags are implied universal.
+** EIGHTCC may contain MAC addresses as IDs.
+** SIXTEENCC may contain UUIDs.
+
+EIGHTCC PUID:
+* PUID=Probably Unique ID.
+** Clashes are possible, but statistically highly unlikely.
+* Bytes 0-7 contain random values.
+* Last byte is between 0xC0 and 0xCF.
+* Interpreted as a value between 0xC0000000_00000000 and 0xCFFFFFFF_FFFFFFFF.
+
+
+== Bytecode Image ==
+
+Top Level Tag:
+* FOURCC('BS2I')
+* FOURCC('BS2L')
+** Master tag for image.
+** Needs to contain everything within the image.
+** 'BS2L' is for library tags, with 'BS2I' for generic executables.
+* EIGHTCC('BS2I0EXE')
+* EIGHTCC('BS2I0DLL')
+** Longer top-level tags.
+** The '*EXE' tag is intended for executables, and '*DLL' for libraries.
+** These longer tags are intended more for embedded images.
+
+Tags within toplevel:
+* FOURCC('STRS')
+** Main strings table.
+* FOURCC('GBLS')
+** Globals Table.
+* FOURCC('GIX2')
+* FOURCC('GIX3')
+* FOURCC('GIX4')
+** 16/24/32 bit offsets into globals table.
+** If an entry in GIX is 0, then the corresponding entry is absent.
+** The GIX table is encoded starting at logical index 1.
+** Global ID 0 is not encoded, and is assumed to always represent a value of NULL.
+
+
+GBLS consists of a series of tags, each defining an entry in the global table. The GIX table will have a corresponding offset for each tag in this table, relative to the start of the GBLS data area. Note that there is not necessarily a 1:1 mapping between tags in GBLS and entries in GIX. Padding may exist in GBLS, and entries may be null in GIX. References to the globals table will be keyed against GIX.
+
+GBLS lumps:
+* ONECC(' ')
+** Null/Padding
+* TWOCC('GF')
+** Global, Static, or Package-Scope Function
+* TWOCC('GV')
+** Global, Static, or Package-Scope Variable
+* TWOCC('SF')
+** Structure-Function / Class Method.
+* TWOCC('SV')
+** Structure-Variable / Class Field.
+* TWOCC('ST')
+** Struct
+* TWOCC('CL')
+** Class
+* TWOCC('IF')
+** Interface
+* TWOCC('PK')
+** Package
+
+
+=== Definitions ===
+
+Within Definitions:
+* 'A': Nargs, Function Specific
+* 'B': BArgs, Function Specific
+* 'C': Code, Function Specific
+* 'D': Stack Depth, Function Specific
+* 'E': Gives the owning class (fields/methods) or superclass (objects).
+* 'F': Flags String
+** SVLI, Positive values map to STRS.
+* 'G': Global Indices
+* 'H': Initialization Value for Variables
+* 'I': Implements, Class Specific
+* 'J'..'M':
+* 'N': Name Symbol
+** SVLI, Positive values map to STRS.
+** Used for typical declarations.
+** Gives only the final part of a qualified name.
+* 'P': Package ID
+** SVLI, Positive maps to GIX.
+* 'Q': QName Symbol
+** SVLI, Positive values map to STRS.
+** Used for packages.
+** Gives a fully qualified name.
+* 'R':
+* 'S': Signature String
+** SVLI, Positive values map to STRS.
+* 'T'..'Z':
+
+Variable:
+* 'H': Initialization value for variable.
+** Meaning depends on variable type.
+** Integer types, encoded as an SVLI tag holding the value.
+** Floating point types, short tag holding a value pair (and/or IEEE value, TBD).
+** Address types, Tagged constant.
+
+Function Specific:
+* 'A': Argument Count (NARGS)
+** If absent, is assumed as 0.
+* 'B': Base of Arguments (BARGS)
+** 0..BARGS-1=Locals
+** BARGS..(BARGS+LOCALS-1)=Args
+** If absent, is assumed as 0.
+* 'C'|'BC': Bytecode
+** Bytecode Data.
+** If absent, function lacks a body (may be an import).
+** 'B'/'D'/'G' are not encoded if 'C' is absent.
+* 'D': Total size of evaluation stack.
+* 'G': Global Indices
+** Encoded as a series of tagged constant values.
+** Tagged constants are encoded as unsigned.
+** May be inferred from NARGS and BARGS.
+
+Class/Struct/Interface:
+* 'G': Global Indices
+** Defines a list of fields and methods for the class or struct.
+* 'E': Extends (SVLI)
+** Gives the superclass.
+* 'I': Implements
+** Gives a list of interfaces (GIX indices).
+** Tagged constants are encoded as unsigned.
+
+Tagged Constant (tag=low 4 bits):
+* 0/4/8/C: Global Index (Low 2 bits=00)
+* 1=STRS (UTF-8)
+* 2=STRS (UTF-16)
+* 3=STRS (ASCII)
+* 4 (Above)
+* 5=Int (Variant)
+* 6=Long (Variant)
+* 7=UInt (Variant)
+* 8 (Above)
+* 9=Float (Variant)
+* A=Double (Variant)
+
+
+== Image Startup ==
+
+An image may contain one or more entry points.
+
+A global 'main' will be a default master entry point, and will used if no other hint is given to the intended entry point.
+
+Package-scoped main functions will be the second option.
+If the image is loaded with the name of a package, then the matching package's main will be used, and fall back to the primary main if no match is found.
+
+If package main's exist, and no global main exists, then one of the package mains will be used. A package main will serve as the primary main if no other main's exist.

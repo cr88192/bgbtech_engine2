@@ -525,6 +525,59 @@ void BS2C_EmitOpcodeSZx(BS2CC_CompileContext *ctx, int z, s64 ix)
 	BS2C_EmitOpcodeUZx(ctx, z, (ix<<1)^(ix>>63));
 }
 
+void BS2C_EmitOpcodeUZy(BS2CC_CompileContext *ctx, int z, u64 ix)
+{
+	BS2C_EmitOpcodeUCx(ctx, (ix<<4)|(z&15));
+
+#if 0
+	int z1;
+
+	if(z==BSVM2_OPZ_ADDRESS)
+	{
+		BS2C_EmitOpcodeUCx(ctx, (ix<<2)|0);
+		return;
+	}
+	
+	switch(z)
+	{
+	case BSVM2_OPZ_INT: z1=BSVM2_OPZY_INT; break;
+	case BSVM2_OPZ_UINT: z1=BSVM2_OPZY_UINT; break;
+	case BSVM2_OPZ_LONG: z1=BSVM2_OPZY_LONG; break;
+	case BSVM2_OPZ_FLOAT: z1=BSVM2_OPZY_FLOAT; break;
+	case BSVM2_OPZ_DOUBLE: z1=BSVM2_OPZY_DOUBLE; break;
+
+	case BSVM2_OPZ_UBYTE: z1=BSVM2_OPZY_STRU8; break;
+	case BSVM2_OPZ_SBYTE: z1=BSVM2_OPZY_STRASC; break;
+	case BSVM2_OPZ_SHORT: z1=BSVM2_OPZY_STRU16; break;
+
+	default: z1=BSVM2_OPZY_INT; break;
+	}
+
+	BS2C_EmitOpcodeUCx(ctx, (ix<<4)|(z1&15));
+#endif
+}
+
+void BS2C_EmitOpcodeSZy(BS2CC_CompileContext *ctx, int z, s64 ix)
+{
+	BS2C_EmitOpcodeUZy(ctx, z, (ix<<1)^(ix>>63));
+}
+
+void BS2C_EmitOpcodeZyStr(BS2CC_CompileContext *ctx, char *str)
+{
+	int i, j;
+
+	i=BS2C_ImgGetString(ctx, str);
+//	BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_UBYTE, i);
+
+	j=BS2C_IndexFrameLiteral(ctx, (i<<4)|BSVM2_OPZY_STRU8);
+	BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_ADDR, j);
+
+
+//	BS2C_CompileLoadNameAsType(ctx,
+//		BGBDT_TagStr_GetUtf8(expr), dty);
+//		BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_UBYTE, i);
+}
+
 void BS2C_EmitOpcodeZxF(BS2CC_CompileContext *ctx, double f)
 {
 	BS2C_EmitOpcodeZxFI(ctx, f, BSVM2_OPZ_FLOAT);

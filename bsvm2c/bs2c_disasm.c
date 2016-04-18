@@ -891,7 +891,7 @@ int bs2c_disasm_PrintItem(
 	s64 li;
 	char *s;
 	char *ps, *ips;
-	int i, j;
+	int i, j, k;
 
 	ps=pat; ips=ps;
 	if(!strncmp(ps, "Ix", 2))
@@ -915,8 +915,15 @@ int bs2c_disasm_PrintItem(
 		
 		j=frm->gbltab[i];
 
-		BGBDT_MM_PrintPutPrintf(prn, "G%d(%s)", i,
-			frm->ctx->globals[j]->qname);
+		if(!(j&3))
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "G%d(%s)", i,
+				frm->ctx->globals[j>>2]->qname);
+		}else
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "G%d=%08X", i, j);
+		}
+		
 		if(*ps)
 			BGBDT_MM_PrintPutPrintf(prn, ", ");
 
@@ -1171,6 +1178,32 @@ int bs2c_disasm_PrintItem(
 			}
 		}
 
+		if(i==BSVM2_OPZ_ADDR)
+		{
+			k=frm->gbltab[j];
+
+			if(!(k&3))
+			{
+				BGBDT_MM_PrintPutPrintf(prn, "G%d(%s)", j,
+					frm->ctx->globals[k>>2]->qname);
+			}else if(((k&15)==BSVM2_OPZY_STRASC) ||
+				((k&15)==BSVM2_OPZY_STRU8))
+			{
+				BGBDT_MM_PrintPutPrintf(prn, "S%d:", (k>>4));
+				BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
+			}else
+			{
+				BGBDT_MM_PrintPutPrintf(prn, "G%d=%08X", j, k);
+			}
+
+			if(*ps)
+				BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+			*rcs1=cs;
+			*rpa1=ps;
+			return(1);
+		}
+
 		if(i==BSVM2_OPZ_VOID)
 		{
 			switch(j)
@@ -1331,13 +1364,15 @@ void BS2C_DisAsmStruct(
 	char *s;
 	int i;
 	
-	BGBDT_MM_PrintPutPrintf(prn, "%s {\n", vari->qname);
+	BGBDT_MM_PrintPutPrintf(prn, "%d: %s {\n",
+		vari->gid, vari->qname);
 	for(i=0; i<vari->nargs; i++)
 	{
 		vi2=vari->args[i];
 		s=vi2->sig;
 		if(!s)s="";
-		BGBDT_MM_PrintPutPrintf(prn, "%s:%08X(%s)\n",
+		BGBDT_MM_PrintPutPrintf(prn, "%d: %s:%08X(%s)\n",
+			vi2->gid,
 			vi2->qname, vi2->bty,
 			BS2C_GetTypeSig(ctx, vi2->bty));
 	}
@@ -1369,16 +1404,21 @@ BTEIFGL_API void BS2C_DisAsmFuncs(
 				s=vari->sig;
 				if(!s)s="";
 //				BS2C_DisAsmStruct(prn, ctx, vari);
-				BGBDT_MM_PrintPutPrintf(prn, "%s:%08X(%s)\n",
-					vari->qname, vari->bty, s);
+				BGBDT_MM_PrintPutPrintf(prn, "%d: %s:%08X(%s)\n",
+					i, vari->qname, vari->bty, s);
 				continue;
 			}
+
+			BGBDT_MM_PrintPutPrintf(prn, "%d: %s ?\n",
+				i, vari->qname);
+
 			continue;
 		}
 //		if(dtvNullP(vari->bodyExp))
 //			continue;
 
-		BGBDT_MM_PrintPutPrintf(prn, "%s%s:\n", vari->qname, vari->sig);
+		BGBDT_MM_PrintPutPrintf(prn, "%d: %s%s:\n",
+			i, vari->qname, vari->sig);
 		BS2C_DisAsmFuncBody(prn, ctx, vari->body);
 	}
 }

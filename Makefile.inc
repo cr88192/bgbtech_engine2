@@ -40,22 +40,23 @@ BTEIFGL_SRCS=\
 	mm/mm_tagprint.c \
 	mm/mm_tagstr.c \
 	\
-	bsvm2/bs2p_astnode.c \
-	bsvm2/bs2p_decl.c \
-	bsvm2/bs2p_litexpr.c \
-	bsvm2/bs2p_stmt.c \
-	bsvm2/bs2p_token.c \
+	bsvm2c/bs2p_astnode.c \
+	bsvm2c/bs2p_decl.c \
+	bsvm2c/bs2p_litexpr.c \
+	bsvm2c/bs2p_stmt.c \
+	bsvm2c/bs2p_token.c \
 	\
-	bsvm2/bs2c_compile.c \
-	bsvm2/bs2c_disasm.c \
-	bsvm2/bs2c_emit.c \
-	bsvm2/bs2c_expr.c \
-	bsvm2/bs2c_infer.c \
-	bsvm2/bs2c_jcond.c \
-	bsvm2/bs2c_reduce.c \
-	bsvm2/bs2c_scope.c \
-	bsvm2/bs2c_stmt.c \
-	bsvm2/bs2c_type.c \
+	bsvm2c/bs2c_compile.c \
+	bsvm2c/bs2c_disasm.c \
+	bsvm2c/bs2c_emit.c \
+	bsvm2c/bs2c_expr.c \
+	bsvm2c/bs2c_image.c \
+	bsvm2c/bs2c_infer.c \
+	bsvm2c/bs2c_jcond.c \
+	bsvm2c/bs2c_reduce.c \
+	bsvm2c/bs2c_scope.c \
+	bsvm2c/bs2c_stmt.c \
+	bsvm2c/bs2c_type.c \
 	\
 	entity/ent_tagval.c \
 	\

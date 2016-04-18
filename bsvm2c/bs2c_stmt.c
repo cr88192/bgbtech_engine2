@@ -1,109 +1,5 @@
 #include <bteifgl.h>
 
-int BS2C_CompileErrorGetSourceLine(BS2CC_CompileContext *ctx)
-{
-	int fi;
-	int i;
-	
-	for(i=0; i<ctx->nsrcfns; i++)
-	{
-		if(!strcmp(ctx->srcfns[i], ctx->srcfn))
-			break;
-	}
-	if(i>=ctx->nsrcfns)
-	{
-		i=ctx->nsrcfns++;
-		ctx->srcfns[i]=BS2P_StrSym(ctx, ctx->srcfn);
-	}
-	fi=i;
-	
-	return((fi<<20)|(ctx->srcln));
-}
-
-void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
-{
-	int i, j;
-	
-	j=BS2C_CompileErrorGetSourceLine(ctx);
-	
-	if(((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_WARNING) ||
-		((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_HINT))
-	{
-		if(ctx->ncwarn<256)
-		{
-			i=ctx->ncwarn++;
-			ctx->cwarn[i]=errn;
-			ctx->cwarnln[i]=j;
-			return;
-		}
-		return;
-	}
-	
-	if((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_ERROR)
-	{
-		if(ctx->ncerr<256)
-		{
-			i=ctx->ncerr++;
-			ctx->cerr[i]=errn;
-			ctx->cerrln[i]=j;
-			return;
-		}
-		
-		if(!ctx->ncfatal)
-		{
-			BS2C_CompileError(ctx, BS2CC_ERRN_FATALERRCNT);
-			return;
-		}
-		return;
-	}
-
-	if((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_FATAL)
-	{
-		if(ctx->ncfatal<16)
-		{
-			i=ctx->ncfatal++;
-			ctx->cfatal[i]=errn;
-			ctx->cfatalln[i]=j;
-			return;
-		}
-	}
-}
-
-void BS2C_CaseError(BS2CC_CompileContext *ctx)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_CASEERROR);
-}
-
-void BS2C_StubError(BS2CC_CompileContext *ctx)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_STUBERROR);
-}
-
-void BS2C_WarnConstRange(BS2CC_CompileContext *ctx)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_CONSTRANGE);
-}
-
-void BS2C_ErrDivZero(BS2CC_CompileContext *ctx)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_DIVZERROR);
-}
-
-void BS2C_ErrNoDecl(BS2CC_CompileContext *ctx, char *name)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_ERRNODECL);
-}
-
-void BS2C_ErrTooFewArgs(BS2CC_CompileContext *ctx)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_ERRTOOFEWARGS);
-}
-
-void BS2C_ErrTooManyArgs(BS2CC_CompileContext *ctx)
-{
-	BS2C_CompileError(ctx, BS2CC_ERRN_ERRTOOMANYARGS);
-}
-
 void BS2C_CompileStmtVarInit(
 	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, dtVal expr)
 {
@@ -1203,6 +1099,14 @@ void BS2C_CompileStructVar(BS2CC_CompileContext *ctx, dtVal expr)
 	if(vi->bmfl&BS2CC_TYFL_STATIC)
 		vi->vitype=BS2CC_VITYPE_GBLVAR;
 
+	if(!(vi->bmfl&BS2CC_TYFL_PPP))
+	{
+		if(vi->vitype==BS2CC_VITYPE_STRUCT)
+			{ vi->bmfl|=BS2CC_TYFL_PUBLIC; }
+		else
+			{ vi->bmfl|=BS2CC_TYFL_PROTECTED; }
+	}
+
 	sprintf(tb, "%s/%s", ctx->obj->qname, vi->name);
 	vi->qname=BS2P_StrSym(ctx, tb);
 }
@@ -1244,6 +1148,15 @@ void BS2C_CompileStructFunc(BS2CC_CompileContext *ctx, dtVal expr)
 	if(bmfl&BS2CC_TYFL_STATIC)
 		vi->vitype=BS2CC_VITYPE_GBLFUNC;
 	
+
+	if(!(bmfl&BS2CC_TYFL_PPP))
+	{
+		if(vi->vitype==BS2CC_VITYPE_STRUCT)
+			{ bmfl|=BS2CC_TYFL_PUBLIC; }
+		else
+			{ bmfl|=BS2CC_TYFL_PROTECTED; }
+	}
+
 	vi->name=BS2P_StrSym(ctx, name);
 //	vi->bty=BSVM2_OPZ_ADDRESS;
 	vi->bty=vi->gid+256;
@@ -1487,112 +1400,12 @@ void BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr)
 	vi->bodyExp=nb;
 }
 
-void BS2C_CompileFuncBodyCleanupVar(
-	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix)
-{
-	int bty, sz, z;
-
-	bty=vi->bty;
-
-	if(BS2C_TypeSizedArrayP(ctx, bty))
-	{
-		sz=BS2C_TypeGetArraySize(ctx, bty);
-		z=BS2C_GetTypeBaseZ(ctx, bty);
-
-		BS2C_EmitOpcode(ctx, BSVM2_OP_DFXARR);
-		BS2C_EmitOpcodeUCx(ctx, ix);
-		BS2C_EmitOpcodeUZx(ctx, z, sz);
-
-//		BS2C_EmitOpcode(ctx, BSVM2_OP_NEWARR);
-//		BS2C_EmitOpcodeUZx(ctx, z, sz);
-//		BS2C_CompileStoreName(ctx, name);
-
-		if(ctx->frm->jcleanup<=0)
-			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
-
-		return;
-	}
-}
-
-void BS2C_CompileFuncBodyCleanup(
-	BS2CC_CompileContext *ctx)
-{
-	BS2CC_VarInfo *vi;
-	int i, j, k, l;
-
-	if(ctx->frm->jcleanup<=0)
-		return;
-
-//	BS2C_CompileNoexPush(ctx, ctx->frm->func->rty);
-//	BS2C_EmitTempLabelB(ctx, ctx->frm->jcleanup);
-
-	BS2C_CompileExprPushType(ctx, ctx->frm->func->rty);
-	BS2C_EmitOpcode(ctx, BSVM2_OP_LBLCLNP);
-	ctx->frm->newtrace=1;
-	BS2C_EmitTempLabelB(ctx, ctx->frm->jcleanup);
-
-	for(i=0; i<ctx->frm->nlocals; i++)
-	{
-		vi=ctx->frm->locals[i];
-		BS2C_CompileFuncBodyCleanupVar(ctx, vi, i);
-	}
-	
-	BS2C_EmitReturnVal(ctx);
-}
-
-void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func)
-{
-	BS2CC_CcFrame *frm;
-	int i, j, k, l;
-
-	frm=BS2C_AllocCcFrame(ctx);
-	
-	i=ctx->frmstackpos++;
-	ctx->frmstack[i]=ctx->frm;
-	ctx->frm=frm;
-	func->body=frm;
-	frm->func=func;
-	frm->ctx=ctx;
-
-	BS2C_CompileFunVarStatement(ctx,
-		func->bodyExp);
-	
-	frm->bargs=frm->nlocals;
-	for(j=0; j<func->nargs; j++)
-	{
-		k=frm->nlocals++;
-		frm->locals[k]=func->args[j];
-	}
-		
-	BS2C_CompileStatement(ctx,
-		func->bodyExp);
-	
-	if(!ctx->frm->wasret)
-	{
-		if(ctx->frm->jcleanup>0)
-			{ BS2C_EmitReturnCleanupV(ctx, 1); }
-		else
-			{ BS2C_EmitReturnV(ctx); }
-	}
-	
-	if(ctx->frm->jcleanup>0)
-	{
-		BS2C_CompileFuncBodyCleanup(ctx);
-	}
-	
-	BS2C_FixupLabels(ctx);
-	
-	frm->szt=frm->ct-frm->cts;
-	
-	ctx->frm=ctx->frmstack[i];
-	ctx->frmstackpos=i;
-}
-
 void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr)
 {
 	char tb[256];
 	dtVal n0, n1, n2, n3;
 	dtVal nn, nt, na, nb, ne, ni;
+	s64 bmfl;
 	BS2CC_VarInfo *vi;
 	BS2CC_CcFrame *frm;
 	char *name, *tag;
@@ -1600,15 +1413,20 @@ void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr)
 	int i, j, k, l;
 
 	name=BS2P_GetAstNodeAttrS(expr, "name");
+	bmfl=BS2P_GetAstNodeAttrI(expr, "modi");
 	ne=BS2P_GetAstNodeAttr(expr, "exts");
 	ni=BS2P_GetAstNodeAttr(expr, "impl");
 	nb=BS2P_GetAstNodeAttr(expr, "body");
 	tag=BS2P_GetAstNodeTag(expr);
 	
+	if(!(bmfl&BS2CC_TYFL_PPP))
+		bmfl|=BS2CC_TYFL_PROTECTED;
+	
 	vi=BS2C_AllocVarInfo(ctx);
 	i=ctx->nglobals++;
 	ctx->globals[i]=vi;
 	vi->gid=i;
+	vi->bmfl=bmfl;
 	vi->vitype=BS2CC_VITYPE_STRUCT;
 	if(!strcmp(tag, "class"))
 		vi->vitype=BS2CC_VITYPE_CLASS;
@@ -1764,204 +1582,4 @@ BTEIFGL_API void BS2C_CompileTopStatement(
 	}
 	
 	BS2C_CaseError(ctx);
-}
-
-void BS2C_CompileRebuildVarType(
-	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari)
-{
-	char *s;
-
-	if(dtvTrueP(vari->typeExp))
-	{
-		vari->bty=BS2C_TypeRefinedType(
-			ctx, vari, vari->typeExp);
-	}
-	s=BS2C_GetTypeSig(ctx, vari->bty);
-	vari->sig=BS2P_StrSym(ctx, s);
-}
-
-void BS2C_CompileRebuildFuncType(
-	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari)
-{
-	char tb[256];
-	char *s, *t;
-	int i, j, k, l;
-
-	if(dtvTrueP(vari->typeExp))
-	{
-		vari->rty=BS2C_TypeRefinedType(
-			ctx, vari, vari->typeExp);
-	}
-		
-	for(i=0; i<vari->nargs; i++)
-	{
-		BS2C_CompileRebuildVarType(ctx, vari->args[i]);
-	}
-	
-	t=tb;
-	*t++='(';
-	for(i=0; i<vari->nargs; i++)
-	{
-		s=vari->args[i]->sig;
-		strcpy(t, s);
-		t=t+strlen(t);
-	}
-	*t++=')';
-
-	s=BS2C_GetTypeSig(ctx, vari->rty);
-	strcpy(t, s);
-	t=t+strlen(t);
-
-	vari->sig=BS2P_StrSym(ctx, tb);
-}
-
-void BS2C_CompileRebuildStructType(
-	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari)
-{
-	BS2CC_VarInfo *vi2;
-	dtVal n0;
-	dtVal ne, ni;
-	char *fn;
-	int i, j, k, l;
-	
-	ne=vari->extsExp;
-	ni=vari->implExp;
-	if(dtvIsArrayP(ne))
-	{
-		ne=dtvArrayGetIndexDtVal(ne, 0);
-		fn=BGBDT_TagStr_GetUtf8(ne);
-		i=BS2C_LookupVariGlobal(ctx, vari, fn);
-		if(i>=0)
-			{ vi2=ctx->globals[i]; }
-		else
-			{ vi2=NULL; }
-		vari->super=vi2;
-
-	}else if(dtvTrueP(ne))
-	{
-		fn=BGBDT_TagStr_GetUtf8(ne);
-		i=BS2C_LookupVariGlobal(ctx, vari, fn);
-		if(i>=0)
-			{ vi2=ctx->globals[i]; }
-		else
-			{ vi2=NULL; }
-		vari->super=vi2;
-	}
-
-	if(dtvIsArrayP(ni))
-	{
-		l=dtvArrayGetSize(ni);
-		for(i=0; i<l; i++)
-		{
-			n0=dtvArrayGetIndexDtVal(ni, i);
-			fn=BGBDT_TagStr_GetUtf8(n0);
-			j=BS2C_LookupVariGlobal(ctx, vari, fn);
-			if(j<0)continue;
-			vi2=ctx->globals[j];
-			vari->iface[i]=vi2;
-		}
-		vari->niface=l;
-	}else if(dtvTrueP(ni))
-	{
-		fn=BGBDT_TagStr_GetUtf8(ni);
-		i=BS2C_LookupVariGlobal(ctx, vari, fn);
-		if(i>=0)
-			{ vi2=ctx->globals[i]; }
-		else
-			{ vi2=NULL; }
-		vari->iface[0]=vi2;
-		vari->niface=1;
-	}
-}
-
-BTEIFGL_API void BS2C_CompileFuncs(
-	BS2CC_CompileContext *ctx)
-{
-	BS2CC_VarInfo *vari;
-	int i;
-
-	for(i=0; i<ctx->nglobals; i++)
-	{
-		vari=ctx->globals[i];
-
-//		if(!dtvTrueP(vari->typeExp))
-//			continue;
-
-		if((vari->vitype==BS2CC_VITYPE_GBLVAR) ||
-			(vari->vitype==BS2CC_VITYPE_STRVAR))
-		{
-			BS2C_CompileRebuildVarType(ctx, vari);
-			continue;
-		}
-
-		if((vari->vitype==BS2CC_VITYPE_GBLFUNC) ||
-			(vari->vitype==BS2CC_VITYPE_STRFUNC))
-		{
-			BS2C_CompileRebuildFuncType(ctx, vari);
-			continue;
-		}
-
-		if((vari->vitype==BS2CC_VITYPE_STRUCT) ||
-			(vari->vitype==BS2CC_VITYPE_CLASS) ||
-			(vari->vitype==BS2CC_VITYPE_IFACE))
-		{
-			BS2C_CompileRebuildStructType(ctx, vari);
-			continue;
-		}
-	}
-	
-	for(i=0; i<ctx->nglobals; i++)
-	{
-		vari=ctx->globals[i];
-//		if(dtvNullP(vari->bodyExp))
-
-		if((vari->vitype==BS2CC_VITYPE_GBLFUNC) ||
-			(vari->vitype==BS2CC_VITYPE_STRFUNC))
-		{
-			if(!dtvTrueP(vari->bodyExp))
-				continue;
-			BS2C_CompileFuncBody(ctx, vari);
-		}
-	}
-	
-	if(vari->gid<65280)
-	{
-		vari->bty=vari->gid+256;
-	}
-}
-
-BTEIFGL_API void BS2C_DumpErrors(
-	BS2CC_CompileContext *ctx)
-{
-	int i, j, k;
-	
-	if(!ctx->ncerr && !ctx->ncfatal)
-	{
-		for(i=0; i<ctx->ncwarn; i++)
-		{
-			printf("%d:%d %04X\n",
-				(ctx->cwarnln[i]>>20), ctx->cwarnln[i]&0xFFFFF,
-				ctx->cwarn[i]);
-		}
-		printf("%d warnings\n", ctx->ncwarn);
-	}
-	
-	for(i=0; i<ctx->ncerr; i++)
-	{
-		printf("%d:%d %04X\n",
-			(ctx->cerrln[i]>>20), ctx->cerrln[i]&0xFFFFF,
-			ctx->cerr[i]);
-	}
-	printf("%d errors\n", ctx->ncerr);
-
-	if(ctx->ncfatal)
-	{
-		for(i=0; i<ctx->ncfatal; i++)
-		{
-			printf("%d:%d %04X\n",
-				(ctx->cfatalln[i]>>20), ctx->cfatalln[i]&0xFFFFF,
-				ctx->cfatal[i]);
-		}
-		printf("%d fatal errors\n", ctx->ncfatal);
-	}
 }

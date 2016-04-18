@@ -1834,13 +1834,13 @@ void BS2C_CompileExprPushConstInt(
 			{
 				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
 				BS2C_EmitOpcode(ctx, BSVM2_OP_LDCA);
-				BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_UINT, li);
+				BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_UINT, li);
 				return;
 			}
 
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_LDCA);
-			BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_INT, li);
+			BS2C_EmitOpcodeSZy(ctx, BSVM2_OPZ_INT, li);
 			return;
 		}
 			
@@ -1849,12 +1849,12 @@ void BS2C_CompileExprPushConstInt(
 		{
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_LDCA);
-			BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_ULONG, li);
+			BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_ULONG, li);
 			return;
 		}
 		BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDCA);
-		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_LONG, li);
+		BS2C_EmitOpcodeSZy(ctx, BSVM2_OPZ_LONG, li);
 		return;
 	}
 
@@ -1985,13 +1985,16 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 	if(BGBDT_TagStr_IsStringP(expr))
 	{
-		i=BS2C_ImgGetString(ctx, BGBDT_TagStr_GetUtf8(expr));
+//		i=BS2C_ImgGetString(ctx, BGBDT_TagStr_GetUtf8(expr));
 //		BS2C_CompileLoadNameAsType(ctx,
 //			BGBDT_TagStr_GetUtf8(expr), dty);
 
-		BS2C_EmitOpcode(ctx, BSVM2_OP_LDCA);
-		BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_UBYTE, i);
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_LDCA);
+//		BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_UBYTE, i);
+//		BS2C_EmitOpcodeZyStr(ctx, BGBDT_TagStr_GetUtf8(expr));
 
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+		BS2C_EmitOpcodeZyStr(ctx, BGBDT_TagStr_GetUtf8(expr));
 		return;
 	}
 

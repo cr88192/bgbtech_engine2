@@ -34,28 +34,26 @@ int BS2C_LookupGlobal(BS2CC_CompileContext *ctx, char *name)
 
 int BS2C_IndexFrameGlobal(BS2CC_CompileContext *ctx, int gix)
 {
+	return(BS2C_IndexFrameLiteral(ctx, gix<<2));
+}
+
+int BS2C_IndexFrameLiteral(BS2CC_CompileContext *ctx, int gix)
+{
 	BS2CC_VarInfo *vari;
 	int i, j;
 	
 	for(i=0; i<ctx->frm->ngbl; i++)
 	{
 		j=ctx->frm->gbltab[i];
-//		vari=ctx->globals[j];
-//		if(!strcmp(vari->name, name))
 		if(j==gix)
-		{
 			return(i);
-//			return(j);
-		}
 	}
 
-	j=gix;
-	if(j>=0)
+	if(gix>=0)
 	{
 		i=ctx->frm->ngbl++;
-		ctx->frm->gbltab[i]=j;
+		ctx->frm->gbltab[i]=gix;
 		return(i);
-//		return(j);
 	}
 	return(-1);
 }
@@ -68,7 +66,8 @@ int BS2C_LookupFrameGlobal(BS2CC_CompileContext *ctx, char *name)
 	for(i=0; i<ctx->frm->ngbl; i++)
 	{
 		j=ctx->frm->gbltab[i];
-		vari=ctx->globals[j];
+		if(j&3)continue;
+		vari=ctx->globals[j>>2];
 		if(!strcmp(vari->name, name))
 		{
 			return(i);
@@ -89,7 +88,7 @@ int BS2C_LookupFrameGlobal(BS2CC_CompileContext *ctx, char *name)
 	if(j>=0)
 	{
 		i=ctx->frm->ngbl++;
-		ctx->frm->gbltab[i]=j;
+		ctx->frm->gbltab[i]=j<<2;
 		return(i);
 //		return(j);
 	}
@@ -163,7 +162,9 @@ BS2CC_VarInfo *BS2C_GetFrameGlobalInfo(BS2CC_CompileContext *ctx, int idx)
 	int i, j;
 //	j=idx;
 	j=ctx->frm->gbltab[idx];
-	return(ctx->globals[j]);
+	if(j&3)
+		return(NULL);
+	return(ctx->globals[j>>2]);
 }
 
 BS2CC_VarInfo *BS2C_LookupObjectFieldName(BS2CC_CompileContext *ctx, 
@@ -864,6 +865,7 @@ int BS2C_GetDynamicSlotName(
 
 	vi->name=BS2P_StrSym(ctx, name);
 	vi->qname=BS2P_StrSym(ctx, tb);
+	vi->sig=BS2P_StrSym(ctx, "r");
 
 	return(i);
 }

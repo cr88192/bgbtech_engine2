@@ -12,6 +12,8 @@
 #define BS2CC_TYFL_ABSTRACT			0x00000400
 #define BS2CC_TYFL_STRICT			0x00000800
 
+#define BS2CC_TYFL_PPP				0x00000007
+
 #define BS2CC_TYFL_BYREF			0x00001000
 #define BS2CC_TYFL_DELEGATE			0x00002000
 #define BS2CC_TYFL_GETTER			0x00004000
@@ -34,6 +36,7 @@
 #define BS2CC_TYFL_DLLIMPORT		0x80000000
 
 #define BS2CC_TYFL_CANREACH			0x000100000000LL
+#define BS2CC_TYFL_PUBVISIBLE		0x000200000000LL
 
 #define BS2CC_ERRN_TMASK			0xF000
 #define BS2CC_ERRN_ERROR			0x1000
@@ -130,6 +133,68 @@
 #define BS2CC_TYZ_NLONG		0x0016
 #define BS2CC_TYZ_UNLONG	0x0017
 #define BS2CC_TYZ_BOOL		0x0018
+
+
+//#define BS2CC_IMG_TWOCC(a, b)			(((b)<<8)|(a))
+//#define BS2CC_IMG_FOURCC(a, b, c, d)	(((d)<<24)|((c)<<16)|((b)<<8)|(a))
+
+//#define BS2CC_IMG_EIGHTCC(a, b, c, d, e, f, g, h)	\
+//	((((u64)BS2CC_IMG_FOURCC(e, f, g, h))<<32)|		\
+//	BS2CC_IMG_FOURCC(a, b, c, d))
+
+#define BS2CC_IMG_TWOCC(a, b)			(((a)<<8)|(b))
+#define BS2CC_IMG_FOURCC(a, b, c, d)	(((a)<<24)|((b)<<16)|((c)<<8)|(d))
+
+#define BS2CC_IMG_EIGHTCC(a, b, c, d, e, f, g, h)	\
+	((((u64)BS2CC_IMG_FOURCC(a, b, c, d))<<32)|		\
+	BS2CC_IMG_FOURCC(e, f, g, h))
+
+#define BS2CC_IECC_BS2I0EXE	BS2CC_IMG_EIGHTCC('B','S','2','I','0','E','X','E')
+#define BS2CC_IECC_BS2I0DLL	BS2CC_IMG_EIGHTCC('B','S','2','I','0','D','L','L')
+
+#define BS2CC_IFCC_BS2I	BS2CC_IMG_FOURCC('B', 'S', '2', 'I')
+#define BS2CC_IFCC_BS2L	BS2CC_IMG_FOURCC('B', 'S', '2', 'L')
+
+#define BS2CC_IFCC_STRS	BS2CC_IMG_FOURCC('S', 'T', 'R', 'S')
+#define BS2CC_IFCC_BADD	BS2CC_IMG_FOURCC('B', 'A', 'D', 'D')
+
+#define BS2CC_IFCC_GBLS	BS2CC_IMG_FOURCC('G', 'B', 'L', 'S')
+#define BS2CC_IFCC_GIX2	BS2CC_IMG_FOURCC('G', 'I', 'X', '2')
+#define BS2CC_IFCC_GIX3	BS2CC_IMG_FOURCC('G', 'I', 'X', '3')
+#define BS2CC_IFCC_GIX4	BS2CC_IMG_FOURCC('G', 'I', 'X', '4')
+
+#define BS2CC_ITCC_BC	BS2CC_IMG_TWOCC('B', 'C')
+#define BS2CC_ITCC_CL	BS2CC_IMG_TWOCC('C', 'L')
+#define BS2CC_ITCC_GF	BS2CC_IMG_TWOCC('G', 'F')
+#define BS2CC_ITCC_GV	BS2CC_IMG_TWOCC('G', 'V')
+#define BS2CC_ITCC_IF	BS2CC_IMG_TWOCC('I', 'F')
+#define BS2CC_ITCC_PK	BS2CC_IMG_TWOCC('P', 'K')
+#define BS2CC_ITCC_SF	BS2CC_IMG_TWOCC('S', 'F')
+#define BS2CC_ITCC_ST	BS2CC_IMG_TWOCC('S', 'T')
+#define BS2CC_ITCC_SV	BS2CC_IMG_TWOCC('S', 'V')
+// #define BS2CC_ITCC_SA	BS2C_IMG_TWOCC('S', 'A')
+
+#define BS2CC_I1CC_NULL		' '
+
+#define BS2CC_I1CC_NARGS	'A'
+#define BS2CC_I1CC_BARGS	'B'
+#define BS2CC_I1CC_CODE		'C'
+#define BS2CC_I1CC_STKDEPTH	'D'
+#define BS2CC_I1CC_ECLASS	'E'
+#define BS2CC_I1CC_FLAGS	'F'
+#define BS2CC_I1CC_GITAG	'G'
+#define BS2CC_I1CC_VARINIT	'H'
+#define BS2CC_I1CC_IMPL		'I'
+
+#define BS2CC_I1CC_NLOCALS	'L'
+
+#define BS2CC_I1CC_NAME		'N'
+
+#define BS2CC_I1CC_PACKAGE	'P'
+#define BS2CC_I1CC_QNAME	'Q'
+
+#define BS2CC_I1CC_SIG		'S'
+
 
 
 typedef struct BS2CC_CompileContext_s BS2CC_CompileContext;

@@ -44,6 +44,21 @@
 // #define BSVM2_OPZ_VARIANT	4
 #define BSVM2_OPZ_VOID		11
 
+
+#define BSVM2_OPZY_STRU8	1
+#define BSVM2_OPZY_STRU16	2
+#define BSVM2_OPZY_STRASC	3
+
+#define BSVM2_OPZY_INT		5
+#define BSVM2_OPZY_LONG		6
+#define BSVM2_OPZY_UINT		7
+#define BSVM2_OPZY_FLOAT	9
+#define BSVM2_OPZY_DOUBLE	10
+
+#define BSVM2_OPZY_UBYTE	6
+#define BSVM2_OPZY_SHORT	7
+#define BSVM2_OPZY_SBYTE	8
+
 #define BSVM2_OP_ADDI		0x00	//Add Int (A+B)
 #define BSVM2_OP_SUBI		0x01	//Sub Int (A-B)
 #define BSVM2_OP_MULI		0x02	//Mul Int (A*B)
@@ -371,6 +386,7 @@ typedef struct BSVM2_Trace_s BSVM2_Trace;
 typedef struct BSVM2_Frame_s BSVM2_Frame;
 typedef struct BSVM2_Context_s BSVM2_Context;
 
+typedef struct BSVM2_ImageGlobal_s BSVM2_ImageGlobal;
 typedef struct BSVM2_CodeBlock_s BSVM2_CodeBlock;
 typedef struct BSVM2_CodeImage_s BSVM2_CodeImage;
 
@@ -446,10 +462,26 @@ int szcode;
 int stkpos;
 };
 
+struct BSVM2_ImageGlobal_s {
+char *name;
+char *qname;
+int gix;
+};
+
 struct BSVM2_CodeImage_s {
 byte *data;		//image data
 int szdata;		//size of image data
 byte *strtab;	//string table
+byte *estrtab;	//end of string table
+
+byte *gblsdat;	//globals data area
+byte *egblsdat;	//end of globals data area
+
+byte *gixtab;
+byte gixstr;
+
+BSVM2_ImageGlobal **glbls;
+int ngbls;
 
 BSVM2_Opcode *opfree;
 BSVM2_TailOpcode *topfree;

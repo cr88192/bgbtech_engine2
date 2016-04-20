@@ -65,8 +65,11 @@ byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz)
 			sz1=sz+4;
 			*ct++=0x80+((sz1>>8)&0x0F);
 			*ct++=sz1&255;
-			*ct++=(tag   )&255;
+//			*ct++=(tag   )&255;
+//			*ct++=(tag>>8)&255;
+
 			*ct++=(tag>>8)&255;
+			*ct++=(tag   )&255;
 			return(ct);
 		}
 
@@ -77,8 +80,10 @@ byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz)
 			*ct++=(sz1>>16)&255;
 			*ct++=(sz1>> 8)&255;
 			*ct++=(sz1    )&255;
-			*ct++=(tag    )&255;
+//			*ct++=(tag    )&255;
+//			*ct++=(tag>> 8)&255;
 			*ct++=(tag>> 8)&255;
+			*ct++=(tag    )&255;
 			return(ct);
 		}
 	}
@@ -90,10 +95,15 @@ byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz)
 			sz1=sz+6;
 			*ct++=0xA0+((sz1>>8)&0x0F);
 			*ct++=sz1&255;
-			*ct++=(tag    )&255;
-			*ct++=(tag>> 8)&255;
-			*ct++=(tag>>16)&255;
+//			*ct++=(tag    )&255;
+//			*ct++=(tag>> 8)&255;
+//			*ct++=(tag>>16)&255;
+//			*ct++=(tag>>24)&255;
+
 			*ct++=(tag>>24)&255;
+			*ct++=(tag>>16)&255;
+			*ct++=(tag>> 8)&255;
+			*ct++=(tag    )&255;
 			return(ct);
 		}
 
@@ -104,10 +114,15 @@ byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz)
 			*ct++=(sz1>>16)&255;
 			*ct++=(sz1>> 8)&255;
 			*ct++=(sz1    )&255;
-			*ct++=(tag    )&255;
-			*ct++=(tag>> 8)&255;
-			*ct++=(tag>>16)&255;
+//			*ct++=(tag    )&255;
+//			*ct++=(tag>> 8)&255;
+//			*ct++=(tag>>16)&255;
+//			*ct++=(tag>>24)&255;
+
 			*ct++=(tag>>24)&255;
+			*ct++=(tag>>16)&255;
+			*ct++=(tag>> 8)&255;
+			*ct++=(tag    )&255;
 			return(ct);
 		}
 	}
@@ -120,14 +135,24 @@ byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz)
 		*ct++=(sz1>> 8)&255;
 		*ct++=(sz1    )&255;
 
-		*ct++=(tag    )&255;
-		*ct++=(tag>> 8)&255;
-		*ct++=(tag>>16)&255;
-		*ct++=(tag>>24)&255;
-		*ct++=(tag>>32)&255;
-		*ct++=(tag>>40)&255;
-		*ct++=(tag>>48)&255;
+//		*ct++=(tag    )&255;
+//		*ct++=(tag>> 8)&255;
+//		*ct++=(tag>>16)&255;
+//		*ct++=(tag>>24)&255;
+//		*ct++=(tag>>32)&255;
+//		*ct++=(tag>>40)&255;
+//		*ct++=(tag>>48)&255;
+//		*ct++=(tag>>56)&255;
+
 		*ct++=(tag>>56)&255;
+		*ct++=(tag>>48)&255;
+		*ct++=(tag>>40)&255;
+		*ct++=(tag>>32)&255;
+		*ct++=(tag>>24)&255;
+		*ct++=(tag>>16)&255;
+		*ct++=(tag>> 8)&255;
+		*ct++=(tag    )&255;
+
 		return(ct);
 	}
 
@@ -144,14 +169,24 @@ byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz)
 		*ct++=(sz1>> 8)&255;
 		*ct++=(sz1    )&255;
 
-		*ct++=(tag    )&255;
-		*ct++=(tag>> 8)&255;
-		*ct++=(tag>>16)&255;
-		*ct++=(tag>>24)&255;
-		*ct++=(tag>>32)&255;
-		*ct++=(tag>>40)&255;
-		*ct++=(tag>>48)&255;
+//		*ct++=(tag    )&255;
+//		*ct++=(tag>> 8)&255;
+//		*ct++=(tag>>16)&255;
+//		*ct++=(tag>>24)&255;
+//		*ct++=(tag>>32)&255;
+//		*ct++=(tag>>40)&255;
+//		*ct++=(tag>>48)&255;
+//		*ct++=(tag>>56)&255;
+
 		*ct++=(tag>>56)&255;
+		*ct++=(tag>>48)&255;
+		*ct++=(tag>>40)&255;
+		*ct++=(tag>>32)&255;
+		*ct++=(tag>>24)&255;
+		*ct++=(tag>>16)&255;
+		*ct++=(tag>> 8)&255;
+		*ct++=(tag    )&255;
+
 		return(ct);
 	}
 	

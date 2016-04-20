@@ -167,6 +167,7 @@ void *thFastMutex();
 BTEIFGL_API void *vf_bufferin_sz(VFILE *fd, int *rsz);
 BTEIFGL_API void *vf_bufferin(VFILE *fd);
 BTEIFGL_API void *vf_loadfile(char *name, int *rsz);
+BTEIFGL_API void vf_storefile(char *name, void *buf, int sz);
 BTEIFGL_API void vf_freefdbuf(void *buf);
 int FRGL_ParseChar(char **rs);
 int FRGL_PeekChar(char **rs);
@@ -797,7 +798,7 @@ BTEIFGL_API int BGBDT_TagStr_IsSymbolP(dtVal val);
 BTEIFGL_API int BGBDT_TagStr_IsKeywordP(dtVal val);
 BTEIFGL_API char *BGBDT_TagStr_GetUtf8(dtVal val);
 BTEIFGL_API dtVal BGBDT_TagStr_StringAdjustOffset(dtVal val, int idx);
-//AHSRC:bsvm2/bs2p_astnode.c
+//AHSRC:bsvm2c/bs2p_astnode.c
 char *BS2P_StrSym(BS2CC_CompileContext *ctx, char *str);
 dtVal BS2P_NewAstNode(BS2CC_CompileContext *ctx, char *tag);
 void BS2P_SetAstNodeAttr(dtVal obj, char *attr, dtVal val);
@@ -836,7 +837,7 @@ dtVal BS2P_ParseWrapTagFor(BS2CC_CompileContext *ctx,char *tag, dtVal in, dtVal 
 dtVal BS2P_ParseWrapTagBinary(BS2CC_CompileContext *ctx,char *tag, char *op, dtVal ln, dtVal rn);
 dtVal BS2P_ParseWrapArray(BS2CC_CompileContext *ctx, dtVal lst);
 dtVal BS2P_ParseWrapObject(BS2CC_CompileContext *ctx, dtVal lst);
-//AHSRC:bsvm2/bs2p_decl.c
+//AHSRC:bsvm2c/bs2p_decl.c
 dtVal BS2P_ParseModifierList(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseQName(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseQNameList(BS2CC_CompileContext *ctx);
@@ -846,7 +847,7 @@ dtVal BS2P_TryParseDecl(BS2CC_CompileContext *ctx);
 dtVal BS2P_TryParseDeclSingle(BS2CC_CompileContext *ctx,dtVal modif, dtVal tyexp);
 dtVal BS2P_TryParseArgDecl(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseFunVars(BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bs2p_litexpr.c
+//AHSRC:bsvm2c/bs2p_litexpr.c
 void BS2P_RaiseError(BS2CC_CompileContext *ctx, char *errn);
 void BS2P_RaiseError1(BS2CC_CompileContext *ctx, char *errn,char *parm0);
 dtVal BS2P_ParseWrapStringL(BS2CC_CompileContext *ctx, char *str);
@@ -872,7 +873,7 @@ dtVal BS2P_ParseOptExpr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprList(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseNameExpr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseNameExprList(BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bs2p_stmt.c
+//AHSRC:bsvm2c/bs2p_stmt.c
 dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseStatementBlock(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseBlockStatement(BS2CC_CompileContext *ctx);
@@ -880,7 +881,7 @@ dtVal BS2P_ParsePackageStatement(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParsePackageStatementBlock(BS2CC_CompileContext *ctx);
 BTEIFGL_API dtVal BS2P_ParseBuffer(BS2CC_CompileContext *ctx,char *srcbuf, int szsrcbuf);
 BTEIFGL_API BS2CC_CompileContext *BS2CC_AllocCompileContext();
-//AHSRC:bsvm2/bs2p_token.c
+//AHSRC:bsvm2c/bs2p_token.c
 char *BS2P_EatWhiteOnly(char *s);
 char *BS2P_EatWhite(char *s);
 int BS2P_ParseHexN(char *s, int n);
@@ -896,10 +897,27 @@ void BS2P_SetCurSrcPosition(BS2CC_CompileContext *ctx, char *pos);
 int BS2P_GetCurPosition(BS2CC_CompileContext *ctx);
 void BS2P_SetCurPosition(BS2CC_CompileContext *ctx, int tok);
 int BS2P_GetCurSourceLine(BS2CC_CompileContext *ctx,char **rlfn, int *rlln);
-//AHSRC:bsvm2/bs2c_compile.c
+//AHSRC:bsvm2c/bs2c_compile.c
+int BS2C_CompileErrorGetSourceLine(BS2CC_CompileContext *ctx);
+void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn);
+void BS2C_CaseError(BS2CC_CompileContext *ctx);
+void BS2C_StubError(BS2CC_CompileContext *ctx);
+void BS2C_WarnConstRange(BS2CC_CompileContext *ctx);
+void BS2C_ErrDivZero(BS2CC_CompileContext *ctx);
+void BS2C_ErrNoDecl(BS2CC_CompileContext *ctx, char *name);
+void BS2C_ErrTooFewArgs(BS2CC_CompileContext *ctx);
+void BS2C_ErrTooManyArgs(BS2CC_CompileContext *ctx);
+void BS2C_CompileFuncBodyCleanupVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix);
+void BS2C_CompileFuncBodyCleanup(BS2CC_CompileContext *ctx);
+void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func);
+void BS2C_CompileRebuildVarType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+void BS2C_CompileRebuildFuncType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+void BS2C_CompileRebuildStructType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+BTEIFGL_API void BS2C_CompileFuncs(BS2CC_CompileContext *ctx);
+BTEIFGL_API void BS2C_DumpErrors(BS2CC_CompileContext *ctx);
 BTEIFGL_API int BS2C_CompileModuleBuffer(BS2CC_CompileContext *ctx, char *buf, int szbuf);
 BTEIFGL_API int BS2C_CompileModuleList(BS2CC_CompileContext *ctx, char *base, char **names);
-//AHSRC:bsvm2/bs2c_disasm.c
+//AHSRC:bsvm2c/bs2c_disasm.c
 int bs2c_disasm_decnbl(char *ps);
 int bs2c_disasm_decbyte(char *ps);
 int bs2c_disasm_matchPrefix(byte *cs, char *pat,byte **rcs1, char **rpa1);
@@ -917,7 +935,7 @@ int BS2C_DisAsmOp(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC
 void BS2C_DisAsmFuncBody(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm);
 void BS2C_DisAsmStruct(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
 BTEIFGL_API void BS2C_DisAsmFuncs(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bs2c_emit.c
+//AHSRC:bsvm2c/bs2c_emit.c
 void BS2C_EmitCheckExpand(BS2CC_CompileContext *ctx, int sz);
 void BS2C_EmitByte(BS2CC_CompileContext *ctx, int op);
 void BS2C_EmitWord(BS2CC_CompileContext *ctx, int op);
@@ -936,6 +954,9 @@ void BS2C_EmitOpcodeFKxD(BS2CC_CompileContext *ctx, int vi, double f);
 void BS2C_EmitOpcodeUZx(BS2CC_CompileContext *ctx, int z, u64 ix);
 void BS2C_EmitOpcodeUZx(BS2CC_CompileContext *ctx, int z, u64 ix);
 void BS2C_EmitOpcodeSZx(BS2CC_CompileContext *ctx, int z, s64 ix);
+void BS2C_EmitOpcodeUZy(BS2CC_CompileContext *ctx, int z, u64 ix);
+void BS2C_EmitOpcodeSZy(BS2CC_CompileContext *ctx, int z, s64 ix);
+void BS2C_EmitOpcodeZyStr(BS2CC_CompileContext *ctx, char *str);
 void BS2C_EmitOpcodeZxF(BS2CC_CompileContext *ctx, double f);
 void BS2C_EmitOpcodeZxFI(BS2CC_CompileContext *ctx, double f, int z);
 void BS2C_EmitOpcodeZxD(BS2CC_CompileContext *ctx, double f);
@@ -952,7 +973,7 @@ int BS2C_ImgGetString(BS2CC_CompileContext *ctx, char *str);
 void BS2C_EmitReturnV(BS2CC_CompileContext *ctx);
 void BS2C_EmitReturnVal(BS2CC_CompileContext *ctx);
 void BS2C_EmitReturnCleanupV(BS2CC_CompileContext *ctx, int last);
-//AHSRC:bsvm2/bs2c_expr.c
+//AHSRC:bsvm2c/bs2c_expr.c
 void BS2C_CompileConvType(BS2CC_CompileContext *ctx, int dty);
 void BS2C_CompileLoadNameAsType(BS2CC_CompileContext *ctx,char *name, int ty);
 void BS2C_CompileExprPushType(BS2CC_CompileContext *ctx, int dty);
@@ -981,22 +1002,47 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileExprBinary(BS2CC_CompileContext *ctx,char *op, dtVal ln, dtVal rn, int dty);
 void BS2C_CompileExprPushConstInt(BS2CC_CompileContext *ctx, s64 val, int dty);
 void BS2C_CompileExpr(BS2CC_CompileContext *ctx,dtVal expr, int dty);
-//AHSRC:bsvm2/bs2c_infer.c
+//AHSRC:bsvm2c/bs2c_image.c
+byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz);
+byte *BS2C_Image_EmitTagData(byte *ct, u32 tag, int sz,byte *data);
+byte *BS2C_Image_EmitUVLI(byte *ct, u64 v);
+byte *BS2C_Image_EmitSVLI(byte *ct, s64 v);
+byte *BS2C_Image_EmitTagUVLI(byte *ct, u32 tag, u64 val);
+byte *BS2C_Image_EmitTagSVLI(byte *ct, u32 tag, s64 val);
+byte *BS2C_Image_FlattenGlobalInfo_GblDefI(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_GblVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_GblFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StrVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StrFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StructI(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StructDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_ClassDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_IfaceDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_Package(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *obuf);
+byte *BS2C_Image_FlattenGlobalInfo(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobals(BS2CC_CompileContext *ctx, byte *obuf, int *gix);
+byte *BS2C_Image_FlattenGixArray(BS2CC_CompileContext *ctx, byte *obuf, int *gix);
+BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+BTEIFGL_API void BS2C_TouchReachable_TouchPublicDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+BTEIFGL_API int BS2C_TouchReachable(BS2CC_CompileContext *ctx);
+BTEIFGL_API int BS2C_FlattenImage(BS2CC_CompileContext *ctx, byte *obuf, int obmsz);
+//AHSRC:bsvm2c/bs2c_infer.c
 int BS2C_InferName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_InferRetTypeName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr);
-//AHSRC:bsvm2/bs2c_jcond.c
+//AHSRC:bsvm2c/bs2c_jcond.c
 int BS2C_CompileGetCondBool(BS2CC_CompileContext *ctx, dtVal cc);
 void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,dtVal cc, int tt, int tf);
 void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,dtVal cc, int tt);
 void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,dtVal cc, int tf);
-//AHSRC:bsvm2/bs2c_reduce.c
+//AHSRC:bsvm2c/bs2c_reduce.c
 s64 BS2C_ReduceClampConstRangeL(BS2CC_CompileContext *ctx, s64 iv, int dty);
 dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr);
-//AHSRC:bsvm2/bs2c_scope.c
+//AHSRC:bsvm2c/bs2c_scope.c
 int BS2C_LookupLocal(BS2CC_CompileContext *ctx, char *name);
 int BS2C_LookupGlobal(BS2CC_CompileContext *ctx, char *name);
 int BS2C_IndexFrameGlobal(BS2CC_CompileContext *ctx, int gix);
+int BS2C_IndexFrameLiteral(BS2CC_CompileContext *ctx, int gix);
 int BS2C_LookupFrameGlobal(BS2CC_CompileContext *ctx, char *name);
 int BS2C_LookupPkgGlobal(BS2CC_CompileContext *ctx, BS2CC_PkgFrame *pkg, char *name);
 int BS2C_LookupPkgImpGlobal(BS2CC_CompileContext *ctx, BS2CC_PkgFrame *pkg, char *name);
@@ -1014,16 +1060,7 @@ int BS2C_CompileStoreDerefName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_LookupDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_GetDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_GetFrameDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
-//AHSRC:bsvm2/bs2c_stmt.c
-int BS2C_CompileErrorGetSourceLine(BS2CC_CompileContext *ctx);
-void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn);
-void BS2C_CaseError(BS2CC_CompileContext *ctx);
-void BS2C_StubError(BS2CC_CompileContext *ctx);
-void BS2C_WarnConstRange(BS2CC_CompileContext *ctx);
-void BS2C_ErrDivZero(BS2CC_CompileContext *ctx);
-void BS2C_ErrNoDecl(BS2CC_CompileContext *ctx, char *name);
-void BS2C_ErrTooFewArgs(BS2CC_CompileContext *ctx);
-void BS2C_ErrTooManyArgs(BS2CC_CompileContext *ctx);
+//AHSRC:bsvm2c/bs2c_stmt.c
 void BS2C_CompileStmtVarInit(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, dtVal expr);
 void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileStmtSwitchDiR(BS2CC_CompileContext *ctx,int *swtgt, int *swval, int swn, int swdfl);
@@ -1046,17 +1083,9 @@ void BS2C_CompileSetupTopVarInfo(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, d
 void BS2C_CompileTopVar(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileTopFuncArg(BS2CC_CompileContext *ctx,BS2CC_VarInfo *func, dtVal expr);
 void BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr);
-void BS2C_CompileFuncBodyCleanupVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix);
-void BS2C_CompileFuncBodyCleanup(BS2CC_CompileContext *ctx);
-void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func);
 void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr);
 BTEIFGL_API void BS2C_CompileTopStatement(BS2CC_CompileContext *ctx, dtVal expr);
-void BS2C_CompileRebuildVarType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
-void BS2C_CompileRebuildFuncType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
-void BS2C_CompileRebuildStructType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
-BTEIFGL_API void BS2C_CompileFuncs(BS2CC_CompileContext *ctx);
-BTEIFGL_API void BS2C_DumpErrors(BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bs2c_type.c
+//AHSRC:bsvm2c/bs2c_type.c
 int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty);
 char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty);
 BS2CC_VarInfo *BS2C_GetTypeObject(BS2CC_CompileContext *ctx, int ty);

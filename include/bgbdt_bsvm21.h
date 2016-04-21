@@ -460,12 +460,22 @@ BSVM2_Trace **trace;
 int ntrace;
 int szcode;
 int stkpos;
+
+short bargs;
+short stkdepth;
 };
 
 struct BSVM2_ImageGlobal_s {
 char *name;
 char *qname;
+char *sig;
+char *flagstr;
 int gix;
+short nargs;
+
+BSVM2_ImageGlobal *pkg;
+BSVM2_ImageGlobal *obj;
+BSVM2_CodeBlock *cblk;
 };
 
 struct BSVM2_CodeImage_s {

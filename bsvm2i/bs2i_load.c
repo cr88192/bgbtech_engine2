@@ -8,36 +8,36 @@ byte *BS2I_ReadTag(byte *cs, u64 *rtag, s64 *rlen)
 
 	i=*cs++;
 
+	if(i==0x00)
+	{
+		*rtag=0;
+		*rlen=0;
+		return(cs);
+	}
+
 	if((i>=0x01) && (i<=0x1A))
 	{
 		*rtag='A'+(i-0x01);
-		*rlen=-1;
+		*rlen=BS2CC_ILEN_SVLI;
 		return(cs);
 	}
 	if((i>=0x1B) && (i<=0x1F))
 	{
 		*rtag='0'+(i-0x1B);
-		*rlen=-1;
+		*rlen=BS2CC_ILEN_SVLI;
 		return(cs);
 	}
 
 	if((i>=0x21) && (i<=0x3A))
 	{
 		*rtag='a'+(i-0x21);
-		*rlen=-1;
+		*rlen=BS2CC_ILEN_SVLI;
 		return(cs);
 	}
 	if((i>=0x3B) && (i<=0x3F))
 	{
 		*rtag='5'+(i-0x3B);
-		*rlen=-1;
-		return(cs);
-	}
-
-	if((i>=0x01) && (i<=0x1A))
-	{
-		*rtag='A'+(i-0x01);
-		*rlen=-1;
+		*rlen=BS2CC_ILEN_SVLI;
 		return(cs);
 	}
 
@@ -157,6 +157,17 @@ byte *BS2I_ReadTag(byte *cs, u64 *rtag, s64 *rlen)
 		*rlen=li;
 		return(cs);
 	}
+}
+
+byte *BS2I_ReadTag2(byte *cs, u32 *rtag, int *rlen)
+{
+	u64 ttag;
+	s64 tlen;
+
+	cs=BS2I_ReadTag2(cs, &ttag, &tlen);
+	*rtag=ttag;
+	*rlen=tlen;
+	return(cs);
 }
 
 byte *BS2I_ReadVLI_I(byte *cs, u64 *rv, int *rl)
@@ -315,6 +326,57 @@ BSVM2_ImageGlobal *BS2I_AllocImageGlobal(BSVM2_CodeImage *img)
 	return(tmp);
 }
 
+BSVM2_CodeBlock *BS2I_AllocImageCodeBlock(BSVM2_CodeImage *img)
+{
+	BSVM2_CodeBlock *tmp;
+	
+	tmp=dtmAlloc("bsvm2_codeblock_s", sizeof(BSVM2_CodeBlock));
+	return(tmp);
+}
+
+int BS2I_ImageTagCharMustUnderstand2P(
+	BSVM2_CodeImage *img, byte tagh)
+{
+	if((tagh>=0x35) && (tagh<=0x39))
+		return(0);
+	if((tagh>=0x60) && (tagh<=0x7F))
+		return(0);
+	if((tagh>=0x80) && (tagh<=0xBF))
+		return(0);
+
+	return(1);
+}
+
+int BS2I_ImageTagCharMustUnderstandP(
+	BSVM2_CodeImage *img, byte tagh)
+{
+	if((tagh>=0x60) && (tagh<=0x7F))
+		return(0);
+	if((tagh>=0x80) && (tagh<=0xBF))
+		return(0);
+
+	return(1);
+}
+
+int BS2I_ImageTagMustUnderstandP(BSVM2_CodeImage *img, u64 tag)
+{
+	if(tag<0x100)
+		{ return(BS2I_ImageTagCharMustUnderstand2P(img, tag)); }
+	if(tag<0x10000)
+		{ return(BS2I_ImageTagCharMustUnderstandP(img, tag>>8)); }
+	if(tag<0x100000000ULL)
+		{ return(BS2I_ImageTagCharMustUnderstandP(img, tag>>24)); }
+	return(BS2I_ImageTagCharMustUnderstandP(img, tag>>56));
+}
+
+void BS2I_ImageErrorCorruptTag(BSVM2_CodeImage *img)
+{
+}
+
+void BS2I_ImageCheckUnknownTag(BSVM2_CodeImage *img, u64 tag)
+{
+}
+
 int BS2I_ImageGetGlobalOfs(BSVM2_CodeImage *img, int gix)
 {
 	int i;
@@ -356,9 +418,139 @@ byte *BS2I_ImageGetGlobalLump(BSVM2_CodeImage *img, int gix)
 	return(ptr);
 }
 
+int BS2I_ImageDecodeGlobalFunc(
+	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl,
+	u32 tag, byte *data, byte *edata)
+{
+	byte *cs, cs1, *cse, *cse, *csn;
+	s64 v;
+	u32 tag;
+	int len;
+
+	cs=data; cse=edata;
+	while(cs<cse)
+	{
+		cs=BS2I_ReadTag2(cs, &tag, &len);
+		csn=cs+len;
+		
+		if(len==BS2CC_ILEN_SVLI)
+		{
+			cs=BS2I_ReadSVLI(cs, &v);
+			
+			
+			if(tag==BS2CC_I1CC_NAME)
+			{
+				gbl->name=img->strtab+v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_QNAME)
+			{
+				gbl->qname=img->strtab+v;
+				continue;
+			}
+			
+			if(tag==BS2CC_I1CC_SIG)
+			{
+				gbl->sig=img->strtab+v;
+				continue;
+			}
+			
+			if(tag==BS2CC_I1CC_FLAGS)
+			{
+				gbl->flagstr=img->strtab+v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_PACKAGE)
+			{
+				gbl->pkg=BS2I_ImageGetGlobal(img, v);
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_ECLASS)
+			{
+				gbl->obj=BS2I_ImageGetGlobal(img, v);
+				continue;
+			}
+			
+			if(tag==BS2CC_I1CC_NARGS)
+			{
+				gbl->nargs=v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_BARGS)
+			{
+				if(!gbl->cblk)
+					gbl->cblk=BS2I_AllocImageCodeBlock(img);
+				gbl->cblk->bargs=v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_STKDEPTH)
+			{
+				if(!gbl->cblk)
+					gbl->cblk=BS2I_AllocImageCodeBlock(img);
+				gbl->cblk->stkdepth=v;
+				continue;
+			}
+
+			BS2I_ImageCheckUnknownTag(img, tag);
+			continue;
+		}
+		
+		if((csn<cs) || (csn>cse))
+		{
+			BS2I_ImageErrorCorruptTag(img);
+			return(-1);
+		}
+		
+		if((tag==BS2CC_I1CC_CODE) ||
+			(tag==BS2CC_ITCC_BC))
+		{
+			if(!gbl->cblk)
+				gbl->cblk=BS2I_AllocImageCodeBlock(img);
+			gbl->cblk->code=cs;
+			gbl->cblk->szcode=csn-cs;
+			cs=csn;
+			continue;
+		}
+
+		if(tag==BS2CC_I1CC_GITAG)
+		{
+			cs=csn;
+			continue;
+		}
+			
+		BS2I_ImageCheckUnknownTag(img, tag);
+		cs=csn;
+	}
+	return(0);
+}
+
 int BS2I_ImageDecodeGlobal(
 	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, byte *gdat)
 {
+	byte *cs, cs1, *cse, *cse, *csn;
+	u32 tag;
+	int len;
+
+	cs=gdat;
+	cs=BS2I_ReadTag2(cs, &tag, &len);
+	cse=cs+len;
+
+	if((cse<cs) || (cse>img->egblsdat))
+	{
+		BS2I_ImageErrorCorruptTag(img);
+		return(-1);
+	}
+
+	if(tag==BS2CC_ITCC_GF)
+		{ return(BS2I_ImageDecodeGlobalFunc(img, gbl, tag, cs, cse)); }
+
+	BS2I_ImageCheckUnknownTag(img, tag);
+	return(-1);
 }
 
 BSVM2_ImageGlobal *BS2I_ImageGetGlobal(BSVM2_CodeImage *img, int gix)
@@ -468,6 +660,7 @@ BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 			continue;
 		}
 
+		BS2I_ImageCheckUnknownTag(img, tag);
 		cs=csn;
 		continue;
 	}

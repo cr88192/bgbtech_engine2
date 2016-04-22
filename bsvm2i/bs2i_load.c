@@ -422,10 +422,12 @@ int BS2I_ImageDecodeGlobalFunc(
 	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl,
 	u32 tag, byte *data, byte *edata)
 {
+	int tgitab[256];
 	byte *cs, cs1, *cse, *cse, *csn;
 	s64 v;
 	u32 tag;
-	int len;
+	int len, ngi;
+	int i, j, k;
 
 	cs=data; cse=edata;
 	while(cs<cse)
@@ -519,10 +521,105 @@ int BS2I_ImageDecodeGlobalFunc(
 
 		if(tag==BS2CC_I1CC_GITAG)
 		{
+			if(!gbl->cblk)
+				gbl->cblk=BS2I_AllocImageCodeBlock(img);
+
+			cs1=cs; ngi=0;
+			while(cs1<csn)
+			{
+				cs1=BS2I_ReadUVLI(cs1, &v);
+				tgitab[ngi++]=v;
+			}
+
+			if(ngi>8)
+			{
+				gbl->cblk->gitab=frgl_malloc(ngi*sizeof(dtVal));
+				gbl->cblk->ngi=ngi;
+			}else
+			{
+				gbl->cblk->gitab=gbl->cblk->tgitab;
+				gbl->cblk->ngi=ngi;
+			}
+			
+			for(i=0; i<ngi; i++)
+				{ gbl->cblk->gitab[i]=tgitab[i]; }
+			
 			cs=csn;
 			continue;
 		}
 			
+		BS2I_ImageCheckUnknownTag(img, tag);
+		cs=csn;
+	}
+	return(0);
+}
+
+int BS2I_ImageDecodeGlobalVar(
+	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl,
+	u32 tag, byte *data, byte *edata)
+{
+	byte *cs, cs1, *cse, *cse, *csn;
+	s64 v;
+	u32 tag;
+	int len;
+
+	cs=data; cse=edata;
+	while(cs<cse)
+	{
+		cs=BS2I_ReadTag2(cs, &tag, &len);
+		csn=cs+len;
+		
+		if(len==BS2CC_ILEN_SVLI)
+		{
+			cs=BS2I_ReadSVLI(cs, &v);
+			
+			
+			if(tag==BS2CC_I1CC_NAME)
+			{
+				gbl->name=img->strtab+v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_QNAME)
+			{
+				gbl->qname=img->strtab+v;
+				continue;
+			}
+			
+			if(tag==BS2CC_I1CC_SIG)
+			{
+				gbl->sig=img->strtab+v;
+				continue;
+			}
+			
+			if(tag==BS2CC_I1CC_FLAGS)
+			{
+				gbl->flagstr=img->strtab+v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_PACKAGE)
+			{
+				gbl->pkg=BS2I_ImageGetGlobal(img, v);
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_ECLASS)
+			{
+				gbl->obj=BS2I_ImageGetGlobal(img, v);
+				continue;
+			}
+
+			BS2I_ImageCheckUnknownTag(img, tag);
+			continue;
+		}
+		
+		if((csn<cs) || (csn>cse))
+		{
+			BS2I_ImageErrorCorruptTag(img);
+			return(-1);
+		}
+		
 		BS2I_ImageCheckUnknownTag(img, tag);
 		cs=csn;
 	}
@@ -548,6 +645,13 @@ int BS2I_ImageDecodeGlobal(
 
 	if(tag==BS2CC_ITCC_GF)
 		{ return(BS2I_ImageDecodeGlobalFunc(img, gbl, tag, cs, cse)); }
+	if(tag==BS2CC_ITCC_SF)
+		{ return(BS2I_ImageDecodeGlobalFunc(img, gbl, tag, cs, cse)); }
+
+	if(tag==BS2CC_ITCC_GV)
+		{ return(BS2I_ImageDecodeGlobalVar(img, gbl, tag, cs, cse)); }
+	if(tag==BS2CC_ITCC_SV)
+		{ return(BS2I_ImageDecodeGlobalVar(img, gbl, tag, cs, cse)); }
 
 	BS2I_ImageCheckUnknownTag(img, tag);
 	return(-1);

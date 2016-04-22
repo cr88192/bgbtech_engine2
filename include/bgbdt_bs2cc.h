@@ -195,6 +195,8 @@
 
 #define BS2CC_I1CC_SIG		'S'
 
+#define BS2CC_ILEN_SVLI		-2
+
 
 
 typedef struct BS2CC_CompileContext_s BS2CC_CompileContext;

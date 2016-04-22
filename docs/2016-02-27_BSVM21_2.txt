@@ -5,7 +5,7 @@ Model:
 *  Stack
 *  Lexical
 *  ...
-  
+
 Like JVM, Args will be locals 1-N, with local variables following args.
 
 Alternately, could have locals first, followed by args. Reason: on average locals are used more than args, so this could lead to better code density, and deals better with variable argument lists.

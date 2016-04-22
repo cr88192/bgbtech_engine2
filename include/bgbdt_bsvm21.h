@@ -457,12 +457,16 @@ BSVM2_CodeImage *img;
 byte *cs, *cse;
 byte *code;
 BSVM2_Trace **trace;
-int ntrace;
+int *gitab;
+int tgitab[8];
 int szcode;
-int stkpos;
+
+short ntrace;
+short stkpos;
 
 short bargs;
 short stkdepth;
+short ngi;
 };
 
 struct BSVM2_ImageGlobal_s {

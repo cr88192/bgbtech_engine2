@@ -348,6 +348,7 @@ byte *BS2C_Image_FlattenGlobalInfo_GblDefI(
 	byte *ct)
 {
 	BS2CC_CcFrame *frm;
+	byte *ct1, *ct2;
 	int i, j, k;
 
 //	if(vari->bmfl&BS2CC_TYFL_PUBLIC)
@@ -391,6 +392,19 @@ byte *BS2C_Image_FlattenGlobalInfo_GblDefI(
 
 		ct=BS2C_Image_EmitTagSVLI(ct,
 			BS2CC_I1CC_STKDEPTH, frm->stacksize);
+
+		if(frm->ngbl>0)
+		{
+			ct1=ct+256; ct2=ct1;
+			for(i=0; i<frm->ngbl; i++)
+			{
+				ct2=BS2C_Image_EmitUVLI(ct2,
+					frm->gbltab[i]);
+			}
+
+			ct=BS2C_Image_EmitTagData(ct,
+				BS2CC_I1CC_GITAG, ct2-ct1, ct1);
+		}
 
 		ct=BS2C_Image_EmitTagData(ct, BS2CC_I1CC_CODE,
 			frm->szt, frm->cts);
@@ -568,7 +582,7 @@ byte *BS2C_Image_FlattenGlobalInfo_Package(
 	{
 		if(vcur->bmfl&BS2CC_TYFL_PUBVISIBLE)
 		{
-			ct4=BS2C_Image_EmitSVLI(ct4,
+			ct4=BS2C_Image_EmitUVLI(ct4,
 				vcur->gid);
 		}
 //		BS2C_TouchReachable_TouchPublicDef(ctx, vcur);
@@ -835,6 +849,98 @@ BTEIFGL_API int BS2C_TouchReachable(
 	return(0);
 }
 
+
+int BS2C_Image_CompareMains(
+	BS2CC_CompileContext *ctx,
+	BS2CC_VarInfo *vi1,
+	BS2CC_VarInfo *vi2)
+{
+	int i;
+
+	if(vi1==vi2)
+		return(0);
+	
+	/* Assume only 1 global main, and it always goes first */
+	if(!vi1->pkg && !vi1->obj)
+		return(-1);
+	if(!vi2->pkg && !vi2->obj)
+		return(1);
+	
+	if(vi1->pkg && vi2->pkg)
+	{
+		/* if 2 package-level mains, sort by package */
+		if(!vi1->obj && !vi2->obj)
+			return(strcmp(vi1->pkg->qname, vi2->pkg->qname));
+	}
+
+	/* package scope precedes object scope */
+	if(!vi1->obj)
+		return(-1);
+	if(!vi2->obj)
+		return(1);
+	return(strcmp(vi1->obj->qname, vi2->obj->qname));
+}
+
+byte *BS2C_Image_FlattenMains(
+	BS2CC_CompileContext *ctx, byte *obuf)
+{
+	BS2CC_VarInfo *vitab[256];
+	BS2CC_VarInfo *vari;
+	byte *ct, *ct1, *ct2;
+	int n;
+	int i, j, k;
+
+	ct1=obuf+256; ct2=ct1;
+
+//	ct2=BS2C_Image_EmitTagData(ct2, BS2CC_I1CC_NULL, 0, NULL);
+
+	n=0;
+	for(i=0; i<ctx->nglobals; i++)
+	{
+		vari=ctx->globals[i];
+
+		if(vari->vitype!=BS2CC_VITYPE_GBLFUNC)
+			continue;
+		
+		if(!vari->name)
+			continue;
+		if(!strcmp(vari->name, "main"))
+			{ vitab[n++]=vari; }
+	}
+	
+	for(i=0; i<n; i++)
+		for(j=i+1; j<n; j++)
+	{
+		if(BS2C_Image_CompareMains(ctx, vitab[j], vitab[i])<0)
+		{
+			vari=vitab[j];
+			vitab[j]=vitab[i];
+			vitab[i]=vari;
+		}
+	}
+
+	if(n<=0)
+		return(obuf);
+
+	if(n==1)
+	{
+		vari=vitab[0];
+		i=vari->gid;
+		ct=BS2C_Image_EmitTagSVLI(obuf, BS2CC_I1CC_MAIN, i);
+		return(ct);
+	}
+
+	for(i=0; i<n; i++)
+	{
+		vari=vitab[i];
+		ct2=BS2C_Image_EmitUVLI(ct2, vari->gid);
+	}
+
+	ct=BS2C_Image_EmitTagData(obuf, BS2CC_IFCC_MAIN, ct2-ct1, ct1);
+	return(ct);
+}
+
+
 BTEIFGL_API int BS2C_FlattenImage(
 	BS2CC_CompileContext *ctx,
 	byte *obuf, int obmsz)
@@ -853,6 +959,7 @@ BTEIFGL_API int BS2C_FlattenImage(
 
 	ct=BS2C_Image_FlattenGlobals(ctx, ct, tgix);
 	ct=BS2C_Image_FlattenGixArray(ctx, ct, tgix);
+	ct=BS2C_Image_FlattenMains(ctx, ct);
 
 	ct=BS2C_Image_EmitTagData(obuf, BS2CC_IFCC_BS2I,
 		ct-ct1, ct1);

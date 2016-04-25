@@ -325,6 +325,8 @@ static_inline u32 dtvUnwrapUIntF(dtVal val)
 	{ return(val.lo); }
 static_inline dtVal dtvWrapUIntF(u32 v)
 	{ dtVal val; val.lo=v; val.hi=BGBDT_TAG_UINT32; return(val); }
+static_inline dtVal dtvWrapUInt(s32 v)
+	{ return(dtvWrapUIntF(v)); }
 
 static_inline dtVal dtvWrapChar(s32 v)
 	{ dtVal val; val.lo=(u32)v; val.hi=BGBDT_TAG_MCHAR; return(val); }

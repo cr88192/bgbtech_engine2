@@ -36,6 +36,7 @@ BTEIFGL_SRCS=\
 	mm/mm_lobj.c \
 	mm/mm_mapobj.c \
 	mm/mm_objty.c \
+	mm/mm_tagarith.c \
 	mm/mm_tagarr.c \
 	mm/mm_tagprint.c \
 	mm/mm_tagstr.c \
@@ -57,6 +58,19 @@ BTEIFGL_SRCS=\
 	bsvm2c/bs2c_scope.c \
 	bsvm2c/bs2c_stmt.c \
 	bsvm2c/bs2c_type.c \
+	\
+	bsvm2i/bs2i_fcnblock.c \
+	bsvm2i/bs2i_interp.c \
+	bsvm2i/bs2i_load.c \
+	bsvm2i/bs2i_oparith.c \
+	bsvm2i/bs2i_oparr.c \
+	bsvm2i/bs2i_opcode.c \
+	bsvm2i/bs2i_opcvt.c \
+	bsvm2i/bs2i_opdtvar.c \
+	bsvm2i/bs2i_opinit.c \
+	bsvm2i/bs2i_opvars.c \
+	bsvm2i/bs2i_tailop.c \
+	bsvm2i/bs2i_topinit.c \
 	\
 	entity/ent_tagval.c \
 	\

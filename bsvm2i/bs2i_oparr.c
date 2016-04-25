@@ -26,7 +26,7 @@ void BSVM2_Op_LDIXD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 
 void BSVM2_Op_LDIXA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
-	frm->stack[op->t0].i=dtvArrayGetIndexDtVal(
+	frm->stack[op->t0].a=dtvArrayGetIndexDtVal(
 		frm->stack[op->t0].a, frm->stack[op->t1].i);
 }
 
@@ -133,7 +133,7 @@ void BSVM2_Op_LDIXDC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 
 void BSVM2_Op_LDIXAC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
-	frm->stack[op->t0].i=dtvArrayGetIndexDtVal(
+	frm->stack[op->t0].a=dtvArrayGetIndexDtVal(
 		frm->stack[op->t0].a, op->v.i);
 }
 

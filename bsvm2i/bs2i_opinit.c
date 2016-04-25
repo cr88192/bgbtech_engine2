@@ -36,6 +36,11 @@ int BSVM2_Interp_DecodeOpUCxI(BSVM2_CodeBlock *cblk)
 		i=(i<<8)|(*cblk->cs++);
 		return(i);
 	}
+	
+	cblk->cs--;
+	return(BSVM2_Interp_DecodeOpUCxL(cblk));
+	
+//	return(0);
 }
 
 u64 BSVM2_Interp_DecodeOpUCxL(BSVM2_CodeBlock *cblk)
@@ -292,8 +297,65 @@ void BSVM2_Interp_DecodeOpUKx(BSVM2_CodeBlock *cblk,
 	}
 }
 
+s32 bsvm2_interp_decsignfoldi(s32 i)
+	{ return((((u32)i)>>1)^((i<<31)>>31)); }
+
 s64 bsvm2_interp_decsignfoldl(s64 i)
 	{ return((((u64)i)>>1)^((i<<63)>>63)); }
+
+dtVal BSVM2_Interp_DecodeOpAddrConst(BSVM2_CodeBlock *cblk, int ix)
+{
+	BSVM2_ImageGlobal *vi;
+	dtVal v;
+	char *s;
+	int i, j;
+	
+	i=cblk->gitab[ix];
+	
+	if(!(i&3))
+	{
+		vi=BS2I_ImageGetGlobal(cblk->img, i>>2);
+		return(dtvWrapPtr(vi));
+	}
+	
+	j=i>>4;
+	switch(i&15)
+	{
+	case BSVM2_OPZY_STRU8:
+		s=cblk->img->strtab+j;
+		v=BGBDT_TagStr_String(s);
+		break;
+	case BSVM2_OPZY_STRU16:
+		s=cblk->img->strtab+j;
+		v=BGBDT_TagStr_String16u8(s);
+		break;
+	case BSVM2_OPZY_STRASC:
+		s=cblk->img->strtab+j;
+		v=BGBDT_TagStr_StringAsc(s);
+		break;
+
+	case BSVM2_OPZY_INT:
+		j=bsvm2_interp_decsignfoldi(j);
+		v=dtvWrapInt(j);
+		break;
+	case BSVM2_OPZY_LONG:
+		j=bsvm2_interp_decsignfoldi(j);
+		v=dtvWrapLong(j);
+		break;
+	case BSVM2_OPZY_UINT:
+		v=dtvWrapUInt(j);
+		break;
+	case BSVM2_OPZY_FLOAT:
+	case BSVM2_OPZY_DOUBLE:
+		j=bsvm2_interp_decsignfoldi(j);
+		v=dtvWrapDouble(j*(1.0/4096));
+		break;
+	default:
+		v=DTV_UNDEFINED;
+		break;
+	}
+	return(v);
+}
 
 void BSVM2_Interp_DecodeOpIx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 	{ op->i0=BSVM2_Interp_DecodeOpUCxI(cblk); }
@@ -330,6 +392,7 @@ void BSVM2_Interp_DecodeOpKx(BSVM2_CodeBlock *cblk,
 		break;
 
 	case BSVM2_OPZ_ADDRESS:
+		op->v.a=BSVM2_Interp_DecodeOpAddrConst(cblk, li);
 		break;
 	case BSVM2_OPZ_UINT:
 	case BSVM2_OPZ_UBYTE:
@@ -366,7 +429,7 @@ void BSVM2_Interp_DecodeOpFx2(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 		{ li=(li<<1); e--; }
 
 	e=e+1023;
-	lj=(li&0x000FFFFFFFFFFFFFULL)|(e<<52)|(sg<<63);
+	lj=(li&0x000FFFFFFFFFFFFFULL)|(((u64)e)<<52)|(((u64)sg)<<63);
 	f=*(double *)(&lj);
 
 	switch(zty)
@@ -404,6 +467,7 @@ void BSVM2_Interp_DecodeOpZx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 		BSVM2_Interp_DecodeOpFx2(cblk, op, i, op->i1);
 		break;
 	case BSVM2_OPZ_ADDRESS:
+		op->v.a=BSVM2_Interp_DecodeOpAddrConst(cblk, lj);
 		break;
 	case BSVM2_OPZ_UINT:
 	case BSVM2_OPZ_UBYTE:
@@ -463,6 +527,7 @@ void BSVM2_Interp_DecodeOpZy(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 		break;
 
 	case BSVM2_OPZ_ADDRESS:
+		op->v.a=BSVM2_Interp_DecodeOpAddrConst(cblk, lj);
 		break;
 
 	default:
@@ -494,7 +559,7 @@ void BSVM2_Interp_DecodeOpFx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 		{ li=(li<<1); e--; }
 
 	e=e+1023;
-	lj=(li&0x000FFFFFFFFFFFFFULL)|(e<<52)|(sg<<63);
+	lj=(li&0x000FFFFFFFFFFFFFULL)|(((u64)e)<<52)|(((u64)sg)<<63);
 	f=*(double *)(&lj);
 
 	switch(zty)
@@ -518,7 +583,7 @@ void BSVM2_Interp_DecodeOpCx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 	if((zty==BSVM2_OPZ_FLOAT) || (zty==BSVM2_OPZ_DOUBLE))
 	{
 		BSVM2_Interp_DecodeOpFx(cblk, op, zty);
-		break;
+		return;
 	}
 
 	lj=BSVM2_Interp_DecodeOpUCxL(cblk);
@@ -537,6 +602,7 @@ void BSVM2_Interp_DecodeOpCx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 		BSVM2_Interp_DecodeOpFx2(cblk, op, i, zty);
 		break;
 	case BSVM2_OPZ_ADDRESS:
+		op->v.a=BSVM2_Interp_DecodeOpAddrConst(cblk, lj);
 		break;
 	case BSVM2_OPZ_UINT:
 	case BSVM2_OPZ_UBYTE:
@@ -724,7 +790,7 @@ void BSVM2_Interp_SetupOpBinLC(BSVM2_CodeBlock *cblk,
 	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
 {
 	op->Run=run;
-	BSVM2_Interp_DecodeOpKx(cblk, op);
+	BSVM2_Interp_DecodeOpKx(cblk, op, zty);
 	op->t0=cblk->stkpos++;
 }
 
@@ -803,5 +869,5 @@ void BSVM2_Interp_SetupOpPopTrinCI(BSVM2_CodeBlock *cblk,
 	BSVM2_Opcode *op,
 	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
 {
-	BSVM2_Interp_SetupOpPopTrinC2(cblk, op, BSVM2_OPZ_INT, run);
+	BSVM2_Interp_SetupOpPopTrinC(cblk, op, BSVM2_OPZ_INT, run);
 }

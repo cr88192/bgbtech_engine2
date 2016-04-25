@@ -143,6 +143,17 @@ BTEIFGL_API void *vf_loadfile(char *name, int *rsz)
 	return(buf);
 }
 
+BTEIFGL_API void vf_storefile(char *name, void *buf, int sz)
+{
+	VFILE *fd;
+	
+	fd=vffopen(name, "wb");
+	if(!fd)return;
+	vfwrite(buf, 1, sz, fd);
+//	buf=vf_bufferin_sz(fd, rsz);
+	vfclose(fd);
+}
+
 BTEIFGL_API void vf_freefdbuf(void *buf)
 {
 	frgl_free(buf);

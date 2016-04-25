@@ -386,7 +386,7 @@ void BSVM2_Op_SHRLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	s64 i;
 	i=frm->stack[op->t0].l;
-	frm->stack[op->t0].l=((u64)i)>>j;
+	frm->stack[op->t0].l=((u64)i)>>op->v.i;
 }
 
 void BSVM2_Op_DIVIC(BSVM2_Frame *frm, BSVM2_Opcode *op)

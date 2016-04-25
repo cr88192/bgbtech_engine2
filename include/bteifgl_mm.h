@@ -29,6 +29,9 @@ LObj managed via AVL Trees.
 #define dtmFreeAny(ptr)					\
 	BGBDT_MM_FreeAny(ptr)
 
+#define dtmMalloc(sz)				\
+	BGBDT_MM_AllocLLn("_raw_t", sz, __FILE__, __LINE__)
+
 
 typedef struct BGBDT_MM_ChunkInfo_s BGBDT_MM_ChunkInfo;
 typedef struct BGBDT_MM_LObjInfo_s BGBDT_MM_LObjInfo;

@@ -3,10 +3,10 @@
 BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 	BSVM2_CodeBlock *cblk, int opn)
 {
-	BSVM2_Opcode *tmp;
+	BSVM2_Opcode *op;
 	int i;
 	
-	tmp=BSVM2_Interp_AllocOpcode(cblk);
+	op=BSVM2_Interp_AllocOpcode(cblk);
 	switch(opn)
 	{
 	case BSVM2_OP_ADDI:
@@ -380,7 +380,7 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 	case BSVM2_OP_POPF:
 	case BSVM2_OP_POPD:
 	case BSVM2_OP_POPA:
-		BSVM2_Interp_SetupOpPopUn(ctx, op, BSVM2_Op_NOP);
+		BSVM2_Interp_SetupOpPopUn(cblk, op, BSVM2_Op_NOP);
 		break;
 	case BSVM2_OP_DUPI:
 		BSVM2_Interp_SetupOpUnP(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_DUPI);
@@ -695,10 +695,10 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		break;
 
 	default:
-		BSVM2_Interp_FreeOpcode(cblk, tmp);
-		tmp=NULL;
+		BSVM2_Interp_FreeOpcode(cblk, op);
+		op=NULL;
 		break;
 	}
 	
-	return(tmp);
+	return(op);
 }

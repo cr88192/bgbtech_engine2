@@ -383,7 +383,10 @@ typedef union BSVM2_Value_u BSVM2_Value;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
 typedef struct BSVM2_TailOpcode_s BSVM2_TailOpcode;
 typedef struct BSVM2_Trace_s BSVM2_Trace;
+
+// typedef struct BSVM2_Frame_s BSVM2_Frame;
 typedef struct BSVM2_Frame_s BSVM2_Frame;
+
 typedef struct BSVM2_Context_s BSVM2_Context;
 
 typedef struct BSVM2_ImageGlobal_s BSVM2_ImageGlobal;
@@ -403,7 +406,7 @@ dtVal a;
 struct BSVM2_Opcode_s {
 void (*Run)(BSVM2_Frame *frm, BSVM2_Opcode *op);
 int i0, i1;
-int t0, t1;
+int t0, t1, t2;
 BSVM2_Value v;
 };
 
@@ -474,9 +477,17 @@ char *name;
 char *qname;
 char *sig;
 char *flagstr;
+int *figix;			//field/package GIX
+int *ifgix;			//interface GIX
 int gix;
 short nargs;
+short nfigix;
+short nifgix;
+// int sugix;			//superclass GIX
+int giobj;			//GIX of owner or superclass
+u32 tag;
 
+BSVM2_CodeImage *img;
 BSVM2_ImageGlobal *pkg;
 BSVM2_ImageGlobal *obj;
 BSVM2_CodeBlock *cblk;
@@ -494,8 +505,12 @@ byte *egblsdat;	//end of globals data area
 byte *gixtab;
 byte gixstr;
 
-BSVM2_ImageGlobal **glbls;
+BSVM2_ImageGlobal **gbls;
 int ngbls;
+
+int tmaix[8];
+int *maix;
+int nmaix;
 
 BSVM2_Opcode *opfree;
 BSVM2_TailOpcode *topfree;

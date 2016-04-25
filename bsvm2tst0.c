@@ -59,9 +59,11 @@ int main()
 	};
 	BGBDT_MM_ParsePrintInfo *prn;
 	BS2CC_CompileContext *ctx;
+	BSVM2_CodeImage *img;
 
 	char tb[1<<18];
 	dtVal v0, v1, v2, v3;
+	int i, j, k;
 
 	printf("BSVM Test0\n");
 	
@@ -112,6 +114,13 @@ int main()
 	BS2C_CompileModuleList(ctx, NULL, mods);
 
 	printf("%s\n", tb);
+
+	i=BS2C_FlattenImage(ctx, tb, 1<<18);
+	vf_storefile("bstest0.bsi", tb, i);
+
+	img=BS2I_DecodeImageBuffer(tb, i);
+//	BS2I_ImageGetMain(img, NULL);
+	BS2I_ImageGetMainTrace(img, NULL);
 
 #if 0
 	v0=BS2P_ParseBuffer(ctx, bsvmt_tstprg, strlen(bsvmt_tstprg));

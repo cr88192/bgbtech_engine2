@@ -163,6 +163,8 @@
 #define BS2CC_IFCC_GIX3	BS2CC_IMG_FOURCC('G', 'I', 'X', '3')
 #define BS2CC_IFCC_GIX4	BS2CC_IMG_FOURCC('G', 'I', 'X', '4')
 
+#define BS2CC_IFCC_MAIN	BS2CC_IMG_FOURCC('M', 'A', 'I', 'N')
+
 #define BS2CC_ITCC_BC	BS2CC_IMG_TWOCC('B', 'C')
 #define BS2CC_ITCC_CL	BS2CC_IMG_TWOCC('C', 'L')
 #define BS2CC_ITCC_GF	BS2CC_IMG_TWOCC('G', 'F')
@@ -188,6 +190,7 @@
 
 #define BS2CC_I1CC_NLOCALS	'L'
 
+#define BS2CC_I1CC_MAIN		'M'
 #define BS2CC_I1CC_NAME		'N'
 
 #define BS2CC_I1CC_PACKAGE	'P'
@@ -285,9 +288,9 @@ int constkpos;			//continue stack pos
 int brkstkpos;			//break stack pos
 
 int gbltab[256];
-int littab[256];
+// int littab[256];
 int ngbl;
-int nlit;
+// int nlit;
 int jcleanup;
 };
 

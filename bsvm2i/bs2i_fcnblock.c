@@ -50,8 +50,15 @@ BSVM2_Trace *BSVM2_Interp_AllocTrace(BSVM2_CodeBlock *cblk)
 
 void BSVM2_Interp_FreeOpcode(BSVM2_CodeBlock *cblk, BSVM2_Opcode *tmp)
 {
-	*(BSVM2_Trace **)tmp=cblk->img->opfree;
+	*(BSVM2_Opcode **)tmp=cblk->img->opfree;
 	cblk->img->opfree=tmp;
+}	
+
+void BSVM2_Interp_FreeTailOpcode(BSVM2_CodeBlock *cblk,
+	BSVM2_TailOpcode *tmp)
+{
+	*(BSVM2_TailOpcode **)tmp=cblk->img->topfree;
+	cblk->img->topfree=tmp;
 }	
 
 int BSVM2_Interp_ReadOpcodeNumber(BSVM2_CodeBlock *cblk)
@@ -151,7 +158,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 			continue;
 		}
 
-		if(opn==BSVM2_OP_HNOEXN)
+		if(opn==BSVM2_OP_HNOEX)
 		{
 			while(cblk->cs<cblk->cse)
 			{
@@ -227,7 +234,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 			{ tr->top->jmptrace=tr1; }
 	}
 	
-	cblk->trace=dtvAlloc("bsvm2_tracearr_t",
+	cblk->trace=dtmAlloc("bsvm2_tracearr_t",
 		ntrsa*sizeof(BSVM2_Trace *));
 	cblk->ntrace=ntrsa;
 	

@@ -304,5 +304,5 @@ int BGBDT_TagAri_Compare(dtVal a, dtVal b)
 		return((f>g)|(0-(f<g)));
 	}
 	
-	return(DTV_UNDEFINED);
+	return(-1);
 }

@@ -24,6 +24,9 @@ Unconditional jumps will behave as-if all items have been popped from the stack.
  ADDIL src		//A => A+src
  ADDIC const		//A => A+const
 
+
+== Types ==
+
 Core Types:
   I, Int (Int32, UInt32)
   L, Long
@@ -71,7 +74,7 @@ Operations on array and pointer types will be interchangable.
 Variable References will exist as a disjoint type. In certain cases, a reference may be converted to a pointer, but pointer or array operations may not be used on references, nor reference operations on pointers or arrays.
 
 
-Strings will be treated as immutable character arrays. Normal strings will be either narrow (8859-1) or wide (UCS-2 / UTF-16). As a variable, char will be represented as a signed 32-bit integer, however its storage in strings or arrays will be narrower. In arrays, char will be represented as an unsigned short.
+Strings will be treated as immutable character arrays. Normal strings will be either narrow (8859-1) or wide (UCS-2 / UTF-16). As a variable, char will be represented as a signed 32-bit integer, however its storage in strings or arrays will be narrower. In arrays, char will be represented as an unsigned short. Strings may also exist as UTF-8.
 
 Both objects and arrays may have reference counts. If the reference count for an object becomes 0, it is freed implicitly. Objects and arrays may also be copied to implement pass-by-value semantics, however, this will be managed primarily by the language and not by the VM.
 
@@ -84,6 +87,51 @@ Native Long will be a non-core type which will primarily effect its storage size
 
 Narrower types will implicitly widen to their parent core type, with the narrower type primarily effecting storage. As a result, intermediate arithmetic results may reflect the wider type.
 
+
+=== X128 ===
+
+X128 will be an extended-core type which exists as a subset of Address.
+
+IOW:
+* Address
+** X128
+*** int128
+*** uint128
+*** float128
+*** vec2i/vec3i/vec4i
+*** vec2l
+*** vec2f/vec3f/vec4f
+*** vec2d
+
+
+An X128 value represents a 128 bit quantity, which may have one of several possible interpretations:
+* 4 Integers
+* 2 Longs
+* 4 Floats
+* 2 Doubles
+* A 128 bit Integer (Int128/UInt128)
+* A 128 bit Float (Float128)
+
+Components will be labeled as:
+* A, B, C, D
+** The 4 32-bit elements
+* AB, CD
+** The 2 64-bit elements
+* ABCD
+** As a 128 bit element
+* A will be the low-order bits, and D the high order bits.
+** AB will thus be the low half of an Int128, and CD the upper half.
+
+For vec3f and vec4f:
+* X, Y, Z, W
+** Where X=A and W=D
+
+If the vector operation type is narrower than the full width of the vector, then the contents of the remaining vector elements is undefined.
+
+Note that these vectors do not necessarily correspond with SIMD features provided by the underlying CPU architecture.
+
+
+=== Signature Strings ===
 
 Signature Characters:
 *  a, sbyte (signed byte)
@@ -131,7 +179,9 @@ For X and L, the id may be either a number or a Qname. Ex: "L1234" means the cla
 == Constant Pool ==
 
 This will be done indirectly for bytecode.
-Namely, the function or method will refer to a block-local table, which will hold indices into an image-level constant pool.
+/ Namely, the function or method will refer to a block-local table, which will hold indices into an image-level constant pool.
+
+A per function global table will exist. This table may potentially contain constants, but will generally contain indices into GIX.
 
 
 == Instruction Set ==
@@ -150,6 +200,7 @@ Core Bin Ops (Int/Long)
 *  5, XOR
 *  6, SHL (Shift Left)
 *  7, SAR (Arithmetic Shift Right)
+
 Ext Bin Ops (Int/Long)
 *  8, SHR (Logical Shift Right)
 *  9, DIV (Integer Divide)
@@ -188,6 +239,46 @@ Operation Type (Z)
 *	A, ULong
 *	B, Special Value, or Void
 *	C-F, Resv
+
+X128 Operation Type (Z)
+*  0, Int (4I)
+*  1, Long (2L)
+*  2, Float (4F)
+*  3, Double (2D)
+*  4, Int (2I)
+*  5, Float (2F)
+*  6, Int (3I)
+*  7, Float (3F)
+*  8, Int128
+*  9, UInt128
+*  A, Float128
+
+X128 Binary Operators
+*  Int128: Same as for other Int types.
+*  Float128: Same as for other Float types.
+*  Int Vec: Int operation applied to each element.
+*  Float Vec:
+**  0, ADD
+**  1, SUB
+**  2, MUL
+**  3, DIV
+**  4, Dot Product
+**  5, Cross Product
+**  6, CMul or QMul (Vec2=Complex, Vec4=Quat)
+**  7, CMul2 or QMul2 (Vec2=Complex, Vec4=Quat)
+
+X128 Unary Operators
+*  Int128: Same as for other Int types.
+*  Float128: Same as for other Float types.
+*  Int Vec: Int operation applied to each element.
+*  Float Vec:
+**   0, NEG (A=-A)
+**   1, Rcp (A=1/A)
+**   2, Sqrt (A=sqrt(A))
+**   3, RSqrt (A=1/sqrt(A))
+**   4, Length (A.a=sqrt(dot(A, A)))
+**   5, Length^2 (A.a=dot(A, A))
+
 
 Ix: Variable Index
 *  00-7F, Variable 00-7F
@@ -289,6 +380,11 @@ NACHO:
 * Efficient implementation requires a considerable code-size overhead.
 * Implementing them naively requires a notable runtime overhead.
 ** Baseline compilers should not use these operations.
+
+NACHO2:
+* Not Abstract Core, High Overhead
+* These operations are implicitly high overhead.
+* However, they may be the only reasonable way to perform the operation.
 
 
 Instructions
@@ -698,9 +794,9 @@ Instructions
 
 * E1 40 Ix Gx, IFXOBJ		//Init Fixed Object (Struct)
 * E1 41 Ix Zn, IFXARR		//Init Fixed Array
-* E1 42 Ix Gx, DFXOBJ		//Delete Fixed Object (Struct)
-* E1 43 Ix Zn, DFXARR		//Delete Fixed Array
-** Init and Delete fixed objects.
+* E1 42 Ix Gx, DFXOBJ		//Deinit Fixed Object (Struct)
+* E1 43 Ix Zn, DFXARR		//Deinit Fixed Array
+** Init and Deinit fixed objects.
 ** These are used for structs and fixed arrays stored in local variables.
 ** These are not used for class instances (which use NEWOBJ/DELETE).
 
@@ -749,3 +845,43 @@ Instructions
 ** Load/Store values from Arrays or Pointers.
 ** These operations may also be used on VarRefs.
 ** However, LDIX/STIX may not be used on VarRefs.
+
+
+Vector operations (NACHO2):
+* E1 60, MKX4I					//Make X128 From 4 Integers ( A B C D -> X )
+* E1 61, MKX2L					//Make X128 From 2 Longs ( AB CD -> X )
+* E1 62, MKX4F					//Make X128 From 4 Floats ( A B C D -> X )
+* E1 63, MKX2D					//Make X128 From 2 Doubles ( AB CD -> X )
+** Make X128 from component values.
+** Int128 or Float128 values may be made using 4I or 2L.
+* E1 64, DUPX					//DUP X128
+* E1 65, POPX					//POP X128
+** These are required for X128 values, rather than DUPA/POPA.
+* E1 66 Ix, LDXL				//Load X128 From Local
+* E1 67 Ix, STXL				//Store X128 To Local
+** Load or store X128 value from local.
+** May copy value as needed.
+* E1 68 Ix, IFXX				//Init X128
+* E1 69 Ix, DFXX				//Deinit X128
+* E1 6A Ix, IFXXA				//Init X128 Argument
+** These are similar in use to fixed-object ops.
+* E1 6B Zn, LDXX				//Load X Element ( X -> A )
+* E1 6C Zn, DLDXX				//Dup Load X Element ( X -> X A )
+** Z gives element type, and n gives index.
+* E1 6D Zn, STXX				//Store X Element ( X A -> Y )
+** Store an element, resulting in a new X128.
+* E1 6E ZO, BINOPX				//Binary Operator ( A B -> C )
+* E1 6F ZO, UNOPX				//Unary Operator ( A -> C )
+** Apply binary operators to vectors.
+** Not all operators are defined for all vector types.
+** Some operators may have different behavior.
+
+Vector convert operations (NACHO2):
+* E1 70, CVTI2XL				//Convert Int to Int128 (Sign Extend)
+* E1 71, CVTL2XL				//Convert Long to Int128 (Sign Extend)
+* E1 72, CVTUI2XL				//Convert UInt to Int128 (Zero Extend)
+* E1 73, CVTUL2XL				//Convert ULong to Int128 (Zero Extend)
+* E1 74, CVTXL2I				//Convert Int128 to Int (Truncate)
+* E1 75, CVTXL2L				//Convert Int128 to Long (Truncate)
+* E1 76, CVTD2XF				//Convert Double to Float128
+* E1 77, CVTXF2D				//Convert Float128 to Double

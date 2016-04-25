@@ -63,14 +63,14 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
 		switch(o)
 		{
-		case BSVM2_OPRC_EQ: op->run=BSVM2_TrOp_JCMP_EQI; break;
-		case BSVM2_OPRC_NE: op->run=BSVM2_TrOp_JCMP_NEI; break;
-		case BSVM2_OPRC_LT: op->run=BSVM2_TrOp_JCMP_LTI; break;
-		case BSVM2_OPRC_GT: op->run=BSVM2_TrOp_JCMP_GTI; break;
-		case BSVM2_OPRC_LE: op->run=BSVM2_TrOp_JCMP_LEI; break;
-		case BSVM2_OPRC_GE: op->run=BSVM2_TrOp_JCMP_GEI; break;
-		case BSVM2_OPRC_EQQ: op->run=BSVM2_TrOp_JCMP_EQI; break;
-		case BSVM2_OPRC_NEQ: op->run=BSVM2_TrOp_JCMP_NEI; break;
+		case BSVM2_OPRC_EQ: op->Run=BSVM2_TrOp_JCMP_EQI; break;
+		case BSVM2_OPRC_NE: op->Run=BSVM2_TrOp_JCMP_NEI; break;
+		case BSVM2_OPRC_LT: op->Run=BSVM2_TrOp_JCMP_LTI; break;
+		case BSVM2_OPRC_GT: op->Run=BSVM2_TrOp_JCMP_GTI; break;
+		case BSVM2_OPRC_LE: op->Run=BSVM2_TrOp_JCMP_LEI; break;
+		case BSVM2_OPRC_GE: op->Run=BSVM2_TrOp_JCMP_GEI; break;
+		case BSVM2_OPRC_EQQ: op->Run=BSVM2_TrOp_JCMP_EQI; break;
+		case BSVM2_OPRC_NEQ: op->Run=BSVM2_TrOp_JCMP_NEI; break;
 		default:
 			break;
 		}
@@ -78,14 +78,14 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	case BSVM2_OPZ_UINT:
 		switch(o)
 		{
-		case BSVM2_OPRC_EQ: op->run=BSVM2_TrOp_JCMP_EQI; break;
-		case BSVM2_OPRC_NE: op->run=BSVM2_TrOp_JCMP_NEI; break;
-		case BSVM2_OPRC_LT: op->run=BSVM2_TrOp_JCMP_LTUI; break;
-		case BSVM2_OPRC_GT: op->run=BSVM2_TrOp_JCMP_GTUI; break;
-		case BSVM2_OPRC_LE: op->run=BSVM2_TrOp_JCMP_LEUI; break;
-		case BSVM2_OPRC_GE: op->run=BSVM2_TrOp_JCMP_GEUI; break;
-		case BSVM2_OPRC_EQQ: op->run=BSVM2_TrOp_JCMP_EQI; break;
-		case BSVM2_OPRC_NEQ: op->run=BSVM2_TrOp_JCMP_NEI; break;
+		case BSVM2_OPRC_EQ: op->Run=BSVM2_TrOp_JCMP_EQI; break;
+		case BSVM2_OPRC_NE: op->Run=BSVM2_TrOp_JCMP_NEI; break;
+		case BSVM2_OPRC_LT: op->Run=BSVM2_TrOp_JCMP_LTUI; break;
+		case BSVM2_OPRC_GT: op->Run=BSVM2_TrOp_JCMP_GTUI; break;
+		case BSVM2_OPRC_LE: op->Run=BSVM2_TrOp_JCMP_LEUI; break;
+		case BSVM2_OPRC_GE: op->Run=BSVM2_TrOp_JCMP_GEUI; break;
+		case BSVM2_OPRC_EQQ: op->Run=BSVM2_TrOp_JCMP_EQI; break;
+		case BSVM2_OPRC_NEQ: op->Run=BSVM2_TrOp_JCMP_NEI; break;
 		default:
 			break;
 		}
@@ -93,14 +93,14 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	case BSVM2_OPZ_LONG:
 		switch(o)
 		{
-		case BSVM2_OPRC_EQ: op->run=BSVM2_TrOp_JCMP_EQL; break;
-		case BSVM2_OPRC_NE: op->run=BSVM2_TrOp_JCMP_NEL; break;
-		case BSVM2_OPRC_LT: op->run=BSVM2_TrOp_JCMP_LTL; break;
-		case BSVM2_OPRC_GT: op->run=BSVM2_TrOp_JCMP_GTL; break;
-		case BSVM2_OPRC_LE: op->run=BSVM2_TrOp_JCMP_LEL; break;
-		case BSVM2_OPRC_GE: op->run=BSVM2_TrOp_JCMP_GEL; break;
-		case BSVM2_OPRC_EQQ: op->run=BSVM2_TrOp_JCMP_EQL; break;
-		case BSVM2_OPRC_NEQ: op->run=BSVM2_TrOp_JCMP_NEL; break;
+		case BSVM2_OPRC_EQ: op->Run=BSVM2_TrOp_JCMP_EQL; break;
+		case BSVM2_OPRC_NE: op->Run=BSVM2_TrOp_JCMP_NEL; break;
+		case BSVM2_OPRC_LT: op->Run=BSVM2_TrOp_JCMP_LTL; break;
+		case BSVM2_OPRC_GT: op->Run=BSVM2_TrOp_JCMP_GTL; break;
+		case BSVM2_OPRC_LE: op->Run=BSVM2_TrOp_JCMP_LEL; break;
+		case BSVM2_OPRC_GE: op->Run=BSVM2_TrOp_JCMP_GEL; break;
+		case BSVM2_OPRC_EQQ: op->Run=BSVM2_TrOp_JCMP_EQL; break;
+		case BSVM2_OPRC_NEQ: op->Run=BSVM2_TrOp_JCMP_NEL; break;
 		default:
 			break;
 		}
@@ -108,14 +108,14 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	case BSVM2_OPZ_ULONG:
 		switch(o)
 		{
-		case BSVM2_OPRC_EQ: op->run=BSVM2_TrOp_JCMP_EQL; break;
-		case BSVM2_OPRC_NE: op->run=BSVM2_TrOp_JCMP_NEL; break;
-		case BSVM2_OPRC_LT: op->run=BSVM2_TrOp_JCMP_LTUL; break;
-		case BSVM2_OPRC_GT: op->run=BSVM2_TrOp_JCMP_GTUL; break;
-		case BSVM2_OPRC_LE: op->run=BSVM2_TrOp_JCMP_LEUL; break;
-		case BSVM2_OPRC_GE: op->run=BSVM2_TrOp_JCMP_GEUL; break;
-		case BSVM2_OPRC_EQQ: op->run=BSVM2_TrOp_JCMP_EQL; break;
-		case BSVM2_OPRC_NEQ: op->run=BSVM2_TrOp_JCMP_NEL; break;
+		case BSVM2_OPRC_EQ: op->Run=BSVM2_TrOp_JCMP_EQL; break;
+		case BSVM2_OPRC_NE: op->Run=BSVM2_TrOp_JCMP_NEL; break;
+		case BSVM2_OPRC_LT: op->Run=BSVM2_TrOp_JCMP_LTUL; break;
+		case BSVM2_OPRC_GT: op->Run=BSVM2_TrOp_JCMP_GTUL; break;
+		case BSVM2_OPRC_LE: op->Run=BSVM2_TrOp_JCMP_LEUL; break;
+		case BSVM2_OPRC_GE: op->Run=BSVM2_TrOp_JCMP_GEUL; break;
+		case BSVM2_OPRC_EQQ: op->Run=BSVM2_TrOp_JCMP_EQL; break;
+		case BSVM2_OPRC_NEQ: op->Run=BSVM2_TrOp_JCMP_NEL; break;
 		default:
 			break;
 		}
@@ -123,14 +123,14 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	case BSVM2_OPZ_FLOAT:
 		switch(o)
 		{
-		case BSVM2_OPRC_EQ: op->run=BSVM2_TrOp_JCMP_EQF; break;
-		case BSVM2_OPRC_NE: op->run=BSVM2_TrOp_JCMP_NEF; break;
-		case BSVM2_OPRC_LT: op->run=BSVM2_TrOp_JCMP_LTF; break;
-		case BSVM2_OPRC_GT: op->run=BSVM2_TrOp_JCMP_GTF; break;
-		case BSVM2_OPRC_LE: op->run=BSVM2_TrOp_JCMP_LEF; break;
-		case BSVM2_OPRC_GE: op->run=BSVM2_TrOp_JCMP_GEF; break;
-		case BSVM2_OPRC_EQQ: op->run=BSVM2_TrOp_JCMP_EQF; break;
-		case BSVM2_OPRC_NEQ: op->run=BSVM2_TrOp_JCMP_NEF; break;
+		case BSVM2_OPRC_EQ: op->Run=BSVM2_TrOp_JCMP_EQF; break;
+		case BSVM2_OPRC_NE: op->Run=BSVM2_TrOp_JCMP_NEF; break;
+		case BSVM2_OPRC_LT: op->Run=BSVM2_TrOp_JCMP_LTF; break;
+		case BSVM2_OPRC_GT: op->Run=BSVM2_TrOp_JCMP_GTF; break;
+		case BSVM2_OPRC_LE: op->Run=BSVM2_TrOp_JCMP_LEF; break;
+		case BSVM2_OPRC_GE: op->Run=BSVM2_TrOp_JCMP_GEF; break;
+		case BSVM2_OPRC_EQQ: op->Run=BSVM2_TrOp_JCMP_EQF; break;
+		case BSVM2_OPRC_NEQ: op->Run=BSVM2_TrOp_JCMP_NEF; break;
 		default:
 			break;
 		}
@@ -138,14 +138,14 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	case BSVM2_OPZ_DOUBLE:
 		switch(o)
 		{
-		case BSVM2_OPRC_EQ: op->run=BSVM2_TrOp_JCMP_EQD; break;
-		case BSVM2_OPRC_NE: op->run=BSVM2_TrOp_JCMP_NED; break;
-		case BSVM2_OPRC_LT: op->run=BSVM2_TrOp_JCMP_LTD; break;
-		case BSVM2_OPRC_GT: op->run=BSVM2_TrOp_JCMP_GTD; break;
-		case BSVM2_OPRC_LE: op->run=BSVM2_TrOp_JCMP_LED; break;
-		case BSVM2_OPRC_GE: op->run=BSVM2_TrOp_JCMP_GED; break;
-		case BSVM2_OPRC_EQQ: op->run=BSVM2_TrOp_JCMP_EQD; break;
-		case BSVM2_OPRC_NEQ: op->run=BSVM2_TrOp_JCMP_NED; break;
+		case BSVM2_OPRC_EQ: op->Run=BSVM2_TrOp_JCMP_EQD; break;
+		case BSVM2_OPRC_NE: op->Run=BSVM2_TrOp_JCMP_NED; break;
+		case BSVM2_OPRC_LT: op->Run=BSVM2_TrOp_JCMP_LTD; break;
+		case BSVM2_OPRC_GT: op->Run=BSVM2_TrOp_JCMP_GTD; break;
+		case BSVM2_OPRC_LE: op->Run=BSVM2_TrOp_JCMP_LED; break;
+		case BSVM2_OPRC_GE: op->Run=BSVM2_TrOp_JCMP_GED; break;
+		case BSVM2_OPRC_EQQ: op->Run=BSVM2_TrOp_JCMP_EQD; break;
+		case BSVM2_OPRC_NEQ: op->Run=BSVM2_TrOp_JCMP_NED; break;
 		default:
 			break;
 		}

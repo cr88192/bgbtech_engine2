@@ -371,7 +371,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(
 		tr->top=top;
 	}else
 	{
-		tr->ops=tr->t_ops;
+		tr->ops=(BSVM2_Opcode **)(tr->t_ops);
 		tr->n_ops=n_ops;
 		for(i=0; i<n_ops; i++)
 			tr->ops[i]=ops[i];
@@ -390,7 +390,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(
 		case 5: tr->Run=BSVM2_TrRun_DefN5; break;
 		case 6: tr->Run=BSVM2_TrRun_DefN6; break;
 		case 7: tr->Run=BSVM2_TrRun_DefN7; break;
-		case 8: tr->Run=BSVM2_TrRun_DefN8; break;
+//		case 8: tr->Run=BSVM2_TrRun_DefN8; break;
 		default: tr->Run=BSVM2_TrRun_DefN; break;
 		}
 	}else if(flag&1)
@@ -623,69 +623,72 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETI(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
-	BSVM2_Frame *frm2;
-	ctx=frm->ctx;	frm2=frm->rnext;
-	frm2->stack[frm2->rcsrv].i=frm->stack[op->t0].i;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].i=frm->stack[op->t0].i;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
-	ctx->frame=frm2;
-	return(frm2->rtrace);
+	ctx->frame=frmb;
+	return(frmb->rtrace);
 }
 
 BSVM2_Trace *BSVM2_TrOp_JCMP_RETL(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
-	BSVM2_Frame *frm2;
-	ctx=frm->ctx;	frm2=frm->rnext;
-	frm2->stack[frm2->rcsrv].l=frm->stack[op->t0].l;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].l=frm->stack[op->t0].l;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
-	ctx->frame=frm2;
-	return(frm2->rtrace);
+	ctx->frame=frmb;
+	return(frmb->rtrace);
 }
 
 BSVM2_Trace *BSVM2_TrOp_JCMP_RETF(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
-	BSVM2_Frame *frm2;
-	ctx=frm->ctx;	frm2=frm->rnext;
-	frm2->stack[frm2->rcsrv].f=frm->stack[op->t0].f;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].f=frm->stack[op->t0].f;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
-	ctx->frame=frm2;
-	return(frm2->rtrace);
+	ctx->frame=frmb;
+	return(frmb->rtrace);
 }
 
 BSVM2_Trace *BSVM2_TrOp_JCMP_RETD(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
-	BSVM2_Frame *frm2;
-	ctx=frm->ctx;	frm2=frm->rnext;
-	frm2->stack[frm2->rcsrv].d=frm->stack[op->t0].d;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].d=frm->stack[op->t0].d;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
-	ctx->frame=frm2;
-	return(frm2->rtrace);
+	ctx->frame=frmb;
+	return(frmb->rtrace);
 }
 
 BSVM2_Trace *BSVM2_TrOp_JCMP_RETA(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
-	BSVM2_Frame *frm2;
-	ctx=frm->ctx;	frm2=frm->rnext;
-	frm2->stack[frm2->rcsrv].a=frm->stack[op->t0].a;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].a=frm->stack[op->t0].a;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
-	ctx->frame=frm2;
-	return(frm2->rtrace);
+	ctx->frame=frmb;
+	return(frmb->rtrace);
 }
 
 BSVM2_Trace *BSVM2_TrOp_JCMP_RETV(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
-	BSVM2_Frame *frm2;
-	ctx=frm->ctx;	frm2=frm->rnext;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
-	ctx->frame=frm2;
-	return(frm2->rtrace);
+	ctx->frame=frmb;
+	return(frmb->rtrace);
 }

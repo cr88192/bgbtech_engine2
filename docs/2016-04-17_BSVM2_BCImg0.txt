@@ -43,6 +43,7 @@ Values:
 * High order 'byte' of the tag value indicates its interpretation:
 ** 00: Invalid
 ** 01..3F: Private, Must Understand
+*** ONECC: 35..39 will be Private, Optional
 ** 40..5F: Public, Must Understand
 ** 60..7F: Public, Optional
 ** 80..BF: Private, Optional
@@ -96,6 +97,12 @@ Tags within toplevel:
 ** If an entry in GIX is 0, then the corresponding entry is absent.
 ** The GIX table is encoded starting at logical index 1.
 ** Global ID 0 is not encoded, and is assumed to always represent a value of NULL.
+* FOURCC('MAIN')
+** Present in executable images.
+** Gives the GIX values for one or more 'main' functions.
+** These are encoded as a series of UVLI values.
+** If present, the global main precedes any package main functions.
+** Otherwise, the first main is the default main.
 
 
 GBLS consists of a series of tags, each defining an entry in the global table. The GIX table will have a corresponding offset for each tag in this table, relative to the start of the GBLS data area. Note that there is not necessarily a 1:1 mapping between tags in GBLS and entries in GIX. Padding may exist in GBLS, and entries may be null in GIX. References to the globals table will be keyed against GIX.
@@ -143,8 +150,9 @@ Within Definitions:
 ** SVLI, Positive maps to GIX.
 * 'Q': QName Symbol
 ** SVLI, Positive values map to STRS.
-** Used for packages.
 ** Gives a fully qualified name.
+** Used for packages.
+** Generally absent for other types of global.
 * 'R':
 * 'S': Signature String
 ** SVLI, Positive values map to STRS.
@@ -156,6 +164,7 @@ Variable:
 ** Integer types, encoded as an SVLI tag holding the value.
 ** Floating point types, short tag holding a value pair (and/or IEEE value, TBD).
 ** Address types, Tagged constant.
+** Signature tag is required to precede initializarion value.
 
 Function Specific:
 * 'A': Argument Count (NARGS)
@@ -166,13 +175,12 @@ Function Specific:
 ** If absent, is assumed as 0.
 * 'C'|'BC': Bytecode
 ** Bytecode Data.
-** If absent, function lacks a body (may be an import).
+** If absent, function lacks a body (may be an import or abstract).
 ** 'B'/'D'/'G' are not encoded if 'C' is absent.
 * 'D': Total size of evaluation stack.
 * 'G': Global Indices
 ** Encoded as a series of tagged constant values.
 ** Tagged constants are encoded as unsigned.
-** May be inferred from NARGS and BARGS.
 
 Class/Struct/Interface:
 * 'G': Global Indices
@@ -182,6 +190,13 @@ Class/Struct/Interface:
 * 'I': Implements
 ** Gives a list of interfaces (GIX indices).
 ** Tagged constants are encoded as unsigned.
+
+Package:
+* 'Q': QName for package.
+** Packages normally use QName rather than Name to identify themselves.
+** Package names only required for publicly visible packages.
+* 'G': Global Indices
+** Gives a list of public declarations found within this package.
 
 Tagged Constant (tag=low 4 bits):
 * 0/4/8/C: Global Index (Low 2 bits=00)
@@ -197,6 +212,15 @@ Tagged Constant (tag=low 4 bits):
 * A=Double (Variant)
 
 
+Names:
+* Names are only required for publicly visible public symbols.
+** IOW: There is a direct path of public reaching them.
+* They may also be needed for protected declarations in certain cases.
+** Such as a class being extended within another image.
+** Note that the class will itself need to be publicly visible for this.
+* Names may also be present as a debugging aid.
+
+
 == Image Startup ==
 
 An image may contain one or more entry points.
@@ -207,3 +231,19 @@ Package-scoped main functions will be the second option.
 If the image is loaded with the name of a package, then the matching package's main will be used, and fall back to the primary main if no match is found.
 
 If package main's exist, and no global main exists, then one of the package mains will be used. A package main will serve as the primary main if no other main's exist.
+
+A third tier of main's will be static void main within classes.
+Functionally these will be equivalent to package main's.
+
+
+== Image Embedding ==
+
+An image may be embedded within another image:
+* PE/COFF
+* ELF
+* Shell Scripts
+** May be limited solely to the shebang line.
+
+Generally, these embedded images will use the long form root tag optionally preceded by a sync marker. The start of the image is also to be aligned to a multiple of 256 bytes.
+
+The typical method for image embedding will be to append onto the end of the prior image (typically the OS will ignore any "junk" past the end of what it cares about).

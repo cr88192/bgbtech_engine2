@@ -401,6 +401,7 @@ u64 ul;
 f32 f;
 f64 d;
 dtVal a;
+void *p;
 };
 
 struct BSVM2_Opcode_s {
@@ -418,6 +419,7 @@ BSVM2_Trace *jmptrace;
 byte *jcs;
 int i0, i1;
 int t0, t1;
+BSVM2_Value v;
 };
 
 struct BSVM2_Trace_s {
@@ -440,6 +442,7 @@ BSVM2_Value *local;		//locals base
 BSVM2_Frame *rnext;		//return frame
 BSVM2_Trace *rtrace;	//return trace
 int rcsrv;				//return call save return value
+int tstkpos;			//tstackpos
 };
 
 struct BSVM2_Context_s {
@@ -470,6 +473,8 @@ short stkpos;
 short bargs;
 short stkdepth;
 short ngi;
+short largs;
+short szframe;
 };
 
 struct BSVM2_ImageGlobal_s {
@@ -477,15 +482,19 @@ char *name;
 char *qname;
 char *sig;
 char *flagstr;
-int *figix;			//field/package GIX
-int *ifgix;			//interface GIX
+int *figix;				//field/package GIX
+int *ifgix;				//interface GIX
 int gix;
 short nargs;
 short nfigix;
 short nifgix;
 // int sugix;			//superclass GIX
-int giobj;			//GIX of owner or superclass
+int giobj;				//GIX of owner or superclass
 u32 tag;
+
+BSVM2_Trace *ctrace;	//call trace
+byte brty;				//base return type (functions)
+byte baty[32];			//base arg type (functions)
 
 BSVM2_CodeImage *img;
 BSVM2_ImageGlobal *pkg;

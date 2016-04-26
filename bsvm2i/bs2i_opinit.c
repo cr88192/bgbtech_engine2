@@ -357,6 +357,57 @@ dtVal BSVM2_Interp_DecodeOpAddrConst(BSVM2_CodeBlock *cblk, int ix)
 	return(v);
 }
 
+void *BSVM2_Interp_DecodeOpAddrPtr(BSVM2_CodeBlock *cblk, int ix)
+{
+	BSVM2_ImageGlobal *vi;
+//	dtVal v;
+	void *p;
+	char *s;
+	int i, j;
+	
+	i=cblk->gitab[ix];
+	
+	if(!(i&3))
+	{
+		vi=BS2I_ImageGetGlobal(cblk->img, i>>2);
+		return(vi);
+	}
+	
+	j=i>>4;
+	switch(i&15)
+	{
+	case BSVM2_OPZY_STRU8:
+		s=cblk->img->strtab+j;
+		p=BGBDT_TagStr_Strdup(s);
+		break;
+	case BSVM2_OPZY_STRU16:
+		s=cblk->img->strtab+j;
+		p=BGBDT_TagStr_Strdup16u8(s);
+		break;
+	case BSVM2_OPZY_STRASC:
+		s=cblk->img->strtab+j;
+		p=BGBDT_TagStr_StrdupL1(s);
+		break;
+
+	case BSVM2_OPZY_INT:
+	case BSVM2_OPZY_LONG:
+	case BSVM2_OPZY_UINT:
+	case BSVM2_OPZY_FLOAT:
+	case BSVM2_OPZY_DOUBLE:
+	default:
+		p=NULL;
+		break;
+	}
+	return(p);
+}
+
+void BSVM2_Interp_DecodeOpGx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
+{
+//	op->i0=BSVM2_Interp_DecodeOpUCxI(cblk);
+	op->v.p=BSVM2_Interp_DecodeOpAddrPtr(cblk,
+		BSVM2_Interp_DecodeOpUCxI(cblk));
+}
+
 void BSVM2_Interp_DecodeOpIx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 	{ op->i0=BSVM2_Interp_DecodeOpUCxI(cblk); }
 

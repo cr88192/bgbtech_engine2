@@ -18,6 +18,24 @@ BSVM2_Context *BSVM2_Interp_AllocContext(void)
 	return(tmp);
 }
 
+BSVM2_Frame *BSVM2_Interp_AllocFrame(BSVM2_Context *ctx)
+{
+	BSVM2_Frame *tmp;
+	
+	tmp=ctx->freeframe;
+	if(tmp)
+	{
+		ctx->freeframe=tmp->rnext;
+		memset(tmp, 0, sizeof(BSVM2_Frame));
+		tmp->ctx=ctx;
+		return(tmp);
+	}
+	
+	tmp=dtmAlloc("bsvm2_frame_t", sizeof(BSVM2_Frame));
+	tmp->ctx=ctx;
+	return(tmp);
+}
+
 
 int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim)
 {

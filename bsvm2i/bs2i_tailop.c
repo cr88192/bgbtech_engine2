@@ -631,6 +631,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETI(
 	frmb->stack[frmb->rcsrv].i=frm->stack[op->t0].i;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
 	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
 	return(frmb->rtrace);
 }
 
@@ -643,6 +644,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETL(
 	frmb->stack[frmb->rcsrv].l=frm->stack[op->t0].l;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
 	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
 	return(frmb->rtrace);
 }
 
@@ -655,6 +657,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETF(
 	frmb->stack[frmb->rcsrv].f=frm->stack[op->t0].f;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
 	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
 	return(frmb->rtrace);
 }
 
@@ -667,6 +670,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETD(
 	frmb->stack[frmb->rcsrv].d=frm->stack[op->t0].d;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
 	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
 	return(frmb->rtrace);
 }
 
@@ -679,6 +683,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETA(
 	frmb->stack[frmb->rcsrv].a=frm->stack[op->t0].a;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
 	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
 	return(frmb->rtrace);
 }
 
@@ -690,5 +695,40 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETV(
 	ctx=frm->ctx;	frmb=frm->rnext;
 	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
 	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
 	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_CALLG(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	BSVM2_ImageGlobal *vi;
+	BSVM2_Trace *tr;
+	int i;
+	
+	ctx=frm->ctx;
+	vi=op->v.p;
+	
+	frmb=BSVM2_Interp_AllocFrame(ctx);
+
+	frmb->stack=ctx->tstack+ctx->tstackref;
+	frmb->locals=ctx->tstack+vi->cblk->stkdepth;
+	ctx->tstackref=ctx->tstackref+vi->cblk->szframe;
+	frmb->tstkpos=ctx->tstackref;
+
+	frmb->rnext=frm;
+	frm->rtrace=op->nexttrace;
+	frm->rcsrv=op->t1;
+	ctx->frame=frmb;
+
+	for(i=0; i<vi->nargs; i++)
+	{
+		frmb->locals[vi->cblk->bargs+i]=
+			frm->stack[op->t1+i];
+	}
+
+	tr=BS2I_ImageGetFuncTrace(vi);
+	return(tr);
 }

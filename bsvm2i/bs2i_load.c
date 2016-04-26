@@ -560,6 +560,13 @@ int BS2I_ImageDecodeGlobalFunc(
 		BS2I_ImageCheckUnknownTag(img, tag);
 		cs=csn;
 	}
+
+	if(gbl->cblk)
+	{
+		gbl->cblk->largs=gbl->cblk->bargs+gbl->nargs;
+		gbl->cblk->szframe=gbl->cblk->stkdepth+gbl->cblk->largs;
+	}
+
 	return(0);
 }
 
@@ -690,7 +697,6 @@ int BS2I_ImageDecodeGlobalVar(
 			BS2I_ImageGetGlobal(img, gbl->figix[i]);
 		}
 	}
-
 
 	return(0);
 }
@@ -832,6 +838,19 @@ BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageGetMain(
 	return(bvi);
 }
 
+BTEIFGL_API BSVM2_Trace *BS2I_ImageGetFuncTrace(
+	BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Trace *tr;
+
+	if(vi->ctrace)
+		return(vi->ctrace);
+
+	tr=BSVM2_Interp_DecodeBlockTraces(vi->cblk);
+	vi->ctrace=tr;
+	return(tr);
+}
+
 BTEIFGL_API BSVM2_Trace *BS2I_ImageGetMainTrace(
 	BSVM2_CodeImage *img, char *qnpkg)
 {
@@ -841,7 +860,8 @@ BTEIFGL_API BSVM2_Trace *BS2I_ImageGetMainTrace(
 	vi=BS2I_ImageGetMain(img, qnpkg);
 	if(!vi || !vi->cblk)
 		return(NULL);
-	tr=BSVM2_Interp_DecodeBlockTraces(vi->cblk);
+//	tr=BSVM2_Interp_DecodeBlockTraces(vi->cblk);
+	tr=BS2I_ImageGetFuncTrace(vi);
 	return(tr);
 }
 

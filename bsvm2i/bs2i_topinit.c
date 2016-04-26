@@ -10,6 +10,13 @@ byte *BSVM2_Interp_DecodeOpJAddr(BSVM2_CodeBlock *cblk)
 	return(cs);
 }
 
+void BSVM2_Interp_DecodeTOpGx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op)
+{
+//	op->i0=BSVM2_Interp_DecodeOpUCxI(cblk);
+	op->v.p=BSVM2_Interp_DecodeOpAddrPtr(cblk,
+		BSVM2_Interp_DecodeOpUCxI(cblk));
+}
+
 void BSVM2_Interp_SetupTopPopUnJmp(BSVM2_CodeBlock *cblk,
 	BSVM2_TailOpcode *op,
 	BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op))
@@ -153,6 +160,39 @@ void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
 	}
 }
 
+void BSVM2_Interp_SetupTopCallG(BSVM2_CodeBlock *cblk,
+	BSVM2_TailOpcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	void *p;
+	char *s;
+	int i, j;
+	
+	i=BSVM2_Interp_DecodeOpUCxI(cblk);
+	i=cblk->gitab[i];
+	if(i&3)
+	{
+		return;
+	}
+
+	vi=BS2I_ImageGetGlobal(cblk->img, i>>2);
+	op->v.p=vi;
+	
+	cblk->stkpos-=vi->nargs;
+	op->t1=cblk->stkpos;
+
+	if(vi->brty!=BSVM2_OPZ_VOID)
+		{ op->t0=cblk->stkpos++; }
+	else
+		{ op->t0=cblk->stkpos; }
+
+	if(vi->cblk)
+	{
+		op->Run=BSVM2_TrOp_CALLG;
+		return;
+	}
+}
+
 BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 	BSVM2_CodeBlock *cblk, int opn)
 {
@@ -204,6 +244,10 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 		break;
 	case BSVM2_OP_RETV:
 		BSVM2_Interp_SetupTopUat(cblk, tmp, BSVM2_TrOp_JCMP_RETV);
+		break;
+
+	case BSVM2_OP_CALLG:
+		BSVM2_Interp_SetupTopCallG(cblk, tmp);
 		break;
 
 	default:

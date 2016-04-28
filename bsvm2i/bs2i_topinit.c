@@ -191,6 +191,15 @@ void BSVM2_Interp_SetupTopCallG(BSVM2_CodeBlock *cblk,
 		op->Run=BSVM2_TrOp_CALLG;
 		return;
 	}
+	
+	i=BSVM2_NatCall_GetSigIndexG0(vi->sig);
+	if(i>=0)
+	{
+		op->v.p=BSVM2_NatCall_GetProcAddress(vi->name);
+		op->i1=i;
+		op->Run=BSVM2_TrOp_NatCallG0;
+		return;
+	}
 }
 
 BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(

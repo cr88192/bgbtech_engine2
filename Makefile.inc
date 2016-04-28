@@ -62,6 +62,7 @@ BTEIFGL_SRCS=\
 	bsvm2i/bs2i_fcnblock.c \
 	bsvm2i/bs2i_interp.c \
 	bsvm2i/bs2i_load.c \
+	bsvm2i/bs2i_natcall.c \
 	bsvm2i/bs2i_oparith.c \
 	bsvm2i/bs2i_oparr.c \
 	bsvm2i/bs2i_opcode.c \

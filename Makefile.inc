@@ -33,6 +33,7 @@ BTEIFGL_SRCS=\
 	base/w32_udpip.c \
 	\
 	mm/mm_cell.c \
+	mm/mm_clsobj.c \
 	mm/mm_lobj.c \
 	mm/mm_mapobj.c \
 	mm/mm_objty.c \

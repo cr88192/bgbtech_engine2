@@ -714,7 +714,7 @@ BSVM2_Trace *BSVM2_TrOp_CALLG(
 	frmb=BSVM2_Interp_AllocFrame(ctx);
 
 	frmb->stack=ctx->tstack+ctx->tstackref;
-	frmb->locals=ctx->tstack+vi->cblk->stkdepth;
+	frmb->local=ctx->tstack+vi->cblk->stkdepth;
 	ctx->tstackref=ctx->tstackref+vi->cblk->szframe;
 	frmb->tstkpos=ctx->tstackref;
 
@@ -725,7 +725,7 @@ BSVM2_Trace *BSVM2_TrOp_CALLG(
 
 	for(i=0; i<vi->nargs; i++)
 	{
-		frmb->locals[vi->cblk->bargs+i]=
+		frmb->local[vi->cblk->bargs+i]=
 			frm->stack[op->t1+i];
 	}
 

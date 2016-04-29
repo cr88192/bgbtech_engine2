@@ -1,3 +1,8 @@
+/*
+Instance Layout:
+  ClsInfo, data...
+ */
+
 typedef struct _dtcobject_s *dtcObject;		//opaque
 
 typedef struct BGBDTC_SlotInfo_s *dtcField;
@@ -31,8 +36,8 @@ BGBDTC_ClassInfo *next;
 BGBDTC_ClassInfo *super;
 char *qname;				//qname, for public visible classes
 
-BGBDTC_SlotInfo *slots;
-int nslots;
+BGBDTC_SlotInfo **slots;
+int nslots, mslots;
 int szdata;
 };
 

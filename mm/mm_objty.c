@@ -192,6 +192,80 @@ void *BGBDT_MM_AllocLLn(char *type, int size, char *fn, int ln)
 	return(ptr);
 }
 
+void *BGBDT_MM_ReallocLLn(void *ptr, int size, char *fn, int ln)
+{
+	BGBDT_MM_ObjHead *objh;
+	void *ptr1, *ptr2;
+	void *bptr;
+	int tid, lid, sz;
+	
+	if(!ptr)
+	{
+		ptr2=BGBDT_MM_AllocLLn("_raw_t", size, fn, ln);
+		return(ptr2);
+	}
+	
+	bptr=BGBDT_MM_GetObjectPtrBase(ptr);
+	objh=bptr;
+	tid=objh->ty&4095;
+	lid=BGBDT_MM_GetIndexObjLLn(fn, ln);
+	sz=objh->sz;
+	if(size<sz)sz=size;
+	
+	ptr1=(byte *)(objh+1);
+	ptr2=BGBDT_MM_AllocObject(tid, size, lid);
+	memcpy(ptr2, ptr1, sz);
+
+	BGBDT_MM_FreeObjectInner(bptr);
+	return(ptr2);
+}
+
+int BGBDT_MM_GetSize(void *ptr)
+{
+	BGBDT_MM_ObjHead *objh;
+	void *bptr;
+	
+	bptr=BGBDT_MM_GetObjectPtrBase(ptr);
+	if(!bptr)return(0);
+	objh=bptr;
+	return(objh->sz);
+}
+
+int BGBDT_MM_GetTypeID(void *ptr)
+{
+	BGBDT_MM_ObjHead *objh;
+	void *bptr;
+	
+	bptr=BGBDT_MM_GetObjectPtrBase(ptr);
+	if(!bptr)return(0);
+	objh=bptr;
+	return((objh->ty)&4095);
+}
+
+char *BGBDT_MM_GetTypeName(void *ptr)
+{
+	BGBDT_MM_ObjHead *objh;
+	void *bptr;
+	
+	bptr=BGBDT_MM_GetObjectPtrBase(ptr);
+	if(!bptr)return(0);
+	objh=bptr;
+	return(BGBDT_MM_GetObjTypeNameForIndex(objh->ty));
+}
+
+void *BGBDT_MM_GetBase(void *ptr)
+{
+	BGBDT_MM_ObjHead *objh;
+	void *bptr, *ptr1;
+	
+	bptr=BGBDT_MM_GetObjectPtrBase(ptr);
+	if(!bptr)return(NULL);
+	objh=bptr;
+	ptr1=(byte *)(objh+1);
+	return(ptr1);
+}
+
+
 void BGBDT_MM_FreeAny(void *ptr)
 {
 	void *bptr;

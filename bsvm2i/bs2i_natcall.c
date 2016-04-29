@@ -28,26 +28,26 @@ void BSVM2_NatCall_Call_0_P(void *fptr,
 {	void *(*fcn)(void); fcn=fptr;	rv->p=fcn();	}
 void BSVM2_NatCall_Call_0_A(void *fptr,
 	BSVM2_Value *rv, BSVM2_Value *av)
-{	dtVal *(*fcn)(void); fcn=fptr;	rv->a=fcn();	}
+{	dtVal (*fcn)(void); fcn=fptr;	rv->a=fcn();	}
 
 #define BSCM2_NC_CALL1V(N, T0, P0)						\
-	static void BSVM2_NatCall_Call#N(void *fptr,		\
+	static void BSVM2_NatCall_Call##N(void *fptr,		\
 		BSVM2_Value *rv, BSVM2_Value *av)				\
 	{	void (*fcn)(T0); fcn=fptr;	fcn(av[0].P0);	}
 
 #define BSCM2_NC_CALL1T(N, RT, RP, T0, P0)				\
-	static void BSVM2_NatCall_Call#N(void *fptr,		\
+	static void BSVM2_NatCall_Call##N(void *fptr,		\
 		BSVM2_Value *rv, BSVM2_Value *av)				\
 	{	RT (*fcn)(T0); fcn=fptr;	rv->RP=fcn(av[0].P0);	}
 
 #define BSCM2_NC_CALL1(N, T0, P0)			\
-	BSCM2_NC_CALL1V(N#V, T0, P0)			\
-	BSCM2_NC_CALL1T(N#I, int, i, T0, P0)	\
-	BSCM2_NC_CALL1T(N#L, s64, l, T0, P0)	\
-	BSCM2_NC_CALL1T(N#F, f32, f, T0, P0)	\
-	BSCM2_NC_CALL1T(N#D, f64, d, T0, P0)	\
-	BSCM2_NC_CALL1T(N#P, void*, p, T0, P0)	\
-	BSCM2_NC_CALL1T(N#A, dtVal, a, T0, P0)
+	BSCM2_NC_CALL1V(N##V, T0, P0)			\
+	BSCM2_NC_CALL1T(N##I, int, i, T0, P0)	\
+	BSCM2_NC_CALL1T(N##L, s64, l, T0, P0)	\
+	BSCM2_NC_CALL1T(N##F, f32, f, T0, P0)	\
+	BSCM2_NC_CALL1T(N##D, f64, d, T0, P0)	\
+	BSCM2_NC_CALL1T(N##P, void*, p, T0, P0)	\
+	BSCM2_NC_CALL1T(N##A, dtVal, a, T0, P0)
 
 BSCM2_NC_CALL1(I, s32, i)
 BSCM2_NC_CALL1(L, s64, l)
@@ -57,31 +57,31 @@ BSCM2_NC_CALL1(P, void*, p)
 BSCM2_NC_CALL1(A, dtVal, a)
 
 #define BSCM2_NC_CALL2V(N, T0, P0, T1, P1)				\
-	static void BSVM2_NatCall_Call#N(void *fptr,		\
+	static void BSVM2_NatCall_Call##N(void *fptr,		\
 		BSVM2_Value *rv, BSVM2_Value *av)				\
 	{	void (*fcn)(T0, T1); fcn=fptr;	fcn(av[0].P0, av[1].P1);	}
 
 #define BSCM2_NC_CALL2T(N, RT, RP, T0, P0, T1, P1)		\
-	static void BSVM2_NatCall_Call#N(void *fptr,		\
+	static void BSVM2_NatCall_Call##N(void *fptr,		\
 		BSVM2_Value *rv, BSVM2_Value *av)				\
 	{	RT (*fcn)(T0, T1); fcn=fptr;	rv->RP=fcn(av[0].P0, av[1].P1);	}
 
 #define BSCM2_NC_CALL2A(N, T0, P0, T1, P1)			\
-	BSCM2_NC_CALL2V(N#V, T0, P0, T1, P1)			\
-	BSCM2_NC_CALL2T(N#I, int, i, T0, P0, T1, P1)	\
-	BSCM2_NC_CALL2T(N#L, s64, l, T0, P0, T1, P1)	\
-	BSCM2_NC_CALL2T(N#F, f32, f, T0, P0, T1, P1)	\
-	BSCM2_NC_CALL2T(N#D, f64, d, T0, P0, T1, P1)	\
-	BSCM2_NC_CALL2T(N#P, void*, p, T0, P0, T1, P1)	\
-	BSCM2_NC_CALL2T(N#A, dtVal, a, T0, P0, T1, P1)
+	BSCM2_NC_CALL2V(N##V, T0, P0, T1, P1)			\
+	BSCM2_NC_CALL2T(N##I, int, i, T0, P0, T1, P1)	\
+	BSCM2_NC_CALL2T(N##L, s64, l, T0, P0, T1, P1)	\
+	BSCM2_NC_CALL2T(N##F, f32, f, T0, P0, T1, P1)	\
+	BSCM2_NC_CALL2T(N##D, f64, d, T0, P0, T1, P1)	\
+	BSCM2_NC_CALL2T(N##P, void*, p, T0, P0, T1, P1)	\
+	BSCM2_NC_CALL2T(N##A, dtVal, a, T0, P0, T1, P1)
 
 #define BSCM2_NC_CALL2B(N, T0, P0)				\
-	BSCM2_NC_CALL2A(N#I, T0, P0, s32, i)		\
-	BSCM2_NC_CALL2A(N#L, T0, P0, s64, i)		\
-	BSCM2_NC_CALL2A(N#F, T0, P0, f32, i)		\
-	BSCM2_NC_CALL2A(N#D, T0, P0, f64, i)		\
-	BSCM2_NC_CALL2A(N#P, T0, P0, void*, i)		\
-	BSCM2_NC_CALL2A(N#A, T0, P0, dtVal, i)
+	BSCM2_NC_CALL2A(N##I, T0, P0, s32, i)		\
+	BSCM2_NC_CALL2A(N##L, T0, P0, s64, l)		\
+	BSCM2_NC_CALL2A(N##F, T0, P0, f32, f)		\
+	BSCM2_NC_CALL2A(N##D, T0, P0, f64, d)		\
+	BSCM2_NC_CALL2A(N##P, T0, P0, void*, p)		\
+	BSCM2_NC_CALL2A(N##A, T0, P0, dtVal, a)
 
 BSCM2_NC_CALL2B(I, s32, i)
 BSCM2_NC_CALL2B(L, s64, l)
@@ -100,20 +100,20 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 #endif
 
 #define BSCM2_NC_CASTCALL0T(N, RT, RP)				\
-	case N: rv->RP=((RT(*fcn)(void))fcn)(); break;
+	case N: rv->RP=((RT(*)(void))fcn)(); break;
 
 #define BSCM2_NC_CASTCALL1T(N, RT, RP, T0, P0)				\
-	case N: rv->RP=((RT(*fcn)(T0))fcn)(av[0].P0); break;
+	case N: rv->RP=((RT(*)(T0))fcn)(av[0].P0); break;
 
 #define BSCM2_NC_CASTCALL2T(N, RT, RP, T0, P0, T1, P1)		\
-	case N: rv->RP=((RT(*fcn)(T0, T1))fcn)(av[0].P0, av[1].P1); break;
+	case N: rv->RP=((RT(*)(T0, T1))fcn)(av[0].P0, av[1].P1); break;
 
 #define BSCM2_NC_CASTCALL3T(N, RT, RP, T0, P0, T1, P1, T2, P2)		\
-	case N: rv->RP=((RT(*fcn)(T0, T1, T2))fcn)	\
+	case N: rv->RP=((RT(*)(T0, T1, T2))fcn)	\
 		(av[0].P0, av[1].P1, av[2].P2); break;
 
 #define BSCM2_NC_CASTCALL4T(N, RT, RP, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	case N: rv->RP=((RT(*fcn)(T0, T1, T2, T3))fcn)	\
+	case N: rv->RP=((RT(*)(T0, T1, T2, T3))fcn)	\
 		(av[0].P0, av[1].P1, av[2].P2, av[3].P3); break;
 
 
@@ -242,16 +242,16 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	BSCM2_NC_CASTCALL4D((N*6)+5, void*, p)
 
 
-void BSVM2_NatCall_Call_N(void *fptr, int nc,
+void BSVM2_NatCall_Call_N(void *fcn, int nc,
 	BSVM2_Value *rv, BSVM2_Value *av)
 {
 	switch(nc)
 	{
 		BSCM2_NC_CASTCALL0A(1)
-		BSCM2_NC_CASTCALL1B(1)
-		BSCM2_NC_CASTCALL2C(1)
-		BSCM2_NC_CASTCALL3D(1)
-		BSCM2_NC_CASTCALL4E(1)
+//		BSCM2_NC_CASTCALL1B(1)
+//		BSCM2_NC_CASTCALL2C(1)
+//		BSCM2_NC_CASTCALL3D(1)
+//		BSCM2_NC_CASTCALL4E(1)
 	}
 }
 
@@ -367,7 +367,7 @@ int BSVM2_NatCall_GetSigBType(char *sig)
 int BSVM2_NatCall_GetSigIndexG0(char *sig)
 {
 	char *s;
-	int i;
+	int i, j;
 	
 	if(*sig!='(')
 		return(-1);

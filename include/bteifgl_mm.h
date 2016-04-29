@@ -32,6 +32,15 @@ LObj managed via AVL Trees.
 #define dtmMalloc(sz)				\
 	BGBDT_MM_AllocLLn("_raw_t", sz, __FILE__, __LINE__)
 
+#define dtmRealloc(ptr, sz)				\
+	BGBDT_MM_ReallocLLn(ptr, sz, __FILE__, __LINE__)
+#define dtmReallocLLn(ptr, sz, fn, ln)		\
+	BGBDT_MM_ReallocLLn(ptr, sz, fn, ln)
+
+#define dtmGetSize(ptr)			BGBDT_MM_GetSize(ptr)
+#define dtmGetType(ptr)			BGBDT_MM_GetTypeName(ptr)
+#define dtmGetTypeID(ptr)		BGBDT_MM_GetTypeID(ptr)
+#define dtmGetBase(ptr)			BGBDT_MM_GetBase(ptr)
 
 typedef struct BGBDT_MM_ChunkInfo_s BGBDT_MM_ChunkInfo;
 typedef struct BGBDT_MM_LObjInfo_s BGBDT_MM_LObjInfo;

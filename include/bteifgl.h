@@ -301,6 +301,7 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bteifgl_mm.h>
 
 #include <bteifgl_tagval.h>
+#include <bgbdt_tagclass.h>
 #include <bteifgl_entobj.h>
 
 #include <bgbdt_bs2cc.h>

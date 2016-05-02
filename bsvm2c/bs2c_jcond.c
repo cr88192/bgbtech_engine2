@@ -87,6 +87,7 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
 			BS2C_EmitTempJump(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -96,6 +97,7 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
 			BS2C_EmitTempJump(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -105,6 +107,7 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
 			BS2C_EmitTempJump(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -114,6 +117,7 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
 			BS2C_EmitTempJump(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -126,6 +130,7 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
 			BS2C_EmitTempJump(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -202,6 +207,16 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 		{
 			li=dtvUnwrapLong(rn);
 		
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+				BS2C_EmitOpcodeSKx(ctx, t0, li);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				return;
+			}
+		
 			if(BS2C_TypeSmallIntP(ctx, cty))
 			{
 				BS2C_CompileExpr(ctx, ln, cty);
@@ -211,6 +226,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_EmitTempJAddr(ctx, tt);
+				ctx->frm->stackpos--;
 				return;
 			}
 		}
@@ -218,6 +234,16 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 		if(dtvIsSmallLongP(ln))
 		{
 			li=dtvUnwrapLong(ln);
+		
+			t0=BS2C_InferExprLocalIndex(ctx, rn);
+			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+				BS2C_EmitOpcodeSKx(ctx, t0, li);
+				BS2C_EmitOpcode(ctx, o2);
+				BS2C_EmitTempJAddr(ctx, tt);
+				return;
+			}
 		
 			if(BS2C_TypeSmallIntP(ctx, cty))
 			{
@@ -228,10 +254,21 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 
 				BS2C_EmitOpcode(ctx, o2);
 				BS2C_EmitTempJAddr(ctx, tt);
+				ctx->frm->stackpos--;
 				return;
 			}
 		}
 
+		t0=BS2C_InferExprLocalIndex(ctx, ln);
+		t1=BS2C_InferExprLocalIndex(ctx, rn);
+		if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILL);
+			BS2C_EmitOpcodeJx(ctx, t0, t1);
+			BS2C_EmitOpcode(ctx, o);
+			BS2C_EmitTempJAddr(ctx, tt);
+			return;
+		}
 
 		BS2C_CompileExpr(ctx, ln, cty);
 		BS2C_CompileExpr(ctx, rn, cty);
@@ -241,6 +278,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPI);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -249,6 +287,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -257,6 +296,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPF);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -265,6 +305,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPD);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -276,6 +317,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 				{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMPA); }
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tt);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -302,6 +344,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 		BS2C_CompileExpr(ctx, cc, cty);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_JNE);
 		BS2C_EmitTempJAddr(ctx, tt);
+		ctx->frm->stackpos--;
 		return;
 	}
 
@@ -372,6 +415,16 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 		if(dtvIsSmallLongP(rn))
 		{
 			li=dtvUnwrapLong(rn);
+
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+				BS2C_EmitOpcodeSKx(ctx, t0, li);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				return;
+			}
 		
 			if(BS2C_TypeSmallIntP(ctx, cty))
 			{
@@ -382,6 +435,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_EmitTempJAddr(ctx, tf);
+				ctx->frm->stackpos--;
 				return;
 			}
 		}
@@ -389,6 +443,16 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 		if(dtvIsSmallLongP(ln))
 		{
 			li=dtvUnwrapLong(ln);
+		
+			t0=BS2C_InferExprLocalIndex(ctx, rn);
+			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+				BS2C_EmitOpcodeSKx(ctx, t0, li);
+				BS2C_EmitOpcode(ctx, o2);
+				BS2C_EmitTempJAddr(ctx, tf);
+				return;
+			}
 		
 			if(BS2C_TypeSmallIntP(ctx, cty))
 			{
@@ -399,8 +463,20 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 
 				BS2C_EmitOpcode(ctx, o2);
 				BS2C_EmitTempJAddr(ctx, tf);
+				ctx->frm->stackpos--;
 				return;
 			}
+		}
+
+		t0=BS2C_InferExprLocalIndex(ctx, ln);
+		t1=BS2C_InferExprLocalIndex(ctx, rn);
+		if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILL);
+			BS2C_EmitOpcodeJx(ctx, t0, t1);
+			BS2C_EmitOpcode(ctx, o);
+			BS2C_EmitTempJAddr(ctx, tf);
+			return;
 		}
 
 		BS2C_CompileExpr(ctx, ln, cty);
@@ -411,6 +487,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPI);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -419,6 +496,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -427,6 +505,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPF);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -435,6 +514,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPD);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -446,6 +526,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 				{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMPA); }
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitTempJAddr(ctx, tf);
+			ctx->frm->stackpos-=2;
 			return;
 		}
 
@@ -472,6 +553,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 		BS2C_CompileExpr(ctx, cc, cty);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_JEQ);
 		BS2C_EmitTempJAddr(ctx, tf);
+		ctx->frm->stackpos--;
 		return;
 	}
 

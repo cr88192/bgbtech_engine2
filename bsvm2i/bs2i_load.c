@@ -1,5 +1,7 @@
 #include <bteifgl.h>
 
+int bs2i_img_seqid=1;
+
 byte *BS2I_ReadTag(byte *cs, u64 *rtag, s64 *rlen)
 {
 	u64 li;
@@ -433,6 +435,7 @@ int BS2I_ImageDecodeGlobalFunc(
 {
 	int tgitab[256];
 	byte *cs, *cs1, *cse, *csn;
+	char *s;
 	s64 v;
 	u32 tag;
 	int len, ngi;
@@ -561,6 +564,9 @@ int BS2I_ImageDecodeGlobalFunc(
 		cs=csn;
 	}
 
+	s=BSVM2_NatCall_SigGetRet(gbl->sig);
+	gbl->brty=BSVM2_NatCall_GetSigOpZ(s);
+
 	if(gbl->cblk)
 	{
 		gbl->cblk->largs=gbl->cblk->bargs+gbl->nargs;
@@ -570,12 +576,39 @@ int BS2I_ImageDecodeGlobalFunc(
 	return(0);
 }
 
+char *BS2I_ImageTryGetGlobalQName(
+	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl)
+{
+	char tb[256];
+	char *s0, *s1;
+
+	if(gbl->qname)
+		return(gbl->qname);
+	if(!gbl->name)
+		return(NULL);
+	
+	if(gbl->pkg)
+	{
+		s0=BS2I_ImageTryGetGlobalQName(img, gbl->pkg);
+		if(s0)
+		{
+			sprintf(tb, "%s/%s", s0, gbl->name);
+			return(frgl_rstrdup(tb));
+		}
+	}
+	return(gbl->name);
+}
+
 int BS2I_ImageDecodeGlobalVar(
 	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl,
 	u32 dtag, byte *data, byte *edata)
 {
 	int tgitab[1024];
+	BGBDTC_ClassInfo *clsi;
+	BGBDTC_SlotInfo *clsvi;
+	BSVM2_ImageGlobal *vi;
 	byte *cs, *cs1, *cse, *csn;
+	char *s;
 	s64 v;
 	u32 tag;
 	int len, ngi;
@@ -690,12 +723,32 @@ int BS2I_ImageDecodeGlobalVar(
 
 	gbl->obj=BS2I_ImageGetGlobal(img, gbl->giobj);
 
-	if(dtag==BS2CC_ITCC_CL)
+	if((dtag==BS2CC_ITCC_CL) ||
+		(dtag==BS2CC_ITCC_ST) ||
+		(dtag==BS2CC_ITCC_IF))
 	{
+		clsi=BGBDTC_LookupClassSqGix(img->seqid, gbl->gix);
+		
+		s=BS2I_ImageTryGetGlobalQName(img, gbl);
+		if(s)
+			{ clsi->qname=BGBDT_TagStr_StrSymbol(s); }
+
 		for(i=0; i<gbl->nfigix; i++)
 		{
-			BS2I_ImageGetGlobal(img, gbl->figix[i]);
+			clsvi=BGBDTC_GetClassSlotIndex(clsi, i);
+			vi=BS2I_ImageGetGlobal(img, gbl->figix[i]);
+			
+			if(vi->name)
+				clsvi->name=vi->name;
+			if(vi->sig)
+				clsvi->sig=vi->sig;
 		}
+	}
+
+	if(dtag==BS2CC_ITCC_GV)
+	{
+		gbl->brty=BSVM2_NatCall_GetSigOpZ(gbl->sig);
+		gbl->gvalue=(BSVM2_Value *)(gbl->baty+16);
 	}
 
 	return(0);
@@ -889,6 +942,7 @@ BTEIFGL_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 
 
 	img=BS2I_AllocImage();
+	img->seqid=bs2i_img_seqid++;
 	
 	img->data=dtmMalloc(isz);
 	img->szdata=isz;

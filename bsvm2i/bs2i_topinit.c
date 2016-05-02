@@ -17,6 +17,81 @@ void BSVM2_Interp_DecodeTOpGx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op)
 		BSVM2_Interp_DecodeOpUCxI(cblk));
 }
 
+void BSVM2_Interp_DecodeTopZx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op)
+{
+	s64 li, lj;
+	int i, j;
+
+	li=BSVM2_Interp_DecodeOpUCxL(cblk);
+	op->i1=li&15;
+	lj=li>>4;
+
+	switch(op->i1)
+	{
+	case BSVM2_OPZ_INT:
+	case BSVM2_OPZ_SBYTE:
+	case BSVM2_OPZ_SHORT:
+		op->v.i=bsvm2_interp_decsignfoldl(lj); break;
+	case BSVM2_OPZ_LONG:
+		op->v.l=bsvm2_interp_decsignfoldl(lj); break;
+	case BSVM2_OPZ_FLOAT:
+	case BSVM2_OPZ_DOUBLE:
+		i=bsvm2_interp_decsignfoldl(lj);
+		BSVM2_Interp_DecodeTopFx2(cblk, op, i, op->i1);
+		break;
+	case BSVM2_OPZ_ADDRESS:
+		op->v.a=BSVM2_Interp_DecodeOpAddrConst(cblk, lj);
+		break;
+	case BSVM2_OPZ_UINT:
+	case BSVM2_OPZ_UBYTE:
+	case BSVM2_OPZ_USHORT:
+		op->v.i=lj; break;
+	case BSVM2_OPZ_ULONG:
+		op->v.ul=lj; break;
+	default:
+		break;
+	}
+}
+
+void BSVM2_Interp_DecodeTopFx2(BSVM2_CodeBlock *cblk,
+	BSVM2_TailOpcode *op, int exp, int zty)
+{
+	double f;
+	u32 vi;
+	u64 lj;
+	s64 li;
+	int i, j, k, e, sg;
+
+	e=exp;
+	li=BSVM2_Interp_DecodeOpSCxL(cblk);
+
+	sg=0;
+	if(li<0)
+		{ li=-li; sg=1; }
+
+	while(!(li>>32))
+		{ li=(li<<16); e-=16; }
+	while(!(li>>44))
+		{ li=(li<<8); e-=8; }
+	while(!(li>>52))
+		{ li=(li<<1); e--; }
+
+	e=e+1023;
+	lj=(li&0x000FFFFFFFFFFFFFULL)|(((u64)e)<<52)|(((u64)sg)<<63);
+	f=*(double *)(&lj);
+
+	switch(zty)
+	{
+	case BSVM2_OPZ_FLOAT:
+		op->v.f=f; break;
+	case BSVM2_OPZ_DOUBLE:
+		op->v.d=f; break;
+	default:
+		op->v.l=0; break;
+		break;
+	}
+}
+
 void BSVM2_Interp_SetupTopPopUnJmp(BSVM2_CodeBlock *cblk,
 	BSVM2_TailOpcode *op,
 	BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op))
@@ -166,10 +241,11 @@ void BSVM2_Interp_SetupTopCallG(BSVM2_CodeBlock *cblk,
 	BSVM2_ImageGlobal *vi;
 	void *p;
 	char *s;
+	int ix;
 	int i, j;
 	
-	i=BSVM2_Interp_DecodeOpUCxI(cblk);
-	i=cblk->gitab[i];
+	ix=BSVM2_Interp_DecodeOpUCxI(cblk);
+	i=cblk->gitab[ix];
 	if(i&3)
 	{
 		return;
@@ -192,14 +268,20 @@ void BSVM2_Interp_SetupTopCallG(BSVM2_CodeBlock *cblk,
 		return;
 	}
 	
+	p=BSVM2_NatCall_GetProcAddress(vi->name);
 	i=BSVM2_NatCall_GetSigIndexG0(vi->sig);
 	if(i>=0)
 	{
-		op->v.p=BSVM2_NatCall_GetProcAddress(vi->name);
+		op->v.p=p;
 		op->i1=i;
 		op->Run=BSVM2_TrOp_NatCallG0;
 		return;
 	}
+
+//	op->v.p=p;
+//	op->i1=i;
+	op->Run=BSVM2_TrOp_NatCallG1;
+	return;
 }
 
 BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
@@ -253,6 +335,37 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 		break;
 	case BSVM2_OP_RETV:
 		BSVM2_Interp_SetupTopUat(cblk, tmp, BSVM2_TrOp_JCMP_RETV);
+		break;
+
+	case BSVM2_OP_RETC:
+		BSVM2_Interp_DecodeTopZx(cblk, tmp);
+		switch(tmp->i1)
+		{
+		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
+		case BSVM2_OPZ_SBYTE:	case BSVM2_OPZ_UBYTE:
+		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
+			BSVM2_Interp_SetupTopUat(cblk, tmp,
+				BSVM2_TrOp_JCMP_RETIC);
+			break;
+		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
+			BSVM2_Interp_SetupTopUat(cblk, tmp,
+				BSVM2_TrOp_JCMP_RETLC);
+			break;
+		case BSVM2_OPZ_FLOAT:
+			BSVM2_Interp_SetupTopUat(cblk, tmp,
+				BSVM2_TrOp_JCMP_RETFC);
+			break;
+		case BSVM2_OPZ_DOUBLE:
+			BSVM2_Interp_SetupTopUat(cblk, tmp,
+				BSVM2_TrOp_JCMP_RETDC);
+			break;
+		case BSVM2_OPZ_ADDRESS:
+			BSVM2_Interp_SetupTopUat(cblk, tmp,
+				BSVM2_TrOp_JCMP_RETAC);
+			break;
+		default:
+			break;
+		}
 		break;
 
 	case BSVM2_OP_CALLG:

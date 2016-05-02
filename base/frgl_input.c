@@ -97,7 +97,7 @@ VFILE *frgl_fopen(char *name, char *mode)
 // #define vftell		ftell
 // #define vfseek		fseek
 
-
+#if 0
 void thLockFastMutex(void *ptr)
 {
 }
@@ -110,6 +110,7 @@ void *thFastMutex()
 {
 	return(NULL);
 }
+#endif
 
 BTEIFGL_API void *vf_bufferin_sz(VFILE *fd, int *rsz)
 {

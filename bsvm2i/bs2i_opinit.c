@@ -403,9 +403,14 @@ void *BSVM2_Interp_DecodeOpAddrPtr(BSVM2_CodeBlock *cblk, int ix)
 
 void BSVM2_Interp_DecodeOpGx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 {
+	BSVM2_ImageGlobal *vi;
+	int ix;
+
+	ix=BSVM2_Interp_DecodeOpUCxI(cblk);
 //	op->i0=BSVM2_Interp_DecodeOpUCxI(cblk);
-	op->v.p=BSVM2_Interp_DecodeOpAddrPtr(cblk,
-		BSVM2_Interp_DecodeOpUCxI(cblk));
+	vi=BSVM2_Interp_DecodeOpAddrPtr(cblk, ix);
+	op->v.p=vi;
+	op->i1=vi->brty;
 }
 
 void BSVM2_Interp_DecodeOpIx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
@@ -586,6 +591,17 @@ void BSVM2_Interp_DecodeOpZy(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 	}
 }
 
+void BSVM2_Interp_DecodeOpZn(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
+{
+	s64 li, lj;
+	int i, j;
+
+	li=BSVM2_Interp_DecodeOpUCxL(cblk);
+	op->i1=li&15;
+	lj=li>>4;
+	op->i0=lj;
+}
+
 void BSVM2_Interp_DecodeOpFx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 	int zty)
 {
@@ -709,6 +725,16 @@ void BSVM2_Interp_SetupOpUnP(BSVM2_CodeBlock *cblk,
 	BSVM2_Opcode *op, int zty,
 	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
 {
+	op->Run=run;
+	op->t1=cblk->stkpos-1;
+	op->t0=cblk->stkpos++;
+}
+
+void BSVM2_Interp_SetupOpUnPGx(BSVM2_CodeBlock *cblk,
+	BSVM2_Opcode *op, int zty,
+	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
+{
+	BSVM2_Interp_DecodeOpGx(cblk, op);
 	op->Run=run;
 	op->t1=cblk->stkpos-1;
 	op->t0=cblk->stkpos++;

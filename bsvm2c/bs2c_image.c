@@ -752,6 +752,15 @@ BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(
 	if(vari->bmfl&BS2CC_TYFL_CANREACH)
 		return;
 
+	if(vari->vitype==BS2CC_VITYPE_GBLFUNC)
+	{
+		if(!vari->body)
+		{
+			vari->bmfl|=BS2CC_TYFL_PUBVISIBLE;
+			BS2C_ImgGetString(ctx, vari->name);
+		}
+	}
+
 	if((vari->bmfl&BS2CC_TYFL_PUBLIC) &&
 		(vari->bmfl&BS2CC_TYFL_PUBVISIBLE))
 	{

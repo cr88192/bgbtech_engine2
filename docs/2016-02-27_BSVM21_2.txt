@@ -161,12 +161,15 @@ Signature Characters:
 *  y, ulong
 *  z, vararg (array of remaining arguments)
 *  Cs, string
+*  Pc, cstring
+
 *  R*, Reference
 *  P*, Pointer
 *  Q*, Array (array reference)
 *  X(id), struct (inline value object)
 *  L(id), class or interface (object reference)
 *  U(id), extended non-core types.
+
 
 Function/Method signatures:
 *  (args*)ret*
@@ -598,6 +601,9 @@ Instructions
 
 * 88 Gx, NEWOBJ				//Create object instance.
 * 89 Zn, NEWARR				//Create array instance.
+** n>0: n encodes array size.
+** n==0: Use array size integer off stack.
+
 * 8A, DELETE				//Delete object or array instance.
 * 8B, DELNGBL				//Delete if not global.
 
@@ -678,7 +684,7 @@ Instructions
 ** Only a small subset of opcodes will be allowed in NOEX blocks.
 *** Its intent is mostly to be used for stack manipulation.
 
-* C4 Zc, RETC			//Return Constant
+* C4 Zx, RETC			//Return Constant
 
 * C6, UCMPI				//Unsigned Compare Int
 * C7, UCMPL				//Unsigned Compare Long
@@ -885,3 +891,22 @@ Vector convert operations (NACHO2):
 * E1 75, CVTXL2L				//Convert Int128 to Long (Truncate)
 * E1 76, CVTD2XF				//Convert Double to Float128
 * E1 77, CVTXF2D				//Convert Float128 to Double
+
+* E1 80, RSTIXI				//Store Index Int ( V A I => )
+* E1 81, RSTIXL				//Store Index Long ( V A I => )
+* E1 82, RSTIXF				//Store Index Float ( V A I => )
+* E1 83, RSTIXD				//Store Index Double ( V A I => )
+* E1 84, RSTIXA				//Store Index Address ( V A I => )
+* E1 85, RSTIXB				//Store Index Byte ( V A I => )
+* E1 86, RSTIXS				//Store Index Short ( V A I => )
+* E1 87
+* E1 88 Ci, RSTIXIC			//Store Index Int ( I; V A => )
+* E1 89 Ci, RSTIXLC			//Store Index Long ( I; V A => )
+* E1 8A Ci, RSTIXFC			//Store Index Float ( I; V A => )
+* E1 8B Ci, RSTIXDC			//Store Index Double ( I; V A => )
+* E1 8C Ci, RSTIXAC			//Store Index Address ( I; V A => )
+* E1 8D Ci, RSTIXBC			//Store Index Byte ( I; V A => )
+* E1 8E Ci, RSTIXSC			//Store Index Short ( I; V A => )
+* E1 8F
+** Reverse Store Index
+** Basically the same as normal store index, but with ordering swapped.

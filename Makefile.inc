@@ -41,6 +41,7 @@ BTEIFGL_SRCS=\
 	mm/mm_tagarr.c \
 	mm/mm_tagprint.c \
 	mm/mm_tagstr.c \
+	mm/mm_thread.c \
 	\
 	bsvm2c/bs2p_astnode.c \
 	bsvm2c/bs2p_decl.c \

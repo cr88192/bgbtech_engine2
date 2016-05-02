@@ -1,5 +1,10 @@
 #include <bteifgl.h>
 
+BSVM2_Trace *BSVM2_TrRun_NULL(BSVM2_Frame *frm, BSVM2_Trace *tr)
+{
+	return(NULL);
+}
+
 BSVM2_Trace *BSVM2_TrRun_Def0(BSVM2_Frame *frm, BSVM2_Trace *tr)
 {
 	return(tr->top->Run(frm, tr->top));
@@ -699,6 +704,87 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETV(
 	return(frmb->rtrace);
 }
 
+
+BSVM2_Trace *BSVM2_TrOp_JCMP_RETIC(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].i=op->v.i;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JCMP_RETLC(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].l=op->v.l;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JCMP_RETFC(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].f=op->v.f;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JCMP_RETDC(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].d=op->v.d;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JCMP_RETAC(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].a=op->v.a;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
 BSVM2_Trace *BSVM2_TrOp_CALLG(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
@@ -714,7 +800,7 @@ BSVM2_Trace *BSVM2_TrOp_CALLG(
 	frmb=BSVM2_Interp_AllocFrame(ctx);
 
 	frmb->stack=ctx->tstack+ctx->tstackref;
-	frmb->local=ctx->tstack+vi->cblk->stkdepth;
+	frmb->local=frmb->stack+vi->cblk->stkdepth;
 	ctx->tstackref=ctx->tstackref+vi->cblk->szframe;
 	frmb->tstkpos=ctx->tstackref;
 

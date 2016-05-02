@@ -36,7 +36,7 @@ BSVM2_Trace *BSVM2_Interp_AllocTrace(BSVM2_CodeBlock *cblk)
 {
 	BSVM2_Trace *tmp;
 	
-	if(cblk->img->trfree)
+	if(cblk && cblk->img->trfree)
 	{
 		tmp=cblk->img->trfree;
 		cblk->img->trfree=*(BSVM2_Trace **)tmp;

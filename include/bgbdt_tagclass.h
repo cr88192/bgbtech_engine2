@@ -35,6 +35,7 @@ struct BGBDTC_ClassInfo_s {
 BGBDTC_ClassInfo *next;
 BGBDTC_ClassInfo *super;
 char *qname;				//qname, for public visible classes
+int sqid, gix;				//image and global ID
 
 BGBDTC_SlotInfo **slots;
 int nslots, mslots;

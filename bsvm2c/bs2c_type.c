@@ -729,7 +729,16 @@ int BS2C_TypeRefinedType(
 		if(tag && !strcmp(tag, "arrdef"))
 		{
 			al=0;
-			asz=BS2P_GetAstNodeAttrI(arrs, "value");
+//			asz=BS2P_GetAstNodeAttrI(arrs, "value");
+
+			n1=BS2P_GetAstNodeAttr(arrs, "value");
+			if(dtvIsSmallIntP(n1))
+			{
+				al=0; asz=dtvUnwrapInt(n1);
+			}else
+			{
+				al=1; asz=0;
+			}
 		}else
 		{
 			al=1; asz=0;

@@ -81,6 +81,21 @@ int BS2C_InferRetTypeName(BS2CC_CompileContext *ctx, char *name)
 	return(-1);
 }
 
+int BS2C_InferExprLocalIndex(BS2CC_CompileContext *ctx, dtVal expr)
+{
+	char *tag, *fn, *op;
+	int lt, rt, ty;
+	int i;
+
+	if(BGBDT_TagStr_IsSymbolP(expr))
+	{
+		fn=BGBDT_TagStr_GetUtf8(expr);
+		i=BS2C_LookupLocal(ctx, fn);
+		return(i);
+	}
+	return(-1);
+}
+
 int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 {
 	dtVal ln, rn;

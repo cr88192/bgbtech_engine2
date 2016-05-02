@@ -1,4 +1,8 @@
 native void printf(cstring str, ...);
+native int clock();
+native int rand();
+native int bsvm2_natfib(int x);
+native void bsvm2_natsorttst(int n);
 
 package bstest {
 	public struct Foo {
@@ -14,6 +18,34 @@ package bstest {
 	{
 		if(x<2)return(1);
 		return(fib(x-1)+fib(x-2));
+	}
+
+	public int selsort(int[] arr, int n)
+	{
+		int i, j, k;
+		
+		for(i=0; i<n; i++)
+			for(j=i+1; j<n; j++)
+		{
+			if(arr[j]<arr[i])
+			{
+				k=arr[i];
+				arr[i]=arr[j];
+				arr[j]=k;
+			}
+		}
+	}
+
+	public void sorttst(int n)
+	{
+		int[] arr;
+		int i;
+
+		arr=new int[n];
+//		arr=new int[256];
+		for(i=0; i<n; i++)
+			arr[i]=rand();
+		selsort(arr, n);
 	}
 	
 	public interface IFoo {
@@ -95,16 +127,39 @@ package bstest {
 		{
 			Fib tfib;
 			int i, j;
+			int t0, t1, t2;
 			
-			printf("%d\n", fib(28));
-			
-			arr=new int[64];
-			for(i=0; i<32; i++)
-				arr[i]=fib(i);
-			
-			tfib=new Fib(2, 3);
+			t0=clock();
+			printf("BS Fib %d\n", fib(32));
+			t1=clock();
+			printf("BS Dt %d\n", t1-t0);
 
-			tst_ref(i, j);
+			t0=clock();
+			printf("Na Fib %d\n", bsvm2_natfib(32));
+			t1=clock();
+			printf("Na Dt %d\n", t1-t0);
+
+
+			t0=clock();
+//			sorttst(1<<16);
+			sorttst(1<<12);
+			t1=clock();
+			printf("Bs SortTst Dt %d\n", t1-t0);
+
+			t0=clock();
+//			sorttst(1<<16);
+			bsvm2_natsorttst(1<<12);
+			t1=clock();
+			printf("Na SortTst Dt %d\n", t1-t0);
+
+
+//			arr=new int[64];
+//			for(i=0; i<32; i++)
+//				arr[i]=fib(i);
+			
+//			tfib=new Fib(2, 3);
+
+//			tst_ref(i, j);
 		}
 	}
 }

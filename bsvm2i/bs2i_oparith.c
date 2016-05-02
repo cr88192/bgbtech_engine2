@@ -309,6 +309,23 @@ void BSVM2_Op_CMPLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	frm->stack[op->t0].i=(a>b)|(0-(a<b));
 }
 
+void BSVM2_Op_CMPILL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	s32 a, b;
+	a=frm->local[op->i0].i;
+	b=frm->local[op->i1].i;
+	frm->stack[op->t0].i=(a>b)|(0-(a<b));
+}
+
+void BSVM2_Op_CMPILC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	s32 a, b;
+	a=frm->local[op->i0].i;
+	b=op->v.i;
+	frm->stack[op->t0].i=(a>b)|(0-(a<b));
+}
+
+
 void BSVM2_Op_DCMPIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	s32 a, b;

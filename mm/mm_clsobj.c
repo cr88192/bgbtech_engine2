@@ -40,6 +40,41 @@ BGBDTC_ClassInfo *BGBDTC_GetClassQName(char *qname)
 	return(cur);
 }
 
+
+BGBDTC_ClassInfo *BGBDTC_LookupClassSqGix(int sqid, int gix)
+{
+	BGBDTC_ClassInfo *cur;
+	
+	cur=bgbdtc_clsobj_root;
+	while(cur)
+	{
+		if((cur->sqid==sqid) && (cur->gix==gix))
+			return(cur);
+		cur=cur->next;
+	}
+	return(NULL);
+}
+
+BGBDTC_ClassInfo *BGBDTC_GetClassSqGix(int sqid, int gix)
+{
+	BGBDTC_ClassInfo *cur;
+
+	cur=BGBDTC_LookupClassSqGix(sqid, gix);
+	if(cur)return(cur);
+	
+	cur=BGBDTC_AllocClass();
+	cur->sqid=sqid;
+	cur->gix=gix;
+//	cur->qname=BGBDT_TagStr_StrSymbol(qname);
+	
+	cur->next=bgbdtc_clsobj_root;
+	bgbdtc_clsobj_root=cur;
+	
+	return(cur);
+}
+
+
+
 BGBDTC_SlotInfo *BGBDTC_FetchClassSlotIndex(
 	BGBDTC_ClassInfo *cls, int idx)
 {

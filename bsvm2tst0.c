@@ -59,7 +59,9 @@ int main()
 	};
 	BGBDT_MM_ParsePrintInfo *prn;
 	BS2CC_CompileContext *ctx;
+	BSVM2_Context *vctx;
 	BSVM2_CodeImage *img;
+	BSVM2_ImageGlobal *vi;
 
 	char tb[1<<18];
 	dtVal v0, v1, v2, v3;
@@ -119,8 +121,12 @@ int main()
 	vf_storefile("bstest0.bsi", tb, i);
 
 	img=BS2I_DecodeImageBuffer(tb, i);
-//	BS2I_ImageGetMain(img, NULL);
-	BS2I_ImageGetMainTrace(img, NULL);
+	vi=BS2I_ImageGetMain(img, NULL);
+//	BS2I_ImageGetMainTrace(img, NULL);
+
+	vctx=BSVM2_Interp_AllocContext();
+	BSVM2_Interp_SetupCallVM(vctx, vi, NULL);
+	BSVM2_Interp_RunContext(vctx, 999999999);
 
 #if 0
 	v0=BS2P_ParseBuffer(ctx, bsvmt_tstprg, strlen(bsvmt_tstprg));

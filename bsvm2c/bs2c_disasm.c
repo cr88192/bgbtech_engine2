@@ -323,14 +323,20 @@ char *name;
 {"E15E",      "STDRB"},
 {"E15F",      "STDRS"},
 
-//{"E158",      "LDDRA"},
-//{"E159",      "STDRA"},
-//{"E15AIx",    "LDDRIL"},
-//{"E15BIx",    "STDRIL"},
-//{"E15CIx",    "LDDRDL"},
-//{"E15DIx",    "STDRDL"},
-//{"E15EIx",    "LDDRAL"},
-//{"E15FIx",    "STDRAL"},
+{"E180",      "RSTIXI"},
+{"E181",      "RSTIXL"},
+{"E182",      "RSTIXF"},
+{"E183",      "RSTIXD"},
+{"E184",      "RSTIXA"},
+{"E185",      "RSTIXB"},
+{"E186",      "RSTIXS"},
+{"E188Ci",    "RSTIXIC"},
+{"E189Ci",    "RSTIXLC"},
+{"E18ACi",    "RSTIXFC"},
+{"E18BCi",    "RSTIXDC"},
+{"E18CCi",    "RSTIXAC"},
+{"E18DCi",    "RSTIXBC"},
+{"E18ECi",    "RSTIXSC"},
 
 {NULL,        NULL}
 };

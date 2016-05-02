@@ -378,6 +378,21 @@
 //#define BSVM2_OP_LDDRAL		0x015E
 //#define BSVM2_OP_STDRAL		0x015F
 
+#define BSVM2_OP_RSTIXI		0x0180	//Store Index Int ( V A I => )
+#define BSVM2_OP_RSTIXL		0x0181	//Store Index Long ( V A I => )
+#define BSVM2_OP_RSTIXF		0x0182	//Store Index Float ( V A I => )
+#define BSVM2_OP_RSTIXD		0x0183	//Store Index Double ( V A I => )
+#define BSVM2_OP_RSTIXA		0x0184	//Store Index Address ( V A I => )
+#define BSVM2_OP_RSTIXB		0x0185	//Store Index Byte ( V A I => )
+#define BSVM2_OP_RSTIXS		0x0186	//Store Index Short ( V A I => )
+#define BSVM2_OP_RSTIXIC	0x0188	//Store Index Int ( I; V A => )
+#define BSVM2_OP_RSTIXLC	0x0189	//Store Index Long ( I; V A => )
+#define BSVM2_OP_RSTIXFC	0x018A	//Store Index Float ( I; V A => )
+#define BSVM2_OP_RSTIXDC	0x018B	//Store Index Double ( I; V A => )
+#define BSVM2_OP_RSTIXAC	0x018C	//Store Index Address ( I; V A => )
+#define BSVM2_OP_RSTIXBC	0x018D	//Store Index Byte ( I; V A => )
+#define BSVM2_OP_RSTIXSC	0x018E	//Store Index Short ( I; V A => )
+
 
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
@@ -496,6 +511,8 @@ BSVM2_Trace *ctrace;	//call trace
 byte brty;				//base return type (functions)
 byte baty[32];			//base arg type (functions)
 
+BSVM2_Value *gvalue;	//global value
+
 BSVM2_CodeImage *img;
 BSVM2_ImageGlobal *pkg;
 BSVM2_ImageGlobal *obj;
@@ -520,6 +537,8 @@ int ngbls;
 int tmaix[8];
 int *maix;
 int nmaix;
+
+int seqid;
 
 BSVM2_Opcode *opfree;
 BSVM2_TailOpcode *topfree;

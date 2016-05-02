@@ -266,6 +266,9 @@ static_inline int dtvTrueP(dtVal val)
 	{
 		return((val.lo)!=0);
 	}
+
+	if(!val.vi)
+		return(0);
 	
 	return(1);
 //	return((val.hi>>16)==tag);
@@ -409,6 +412,50 @@ static_inline dtVal dtvWrapLong(s64 v)
 	val.vi=h;
 	val.hi|=0x40000000U;
 	return(val);
+}
+
+static_inline int dtvIsSmallIntP(dtVal val)
+{
+	int v;
+	switch(val.hi>>28)
+	{
+	case 0:
+		v=0;
+		break;
+	case 1:
+		if(val.hi==BGBDT_TAG_INT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_UINT32)
+			{ v=1; break; }
+		if(val.hi==BGBDT_TAG_FLOAT32)
+			{ v=0; break; }
+		if(val.hi==BGBDT_TAG_MCONST)
+		{
+			switch(val.lo)
+			{
+			case 0: case 1:
+				v=0; break;
+			case 2: case 3:
+				v=1; break;
+			default:	v=0; break;
+			}
+			break;
+		}
+		if(val.hi==BGBDT_TAG_MCHAR)
+			{ v=1; break; }
+		if((val.hi>>24)==0x10)
+			{ v=1; break; }
+		v=0;
+		break;
+	case 4: case 5: case 6: case 7:
+		v=0; break;
+	case 8: case 9: case 10: case 11:
+		v=0; break;
+	default:
+		v=0;
+		break;
+	}
+	return(v);
 }
 
 static_inline int dtvIsSmallLongP(dtVal val)

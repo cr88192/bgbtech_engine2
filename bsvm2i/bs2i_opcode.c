@@ -169,6 +169,167 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		}
 		break;
 
+	case BSVM2_OP_NEWARR:
+		BSVM2_Interp_DecodeOpZn(cblk, op);
+		
+		if(op->i0==0)
+		{
+			switch(op->i1)
+			{
+			case BSVM2_OPZ_INT:	
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_I);
+				break;
+			case BSVM2_OPZ_UINT:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_UI);
+				break;
+			case BSVM2_OPZ_SBYTE:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_SB);
+				break;
+			case BSVM2_OPZ_UBYTE:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_UB);
+				break;
+			case BSVM2_OPZ_SHORT:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_SS);
+				break;
+			case BSVM2_OPZ_USHORT:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_US);
+				break;
+			case BSVM2_OPZ_LONG:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_L);
+				break;
+			case BSVM2_OPZ_ULONG:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_UL);
+				break;
+			case BSVM2_OPZ_FLOAT:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_F);
+				break;
+			case BSVM2_OPZ_DOUBLE:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_D);
+				break;
+			case BSVM2_OPZ_ADDR:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_A);
+				break;
+			}
+			break;
+		}
+		
+		switch(op->i1)
+		{
+		case BSVM2_OPZ_INT:	
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_IC);
+			break;
+		case BSVM2_OPZ_UINT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_UIC);
+			break;
+		case BSVM2_OPZ_SBYTE:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_SBC);
+			break;
+		case BSVM2_OPZ_UBYTE:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_UBC);
+			break;
+		case BSVM2_OPZ_SHORT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_SSC);
+			break;
+		case BSVM2_OPZ_USHORT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_USC);
+			break;
+		case BSVM2_OPZ_LONG:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_LC);
+			break;
+		case BSVM2_OPZ_ULONG:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_ULC);
+			break;
+		case BSVM2_OPZ_FLOAT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_FC);
+			break;
+		case BSVM2_OPZ_DOUBLE:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_DC);
+			break;
+		case BSVM2_OPZ_ADDR:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_NEWARR_AC);
+			break;
+		}
+		break;
+
+	case BSVM2_OP_LDGS:
+		BSVM2_Interp_DecodeOpGx(cblk, op);
+		switch(op->i1)
+		{
+		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
+		case BSVM2_OPZ_SBYTE:	case BSVM2_OPZ_UBYTE:
+		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_LDGSI);
+			break;
+		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_LDGSL);
+			break;
+		case BSVM2_OPZ_FLOAT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_LDGSF);
+			break;
+		case BSVM2_OPZ_DOUBLE:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_LDGSD);
+			break;
+		case BSVM2_OPZ_ADDRESS:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_LDGSA);
+			break;
+		}
+		break;
+	case BSVM2_OP_STGS:
+		BSVM2_Interp_DecodeOpGx(cblk, op);
+		switch(op->i1)
+		{
+		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
+		case BSVM2_OPZ_SBYTE:	case BSVM2_OPZ_UBYTE:
+		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_STGSI);
+			break;
+		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_STGSL);
+			break;
+		case BSVM2_OPZ_FLOAT:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_STGSF);
+			break;
+		case BSVM2_OPZ_DOUBLE:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_STGSD);
+			break;
+		case BSVM2_OPZ_ADDRESS:
+			BSVM2_Interp_SetupOpUnP(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_STGSA);
+			break;
+		}
+		break;
+		
 	case BSVM2_OP_MVI:
 		BSVM2_Interp_SetupOpUatJx(cblk, op, BSVM2_Op_MVI);
 		break;
@@ -267,6 +428,28 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_STIXS);
 		break;
 
+	case BSVM2_OP_RSTIXI:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXI);
+		break;
+	case BSVM2_OP_RSTIXL:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXL);
+		break;
+	case BSVM2_OP_RSTIXF:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXF);
+		break;
+	case BSVM2_OP_RSTIXD:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXD);
+		break;
+	case BSVM2_OP_RSTIXA:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXA);
+		break;
+	case BSVM2_OP_RSTIXB:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXB);
+		break;
+	case BSVM2_OP_RSTIXS:
+		BSVM2_Interp_SetupOpPopTrin(cblk, op, BSVM2_Op_RSTIXS);
+		break;
+
 	case BSVM2_OP_LDIXIC:
 		BSVM2_Interp_SetupOpBinCI(cblk, op,
 			BSVM2_OPZ_INT, BSVM2_Op_LDIXIC);
@@ -324,6 +507,28 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		break;
 	case BSVM2_OP_STIXSC:
 		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_STIXSC);
+		break;
+
+	case BSVM2_OP_RSTIXIC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXIC);
+		break;
+	case BSVM2_OP_RSTIXLC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXLC);
+		break;
+	case BSVM2_OP_RSTIXFC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXFC);
+		break;
+	case BSVM2_OP_RSTIXDC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXDC);
+		break;
+	case BSVM2_OP_RSTIXAC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXAC);
+		break;
+	case BSVM2_OP_RSTIXBC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXBC);
+		break;
+	case BSVM2_OP_RSTIXSC:
+		BSVM2_Interp_SetupOpPopTrinCI(cblk, op, BSVM2_Op_RSTIXSC);
 		break;
 
 	case BSVM2_OP_CVTI2L:
@@ -494,11 +699,11 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		break;
 	case BSVM2_OP_CMPILC:
 		BSVM2_Interp_SetupOpBinLC(cblk, op,
-			BSVM2_OPZ_INT, BSVM2_Op_CMPIC);
+			BSVM2_OPZ_INT, BSVM2_Op_CMPILC);
 		break;
 	case BSVM2_OP_CMPILL:
 		BSVM2_Interp_SetupOpBinLL(cblk, op,
-			BSVM2_OPZ_INT, BSVM2_Op_CMPIL);
+			BSVM2_OPZ_INT, BSVM2_Op_CMPILL);
 		break;
 	case BSVM2_OP_DCMPIC:
 		BSVM2_Interp_SetupOpBinC2P(cblk, op,
@@ -512,10 +717,10 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		BSVM2_Interp_SetupOpUn(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_DECI);
 		break;
 	case BSVM2_OP_INCIL:
-		BSVM2_Interp_SetupOpUatL(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_INCI);
+		BSVM2_Interp_SetupOpUatL(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_INCIL);
 		break;
 	case BSVM2_OP_DECIL:
-		BSVM2_Interp_SetupOpUatL(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_DECI);
+		BSVM2_Interp_SetupOpUatL(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_DECIL);
 		break;
 
 

@@ -20,6 +20,11 @@ LObj managed via AVL Trees.
 
 */
 
+#ifndef UNDEFINED
+#define UNDEFINED ((void *)(-1))
+#endif
+
+
 #define dtmAlloc(ty, sz)				\
 	BGBDT_MM_AllocLLn(ty, sz, __FILE__, __LINE__)
 #define dtmAllocLLn(ty, sz, fn, ln)		\
@@ -51,6 +56,12 @@ typedef struct BGBDT_MM_ObjTypeInfo_s BGBDT_MM_ObjTypeInfo;
 typedef struct BGBDT_MM_ObjLLnInfo_s BGBDT_MM_ObjLLnInfo;
 
 typedef struct BGBDT_MM_RegionInfo_s BGBDT_MM_RegionInfo;
+
+
+typedef struct th_context_s thContext;
+typedef struct BIPRO_RegisterState_s BIPRO_RegisterState;
+
+
 
 struct BGBDT_MM_ChunkInfo_s {
 byte *data;		//data region

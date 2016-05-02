@@ -104,7 +104,54 @@ void BSVM2_Op_STIXS(BSVM2_Frame *frm, BSVM2_Opcode *op)
 		frm->stack[op->t2].i);
 }
 
+void BSVM2_Op_RSTIXI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexInt(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].i);
+}
 
+void BSVM2_Op_RSTIXL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexLong(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].l);
+}
+
+void BSVM2_Op_RSTIXF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexFloat(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].f);
+}
+
+void BSVM2_Op_RSTIXD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexDouble(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].d);
+}
+
+void BSVM2_Op_RSTIXA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexDtVal(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].a);
+}
+
+void BSVM2_Op_RSTIXB(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexByte(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].i);
+}
+
+void BSVM2_Op_RSTIXS(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexShort(
+		frm->stack[op->t1].a, frm->stack[op->t2].i,
+		frm->stack[op->t0].i);
+}
 
 
 void BSVM2_Op_LDIXIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
@@ -210,6 +257,55 @@ void BSVM2_Op_STIXSC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 		frm->stack[op->t1].i);
 }
 
+void BSVM2_Op_RSTIXIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexInt(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].i);
+}
+
+void BSVM2_Op_RSTIXLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexLong(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].l);
+}
+
+void BSVM2_Op_RSTIXFC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexFloat(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].f);
+}
+
+void BSVM2_Op_RSTIXDC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexDouble(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].d);
+}
+
+void BSVM2_Op_RSTIXAC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexDtVal(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].a);
+}
+
+void BSVM2_Op_RSTIXBC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexByte(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].i);
+}
+
+void BSVM2_Op_RSTIXSC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtvArraySetIndexShort(
+		frm->stack[op->t1].a, op->v.i,
+		frm->stack[op->t0].i);
+}
+
 
 void BSVM2_Op_LEARI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
@@ -306,3 +402,63 @@ void BSVM2_Op_LEASTC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	frm->stack[op->t0].a=BGBDT_TagStr_StringAdjustOffset(
 		frm->stack[op->t0].a, op->v.i);
 }
+
+void BSVM2_Op_NEWARR_IC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_INT); }
+void BSVM2_Op_NEWARR_UIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_UINT); }
+
+void BSVM2_Op_NEWARR_SBC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_SBYTE); }
+void BSVM2_Op_NEWARR_UBC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_UBYTE); }
+void BSVM2_Op_NEWARR_SSC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_SHORT); }
+void BSVM2_Op_NEWARR_USC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_USHORT); }
+
+void BSVM2_Op_NEWARR_LC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_LONG); }
+void BSVM2_Op_NEWARR_ULC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_ULONG); }
+
+void BSVM2_Op_NEWARR_FC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_FLOAT); }
+void BSVM2_Op_NEWARR_DC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_DOUBLE); }
+void BSVM2_Op_NEWARR_AC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=dtvNewArray(op->i0, BGBDT_BASETY_ADDRESS); }
+
+void BSVM2_Op_NEWARR_I(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_INT);		}
+void BSVM2_Op_NEWARR_UI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{ 	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_UINT);		}
+void BSVM2_Op_NEWARR_SB(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_SBYTE);		}
+void BSVM2_Op_NEWARR_UB(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_UBYTE);		}
+void BSVM2_Op_NEWARR_SS(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_SHORT);		}
+void BSVM2_Op_NEWARR_US(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_USHORT);		}
+void BSVM2_Op_NEWARR_L(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_LONG);		}
+void BSVM2_Op_NEWARR_UL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_ULONG);		}
+void BSVM2_Op_NEWARR_F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_FLOAT);		}
+void BSVM2_Op_NEWARR_D(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_DOUBLE);		}
+void BSVM2_Op_NEWARR_A(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvNewArray(
+		frm->stack[op->t0].i, BGBDT_BASETY_ADDRESS);	}

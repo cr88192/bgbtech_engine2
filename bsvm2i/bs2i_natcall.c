@@ -1,11 +1,44 @@
 #include <bteifgl.h>
 
+char *bsvm2_natcall_nhashn[4096];
+void *bsvm2_natcall_nhashv[4096];
+
 void *BSVM2_NatCall_GetProcAddress(char *name)
 {
+	char *s;
+	void *p;
+	int i, j, h;
+
 	if(!name)
 		return(NULL);
 
-	return(NULL);
+	h=BGBDT_MM_QHashName(name);
+	for(i=0; i<256; i++)
+	{
+		j=(h>>12)&4095;
+		s=bsvm2_natcall_nhashn[j];
+		if(!s)
+			break;
+		if(!strcmp(s, name))
+		{
+			p=bsvm2_natcall_nhashv[j];
+			return(p);
+		}
+		h=h*4093+1;
+	}
+
+	if(i<256)
+	{
+		p=BIPRO_LookupLabel(name);
+		bsvm2_natcall_nhashn[j]=frgl_strdup(name);
+		bsvm2_natcall_nhashv[j]=p;
+		return(p);
+	}
+
+	p=BIPRO_LookupLabel(name);
+	return(p);
+
+//	return(NULL);
 }
 
 void BSVM2_NatCall_Call_0_V(void *fptr,
@@ -100,146 +133,146 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 #endif
 
 #define BSCM2_NC_CASTCALL0T(N, RT, RP)				\
-	case N: rv->RP=((RT(*)(void))fcn)(); break;
+	case (N): rv->RP=((RT(*)(void))fcn)(); break;
 
 #define BSCM2_NC_CASTCALL1T(N, RT, RP, T0, P0)				\
-	case N: rv->RP=((RT(*)(T0))fcn)(av[0].P0); break;
+	case (N): rv->RP=((RT(*)(T0))fcn)(av[0].P0); break;
 
 #define BSCM2_NC_CASTCALL2T(N, RT, RP, T0, P0, T1, P1)		\
-	case N: rv->RP=((RT(*)(T0, T1))fcn)(av[0].P0, av[1].P1); break;
+	case (N): rv->RP=((RT(*)(T0, T1))fcn)(av[0].P0, av[1].P1); break;
 
 #define BSCM2_NC_CASTCALL3T(N, RT, RP, T0, P0, T1, P1, T2, P2)		\
-	case N: rv->RP=((RT(*)(T0, T1, T2))fcn)	\
+	case (N): rv->RP=((RT(*)(T0, T1, T2))fcn)	\
 		(av[0].P0, av[1].P1, av[2].P2); break;
 
 #define BSCM2_NC_CASTCALL4T(N, RT, RP, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	case N: rv->RP=((RT(*)(T0, T1, T2, T3))fcn)	\
+	case (N): rv->RP=((RT(*)(T0, T1, T2, T3))fcn)	\
 		(av[0].P0, av[1].P1, av[2].P2, av[3].P3); break;
 
 
 #define BSCM2_NC_CASTCALL0A(N)						\
-	BSCM2_NC_CASTCALL0T((N*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL0T((N*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL0T((N*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL0T((N*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL0T((N*6)+4, dtVal, a)		\
-	BSCM2_NC_CASTCALL0T((N*6)+5, void*, p)
+	BSCM2_NC_CASTCALL0T(((N)*6)+0, s32, i)		\
+	BSCM2_NC_CASTCALL0T(((N)*6)+1, s64, l)		\
+	BSCM2_NC_CASTCALL0T(((N)*6)+2, f32, f)		\
+	BSCM2_NC_CASTCALL0T(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL0T(((N)*6)+4, dtVal, a)		\
+	BSCM2_NC_CASTCALL0T(((N)*6)+5, void*, p)
 
 
 #define BSCM2_NC_CASTCALL1A(N, T0, P0)				\
-	BSCM2_NC_CASTCALL1T((N*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL1T((N*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL1T((N*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL1T((N*6)+3, f64, d, T0, P0)		\
-	BSCM2_NC_CASTCALL1T((N*6)+4, dtVal, a, T0, P0)		\
-	BSCM2_NC_CASTCALL1T((N*6)+5, void*, p, T0, P0)
+	BSCM2_NC_CASTCALL1T(((N)*6)+0, s32, i, T0, P0)		\
+	BSCM2_NC_CASTCALL1T(((N)*6)+1, s64, l, T0, P0)		\
+	BSCM2_NC_CASTCALL1T(((N)*6)+2, f32, f, T0, P0)		\
+	BSCM2_NC_CASTCALL1T(((N)*6)+3, f64, d, T0, P0)		\
+	BSCM2_NC_CASTCALL1T(((N)*6)+4, dtVal, a, T0, P0)		\
+	BSCM2_NC_CASTCALL1T(((N)*6)+5, void*, p, T0, P0)
 
 #define BSCM2_NC_CASTCALL1B(N)						\
-	BSCM2_NC_CASTCALL1A((N*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL1A((N*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL1A((N*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL1A((N*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL1A((N*6)+4, dtVal, a)		\
-	BSCM2_NC_CASTCALL1A((N*6)+5, void*, p)
+	BSCM2_NC_CASTCALL1A(((N)*6)+0, s32, i)		\
+	BSCM2_NC_CASTCALL1A(((N)*6)+1, s64, l)		\
+	BSCM2_NC_CASTCALL1A(((N)*6)+2, f32, f)		\
+	BSCM2_NC_CASTCALL1A(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL1A(((N)*6)+4, dtVal, a)		\
+	BSCM2_NC_CASTCALL1A(((N)*6)+5, void*, p)
 
 
 #define BSCM2_NC_CASTCALL2A(N, T0, P0, T1, P1)					\
-	BSCM2_NC_CASTCALL2T((N*6)+0, s32, i, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL2T((N*6)+1, s64, l, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL2T((N*6)+2, f32, f, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL2T((N*6)+3, f64, d, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL2T((N*6)+4, dtVal, a, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL2T((N*6)+5, void*, p, T0, P0, T1, P1)
+	BSCM2_NC_CASTCALL2T(((N)*6)+0, s32, i, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL2T(((N)*6)+1, s64, l, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL2T(((N)*6)+2, f32, f, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL2T(((N)*6)+3, f64, d, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL2T(((N)*6)+4, dtVal, a, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL2T(((N)*6)+5, void*, p, T0, P0, T1, P1)
 
 #define BSCM2_NC_CASTCALL2B(N, T0, P0)				\
-	BSCM2_NC_CASTCALL2A((N*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL2A((N*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL2A((N*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL2A((N*6)+3, f64, d, T0, P0)		\
-	BSCM2_NC_CASTCALL2A((N*6)+4, dtVal, a, T0, P0)		\
-	BSCM2_NC_CASTCALL2A((N*6)+5, void*, p, T0, P0)
+	BSCM2_NC_CASTCALL2A(((N)*6)+0, s32, i, T0, P0)		\
+	BSCM2_NC_CASTCALL2A(((N)*6)+1, s64, l, T0, P0)		\
+	BSCM2_NC_CASTCALL2A(((N)*6)+2, f32, f, T0, P0)		\
+	BSCM2_NC_CASTCALL2A(((N)*6)+3, f64, d, T0, P0)		\
+	BSCM2_NC_CASTCALL2A(((N)*6)+4, dtVal, a, T0, P0)		\
+	BSCM2_NC_CASTCALL2A(((N)*6)+5, void*, p, T0, P0)
 
 #define BSCM2_NC_CASTCALL2C(N)						\
-	BSCM2_NC_CASTCALL2B((N*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL2B((N*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL2B((N*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL2B((N*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL2B((N*6)+4, dtVal, a)		\
-	BSCM2_NC_CASTCALL2B((N*6)+5, void*, p)
+	BSCM2_NC_CASTCALL2B(((N)*6)+0, s32, i)		\
+	BSCM2_NC_CASTCALL2B(((N)*6)+1, s64, l)		\
+	BSCM2_NC_CASTCALL2B(((N)*6)+2, f32, f)		\
+	BSCM2_NC_CASTCALL2B(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL2B(((N)*6)+4, dtVal, a)		\
+	BSCM2_NC_CASTCALL2B(((N)*6)+5, void*, p)
 
 
 #define BSCM2_NC_CASTCALL3A(N, T0, P0, T1, P1, T2, P2)					\
-	BSCM2_NC_CASTCALL3T((N*6)+0, s32, i, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL3T((N*6)+1, s64, l, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL3T((N*6)+2, f32, f, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL3T((N*6)+3, f64, d, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL3T((N*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL3T((N*6)+5, void*, p, T0, P0, T1, P1, T2, P2)
+	BSCM2_NC_CASTCALL3T(((N)*6)+0, s32, i, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL3T(((N)*6)+1, s64, l, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL3T(((N)*6)+2, f32, f, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL3T(((N)*6)+3, f64, d, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL3T(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL3T(((N)*6)+5, void*, p, T0, P0, T1, P1, T2, P2)
 
 #define BSCM2_NC_CASTCALL3B(N, T0, P0, T1, P1)					\
-	BSCM2_NC_CASTCALL3A((N*6)+0, s32, i, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL3A((N*6)+1, s64, l, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL3A((N*6)+2, f32, f, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL3A((N*6)+3, f64, d, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL3A((N*6)+4, dtVal, a, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL3A((N*6)+5, void*, p, T0, P0, T1, P1)
+	BSCM2_NC_CASTCALL3A(((N)*6)+0, s32, i, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+1, s64, l, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+2, f32, f, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+3, f64, d, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+4, dtVal, a, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+5, void*, p, T0, P0, T1, P1)
 
 #define BSCM2_NC_CASTCALL3C(N, T0, P0)				\
-	BSCM2_NC_CASTCALL3B((N*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL3B((N*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL3B((N*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL3B((N*6)+3, f64, d, T0, P0)		\
-	BSCM2_NC_CASTCALL3B((N*6)+4, dtVal, a, T0, P0)		\
-	BSCM2_NC_CASTCALL3B((N*6)+5, void*, p, T0, P0)
+	BSCM2_NC_CASTCALL3B(((N)*6)+0, s32, i, T0, P0)		\
+	BSCM2_NC_CASTCALL3B(((N)*6)+1, s64, l, T0, P0)		\
+	BSCM2_NC_CASTCALL3B(((N)*6)+2, f32, f, T0, P0)		\
+	BSCM2_NC_CASTCALL3B(((N)*6)+3, f64, d, T0, P0)		\
+	BSCM2_NC_CASTCALL3B(((N)*6)+4, dtVal, a, T0, P0)		\
+	BSCM2_NC_CASTCALL3B(((N)*6)+5, void*, p, T0, P0)
 
 #define BSCM2_NC_CASTCALL3D(N)						\
-	BSCM2_NC_CASTCALL3C((N*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL3C((N*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL3C((N*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL3C((N*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL3C((N*6)+4, dtVal, a)		\
-	BSCM2_NC_CASTCALL3C((N*6)+5, void*, p)
+	BSCM2_NC_CASTCALL3C(((N)*6)+0, s32, i)		\
+	BSCM2_NC_CASTCALL3C(((N)*6)+1, s64, l)		\
+	BSCM2_NC_CASTCALL3C(((N)*6)+2, f32, f)		\
+	BSCM2_NC_CASTCALL3C(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL3C(((N)*6)+4, dtVal, a)		\
+	BSCM2_NC_CASTCALL3C(((N)*6)+5, void*, p)
 
 
 #define BSCM2_NC_CASTCALL4A(N, T0, P0, T1, P1, T2, P2, T3, P3)			\
-	BSCM2_NC_CASTCALL4T((N*6)+0, s32, i, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	BSCM2_NC_CASTCALL4T((N*6)+1, s64, l, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	BSCM2_NC_CASTCALL4T((N*6)+2, f32, f, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	BSCM2_NC_CASTCALL4T((N*6)+3, f64, d, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	BSCM2_NC_CASTCALL4T((N*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2, T3, P3)	\
-	BSCM2_NC_CASTCALL4T((N*6)+5, void*, p, T0, P0, T1, P1, T2, P2, T3, P3)
+	BSCM2_NC_CASTCALL4T(((N)*6)+0, s32, i, T0, P0, T1, P1, T2, P2, T3, P3)	\
+	BSCM2_NC_CASTCALL4T(((N)*6)+1, s64, l, T0, P0, T1, P1, T2, P2, T3, P3)	\
+	BSCM2_NC_CASTCALL4T(((N)*6)+2, f32, f, T0, P0, T1, P1, T2, P2, T3, P3)	\
+	BSCM2_NC_CASTCALL4T(((N)*6)+3, f64, d, T0, P0, T1, P1, T2, P2, T3, P3)	\
+	BSCM2_NC_CASTCALL4T(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2, T3, P3)	\
+	BSCM2_NC_CASTCALL4T(((N)*6)+5, void*, p, T0, P0, T1, P1, T2, P2, T3, P3)
 
 #define BSCM2_NC_CASTCALL4B(N, T0, P0, T1, P1, T2, P2)					\
-	BSCM2_NC_CASTCALL4A((N*6)+0, s32, i, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL4A((N*6)+1, s64, l, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL4A((N*6)+2, f32, f, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL4A((N*6)+3, f64, d, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL4A((N*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL4A((N*6)+5, void*, p, T0, P0, T1, P1, T2, P2)
+	BSCM2_NC_CASTCALL4A(((N)*6)+0, s32, i, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+1, s64, l, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+2, f32, f, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+3, f64, d, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+5, void*, p, T0, P0, T1, P1, T2, P2)
 
 #define BSCM2_NC_CASTCALL4C(N, T0, P0, T1, P1)					\
-	BSCM2_NC_CASTCALL4B((N*6)+0, s32, i, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B((N*6)+1, s64, l, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B((N*6)+2, f32, f, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B((N*6)+3, f64, d, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B((N*6)+4, dtVal, a, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B((N*6)+5, void*, p, T0, P0, T1, P1)
+	BSCM2_NC_CASTCALL4B(((N)*6)+0, s32, i, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL4B(((N)*6)+1, s64, l, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL4B(((N)*6)+2, f32, f, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL4B(((N)*6)+3, f64, d, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL4B(((N)*6)+4, dtVal, a, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL4B(((N)*6)+5, void*, p, T0, P0, T1, P1)
 
 #define BSCM2_NC_CASTCALL4D(N, T0, P0)				\
-	BSCM2_NC_CASTCALL4C((N*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL4C((N*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL4C((N*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL4C((N*6)+3, f64, d, T0, P0)		\
-	BSCM2_NC_CASTCALL4C((N*6)+4, dtVal, a, T0, P0)		\
-	BSCM2_NC_CASTCALL4C((N*6)+5, void*, p, T0, P0)
+	BSCM2_NC_CASTCALL4C(((N)*6)+0, s32, i, T0, P0)		\
+	BSCM2_NC_CASTCALL4C(((N)*6)+1, s64, l, T0, P0)		\
+	BSCM2_NC_CASTCALL4C(((N)*6)+2, f32, f, T0, P0)		\
+	BSCM2_NC_CASTCALL4C(((N)*6)+3, f64, d, T0, P0)		\
+	BSCM2_NC_CASTCALL4C(((N)*6)+4, dtVal, a, T0, P0)		\
+	BSCM2_NC_CASTCALL4C(((N)*6)+5, void*, p, T0, P0)
 
 #define BSCM2_NC_CASTCALL4E(N)						\
-	BSCM2_NC_CASTCALL4D((N*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL4D((N*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL4D((N*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL4D((N*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL4D((N*6)+4, dtVal, a)		\
-	BSCM2_NC_CASTCALL4D((N*6)+5, void*, p)
+	BSCM2_NC_CASTCALL4D(((N)*6)+0, s32, i)		\
+	BSCM2_NC_CASTCALL4D(((N)*6)+1, s64, l)		\
+	BSCM2_NC_CASTCALL4D(((N)*6)+2, f32, f)		\
+	BSCM2_NC_CASTCALL4D(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL4D(((N)*6)+4, dtVal, a)		\
+	BSCM2_NC_CASTCALL4D(((N)*6)+5, void*, p)
 
 
 void BSVM2_NatCall_Call_N(void *fcn, int nc,
@@ -248,10 +281,10 @@ void BSVM2_NatCall_Call_N(void *fcn, int nc,
 	switch(nc)
 	{
 		BSCM2_NC_CASTCALL0A(1)
-//		BSCM2_NC_CASTCALL1B(1)
-//		BSCM2_NC_CASTCALL2C(1)
-//		BSCM2_NC_CASTCALL3D(1)
-//		BSCM2_NC_CASTCALL4E(1)
+		BSCM2_NC_CASTCALL1B(1)
+		BSCM2_NC_CASTCALL2C(1)
+		BSCM2_NC_CASTCALL3D(1)
+		BSCM2_NC_CASTCALL4E(1)
 	}
 }
 
@@ -324,6 +357,73 @@ char *BSVM2_NatCall_SigNext(char *sig)
 	return(s);
 }
 
+char *BSVM2_NatCall_SigGetRet(char *sig)
+{
+	char *s;
+
+	if(*sig=='(')
+	{
+		s=sig+1;
+
+		while(*s && (*s!=')'))
+			{ s=BSVM2_NatCall_SigNext(s); }
+		if(*s==')')
+			return(s+1);
+		return(NULL);
+	}
+	return(NULL);
+}
+
+int BSVM2_NatCall_GetSigOpZ(char *sig)
+{
+	int i;
+
+	switch(*sig)
+	{
+	case 'a':	case 'b':	case 'c': case 'h':
+	case 'i':		case 'k':
+	case 's':	case 't':	case 'w':
+		i=BSVM2_OPZ_INT; break;
+	case 'j':
+		i=BSVM2_OPZ_UINT; break;
+	case 'l':	case 'x':
+		i=BSVM2_OPZ_LONG; break;
+	case 'm':	case 'y':
+		i=BSVM2_OPZ_ULONG; break;
+	case 'f':
+		i=BSVM2_OPZ_FLOAT; break;
+	case 'd':	case 'e':
+		i=BSVM2_OPZ_DOUBLE; break;
+
+	case 'g':	case 'n':	case 'o':
+	case 'p':	case 'q':	case 'r':
+		i=BSVM2_OPZ_ADDRESS; break;
+
+	case 'C':
+//		if(sig[1]=='s')
+//			{ i=-1; break; }
+		i=BSVM2_OPZ_ADDRESS; break;
+
+	case 'Q':
+	case 'X':	case 'L':
+		i=BSVM2_OPZ_ADDRESS; break;
+
+	case 'v':
+		i=BSVM2_OPZ_VOID; break;
+	case 'z':
+		i=BSVM2_OPZ_ADDR; break;
+
+	case 'P':
+		i=BSVM2_OPZ_ADDR; break;
+//		i=5; break;
+
+	default:
+		i=-1; break;
+	}
+	
+	return(i);
+}
+
 int BSVM2_NatCall_GetSigBType(char *sig)
 {
 	int i;
@@ -345,7 +445,12 @@ int BSVM2_NatCall_GetSigBType(char *sig)
 	case 'p':	case 'q':	case 'r':
 		i=4; break;
 
-	case 'C':	case 'Q':
+	case 'C':
+//		if(sig[1]=='s')
+//			{ i=-1; break; }
+		i=4; break;
+
+	case 'Q':
 	case 'X':	case 'L':
 		i=4; break;
 
@@ -355,7 +460,8 @@ int BSVM2_NatCall_GetSigBType(char *sig)
 		i=-1; break;
 
 	case 'P':
-		i=5; break;
+		i=-1; break;
+//		i=5; break;
 
 	default:
 		i=-1; break;
@@ -391,4 +497,120 @@ int BSVM2_NatCall_GetSigIndexG0(char *sig)
 		i=i*6+j;
 	}
 	return(i);
+}
+
+
+int BSVM2_NatCall_GetSigIndexG1(char *sig,
+	BSVM2_Value *iav, BSVM2_Value *oav)
+{
+	BSVM2_Value *avs, *avt;
+	dtVal va, v0;
+	char *s;
+	int i, j, k, l;
+	
+	if(*sig!='(')
+		return(-1);
+	
+	s=sig; i=1;
+	avs=iav;
+	avt=oav;
+	if(*s=='(')s++;
+	while(*s && (*s!=')'))
+	{
+		if(*s=='z')break;
+
+		if(*s=='P')
+		{
+			if(s[1]=='c')
+			{
+				s+=2;
+				avt->p=BGBDT_TagStr_GetUtf8(avs->a);
+				avt++; avs++;
+				i=i*6+5;
+				continue;
+			}
+
+			s=BSVM2_NatCall_SigNext(s);
+			avt->p=dtvUnwrapPtr(avs->a);
+			avt++; avs++;
+			i=i*6+5;
+			continue;
+		}
+		
+		if(*s=='C')
+		{
+#if 0
+			if(s[1]=='s')
+			{
+				s+=2;
+				avt->p=BGBDT_TagStr_GetUtf8(avs->a);
+				avt++; avs++;
+				i=i*6+5;
+				continue;
+			}
+#endif
+		}
+		
+		*avt++=*avs++;
+		j=BSVM2_NatCall_GetSigBType(s);
+		if(j<0)
+			return(-1);
+		i=i*6+j;
+		s=BSVM2_NatCall_SigNext(s);
+	}
+	if(*s=='z')
+	{
+		s++;
+		va=avs->a;
+		if(dtvIsArrayP(va))
+		{
+			l=dtvArrayGetSize(va);
+			for(j=0; j<l; j++)
+			{
+				v0=dtvArrayGetIndexDtVal(va, j);
+				
+				if(dtvIsSmallIntP(v0))
+				{	avt->i=dtvUnwrapInt(v0);
+					avt++; i=i*6+0; continue;	}
+				if(dtvIsSmallLongP(v0))
+				{	avt->l=dtvUnwrapLong(v0);
+					avt++; i=i*6+1; continue;	}
+				if(dtvIsSmallDoubleP(v0))
+				{	avt->d=dtvUnwrapDouble(v0);
+					avt++; i=i*6+3; continue;	}
+
+				avt->a=v0;
+				avt++;
+				i=i*6+4;
+				continue;
+			}
+		}
+	}
+	if(*s==')')
+	{
+		s++;
+		j=BSVM2_NatCall_GetSigBType(s);
+		if(j<0)
+			return(-1);
+		i=i*6+j;
+	}
+	return(i);
+}
+
+BSVM2_Trace *BSVM2_TrOp_NatCallG1(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Value argt[64];
+	BSVM2_ImageGlobal *vi;
+	void *p;
+	int ic;
+
+	vi=op->v.p;
+	p=BSVM2_NatCall_GetProcAddress(vi->name);
+
+	ic=BSVM2_NatCall_GetSigIndexG1(vi->sig,
+		frm->stack+op->t1, argt);
+
+	BSVM2_NatCall_Call_N(p, ic,
+		frm->stack+op->t0, argt);
+	return(op->nexttrace);
 }

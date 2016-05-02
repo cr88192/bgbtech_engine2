@@ -690,30 +690,35 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_RETI);
 			ctx->frm->newtrace=1;
+			ctx->frm->stackpos--;
 			return;
 		}
 		if(BS2C_TypeSmallLongP(ctx, cty))
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_RETL);
 			ctx->frm->newtrace=1;
+			ctx->frm->stackpos--;
 			return;
 		}
 		if(BS2C_TypeSmallFloatP(ctx, cty))
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_RETF);
 			ctx->frm->newtrace=1;
+			ctx->frm->stackpos--;
 			return;
 		}
 		if(BS2C_TypeSmallDoubleP(ctx, cty))
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_RETD);
 			ctx->frm->newtrace=1;
+			ctx->frm->stackpos--;
 			return;
 		}
 		if(BS2C_TypeAddressP(ctx, cty))
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_RETA);
 			ctx->frm->newtrace=1;
+			ctx->frm->stackpos--;
 			return;
 		}
 		BS2C_CaseError(ctx);

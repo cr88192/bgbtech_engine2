@@ -104,6 +104,11 @@ void BS2C_ErrTooManyArgs(BS2CC_CompileContext *ctx)
 	BS2C_CompileError(ctx, BS2CC_ERRN_ERRTOOMANYARGS);
 }
 
+void BS2C_ErrStackMisalign(BS2CC_CompileContext *ctx)
+{
+	BS2C_CompileError(ctx, BS2CC_ERRN_ERRSTACKMISAL);
+}
+
 void BS2C_CompileFuncBodyCleanupVar(
 	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix)
 {
@@ -143,7 +148,11 @@ void BS2C_CompileFuncBodyCleanup(
 //	BS2C_CompileNoexPush(ctx, ctx->frm->func->rty);
 //	BS2C_EmitTempLabelB(ctx, ctx->frm->jcleanup);
 
-	BS2C_CompileExprPushType(ctx, ctx->frm->func->rty);
+	if(ctx->frm->func->rty!=BS2CC_TYZ_VOID)
+	{
+		BS2C_CompileExprPushType(ctx, ctx->frm->func->rty);
+	}
+
 	BS2C_EmitOpcode(ctx, BSVM2_OP_LBLCLNP);
 	ctx->frm->newtrace=1;
 	BS2C_EmitTempLabelB(ctx, ctx->frm->jcleanup);
@@ -195,6 +204,11 @@ void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func)
 	if(ctx->frm->jcleanup>0)
 	{
 		BS2C_CompileFuncBodyCleanup(ctx);
+	}
+	
+	if(ctx->frm->stackpos!=0)
+	{
+		BS2C_ErrStackMisalign(ctx);
 	}
 	
 	BS2C_FixupLabels(ctx);

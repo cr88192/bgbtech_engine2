@@ -462,3 +462,62 @@ void BSVM2_Op_NEWARR_D(BSVM2_Frame *frm, BSVM2_Opcode *op)
 void BSVM2_Op_NEWARR_A(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	frm->stack[op->t0].a=dtvNewArray(
 		frm->stack[op->t0].i, BGBDT_BASETY_ADDRESS);	}
+
+
+void BSVM2_Op_STIXILL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexInt(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].i);		}
+void BSVM2_Op_STIXLLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexLong(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].l);		}
+void BSVM2_Op_STIXFLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexFloat(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].f);		}
+void BSVM2_Op_STIXDLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexDouble(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].d);		}
+void BSVM2_Op_STIXALL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexDtVal(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].a);		}
+void BSVM2_Op_STIXBLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexByte(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].i);		}
+void BSVM2_Op_STIXSLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexShort(
+		frm->local[op->i0].a, frm->local[op->i1].i,
+		frm->stack[op->t0].i);		}
+
+void BSVM2_Op_STIXILC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexInt(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].i);		}
+void BSVM2_Op_STIXLLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexLong(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].l);		}
+void BSVM2_Op_STIXFLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexFloat(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].f);		}
+void BSVM2_Op_STIXDLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexDouble(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].d);		}
+void BSVM2_Op_STIXALC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexDtVal(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].a);		}
+void BSVM2_Op_STIXBLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexByte(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].i);		}
+void BSVM2_Op_STIXSLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	dtvArraySetIndexShort(
+		frm->local[op->i0].a, op->v.i,
+		frm->stack[op->t0].i);		}

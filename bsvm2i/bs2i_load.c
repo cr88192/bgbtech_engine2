@@ -737,6 +737,7 @@ int BS2I_ImageDecodeGlobalVar(
 		{
 			clsvi=BGBDTC_GetClassSlotIndex(clsi, i);
 			vi=BS2I_ImageGetGlobal(img, gbl->figix[i]);
+			vi->objinf=clsvi;
 			
 			if(vi->name)
 				clsvi->name=vi->name;

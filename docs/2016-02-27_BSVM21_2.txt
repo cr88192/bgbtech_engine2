@@ -486,18 +486,18 @@ Instructions
 * 41, LDIXL				//Load Index Long ( A I => B )
 * 42, LDIXF				//Load Index Float ( A I => B )
 * 43, LDIXD				//Load Index Double ( A I => B )
-* 44, STIXI				//Store Index Int ( A I V => )
-* 45, STIXL				//Store Index Long ( A I V => )
-* 46, STIXF				//Store Index Float ( A I V => )
-* 47, STIXD				//Store Index Double ( A I V => )
+* 44, STIXI				//Store Index Int ( V A I => )
+* 45, STIXL				//Store Index Long ( V A I => )
+* 46, STIXF				//Store Index Float ( V A I => )
+* 47, STIXD				//Store Index Double ( V A I => )
 * 48, LDIXSB				//Load Index Signed Byte ( A I => B )
 * 49, LDIXUB				//Load Index Unsigned Byte ( A I => B )
 * 4A, LDIXSS				//Load Index Signed Short ( A I => B )
 * 4B, LDIXUS				//Load Index Unsigned Short ( A I => B )
 * 4C, LDIXA				//Load Index Address ( A I => B )
-* 4D, STIXA				//Store Index Address ( A I V => )
-* 4E, STIXB				//Store Index Byte ( A I V => )
-* 4F, STIXS				//Store Index Short ( A I V => )
+* 4D, STIXA				//Store Index Address ( V A I => )
+* 4E, STIXB				//Store Index Byte ( V A I => )
+* 4F, STIXS				//Store Index Short ( V A I => )
 
 ** Load/Store Array Index, given as a signed integer.
 
@@ -505,18 +505,18 @@ Instructions
 * 51 Ci, LDIXLC			//Load Index Long ( I; A => B )
 * 52 Ci, LDIXFC			//Load Index Float ( I; A => B )
 * 53 Ci, LDIXDC			//Load Index Double ( I; A => B )
-* 54 Ci, STIXIC			//Store Index Int ( I; A V => )
-* 55 Ci, STIXLC			//Store Index Long ( I; A V => )
-* 56 Ci, STIXFC			//Store Index Float ( I; A V => )
-* 57 Ci, STIXDC			//Store Index Double ( I; A V => )
+* 54 Ci, STIXIC			//Store Index Int ( I; V A => )
+* 55 Ci, STIXLC			//Store Index Long ( I; V A => )
+* 56 Ci, STIXFC			//Store Index Float ( I; V A => )
+* 57 Ci, STIXDC			//Store Index Double ( I; V A => )
 * 58 Ci, LDIXSBC			//Load Index Signed Byte ( I; A => B )
 * 59 Ci, LDIXUBC			//Load Index Unsigned Byte ( I; A => B )
 * 5A Ci, LDIXSSC			//Load Index Signed Short ( I; A => B )
 * 5B Ci, LDIXUSC			//Load Index Unsigned Short ( I; A => B )
 * 5C Ci, LDIXAC			//Load Index Address ( I; A => B )
-* 5D Ci, STIXAC			//Store Index Address ( I; A V => )
-* 5E Ci, STIXBC			//Store Index Byte ( I; A V => )
-* 5F Ci, STIXSC			//Store Index Short ( I; A V => )
+* 5D Ci, STIXAC			//Store Index Address ( I; V A => )
+* 5E Ci, STIXBC			//Store Index Byte ( I; V A => )
+* 5F Ci, STIXSC			//Store Index Short ( I; V A => )
 
 ** Load/Store Array Index using constant, given as a signed integer constant.
 ** Note that for many types of arrays, indices may be negative.
@@ -575,7 +575,7 @@ Instructions
 
 
 * 7C Gx, LDOS				//Load Instance Variable, ( O => A )
-* 7D Gx, STOS				//Store Instance Variable ( O V => )
+* 7D Gx, STOS				//Store Instance Variable ( V O => )
 * 7E Gx, LDGS				//Load Global Variable, ( => A )
 * 7F Gx, STGS				//Store Global Variable ( V => )
 
@@ -892,21 +892,21 @@ Vector convert operations (NACHO2):
 * E1 76, CVTD2XF				//Convert Double to Float128
 * E1 77, CVTXF2D				//Convert Float128 to Double
 
-* E1 80, RSTIXI				//Store Index Int ( V A I => )
-* E1 81, RSTIXL				//Store Index Long ( V A I => )
-* E1 82, RSTIXF				//Store Index Float ( V A I => )
-* E1 83, RSTIXD				//Store Index Double ( V A I => )
-* E1 84, RSTIXA				//Store Index Address ( V A I => )
-* E1 85, RSTIXB				//Store Index Byte ( V A I => )
-* E1 86, RSTIXS				//Store Index Short ( V A I => )
-* E1 87
-* E1 88 Ci, RSTIXIC			//Store Index Int ( I; V A => )
-* E1 89 Ci, RSTIXLC			//Store Index Long ( I; V A => )
-* E1 8A Ci, RSTIXFC			//Store Index Float ( I; V A => )
-* E1 8B Ci, RSTIXDC			//Store Index Double ( I; V A => )
-* E1 8C Ci, RSTIXAC			//Store Index Address ( I; V A => )
-* E1 8D Ci, RSTIXBC			//Store Index Byte ( I; V A => )
-* E1 8E Ci, RSTIXSC			//Store Index Short ( I; V A => )
-* E1 8F
+* E1 80, RSTIXI				//Store Index Int ( A I V => )
+* E1 81, RSTIXL				//Store Index Long ( A I V => )
+* E1 82, RSTIXF				//Store Index Float ( A I V => )
+* E1 83, RSTIXD				//Store Index Double ( A I V => )
+* E1 84, RSTIXA				//Store Index Address ( A I V => )
+* E1 85, RSTIXB				//Store Index Byte ( A I V => )
+* E1 86, RSTIXS				//Store Index Short ( A I V => )
+* E1 87 Zi Ix, STIXZLL		//Store Index Local-Local (A, I; V => )
+* E1 88 Ci, RSTIXIC			//Store Index Int ( I; A V => )
+* E1 89 Ci, RSTIXLC			//Store Index Long ( I; A V => )
+* E1 8A Ci, RSTIXFC			//Store Index Float ( I; A V => )
+* E1 8B Ci, RSTIXDC			//Store Index Double ( I; A V => )
+* E1 8C Ci, RSTIXAC			//Store Index Address ( I; A V => )
+* E1 8D Ci, RSTIXBC			//Store Index Byte ( I; A V => )
+* E1 8E Ci, RSTIXSC			//Store Index Short ( I; A V => )
+* E1 8F Zi Ci, STIXZLC		//Store Index Local-Const (A, C; V => )
 ** Reverse Store Index
 ** Basically the same as normal store index, but with ordering swapped.

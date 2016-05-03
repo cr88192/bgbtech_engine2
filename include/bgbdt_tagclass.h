@@ -63,3 +63,27 @@ static_inline void dtcSetD(dtcObject obj, dtcField fi, f64 v)
 	{ fi->SetD(obj, fi, v); }
 static_inline void dtcSetA(dtcObject obj, dtcField fi, dtVal v)
 	{ fi->SetA(obj, fi, v); }
+
+
+
+static_inline s32 dtcVaGetI(dtVal obj, dtcField fi)
+	{ return(fi->GetI(dtvUnwrapPtr(obj), fi)); }
+static_inline s64 dtcVaGetL(dtVal obj, dtcField fi)
+	{ return(fi->GetL(dtvUnwrapPtr(obj), fi)); }
+static_inline f32 dtcVaGetF(dtVal obj, dtcField fi)
+	{ return(fi->GetF(dtvUnwrapPtr(obj), fi)); }
+static_inline f64 dtcVaGetD(dtVal obj, dtcField fi)
+	{ return(fi->GetD(dtvUnwrapPtr(obj), fi)); }
+static_inline dtVal dtcVaGetA(dtVal obj, dtcField fi)
+	{ return(fi->GetA(dtvUnwrapPtr(obj), fi)); }
+
+static_inline void dtcVaSetI(dtVal obj, dtcField fi, s32 v)
+	{ fi->SetI(dtvUnwrapPtr(obj), fi, v); }
+static_inline void dtcVaSetL(dtVal obj, dtcField fi, s64 v)
+	{ fi->SetL(dtvUnwrapPtr(obj), fi, v); }
+static_inline void dtcVaSetF(dtVal obj, dtcField fi, f32 v)
+	{ fi->SetF(dtvUnwrapPtr(obj), fi, v); }
+static_inline void dtcVaSetD(dtVal obj, dtcField fi, f64 v)
+	{ fi->SetD(dtvUnwrapPtr(obj), fi, v); }
+static_inline void dtcVaSetA(dtVal obj, dtcField fi, dtVal v)
+	{ fi->SetA(dtvUnwrapPtr(obj), fi, v); }

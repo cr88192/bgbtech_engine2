@@ -602,6 +602,31 @@ void BSVM2_Interp_DecodeOpZn(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 	op->i0=lj;
 }
 
+void BSVM2_Interp_DecodeOpZiIx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
+{
+	s64 li, lj;
+	int i, j;
+
+	li=BSVM2_Interp_DecodeOpUCxL(cblk);
+	op->i2=li&15;
+	lj=li>>4;
+	op->i0=lj;
+	op->i1=BSVM2_Interp_DecodeOpUCxI(cblk);
+}
+
+void BSVM2_Interp_DecodeOpZiCi(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
+{
+	s64 li, lj;
+	int i, j;
+
+	li=BSVM2_Interp_DecodeOpUCxL(cblk);
+	op->i2=li&15;
+	lj=li>>4;
+	op->i0=lj;
+//	BSVM2_Interp_DecodeOpCx(cblk, op, )
+	op->v.i=BSVM2_Interp_DecodeOpUCxI(cblk);
+}
+
 void BSVM2_Interp_DecodeOpFx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 	int zty)
 {

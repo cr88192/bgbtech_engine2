@@ -259,6 +259,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			}
 		}
 
+#if 1
 		t0=BS2C_InferExprLocalIndex(ctx, ln);
 		t1=BS2C_InferExprLocalIndex(ctx, rn);
 		if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
@@ -269,6 +270,7 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			BS2C_EmitTempJAddr(ctx, tt);
 			return;
 		}
+#endif
 
 		BS2C_CompileExpr(ctx, ln, cty);
 		BS2C_CompileExpr(ctx, rn, cty);
@@ -468,6 +470,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			}
 		}
 
+#if 1
 		t0=BS2C_InferExprLocalIndex(ctx, ln);
 		t1=BS2C_InferExprLocalIndex(ctx, rn);
 		if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
@@ -478,6 +481,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			BS2C_EmitTempJAddr(ctx, tf);
 			return;
 		}
+#endif
 
 		BS2C_CompileExpr(ctx, ln, cty);
 		BS2C_CompileExpr(ctx, rn, cty);

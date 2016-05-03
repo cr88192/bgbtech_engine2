@@ -385,6 +385,8 @@
 #define BSVM2_OP_RSTIXA		0x0184	//Store Index Address ( V A I => )
 #define BSVM2_OP_RSTIXB		0x0185	//Store Index Byte ( V A I => )
 #define BSVM2_OP_RSTIXS		0x0186	//Store Index Short ( V A I => )
+#define BSVM2_OP_STIXZLL	0x0187	//Store Index Z-LL ( A, I; V => )
+
 #define BSVM2_OP_RSTIXIC	0x0188	//Store Index Int ( I; V A => )
 #define BSVM2_OP_RSTIXLC	0x0189	//Store Index Long ( I; V A => )
 #define BSVM2_OP_RSTIXFC	0x018A	//Store Index Float ( I; V A => )
@@ -392,6 +394,7 @@
 #define BSVM2_OP_RSTIXAC	0x018C	//Store Index Address ( I; V A => )
 #define BSVM2_OP_RSTIXBC	0x018D	//Store Index Byte ( I; V A => )
 #define BSVM2_OP_RSTIXSC	0x018E	//Store Index Short ( I; V A => )
+#define BSVM2_OP_STIXZLC	0x018F	//Store Index Z-LC ( A, C; V => )
 
 
 typedef union BSVM2_Value_u BSVM2_Value;
@@ -421,7 +424,7 @@ void *p;
 
 struct BSVM2_Opcode_s {
 void (*Run)(BSVM2_Frame *frm, BSVM2_Opcode *op);
-int i0, i1;
+int i0, i1, i2;
 int t0, t1, t2;
 BSVM2_Value v;
 };
@@ -512,6 +515,7 @@ byte brty;				//base return type (functions)
 byte baty[32];			//base arg type (functions)
 
 BSVM2_Value *gvalue;	//global value
+void *objinf;
 
 BSVM2_CodeImage *img;
 BSVM2_ImageGlobal *pkg;

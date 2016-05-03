@@ -120,6 +120,11 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 	nopsa=0; ntrsa=0; csa=cblk->cs;
 	while(cblk->cs<cblk->cse)
 	{
+		if(cblk->stkpos<0)
+		{
+			k=-1;
+		}
+	
 		opn=BSVM2_Interp_ReadOpcodeNumber(cblk);
 		
 		if(opn==BSVM2_OP_JMP)

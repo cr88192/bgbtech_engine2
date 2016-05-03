@@ -109,6 +109,11 @@ void BS2C_ErrStackMisalign(BS2CC_CompileContext *ctx)
 	BS2C_CompileError(ctx, BS2CC_ERRN_ERRSTACKMISAL);
 }
 
+void BS2C_ErrStackUnderflow(BS2CC_CompileContext *ctx)
+{
+	BS2C_CompileError(ctx, BS2CC_ERRN_ERRSTACKUFLOW);
+}
+
 void BS2C_CompileFuncBodyCleanupVar(
 	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix)
 {

@@ -55,3 +55,33 @@ dctX128 BGBDT_MulXI128(dtcX128 a, dtcX128 b)
   c.d=(u32)l;
   return(c);
 }
+
+dctX128 BGBDT_AndXI128(dtcX128 a, dtcX128 b)
+{
+  dtcX128 c;
+  c.a=a.a&b.a;
+  c.b=a.b&b.b;
+  c.c=a.c&b.c;
+  c.d=a.d&b.d;
+  return(c);
+}
+
+dctX128 BGBDT_OrXI128(dtcX128 a, dtcX128 b)
+{
+  dtcX128 c;
+  c.a=a.a|b.a;
+  c.b=a.b|b.b;
+  c.c=a.c|b.c;
+  c.d=a.d|b.d;
+  return(c);
+}
+
+dctX128 BGBDT_XorXI128(dtcX128 a, dtcX128 b)
+{
+  dtcX128 c;
+  c.a=a.a^b.a;
+  c.b=a.b^b.b;
+  c.c=a.c^b.c;
+  c.d=a.d^b.d;
+  return(c);
+}

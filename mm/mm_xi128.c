@@ -103,10 +103,25 @@ dctX128 BGBDT_ShrpXI128(dtcX128 a, int b)
   dtcX128 c;
   if(!b)
     return(a);
-  c.a=(a.a>>b);
-  c.b=(a.b>>b)+(a.a<<(32-b));
-  c.c=(a.c>>b)+(a.b<<(32-b));
-  c.d=(a.d>>b)+(a.c<<(32-b));
+  c.a=(a.a>>b)+(a.b<<(32-b));
+  c.b=(a.b>>b)+(a.c<<(32-b));
+  c.c=(a.c>>b)+(a.d<<(32-b));
+  c.d=(a.d>>b);
+  return(c);
+}
+
+dctX128 BGBDT_SarpXI128(dtcX128 a, int b)
+{
+  dtcX128 c;
+  u32 sx;
+
+  if(!b)
+    return(a);
+  sx=((s32)a.d)>>31;
+  c.a=(a.a>>b)+(a.b<<(32-b));
+  c.b=(a.b>>b)+(a.c<<(32-b));
+  c.c=(a.c>>b)+(a.d<<(32-b));
+  c.d=(a.d>>b)+(sx<<(32-b));
   return(c);
 }
 
@@ -146,8 +161,8 @@ dctX128 BGBDT_ShrXI128(dtcX128 a, int b)
     case 0:
       a2=a; break;
     case 1:
-      a2.a=a.b;  a2.b=a.b;
-      a2.c=a.c;  a2.d=0;
+      a2.a=a.b;  a2.b=a.c;
+      a2.c=a.d;  a2.d=0;
       break;
     case 2:
       a2.a=a.c;  a2.b=a.d;
@@ -163,5 +178,37 @@ dctX128 BGBDT_ShrXI128(dtcX128 a, int b)
       break;
   }
   c=BGBDT_ShrpXI128(a2, b&31);
+  return(c);
+}
+
+dctX128 BGBDT_SarXI128(dtcX128 a, int b)
+{
+  dtcX128 a2, c;
+  u32 sx;
+
+  sx=((s32)a.d)>>31;
+  
+  switch(b>>5)
+  {
+    case 0:
+      a2=a; break;
+    case 1:
+      a2.a=a.b;  a2.b=a.c;
+      a2.c=a.d;  a2.d=sx;
+      break;
+    case 2:
+      a2.a=a.c;  a2.b=a.d;
+      a2.c=sx;   a2.d=sx;
+      break;
+    case 3:
+      a2.a=a.d; a2.b=sx;
+      a2.c=sx;  a2.d=sx;
+      break;
+    default:
+      a2.a=sx; a2.b=sx;
+      a2.c=sx; a2.d=sx;
+      break;
+  }
+  c=BGBDT_SarpXI128(a2, b&31);
   return(c);
 }

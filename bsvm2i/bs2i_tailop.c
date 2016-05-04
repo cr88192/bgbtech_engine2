@@ -624,6 +624,50 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_GED(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	return(op->nexttrace);	}
 
 
+
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_EQI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].i==frm->local[op->i1].i)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_NEI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].i!=frm->local[op->i1].i)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_LTI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].i<frm->local[op->i1].i)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_GTI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].i>frm->local[op->i1].i)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_LEI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].i<=frm->local[op->i1].i)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_GEI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].i>=frm->local[op->i1].i)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_LTUI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].ui<frm->local[op->i1].ui)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_GTUI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].ui>frm->local[op->i1].ui)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_LEUI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].ui<=frm->local[op->i1].ui)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+BSVM2_Trace *BSVM2_TrOp_JCMPLL_GEUI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{	if(frm->local[op->i0].ui>=frm->local[op->i1].ui)
+		return(op->jmptrace);
+	return(op->nexttrace);	}
+
+
 BSVM2_Trace *BSVM2_TrOp_JCMP_RETI(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {

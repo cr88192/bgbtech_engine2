@@ -378,6 +378,9 @@
 //#define BSVM2_OP_LDDRAL		0x015E
 //#define BSVM2_OP_STDRAL		0x015F
 
+#define BSVM2_OP_LDIXZLL	0x017E	//Load Index Z-LL ( A, I; => V )
+#define BSVM2_OP_LDIXZLC	0x017F	//Load Index Z-LC ( A, C; => V )
+
 #define BSVM2_OP_RSTIXI		0x0180	//Store Index Int ( V A I => )
 #define BSVM2_OP_RSTIXL		0x0181	//Store Index Long ( V A I => )
 #define BSVM2_OP_RSTIXF		0x0182	//Store Index Float ( V A I => )

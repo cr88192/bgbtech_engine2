@@ -1360,7 +1360,8 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		
 		if(dtvIsFixIntP(rn) || dtvIsFixUIntP(rn))
 		{
-			li=dtvUnwrapLong(expr);
+//			li=dtvUnwrapLong(expr);
+			li=dtvUnwrapLong(rn);
 
 #if 1
 			if(li==0)
@@ -1388,6 +1389,18 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 					BS2C_CompileExprPopType2(ctx);
 					return;
 				}
+			}
+#endif
+
+#if 1
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			if(t0>=0)
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_STIXZLC);
+				BS2C_EmitOpcodeUZx(ctx, z, t0);
+				BS2C_EmitOpcodeSCx(ctx, li);
+				BS2C_CompileExprPopType1(ctx);
+				return;
 			}
 #endif
 
@@ -1436,6 +1449,19 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 				return;
 			}
 		}
+
+#if 1
+		t0=BS2C_InferExprLocalIndex(ctx, ln);
+		t1=BS2C_InferExprLocalIndex(ctx, rn);
+		if((t0>=0) && (t1>=0))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_STIXZLL);
+			BS2C_EmitOpcodeUZx(ctx, z, t0);
+			BS2C_EmitOpcodeUCx(ctx, t1);
+			BS2C_CompileExprPopType1(ctx);
+			return;
+		}
+#endif
 
 #if 0
 		o=-1;
@@ -2532,7 +2558,8 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		
 		if(dtvIsFixIntP(rn) || dtvIsFixUIntP(rn))
 		{
-			li=dtvUnwrapLong(expr);
+//			li=dtvUnwrapLong(expr);
+			li=dtvUnwrapLong(rn);
 
 #if 1
 			if(li==0)
@@ -2570,6 +2597,19 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			}
 #endif
 
+#if 1
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			if(t0>=0)
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_LDIXZLC);
+				BS2C_EmitOpcodeUZx(ctx, z, t0);
+				BS2C_EmitOpcodeSCx(ctx, li);
+				BS2C_CompileExprPushType(ctx, bty);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+#endif
+
 			o=-1;
 			if((z==BSVM2_OPZ_INT) || (z==BSVM2_OPZ_UINT))
 				o=BSVM2_OP_LDIXIC;
@@ -2602,6 +2642,20 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			}
 		}
 		
+#if 1
+		t0=BS2C_InferExprLocalIndex(ctx, ln);
+		t1=BS2C_InferExprLocalIndex(ctx, rn);
+		if((t0>=0) && (t1>=0))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDIXZLL);
+			BS2C_EmitOpcodeUZx(ctx, z, t0);
+			BS2C_EmitOpcodeUCx(ctx, t1);
+			BS2C_CompileExprPushType(ctx, bty);
+			BS2C_CompileConvType(ctx, dty);
+			return;
+		}
+#endif
+
 		o=-1;
 		if((z==BSVM2_OPZ_INT) || (z==BSVM2_OPZ_UINT))
 			o=BSVM2_OP_LDIXI;

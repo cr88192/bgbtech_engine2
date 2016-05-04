@@ -92,6 +92,15 @@ void BSVM2_Interp_DecodeTopFx2(BSVM2_CodeBlock *cblk,
 	}
 }
 
+void BSVM2_Interp_DecodeTopJx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op)
+{
+	int i, j;
+
+	BSVM2_Interp_DecodeOpUJxI(cblk, &i, &j);
+	op->i0=i;
+	op->i1=j;
+}
+
 void BSVM2_Interp_SetupTopPopUnJmp(BSVM2_CodeBlock *cblk,
 	BSVM2_TailOpcode *op,
 	BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op))
@@ -123,6 +132,26 @@ void BSVM2_Interp_SetupTopUat(BSVM2_CodeBlock *cblk,
 	BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op))
 {
 	op->Run=run;
+}
+
+void BSVM2_Interp_SetupTopPopBinJmp(BSVM2_CodeBlock *cblk,
+	BSVM2_TailOpcode *op,
+	BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op))
+{
+	op->jcs=BSVM2_Interp_DecodeOpJAddr(cblk);
+
+	op->Run=run;
+	op->t1=--cblk->stkpos;
+	op->t0=--cblk->stkpos;
+}
+
+void BSVM2_Interp_SetupTopPopBin(BSVM2_CodeBlock *cblk,
+	BSVM2_TailOpcode *op,
+	BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op))
+{
+	op->Run=run;
+	op->t1=--cblk->stkpos;
+	op->t0=--cblk->stkpos;
 }
 
 void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,
@@ -288,11 +317,61 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 	BSVM2_CodeBlock *cblk, int opn)
 {
 	BSVM2_TailOpcode *tmp;
+	int opn2;
 	int i;
 	
 	tmp=BSVM2_Interp_AllocTailOpcode(cblk);
 	switch(opn)
 	{
+	case BSVM2_OP_CMPI:
+		opn2=BSVM2_Interp_ReadOpcodeNumber(cblk);
+		switch(opn2)
+		{
+		case BSVM2_OP_JEQ:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_EQI);
+			break;
+		case BSVM2_OP_JNE:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_NEI);
+			break;
+		case BSVM2_OP_JLT:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_LTI);
+			break;
+		case BSVM2_OP_JGT:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_GTI);
+			break;
+		case BSVM2_OP_JLE:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_LEI);
+			break;
+		case BSVM2_OP_JGE:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_GEI);
+			break;
+		}
+		break;
+	case BSVM2_OP_CMPILL:
+		opn2=BSVM2_Interp_ReadOpcodeNumber(cblk);
+		switch(opn2)
+		{
+		case BSVM2_OP_JEQ:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_EQI);
+			break;
+		case BSVM2_OP_JNE:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_NEI);
+			break;
+		case BSVM2_OP_JLT:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_LTI);
+			break;
+		case BSVM2_OP_JGT:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_GTI);
+			break;
+		case BSVM2_OP_JLE:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_LEI);
+			break;
+		case BSVM2_OP_JGE:
+			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_GEI);
+			break;
+		}
+		break;
+
 	case BSVM2_OP_JEQ:
 		BSVM2_Interp_SetupTopPopUnJmp(cblk, tmp, BSVM2_TrOp_JEQ);
 		break;

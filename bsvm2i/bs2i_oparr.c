@@ -464,6 +464,65 @@ void BSVM2_Op_NEWARR_A(BSVM2_Frame *frm, BSVM2_Opcode *op)
 		frm->stack[op->t0].i, BGBDT_BASETY_ADDRESS);	}
 
 
+void BSVM2_Op_LDIXILL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexInt(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXLLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].l=dtvArrayGetIndexLong(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXFLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].f=dtvArrayGetIndexFloat(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXDLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].d=dtvArrayGetIndexDouble(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXALL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvArrayGetIndexDtVal(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+
+void BSVM2_Op_LDIXSBLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexSByte(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXUBLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexByte(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXSSLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexShort(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+void BSVM2_Op_LDIXUSLL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexUShort(
+		frm->local[op->i0].a, frm->local[op->i1].i);	}
+
+void BSVM2_Op_LDIXILC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexInt(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXLLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].l=dtvArrayGetIndexLong(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXFLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].f=dtvArrayGetIndexFloat(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXDLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].d=dtvArrayGetIndexDouble(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXALC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].a=dtvArrayGetIndexDtVal(
+		frm->local[op->i0].a, op->v.i);	}
+
+void BSVM2_Op_LDIXSBLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexSByte(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXUBLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexByte(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXSSLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexShort(
+		frm->local[op->i0].a, op->v.i);	}
+void BSVM2_Op_LDIXUSLC(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	frm->stack[op->t0].i=dtvArrayGetIndexUShort(
+		frm->local[op->i0].a, op->v.i);	}
+
+
 void BSVM2_Op_STIXILL(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	dtvArraySetIndexInt(
 		frm->local[op->i0].a, frm->local[op->i1].i,

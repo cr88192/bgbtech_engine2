@@ -77,6 +77,41 @@ int BSVM2_Interp_ReadOpcodeNumber(BSVM2_CodeBlock *cblk)
 		i=i-0xF0;
 		i=(i<<8)|(*cblk->cs++);
 		i=(i<<8)|(*cblk->cs++);
+	}else if((i>=0xF8) && (i<=0xFB))
+	{
+		i=i-0xF8;
+		i=(i<<8)|(*cblk->cs++);
+		i=(i<<8)|(*cblk->cs++);
+		i=(i<<8)|(*cblk->cs++);
+	}
+	
+	return(i);
+}
+
+int BSVM2_Interp_PeekOpcodeNumber(BSVM2_CodeBlock *cblk)
+{
+	byte *cs;
+	int i;
+
+	cs=cblk->cs;
+	i=*cs++;
+	if(i<0xE0)
+		return(i);
+
+	if((i>=0xE0) && (i<=0xEF))
+	{
+		i=((i-0xE0)<<8)|(*cs++);
+	}else if((i>=0xF0) && (i<=0xF7))
+	{
+		i=i-0xF0;
+		i=(i<<8)|(*cs++);
+		i=(i<<8)|(*cs++);
+	}else if((i>=0xF8) && (i<=0xFB))
+	{
+		i=i-0xF8;
+		i=(i<<8)|(*cs++);
+		i=(i<<8)|(*cs++);
+		i=(i<<8)|(*cs++);
 	}
 	
 	return(i);

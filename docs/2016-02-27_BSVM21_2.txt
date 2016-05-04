@@ -892,6 +892,9 @@ Vector convert operations (NACHO2):
 * E1 76, CVTD2XF				//Convert Double to Float128
 * E1 77, CVTXF2D				//Convert Float128 to Double
 
+* E1 7E Zi Ix, LDIXZLL		//Store Index Local-Local (A, I; => V )
+* E1 7F Zi Ci, LDIXZLC		//Store Index Local-Const (A, C; => V )
+
 * E1 80, RSTIXI				//Store Index Int ( A I V => )
 * E1 81, RSTIXL				//Store Index Long ( A I V => )
 * E1 82, RSTIXF				//Store Index Float ( A I V => )

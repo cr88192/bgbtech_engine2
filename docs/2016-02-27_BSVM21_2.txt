@@ -898,8 +898,11 @@ Vector convert operations (NACHO2):
 * E1 7C, CVTAA2XL				//Convert Variant to Int128
 * E1 7D, CVTAA2XF				//Convert Variant to Float128
 
+More Array ops:
 * E1 7E Zi Ix, LDIXZLL		//Store Index Local-Local (A, I; => V )
 * E1 7F Zi Ci, LDIXZLC		//Store Index Local-Const (A, C; => V )
+** Load Index from Locals
+
 * E1 80, RSTIXI				//Store Index Int ( A I V => )
 * E1 81, RSTIXL				//Store Index Long ( A I V => )
 * E1 82, RSTIXF				//Store Index Float ( A I V => )
@@ -916,5 +919,6 @@ Vector convert operations (NACHO2):
 * E1 8D Ci, RSTIXBC			//Store Index Byte ( I; A V => )
 * E1 8E Ci, RSTIXSC			//Store Index Short ( I; A V => )
 * E1 8F Zi Ci, STIXZLC		//Store Index Local-Const (A, C; V => )
-** Reverse Store Index
+** RSTIX=Reverse Store Index
 ** Basically the same as normal store index, but with ordering swapped.
+** STIXZL

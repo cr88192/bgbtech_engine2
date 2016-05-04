@@ -1016,7 +1016,7 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 			BSVM2_OPZ_INT, BSVM2_Op_CMPILC);
 		break;
 	case BSVM2_OP_CMPILL:
-		opn2=BSVM2_Interp_PeekOpcodeNumber(cblk);
+		opn2=BSVM2_Interp_PeekIxOpcodeNumber(cblk);
 		if((opn2>=BSVM2_OP_JEQ) && (opn2<=BSVM2_OP_JGE))
 			{ BSVM2_Interp_FreeOpcode(cblk, op); op=NULL; break; }
 

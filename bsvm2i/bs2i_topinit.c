@@ -348,26 +348,27 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 		}
 		break;
 	case BSVM2_OP_CMPILL:
+		BSVM2_Interp_DecodeTopJx(cblk, tmp);
 		opn2=BSVM2_Interp_ReadOpcodeNumber(cblk);
 		switch(opn2)
 		{
 		case BSVM2_OP_JEQ:
-			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_EQI);
+			BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JCMPLL_EQI);
 			break;
 		case BSVM2_OP_JNE:
-			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_NEI);
+			BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JCMPLL_NEI);
 			break;
 		case BSVM2_OP_JLT:
-			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_LTI);
+			BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JCMPLL_LTI);
 			break;
 		case BSVM2_OP_JGT:
-			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_GTI);
+			BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JCMPLL_GTI);
 			break;
 		case BSVM2_OP_JLE:
-			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_LEI);
+			BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JCMPLL_LEI);
 			break;
 		case BSVM2_OP_JGE:
-			BSVM2_Interp_SetupTopPopBinJmp(cblk, tmp, BSVM2_TrOp_JCMP_GEI);
+			BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JCMPLL_GEI);
 			break;
 		}
 		break;

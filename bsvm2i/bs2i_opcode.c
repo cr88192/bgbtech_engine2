@@ -4,6 +4,7 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 	BSVM2_CodeBlock *cblk, int opn)
 {
 	BSVM2_Opcode *op;
+	int opn2;
 	int i;
 	
 	op=BSVM2_Interp_AllocOpcode(cblk);
@@ -405,6 +406,9 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		break;
 
 	case BSVM2_OP_CMPI:
+		opn2=BSVM2_Interp_PeekOpcodeNumber(cblk);
+		if((opn2>=BSVM2_OP_JEQ) && (opn2<=BSVM2_OP_JGE))
+			{ BSVM2_Interp_FreeOpcode(cblk, op); op=NULL; break; }
 		BSVM2_Interp_SetupOpBin(cblk, op, BSVM2_OPZ_INT, BSVM2_Op_CMPI);
 		break;
 	case BSVM2_OP_CMPL:
@@ -1012,6 +1016,10 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 			BSVM2_OPZ_INT, BSVM2_Op_CMPILC);
 		break;
 	case BSVM2_OP_CMPILL:
+		opn2=BSVM2_Interp_PeekOpcodeNumber(cblk);
+		if((opn2>=BSVM2_OP_JEQ) && (opn2<=BSVM2_OP_JGE))
+			{ BSVM2_Interp_FreeOpcode(cblk, op); op=NULL; break; }
+
 		BSVM2_Interp_SetupOpBinLL(cblk, op,
 			BSVM2_OPZ_INT, BSVM2_Op_CMPILL);
 		break;

@@ -87,3 +87,13 @@ static_inline void dtcVaSetD(dtVal obj, dtcField fi, f64 v)
 	{ fi->SetD(dtvUnwrapPtr(obj), fi, v); }
 static_inline void dtcVaSetA(dtVal obj, dtcField fi, dtVal v)
 	{ fi->SetA(dtvUnwrapPtr(obj), fi, v); }
+
+
+typedef struct BGBDTC_X128_s dtcX128;
+
+struct BGBDTC_X128_s {
+u32 a;
+u32 b;
+u32 c;
+u32 d;
+};

@@ -130,25 +130,27 @@ package bstest {
 			int t0, t1, t2;
 			
 			t0=clock();
-			printf("BS Fib %d\n", fib(32));
+//			printf("BS Fib %d\n", fib(32));
+			printf("BS Fib %d\n", fib(38));
 			t1=clock();
 			printf("BS Dt %d\n", t1-t0);
 
 			t0=clock();
-			printf("Na Fib %d\n", bsvm2_natfib(32));
+//			printf("Na Fib %d\n", bsvm2_natfib(32));
+			printf("Na Fib %d\n", bsvm2_natfib(38));
 			t1=clock();
 			printf("Na Dt %d\n", t1-t0);
 
 
 			t0=clock();
 //			sorttst(1<<16);
-			sorttst(1<<12);
+			sorttst(1<<13);
 			t1=clock();
 			printf("Bs SortTst Dt %d\n", t1-t0);
 
 			t0=clock();
 //			sorttst(1<<16);
-			bsvm2_natsorttst(1<<12);
+			bsvm2_natsorttst(1<<13);
 			t1=clock();
 			printf("Na SortTst Dt %d\n", t1-t0);
 

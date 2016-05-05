@@ -89,6 +89,7 @@ int sz;			//array size
 int str;		//array stride
 byte bty;		//base type
 byte strsh;		//stride shift
+int scsz;		//scaled size
 };
 
 struct BGBDT_MapObjHead_s {
@@ -133,6 +134,8 @@ int idsz;		//object instance data size
 #define DTV_FALSE		DTV_MagicConst(2)
 #define DTV_TRUE		DTV_MagicConst(3)
 
+BTEIFGL_API void *BGBDT_MM_GetPtrForObjId(int objid);
+BTEIFGL_API int BGBDT_MM_GetObjIdForPtr(void *ptr);
 BTEIFGL_API void *BGBDT_MM_GetDataPtrForObjId(int objid);
 
 BTEIFGL_API dtVal BGBDT_TagTy_EncodeRotLong(s64 value);
@@ -149,6 +152,28 @@ static_inline dtVal DTV_MagicConst(int id)
 }
 
 #if defined(X86) || defined(ARM)
+//static_inline void *DTV_GetPtrForObjId(int objid)
+//	{ return((void *)(objid)); }
+//static_inline int DTV_GetObjIdForPtr(void *ptr)
+//	{ return((int)(ptr)); }
+//static_inline void *DTV_GetDataPtrForObjId(int objid)
+//	{ return((void *)(objid)); }
+
+#define DTV_GetPtrForObjId(objid)		((void *)(objid))
+#define DTV_GetObjIdForPtr(ptr)			((int)(ptr))
+#define DTV_GetDataPtrForObjId(objid)	((void *)(objid))
+
+#else
+static_inline void *DTV_GetPtrForObjId(int objid)
+	{ return(BGBDT_MM_GetPtrForObjId(objid)); }
+static_inline int DTV_GetObjIdForPtr(void *ptr)
+	{ return(BGBDT_MM_GetObjIdForPtr(ptr)); }
+static_inline void *DTV_GetDataPtrForObjId(int objid)
+	{ return(BGBDT_MM_GetDataPtrForObjId(objid)); }
+#endif
+
+#if defined(X86) || defined(ARM)
+
 static_inline void *dtvUnwrapPtrF(dtVal val)
 	{ return((void *)val.lo); }
 static_inline dtVal dtvWrapPtrF(void *ptr)
@@ -386,7 +411,8 @@ static_inline dtVal dtvWrapDoubleF(double v)
 	dtVal val;
 	u64 h;
 	h=*(u64 *)(&v);
-	h=(h>>2);
+//	h=(h>>2);
+	h=((h+2)>>2);
 	val.vi=h;
 //	*(u64 *)(&val)=h;
 	val.hi|=0x80000000U;
@@ -670,7 +696,8 @@ static_inline int dtvIsArrayP(dtVal arv)
 static_inline int dtvArrayGetBaseType(dtVal arv)
 {
 	BGBDT_TagArrHead *arr;
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	return(arr->bty);
 }
 
@@ -681,12 +708,15 @@ static_inline void *dtvArrayGetIndexAddr(dtVal arv, int idx)
 	int bx0, bx;
 	
 //	arr=dtvUnwrapPtrF(arv);
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	bx0=arv.hi&0x0FFFFFFF;
 //	bx=idx+bx0+arr->base;
-	bx=bx0+idx*arr->str;
+//	bx=bx0+idx*arr->str;
+	bx=bx0+(idx<<arr->strsh);
 //	if((bx<0) || (bx>=(arr->sz*arr->str)))
-	if((bx<0) || ((bx>>arr->strsh)>=arr->sz))
+//	if((bx<0) || ((bx>>arr->strsh)>=arr->sz))
+	if((bx<0) || (bx>=arr->scsz))
 		{ return(NULL); }
 	return(arr->data+bx);
 }
@@ -698,11 +728,13 @@ static_inline dtVal dtvArrayAdjustOffset(dtVal arv, int idx)
 	byte *pv;
 	int bx0, bx1;
 	
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	bx0=arv.hi&0x0FFFFFFF;
 	bx1=bx0+(idx*arr->str);
 //	if((bx1<0) || (bx1>=(arr->sz*arr->str)))
-	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+//	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+	if((bx1<0) || (bx1>=arr->scsz))
 		{ return(DTV_UNDEFINED); }
 	
 	arv2.lo=arv.lo;
@@ -716,9 +748,11 @@ static_inline int dtvArrayGetSize(dtVal arv)
 	byte *pv;
 	int bx;
 	
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	bx=arv.hi&0x0FFFFFFF;
-	return(arr->sz-(bx>>arr->strsh));
+	return((arr->scsz-bx)>>arr->strsh);
+//	return(arr->sz-(bx>>arr->strsh));
 //	return(arr->sz-bx);
 }
 
@@ -768,12 +802,14 @@ static_inline dtVal dtvArrayAdjustOffsetB1(dtVal arv, int idx)
 	byte *pv;
 	int bx0, bx1;
 	
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 
 	bx0=arv.hi&0x0FFFFFFF;
 	bx1=bx0+idx;
 //	if((bx1<0) || (bx1>=(arr->sz*arr->str)))
-	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+//	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+	if((bx1<0) || (bx1>=arr->scsz))
 		{ return(DTV_UNDEFINED); }
 	
 	arv2.lo=arv.lo;
@@ -788,12 +824,14 @@ static_inline dtVal dtvArrayAdjustOffsetB2(dtVal arv, int idx)
 	byte *pv;
 	int bx0, bx1;
 	
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	
 	bx0=arv.hi&0x0FFFFFFF;
 	bx1=bx0+(idx<<1);
 //	if((bx1<0) || (bx1>=arr->sz))
-	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+//	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+	if((bx1<0) || (bx1>=arr->scsz))
 		{ return(DTV_UNDEFINED); }
 	
 	arv2.lo=arv.lo;
@@ -808,12 +846,14 @@ static_inline dtVal dtvArrayAdjustOffsetB4(dtVal arv, int idx)
 	byte *pv;
 	int bx0, bx1;
 	
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	
 	bx0=arv.hi&0x0FFFFFFF;
 	bx1=bx0+(idx<<2);
 //	if((bx1<0) || (bx1>=arr->sz))
-	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+//	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+	if((bx1<0) || (bx1>=arr->scsz))
 		{ return(DTV_UNDEFINED); }
 	
 	arv2.lo=arv.lo;
@@ -828,12 +868,14 @@ static_inline dtVal dtvArrayAdjustOffsetB8(dtVal arv, int idx)
 	byte *pv;
 	int bx0, bx1;
 	
-	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
 	
 	bx0=arv.hi&0x0FFFFFFF;
 	bx1=bx0+(idx<<3);
 //	if((bx1<0) || (bx1>=arr->sz))
-	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+//	if((bx1<0) || ((bx1>>arr->strsh)>=arr->sz))
+	if((bx1<0) || (bx1>=arr->scsz))
 		{ return(DTV_UNDEFINED); }
 	
 	arv2.lo=arv.lo;

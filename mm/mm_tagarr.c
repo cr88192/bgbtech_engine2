@@ -50,6 +50,7 @@ BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty)
 		arh->str=str;
 		arh->bty=bty;
 		arh->strsh=stsh;
+		arh->scsz=sz;
 
 		arh->data=((byte *)arh)+szh;
 	}else
@@ -59,10 +60,12 @@ BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty)
 		arh->str=str;
 		arh->bty=bty;
 		arh->strsh=stsh;
-	
+		arh->scsz=sz;
+
 		arh->data=dtmAlloc("bgbdt_tagarrdata_t", size*str);
 	}
-	arv.lo=BGBDT_MM_GetObjIdForPtr(arh);
+//	arv.lo=BGBDT_MM_GetObjIdForPtr(arh);
+	arv.lo=DTV_GetObjIdForPtr(arh);
 	arv.hi=0xC0000000UL;
 	return(arv);
 }

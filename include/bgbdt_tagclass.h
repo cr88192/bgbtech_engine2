@@ -39,7 +39,8 @@ int sqid, gix;				//image and global ID
 
 BGBDTC_SlotInfo **slots;
 int nslots, mslots;
-int szdata;
+int szdata, aldata;
+byte clean;
 };
 
 static_inline s32 dtcGetI(dtcObject obj, dtcField fi)
@@ -89,7 +90,7 @@ static_inline void dtcVaSetA(dtVal obj, dtcField fi, dtVal v)
 	{ fi->SetA(dtvUnwrapPtr(obj), fi, v); }
 
 
-typedef struct BGBDTC_X128_s dtcX128;
+typedef struct BGBDTC_X128_s BGBDTC_X128;
 
 struct BGBDTC_X128_s {
 u32 a;

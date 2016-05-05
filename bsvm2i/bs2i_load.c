@@ -727,7 +727,13 @@ int BS2I_ImageDecodeGlobalVar(
 		(dtag==BS2CC_ITCC_ST) ||
 		(dtag==BS2CC_ITCC_IF))
 	{
-		clsi=BGBDTC_LookupClassSqGix(img->seqid, gbl->gix);
+		clsi=BGBDTC_GetClassSqGix(img->seqid, gbl->gix);
+		gbl->objinf=clsi;
+		
+		BGBDTC_BeginLayoutClass(clsi);
+		
+		if(gbl->obj)
+			{ clsi->super=gbl->obj->objinf; }
 		
 		s=BS2I_ImageTryGetGlobalQName(img, gbl);
 		if(s)
@@ -744,6 +750,8 @@ int BS2I_ImageDecodeGlobalVar(
 			if(vi->sig)
 				clsvi->sig=vi->sig;
 		}
+		
+		BGBDTC_EndLayoutClass(clsi);
 	}
 
 	if(dtag==BS2CC_ITCC_GV)

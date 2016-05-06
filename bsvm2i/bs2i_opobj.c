@@ -36,3 +36,13 @@ void BSVM2_Op_STOSD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 void BSVM2_Op_STOSA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	BSVM2_ImageGlobal *vi;	vi=op->v.p;
 	dtcVaSetA(frm->stack[op->t1].a, vi->objinf, frm->stack[op->t0].a);	}
+
+
+void BSVM2_Op_NEWOBJ(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	void *p;
+	vi=op->v.p;
+	p=BGBDTC_AllocClassInstance(vi->objinf);
+	frm->stack[op->t0].a=dtvWrapPtr(p);
+}

@@ -455,12 +455,14 @@ int BGBDTC_BeginLayoutClass(
 	BGBDTC_ClassInfo *cls)
 {
 	cls->clean=0;
+	return(0);
 }
 
 int BGBDTC_EndLayoutClass(
 	BGBDTC_ClassInfo *cls)
 {
 	BGBDTC_FinishLayoutClass(cls);
+	return(0);
 }
 
 BGBDTC_SlotInfo *BGBDTC_FetchClassSlotIndex(
@@ -558,4 +560,14 @@ BGBDTC_SlotInfo *BGBDTC_GetClassSlotName(
 	vi=BGBDTC_GetClassSlotIndex(cls, cls->nslots);
 	vi->name=BGBDT_TagStr_StrSymbol(name);
 	return(vi);
+}
+
+dtcObject BGBDTC_AllocClassInstance(
+	BGBDTC_ClassInfo *cls)
+{
+	void *ptr;
+	
+	ptr=dtmAlloc("bgbdtc_object_t", cls->szdata);
+	*(void **)ptr=cls;
+	return(ptr);
 }

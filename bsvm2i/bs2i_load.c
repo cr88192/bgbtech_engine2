@@ -760,6 +760,11 @@ int BS2I_ImageDecodeGlobalVar(
 		gbl->gvalue=(BSVM2_Value *)(gbl->baty+16);
 	}
 
+	if(dtag==BS2CC_ITCC_SV)
+	{
+		gbl->brty=BSVM2_NatCall_GetSigOpZ(gbl->sig);
+	}
+
 	return(0);
 }
 

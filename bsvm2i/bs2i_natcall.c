@@ -150,29 +150,29 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 		(av[0].P0, av[1].P1, av[2].P2, av[3].P3); break;
 
 
-#define BSCM2_NC_CASTCALL0A(N)						\
+#define BSCM2_NC_CASTCALL0A(N)					\
 	BSCM2_NC_CASTCALL0T(((N)*6)+0, s32, i)		\
 	BSCM2_NC_CASTCALL0T(((N)*6)+1, s64, l)		\
 	BSCM2_NC_CASTCALL0T(((N)*6)+2, f32, f)		\
 	BSCM2_NC_CASTCALL0T(((N)*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL0T(((N)*6)+4, dtVal, a)		\
+	BSCM2_NC_CASTCALL0T(((N)*6)+4, dtVal, a)	\
 	BSCM2_NC_CASTCALL0T(((N)*6)+5, void*, p)
 
 
-#define BSCM2_NC_CASTCALL1A(N, T0, P0)				\
-	BSCM2_NC_CASTCALL1T(((N)*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL1T(((N)*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL1T(((N)*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL1T(((N)*6)+3, f64, d, T0, P0)		\
+#define BSCM2_NC_CASTCALL1A(N, T0, P0)						\
+	BSCM2_NC_CASTCALL1T(((N)*6)+0, s32, i, T0, P0)			\
+	BSCM2_NC_CASTCALL1T(((N)*6)+1, s64, l, T0, P0)			\
+	BSCM2_NC_CASTCALL1T(((N)*6)+2, f32, f, T0, P0)			\
+	BSCM2_NC_CASTCALL1T(((N)*6)+3, f64, d, T0, P0)			\
 	BSCM2_NC_CASTCALL1T(((N)*6)+4, dtVal, a, T0, P0)		\
 	BSCM2_NC_CASTCALL1T(((N)*6)+5, void*, p, T0, P0)
 
-#define BSCM2_NC_CASTCALL1B(N)						\
-	BSCM2_NC_CASTCALL1A(((N)*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL1A(((N)*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL1A(((N)*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL1A(((N)*6)+3, f64, d)		\
-	BSCM2_NC_CASTCALL1A(((N)*6)+4, dtVal, a)		\
+#define BSCM2_NC_CASTCALL1B(N)								\
+	BSCM2_NC_CASTCALL1A(((N)*6)+0, s32, i)					\
+	BSCM2_NC_CASTCALL1A(((N)*6)+1, s64, l)					\
+	BSCM2_NC_CASTCALL1A(((N)*6)+2, f32, f)					\
+	BSCM2_NC_CASTCALL1A(((N)*6)+3, f64, d)					\
+	BSCM2_NC_CASTCALL1A(((N)*6)+4, dtVal, a)				\
 	BSCM2_NC_CASTCALL1A(((N)*6)+5, void*, p)
 
 
@@ -181,22 +181,34 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	BSCM2_NC_CASTCALL2T(((N)*6)+1, s64, l, T0, P0, T1, P1)		\
 	BSCM2_NC_CASTCALL2T(((N)*6)+2, f32, f, T0, P0, T1, P1)		\
 	BSCM2_NC_CASTCALL2T(((N)*6)+3, f64, d, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL2T(((N)*6)+4, dtVal, a, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL2T(((N)*6)+4, dtVal, a, T0, P0, T1, P1)	\
 	BSCM2_NC_CASTCALL2T(((N)*6)+5, void*, p, T0, P0, T1, P1)
 
-#define BSCM2_NC_CASTCALL2B(N, T0, P0)				\
-	BSCM2_NC_CASTCALL2A(((N)*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL2A(((N)*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL2A(((N)*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL2A(((N)*6)+3, f64, d, T0, P0)		\
+#if 0
+#define BSCM2_NC_CASTCALL2B(N, T0, P0)						\
+	BSCM2_NC_CASTCALL2A(((N)*6)+0, s32, i, T0, P0)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+1, s64, l, T0, P0)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+2, f32, f, T0, P0)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+3, f64, d, T0, P0)			\
 	BSCM2_NC_CASTCALL2A(((N)*6)+4, dtVal, a, T0, P0)		\
 	BSCM2_NC_CASTCALL2A(((N)*6)+5, void*, p, T0, P0)
+#endif
+
+#if 1
+#define BSCM2_NC_CASTCALL2B(N, T0, P0)						\
+	BSCM2_NC_CASTCALL2A(((N)*6)+0, T0, P0, s32, i)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+1, T0, P0, s64, l)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+2, T0, P0, f32, f)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+3, T0, P0, f64, d)			\
+	BSCM2_NC_CASTCALL2A(((N)*6)+4, T0, P0, dtVal, a)		\
+	BSCM2_NC_CASTCALL2A(((N)*6)+5, T0, P0, void*, p)
+#endif
 
 #define BSCM2_NC_CASTCALL2C(N)						\
-	BSCM2_NC_CASTCALL2B(((N)*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL2B(((N)*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL2B(((N)*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL2B(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL2B(((N)*6)+0, s32, i)			\
+	BSCM2_NC_CASTCALL2B(((N)*6)+1, s64, l)			\
+	BSCM2_NC_CASTCALL2B(((N)*6)+2, f32, f)			\
+	BSCM2_NC_CASTCALL2B(((N)*6)+3, f64, d)			\
 	BSCM2_NC_CASTCALL2B(((N)*6)+4, dtVal, a)		\
 	BSCM2_NC_CASTCALL2B(((N)*6)+5, void*, p)
 
@@ -206,35 +218,55 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	BSCM2_NC_CASTCALL3T(((N)*6)+1, s64, l, T0, P0, T1, P1, T2, P2)		\
 	BSCM2_NC_CASTCALL3T(((N)*6)+2, f32, f, T0, P0, T1, P1, T2, P2)		\
 	BSCM2_NC_CASTCALL3T(((N)*6)+3, f64, d, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL3T(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL3T(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)	\
 	BSCM2_NC_CASTCALL3T(((N)*6)+5, void*, p, T0, P0, T1, P1, T2, P2)
 
+#if 0
 #define BSCM2_NC_CASTCALL3B(N, T0, P0, T1, P1)					\
 	BSCM2_NC_CASTCALL3A(((N)*6)+0, s32, i, T0, P0, T1, P1)		\
 	BSCM2_NC_CASTCALL3A(((N)*6)+1, s64, l, T0, P0, T1, P1)		\
 	BSCM2_NC_CASTCALL3A(((N)*6)+2, f32, f, T0, P0, T1, P1)		\
 	BSCM2_NC_CASTCALL3A(((N)*6)+3, f64, d, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL3A(((N)*6)+4, dtVal, a, T0, P0, T1, P1)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+4, dtVal, a, T0, P0, T1, P1)	\
 	BSCM2_NC_CASTCALL3A(((N)*6)+5, void*, p, T0, P0, T1, P1)
 
-#define BSCM2_NC_CASTCALL3C(N, T0, P0)				\
-	BSCM2_NC_CASTCALL3B(((N)*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL3B(((N)*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL3B(((N)*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL3B(((N)*6)+3, f64, d, T0, P0)		\
+#define BSCM2_NC_CASTCALL3C(N, T0, P0)						\
+	BSCM2_NC_CASTCALL3B(((N)*6)+0, s32, i, T0, P0)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+1, s64, l, T0, P0)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+2, f32, f, T0, P0)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+3, f64, d, T0, P0)			\
 	BSCM2_NC_CASTCALL3B(((N)*6)+4, dtVal, a, T0, P0)		\
 	BSCM2_NC_CASTCALL3B(((N)*6)+5, void*, p, T0, P0)
+#endif
+
+#if 1
+#define BSCM2_NC_CASTCALL3B(N, T0, P0, T1, P1)					\
+	BSCM2_NC_CASTCALL3A(((N)*6)+0, T0, P0, T1, P1, s32, i)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+1, T0, P0, T1, P1, s64, l)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+2, T0, P0, T1, P1, f32, f)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+3, T0, P0, T1, P1, f64, d)		\
+	BSCM2_NC_CASTCALL3A(((N)*6)+4, T0, P0, T1, P1, dtVal, a)	\
+	BSCM2_NC_CASTCALL3A(((N)*6)+5, T0, P0, T1, P1, void*, p)
+
+#define BSCM2_NC_CASTCALL3C(N, T0, P0)						\
+	BSCM2_NC_CASTCALL3B(((N)*6)+0, T0, P0, s32, i)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+1, T0, P0, s64, l)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+2, T0, P0, f32, f)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+3, T0, P0, f64, d)			\
+	BSCM2_NC_CASTCALL3B(((N)*6)+4, T0, P0, dtVal, a)		\
+	BSCM2_NC_CASTCALL3B(((N)*6)+5, T0, P0, void*, p)
+#endif
 
 #define BSCM2_NC_CASTCALL3D(N)						\
-	BSCM2_NC_CASTCALL3C(((N)*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL3C(((N)*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL3C(((N)*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL3C(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL3C(((N)*6)+0, s32, i)			\
+	BSCM2_NC_CASTCALL3C(((N)*6)+1, s64, l)			\
+	BSCM2_NC_CASTCALL3C(((N)*6)+2, f32, f)			\
+	BSCM2_NC_CASTCALL3C(((N)*6)+3, f64, d)			\
 	BSCM2_NC_CASTCALL3C(((N)*6)+4, dtVal, a)		\
 	BSCM2_NC_CASTCALL3C(((N)*6)+5, void*, p)
 
 
-#define BSCM2_NC_CASTCALL4A(N, T0, P0, T1, P1, T2, P2, T3, P3)			\
+#define BSCM2_NC_CASTCALL4A(N, T0, P0, T1, P1, T2, P2, T3, P3)				\
 	BSCM2_NC_CASTCALL4T(((N)*6)+0, s32, i, T0, P0, T1, P1, T2, P2, T3, P3)	\
 	BSCM2_NC_CASTCALL4T(((N)*6)+1, s64, l, T0, P0, T1, P1, T2, P2, T3, P3)	\
 	BSCM2_NC_CASTCALL4T(((N)*6)+2, f32, f, T0, P0, T1, P1, T2, P2, T3, P3)	\
@@ -242,35 +274,64 @@ BSVM2_Trace *BSVM2_TrOp_NatCallGFx(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	BSCM2_NC_CASTCALL4T(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2, T3, P3)	\
 	BSCM2_NC_CASTCALL4T(((N)*6)+5, void*, p, T0, P0, T1, P1, T2, P2, T3, P3)
 
+#if 0
 #define BSCM2_NC_CASTCALL4B(N, T0, P0, T1, P1, T2, P2)					\
 	BSCM2_NC_CASTCALL4A(((N)*6)+0, s32, i, T0, P0, T1, P1, T2, P2)		\
 	BSCM2_NC_CASTCALL4A(((N)*6)+1, s64, l, T0, P0, T1, P1, T2, P2)		\
 	BSCM2_NC_CASTCALL4A(((N)*6)+2, f32, f, T0, P0, T1, P1, T2, P2)		\
 	BSCM2_NC_CASTCALL4A(((N)*6)+3, f64, d, T0, P0, T1, P1, T2, P2)		\
-	BSCM2_NC_CASTCALL4A(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+4, dtVal, a, T0, P0, T1, P1, T2, P2)	\
 	BSCM2_NC_CASTCALL4A(((N)*6)+5, void*, p, T0, P0, T1, P1, T2, P2)
 
-#define BSCM2_NC_CASTCALL4C(N, T0, P0, T1, P1)					\
-	BSCM2_NC_CASTCALL4B(((N)*6)+0, s32, i, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B(((N)*6)+1, s64, l, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B(((N)*6)+2, f32, f, T0, P0, T1, P1)		\
-	BSCM2_NC_CASTCALL4B(((N)*6)+3, f64, d, T0, P0, T1, P1)		\
+#define BSCM2_NC_CASTCALL4C(N, T0, P0, T1, P1)						\
+	BSCM2_NC_CASTCALL4B(((N)*6)+0, s32, i, T0, P0, T1, P1)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+1, s64, l, T0, P0, T1, P1)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+2, f32, f, T0, P0, T1, P1)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+3, f64, d, T0, P0, T1, P1)			\
 	BSCM2_NC_CASTCALL4B(((N)*6)+4, dtVal, a, T0, P0, T1, P1)		\
 	BSCM2_NC_CASTCALL4B(((N)*6)+5, void*, p, T0, P0, T1, P1)
 
-#define BSCM2_NC_CASTCALL4D(N, T0, P0)				\
-	BSCM2_NC_CASTCALL4C(((N)*6)+0, s32, i, T0, P0)		\
-	BSCM2_NC_CASTCALL4C(((N)*6)+1, s64, l, T0, P0)		\
-	BSCM2_NC_CASTCALL4C(((N)*6)+2, f32, f, T0, P0)		\
-	BSCM2_NC_CASTCALL4C(((N)*6)+3, f64, d, T0, P0)		\
+#define BSCM2_NC_CASTCALL4D(N, T0, P0)						\
+	BSCM2_NC_CASTCALL4C(((N)*6)+0, s32, i, T0, P0)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+1, s64, l, T0, P0)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+2, f32, f, T0, P0)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+3, f64, d, T0, P0)			\
 	BSCM2_NC_CASTCALL4C(((N)*6)+4, dtVal, a, T0, P0)		\
 	BSCM2_NC_CASTCALL4C(((N)*6)+5, void*, p, T0, P0)
+#endif
+
+#if 1
+#define BSCM2_NC_CASTCALL4B(N, T0, P0, T1, P1, T2, P2)					\
+	BSCM2_NC_CASTCALL4A(((N)*6)+0, T0, P0, T1, P1, T2, P2, s32, i)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+1, T0, P0, T1, P1, T2, P2, s64, l)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+2, T0, P0, T1, P1, T2, P2, f32, f)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+3, T0, P0, T1, P1, T2, P2, f64, d)		\
+	BSCM2_NC_CASTCALL4A(((N)*6)+4, T0, P0, T1, P1, T2, P2, dtVal, a)	\
+	BSCM2_NC_CASTCALL4A(((N)*6)+5, T0, P0, T1, P1, T2, P2, void*, p)
+
+#define BSCM2_NC_CASTCALL4C(N, T0, P0, T1, P1)						\
+	BSCM2_NC_CASTCALL4B(((N)*6)+0, T0, P0, T1, P1, s32, i)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+1, T0, P0, T1, P1, s64, l)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+2, T0, P0, T1, P1, f32, f)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+3, T0, P0, T1, P1, f64, d)			\
+	BSCM2_NC_CASTCALL4B(((N)*6)+4, T0, P0, T1, P1, dtVal, a)		\
+	BSCM2_NC_CASTCALL4B(((N)*6)+5, T0, P0, T1, P1, void*, p)
+
+#define BSCM2_NC_CASTCALL4D(N, T0, P0)						\
+	BSCM2_NC_CASTCALL4C(((N)*6)+0, T0, P0, s32, i)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+1, T0, P0, s64, l)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+2, T0, P0, f32, f)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+3, T0, P0, f64, d)			\
+	BSCM2_NC_CASTCALL4C(((N)*6)+4, T0, P0, dtVal, a)		\
+	BSCM2_NC_CASTCALL4C(((N)*6)+5, T0, P0, void*, p)
+#endif
+
 
 #define BSCM2_NC_CASTCALL4E(N)						\
-	BSCM2_NC_CASTCALL4D(((N)*6)+0, s32, i)		\
-	BSCM2_NC_CASTCALL4D(((N)*6)+1, s64, l)		\
-	BSCM2_NC_CASTCALL4D(((N)*6)+2, f32, f)		\
-	BSCM2_NC_CASTCALL4D(((N)*6)+3, f64, d)		\
+	BSCM2_NC_CASTCALL4D(((N)*6)+0, s32, i)			\
+	BSCM2_NC_CASTCALL4D(((N)*6)+1, s64, l)			\
+	BSCM2_NC_CASTCALL4D(((N)*6)+2, f32, f)			\
+	BSCM2_NC_CASTCALL4D(((N)*6)+3, f64, d)			\
 	BSCM2_NC_CASTCALL4D(((N)*6)+4, dtVal, a)		\
 	BSCM2_NC_CASTCALL4D(((N)*6)+5, void*, p)
 

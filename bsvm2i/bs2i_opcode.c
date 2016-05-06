@@ -388,6 +388,12 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 			break;
 		}
 		break;
+
+	case BSVM2_OP_NEWOBJ:
+		BSVM2_Interp_DecodeOpGx(cblk, op);
+		BSVM2_Interp_SetupOpUnP(cblk, op,
+			BSVM2_OPZ_ADDR, BSVM2_Op_NEWOBJ);
+		break;
 		
 	case BSVM2_OP_MVI:
 		BSVM2_Interp_SetupOpUatJx(cblk, op, BSVM2_Op_MVI);

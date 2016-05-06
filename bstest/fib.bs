@@ -10,6 +10,11 @@ package bstest {
 		double z;
 	}
 
+	public class Foo2 {
+		public int x, y;
+		public double z;
+	}
+
 	private int i, j;
 	private int[] arr;
 	private byte[256] arr2;
@@ -126,9 +131,12 @@ package bstest {
 		public static void main(string[] argv)
 		{
 			Fib tfib;
+			Foo2 fobj;
 			int i, j;
 			int t0, t1, t2;
-			
+
+			printf("%f\n", 3.14159);
+
 			t0=clock();
 //			printf("BS Fib %d\n", fib(32));
 			printf("BS Fib %d\n", fib(38));
@@ -154,6 +162,15 @@ package bstest {
 			t1=clock();
 			printf("Na SortTst Dt %d\n", t1-t0);
 
+
+			fobj=new Foo2;
+			fobj.x=3;
+			fobj.y=4;
+			fobj.z=5;
+			
+			printf("%d ", fobj.x);
+			printf("%d ", fobj.y);
+			printf("%f\n", fobj.z);
 
 //			arr=new int[64];
 //			for(i=0; i<32; i++)

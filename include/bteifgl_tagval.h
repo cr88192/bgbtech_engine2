@@ -419,7 +419,7 @@ static_inline dtVal dtvWrapDoubleF(double v)
 	return(val);
 }
 
-static_inline dtVal dtvWrapDouble(float v)
+static_inline dtVal dtvWrapDouble(double v)
 	{ return(dtvWrapDoubleF(v)); }
 
 static_inline dtVal dtvWrapLong(s64 v)

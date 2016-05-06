@@ -467,11 +467,12 @@ void BSVM2_Interp_DecodeOpFx2(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 	double f;
 	u32 vi;
 	u64 lj;
-	s64 li;
+	s64 li, li2;
 	int i, j, k, e, sg;
 
 	e=exp;
 	li=BSVM2_Interp_DecodeOpSCxL(cblk);
+	li2=li;
 
 	sg=0;
 	if(li<0)
@@ -487,6 +488,8 @@ void BSVM2_Interp_DecodeOpFx2(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 	e=e+1023;
 	lj=(li&0x000FFFFFFFFFFFFFULL)|(((u64)e)<<52)|(((u64)sg)<<63);
 	f=*(double *)(&lj);
+
+	f=((double)li2)*pow(2.0, exp);
 
 	switch(zty)
 	{

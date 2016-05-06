@@ -921,4 +921,12 @@ More Array ops:
 * E1 8F Zi Ci, STIXZLC		//Store Index Local-Const (A, C; V => )
 ** RSTIX=Reverse Store Index
 ** Basically the same as normal store index, but with ordering swapped.
-** STIXZL
+** STIXZL*=Store Index with locals.
+
+* E1 90, CVTAA2ST			//Convert Variant to String
+* E1 91, CVTST2AA			//Convert String to Variant
+** Convert between string and variant.
+** Most other types will be converted through variant.
+
+* E1 92, CATST				//Append two strings.
+* E1 93, CMPST				//Compare two strings.

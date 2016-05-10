@@ -253,19 +253,32 @@ int BS2C_TypeAddressP(BS2CC_CompileContext *ctx, int ty)
 	
 	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
 	{
+		if(ty&BS2CC_TYS_MASK)
+			return(1);
+		if(ty&BS2CC_TYI_MASK)
+			return(1);
+
 		i=ty&BS2CC_TYE_MASK;
 		if(i>=256)
 			return(1);
-		return(ty==BS2CC_TYZ_ADDRESS);
+
+		if((ty==BS2CC_TYZ_ADDRESS)||
+			(ty==BS2CC_TYZ_VARIANT)||
+			(ty==BS2CC_TYZ_STRING)||
+			(ty==BS2CC_TYZ_CSTRING))
+				return(1);
+		return(0);
 	}
 	
 	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_OVF)
 	{
-		ovf=ctx->tyovf[ty&BS2CC_TYO_MASK];
+		/* Almost Certain */
+		return(1);
 		
-		if(ovf->base>=256)
-			return(1);
-		return(ovf->base==BS2CC_TYZ_ADDRESS);
+//		ovf=ctx->tyovf[ty&BS2CC_TYO_MASK];
+//		if(ovf->base>=256)
+//			return(1);
+//		return(ovf->base==BS2CC_TYZ_ADDRESS);
 	}
 	
 	return(0);
@@ -406,6 +419,12 @@ int BS2C_TypeVoidP(BS2CC_CompileContext *ctx, int ty)
 int BS2C_TypeVariantP(BS2CC_CompileContext *ctx, int ty)
 {
 	return(ty==BS2CC_TYZ_VARIANT);
+}
+
+int BS2C_TypeStringP(BS2CC_CompileContext *ctx, int ty)
+{
+	return((ty==BS2CC_TYZ_STRING)||
+		(ty==BS2CC_TYZ_CSTRING));
 }
 
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)
@@ -620,6 +639,13 @@ int BS2C_TypeBinarySuperType(
 	if(BS2C_TypeArrayP(ctx, lty) &&
 		BS2C_TypeSmallIntP(ctx, rty) &&
 		(!strcmp(op, "+") || !strcmp(op, "-")))
+	{
+		return(lty);
+	}
+
+	if(BS2C_TypeStringP(ctx, lty) &&
+		(!strcmp(op, "+") || !strcmp(op, "-") ||
+		!strcmp(op, "&")))
 	{
 		return(lty);
 	}

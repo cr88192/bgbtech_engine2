@@ -411,6 +411,13 @@
 #define BSVM2_OP_STFXOBJC	0x0198	//Store Fixed Object (Copy)
 #define BSVM2_OP_STFXOBJD	0x0199	//Store Fixed Object (Destroy)
 
+#define BSVM2_OP_STIXZAC	0x019A	//
+#define BSVM2_OP_DSTIXZAC	0x019B	//
+
+#define BSVM2_OP_JEQNULL	0x019C	//
+#define BSVM2_OP_JNENULL	0x019D	//
+#define BSVM2_OP_JEQNULLL	0x019E	//
+#define BSVM2_OP_JNENULLL	0x019F	//
 
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;

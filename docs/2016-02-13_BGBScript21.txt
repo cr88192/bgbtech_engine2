@@ -622,7 +622,12 @@ TypeName:
 * '''void'''
 * '''variant'''
 ** Dynamically typed value.
-
+* 128-bit types
+** '''int128'''
+** '''uint128'''
+** '''float128'''
+** '''vec3f'''
+** '''vec4f'''
 
 TypeExpression:
 * ''typename''

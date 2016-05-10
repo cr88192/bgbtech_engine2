@@ -1255,6 +1255,7 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr);
 //AHSRC:bsvm2c/bs2c_jcond.c
 int BS2C_CompileGetCondBool(BS2CC_CompileContext *ctx, dtVal cc);
 void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,dtVal cc, int tt, int tf);
+void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,dtVal cc, int tt, int tf);
 void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,dtVal cc, int tt);
 void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,dtVal cc, int tf);
 //AHSRC:bsvm2c/bs2c_reduce.c
@@ -1321,6 +1322,7 @@ int BS2C_TypeDoubleP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeSizedArrayP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVoidP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVariantP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeStringP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeRefType(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeGetArraySize(BS2CC_CompileContext *ctx, int ty);

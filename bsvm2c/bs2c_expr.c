@@ -37,6 +37,35 @@ void BS2C_CompileConvType(BS2CC_CompileContext *ctx, int dty)
 
 		return;
 	}
+
+	if((dty==BS2CC_TYZ_STRING) || (dty==BS2CC_TYZ_CSTRING))
+	{
+		ctx->frm->stack_bty[i]=dty;
+
+		if(sty==BS2CC_TYZ_VARIANT)
+			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+
+		if(sty==BSVM2_OPZ_INT)
+		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTI2AA);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+		if(sty==BSVM2_OPZ_LONG)
+		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTL2AA);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+		if(sty==BSVM2_OPZ_FLOAT)
+		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTF2AA);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+		if(sty==BSVM2_OPZ_DOUBLE)
+		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTD2AA);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+
+		if(BS2C_TypeSmallIntP(ctx, sty))
+		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTI2AA);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+		if(BS2C_TypeSmallLongP(ctx, sty))
+		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTL2AA);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+
+	}
 	
 	if(dty==BSVM2_OPZ_INT)
 	{
@@ -1739,13 +1768,66 @@ void BS2C_CompileExprBinary(BS2CC_CompileContext *ctx,
 			{
 				BS2C_CompileExpr(ctx, ln, lt);
 				BS2C_CompileExpr(ctx, rn, BS2CC_TYZ_INT);
+
+				if(!strcmp(op, "-"))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_NEGI);
+
 				BS2C_EmitOpcode(ctx, o);
-				BS2C_EmitOpcodeSCx(ctx, li);
+//				BS2C_EmitOpcodeSCx(ctx, li);
 
 				BS2C_CompileExprPopType1(ctx);
 				return;
 			}
 		}
+	}
+
+	if(BS2C_TypeStringP(ctx, lt) &&
+		(!strcmp(op, "+") || !strcmp(op, "-")))
+	{
+		if(BS2C_TypeStringP(ctx, rt) && !strcmp(op, "+"))
+		{
+			BS2C_CompileExpr(ctx, ln, lt);
+			BS2C_CompileExpr(ctx, rn, lt);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CATST);
+			BS2C_CompileExprPopType1(ctx);
+			return;
+		}
+
+		if(dtvIsFixIntP(rn) || dtvIsFixUIntP(rn))
+		{
+			li=dtvUnwrapLong(rn);
+			if(!strcmp(op, "-"))
+				li=-li;
+			BS2C_CompileExpr(ctx, ln, lt);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LEASTC);
+			BS2C_EmitOpcodeSCx(ctx, li);
+			return;
+		}
+
+		if(BS2C_TypeSmallIntP(ctx, rt))
+		{
+			BS2C_CompileExpr(ctx, ln, lt);
+			BS2C_CompileExpr(ctx, rn, BS2CC_TYZ_INT);
+
+			if(!strcmp(op, "-"))
+				BS2C_EmitOpcode(ctx, BSVM2_OP_NEGI);
+
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LEAST);
+//			BS2C_EmitOpcodeSCx(ctx, li);
+
+			BS2C_CompileExprPopType1(ctx);
+			return;
+		}
+	}
+
+	if(BS2C_TypeStringP(ctx, lt) && !strcmp(op, "&"))
+	{
+		BS2C_CompileExpr(ctx, ln, lt);
+		BS2C_CompileExpr(ctx, rn, rt);
+		BS2C_CompileConvType(ctx, lt);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_CATST);
+		BS2C_CompileExprPopType1(ctx);
+		return;
 	}
 
 	if(BS2C_TypeSmallIntP(ctx, dty))

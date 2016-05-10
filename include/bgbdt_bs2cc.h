@@ -137,6 +137,15 @@
 #define BS2CC_TYZ_UNLONG	0x0017
 #define BS2CC_TYZ_BOOL		0x0018
 
+#define BS2CC_TYZ_INT128	0x0020
+#define BS2CC_TYZ_UINT128	0x0021
+#define BS2CC_TYZ_FLOAT128	0x0022
+
+#define BS2CC_TYZ_VEC2F		0x0024
+#define BS2CC_TYZ_VEC3F		0x0025
+#define BS2CC_TYZ_VEC4F		0x0026
+#define BS2CC_TYZ_VEC2D		0x0027
+
 
 //#define BS2CC_IMG_TWOCC(a, b)			(((b)<<8)|(a))
 //#define BS2CC_IMG_FOURCC(a, b, c, d)	(((d)<<24)|((c)<<16)|((b)<<8)|(a))

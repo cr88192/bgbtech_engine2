@@ -2,13 +2,15 @@
 64-bit tag value, consisting of a low and high part.
 
 High 4 bits:
-  0  : Pointer
+  0  : Object Pointer
   1  : Reduced tag space
   2-3: Resv
   4-7: Fixlong
   8-B: Flonum
   C  : TagArray
-  D-F: Resv
+  D  : Vec2f
+  E  : TT Pointer (48 bit)
+  F  : Raw Pointer (60 bit)
   
   Reduced Tag Space:
   10-17: 56-bit spaces
@@ -28,6 +30,12 @@ RotLong
 Stores a long value, where 48 bits are represented directly.
 The fill bits are repeated to create a fill pattern for the remaining 16 bits.
 The value is then rotated left N bits to get the desired value.
+
+Vec2f
+   0-29: X
+  30-59: Y
+Consists of a pair of floating-point values (X and Y).
+These are stored at 30 bits each.
 
 */
 
@@ -903,4 +911,32 @@ static_inline void *dtvUnwrapPtr(dtVal val)
 	if((val.hi>>28)==BGBDT_HTAG_TAGARR)
 		return(dtvArrayGetIndexAddr(val, 0));
 	return(NULL);
+}
+
+
+static_inline bool dtvIsVec2fP(dtVal val)
+	{ return((val.hi>>28)==0xD); }
+
+static_inline dtVal dtvWrapVec2f(float x, float y)
+{
+	dtVal c;
+	u32 ix, iy;
+	ix=*(u32 *)(&x);
+	iy=*(u32 *)(&y);
+	ix=(ix+2)>>2;
+	iy=(iy+2)>>2;
+	c.vi=ix|(((u64)iy)<<30)|0xD000000000000000ULL;
+	return(c);
+}
+
+static_inline dtVal dtvWrapVec2fv(float *fv)
+	{ return(dtvWrapVec2f(fv[0], fv[1])); }
+
+static_inline void dtvUnwrapVec2fv(dtVal v, float *fv)
+{
+	u32 ix, iy;
+	ix=v.lo<<2;
+	iy=v.vi>>28;
+	fv[0]=*(float *)(&ix);
+	fv[1]=*(float *)(&iy);
 }

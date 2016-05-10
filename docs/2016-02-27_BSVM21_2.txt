@@ -956,3 +956,11 @@ More Array ops:
 
 * E1 98 Ix Gx, STFXOBJC				//Store Fixed Object (Copy)
 * E1 99 Ix Gx, STFXOBJD				//Store Fixed Object (Destroy)
+
+* E1 9A Zn, STIXZAC					//CVTZ2AA+STIXAC
+* E1 9B Zn, DSTIXZAC				//DUPA+CVTZ2AA+STIXAC
+
+* E1 9C Ax, JEQNULL					//Jump If Null
+* E1 9D Ax, JNENULL					//Jump If Not Null
+* E1 9E Ix Ax, JEQNULLL				//Jump If Null (Local)
+* E1 9F Ix Ax, JNENULLL				//Jump If Not Null (Local)

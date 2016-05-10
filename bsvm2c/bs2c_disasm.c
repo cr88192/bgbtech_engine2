@@ -323,6 +323,23 @@ char *name;
 {"E15E",      "STDRB"},
 {"E15F",      "STDRS"},
 
+{"E160",      "MKX4I"},
+{"E161",      "MKX2L"},
+{"E162",      "MKX4F"},
+{"E163",      "MKX2D"},
+{"E164",      "DUPX"},
+{"E165",      "POPX"},
+{"E166Ix",    "LDXL"},
+{"E167Ix",    "STXL"},
+{"E168Ix",    "IFXX"},
+{"E169Ix",    "DFXX"},
+{"E16AIx",    "IFXXA"},
+{"E16BZn",    "LDXX"},
+{"E16CZn",    "DLDXX"},
+{"E16DZn",    "STXX"},
+{"E16EZo",    "BINOPX"},
+{"E16FZo",    "UNOPX"},
+
 {"E17EZiIx",  "LDIXZLL"},
 {"E17FZiCi",  "LDIXZLC"},
 
@@ -353,6 +370,12 @@ char *name;
 {"E197Zn",    "MATHBFN"},
 {"E198IxGx",  "STFXOBJC"},
 {"E199IxGx",  "STFXOBJD"},
+{"E19AZn",    "STIXZAC"},
+{"E19BZn",    "DSTIXZAC"},
+{"E19CAx",    "JEQNULL"},
+{"E19DAx",    "JNENULL"},
+{"E19CIxAx",  "JEQNULLL"},
+{"E19DIxAx",  "JNENULLL"},
 
 {NULL,        NULL}
 };

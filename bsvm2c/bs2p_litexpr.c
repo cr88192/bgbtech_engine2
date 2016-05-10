@@ -300,6 +300,9 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 //				n2=BS2P_ParseFunVars(ctx);
 				n2=BS2P_ParseExprList(ctx);
 				BS2P_ParseExpectToken(ctx, "X)");
+
+				if(!dtvTrueP(n2))
+					n2=DTV_EMPTYLIST;
 			}else
 			{
 				n2=DTV_NULL;

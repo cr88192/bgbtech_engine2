@@ -129,10 +129,12 @@ int ns;			//num fields
 int idsz;		//object instance data size
 };
 
-#define DTV_NULL		DTV_MagicConst(0)
+// #define DTV_NULL		DTV_MagicConst(0)
+#define DTV_NULL		DTV_MagicNull()
 #define DTV_UNDEFINED	DTV_MagicConst(1)
 #define DTV_FALSE		DTV_MagicConst(2)
 #define DTV_TRUE		DTV_MagicConst(3)
+#define DTV_EMPTYLIST	DTV_MagicConst(4)
 
 BTEIFGL_API void *BGBDT_MM_GetPtrForObjId(int objid);
 BTEIFGL_API int BGBDT_MM_GetObjIdForPtr(void *ptr);
@@ -148,6 +150,16 @@ static_inline dtVal DTV_MagicConst(int id)
 	
 	val.hi=BGBDT_TAG_MCONST;
 	val.lo=id;
+	return(val);
+}
+
+static_inline dtVal DTV_MagicNull(void)
+{
+	dtVal val;
+	
+//	val.hi=BGBDT_TAG_MCONST;
+//	val.lo=id;
+	val.vi=0;
 	return(val);
 }
 

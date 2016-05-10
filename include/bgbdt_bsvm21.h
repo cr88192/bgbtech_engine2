@@ -399,6 +399,18 @@
 #define BSVM2_OP_RSTIXSC	0x018E	//Store Index Short ( I; V A => )
 #define BSVM2_OP_STIXZLC	0x018F	//Store Index Z-LC ( A, C; V => )
 
+#define BSVM2_OP_CVTAA2ST	0x0190	//
+#define BSVM2_OP_CVTST2AA	0x0191	//
+#define BSVM2_OP_CATST		0x0192	//
+#define BSVM2_OP_CMPST		0x0193	//
+#define BSVM2_OP_CMPSST		0x0194	//
+#define BSVM2_OP_CMPUST		0x0195	//
+#define BSVM2_OP_MATHUFN	0x0196	//
+#define BSVM2_OP_MATHBFN	0x0197	//
+
+#define BSVM2_OP_STFXOBJC	0x0198	//Store Fixed Object (Copy)
+#define BSVM2_OP_STFXOBJD	0x0199	//Store Fixed Object (Destroy)
+
 
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
@@ -464,6 +476,7 @@ BSVM2_Frame *rnext;		//return frame
 BSVM2_Trace *rtrace;	//return trace
 int rcsrv;				//return call save return value
 int tstkpos;			//tstackpos
+dtVal self;				//essentially, the 'this' value.
 };
 
 struct BSVM2_Context_s {
@@ -512,6 +525,9 @@ short nifgix;
 // int sugix;			//superclass GIX
 int giobj;				//GIX of owner or superclass
 u32 tag;
+
+s64 nameh;
+s64 qnameh;
 
 BSVM2_Trace *ctrace;	//call trace
 byte brty;				//base return type (functions)

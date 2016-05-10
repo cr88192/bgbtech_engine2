@@ -198,8 +198,9 @@
 
 #define BS2CC_I1CC_PACKAGE	'P'
 #define BS2CC_I1CC_QNAME	'Q'
-
+#define BS2CC_I1CC_QNAMEH	'R'
 #define BS2CC_I1CC_SIG		'S'
+#define BS2CC_I1CC_NAMEH	'T'
 
 #define BS2CC_ILEN_SVLI		-2
 

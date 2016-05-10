@@ -211,6 +211,45 @@ void BGBDTC_SlotI_SetD_DeA(dtcObject obj, dtcField fi, f64 v)
 	{ fi->SetA(obj, fi, dtvWrapDouble(v)); }
 
 
+dtVal BGBDTC_SlotI_GetA_ClsA(dtcObject obj, dtcField fi)
+{
+	BGBDTC_ClassInfo *ci;
+	ci=*(BGBDTC_ClassInfo **)obj;
+	return(*(dtVal *)(ci->cldata+fi->offs));
+}
+
+void BGBDTC_SlotI_SetA_ClsA(dtcObject obj, dtcField fi, dtVal v)
+{
+	BGBDTC_ClassInfo *ci;
+	ci=*(BGBDTC_ClassInfo **)obj;
+	*(dtVal *)(ci->cldata+fi->offs)=v;
+}
+
+dtVal BGBDTC_SlotI_GetA_StrA(dtcObject obj, dtcField fi)
+	{ return(fi->init); }
+void BGBDTC_SlotI_SetA_StrA(dtcObject obj, dtcField fi, dtVal v)
+	{ fi->init=v; }
+
+dtVal BGBDTC_SlotI_GetA_IfaceA(dtcObject obj, dtcField fi)
+{
+	BGBDTC_ClassInfo *ci;
+	BGBDTC_SlotInfo *vi, *vi2;
+
+	ci=*(BGBDTC_ClassInfo **)obj;
+	vi=fi;
+	vi2=BGBDTC_LookupClassMatchSlot(ci, vi);
+	if(!vi2)
+		return(DTV_UNDEFINED);
+	return(*(dtVal *)(ci->cldata+vi2->offs));
+//	return(fi->init);
+}
+
+void BGBDTC_SlotI_SetA_IfaceA(dtcObject obj, dtcField fi, dtVal v)
+{
+//	fi->init=v;
+}
+
+
 int BGBDTC_SlotSetupVtGetSet(
 	BGBDTC_ClassInfo *cls,
 	BGBDTC_SlotInfo *vi)
@@ -409,8 +448,9 @@ int BGBDTC_SlotSetupVtGetSet(
 int BGBDTC_FinishLayoutClass(
 	BGBDTC_ClassInfo *cls)
 {
-	BGBDTC_SlotInfo *vi;
+	BGBDTC_SlotInfo *vi, *vi2;
 	int osz, oal, sz, al;
+	int clsz;
 	int i, j, k;
 
 	if(!cls)
@@ -424,30 +464,94 @@ int BGBDTC_FinishLayoutClass(
 		BGBDTC_FinishLayoutClass(cls->super);
 		osz=cls->super->szdata;
 		oal=cls->super->aldata;
+		clsz=cls->super->szcldata;
 	}else
 	{
-		osz=sizeof(void *); oal=osz;
+		if(cls->clsty==BGBDTC_CTY_STRUCT)
+		{
+			osz=0; oal=1;
+			clsz=0;
+		}else
+		{
+			osz=sizeof(void *); oal=osz;
+			clsz=0;
+		}
 	}
 	
 	for(i=0; i<cls->nslots; i++)
 	{
 		vi=cls->slots[i];
-		BGBDTC_GetSigSizeAlign(vi->sig, &sz, &al);
-		if(sz<0)continue;
 		
-		osz=(osz+(al-1))&(~(al-1));
-		vi->offs=osz;
+		if(vi->slotty==BGBDTC_STY_FIELD)
+		{
+			BGBDTC_GetSigSizeAlign(vi->sig, &sz, &al);
+			if(sz<0)continue;
+
+			osz=(osz+(al-1))&(~(al-1));
+			vi->offs=osz;
 		
-		osz=osz+sz;
-		if(al>oal)oal=al;
+			osz=osz+sz;
+			if(al>oal)oal=al;
 		
-		BGBDTC_SlotSetupVtGetSet(cls, vi);
+			BGBDTC_SlotSetupVtGetSet(cls, vi);
+		}
+
+		if(vi->slotty==BGBDTC_STY_METHOD)
+		{
+			vi2=BGBDTC_LookupClassMatchSlot(cls->super, vi);
+
+			if(vi2)
+			{
+				vi->offs=vi2->offs;
+			}else
+			{
+				sz=8;	al=8;
+				clsz=(clsz+(al-1))&(~(al-1));
+				vi->offs=clsz;
+				clsz=clsz+sz;
+			}
+			
+			if(cls->clsty==BGBDTC_CTY_STRUCT)
+			{
+				vi->GetA=BGBDTC_SlotI_GetA_StrA;
+				vi->SetA=BGBDTC_SlotI_SetA_StrA;
+			}else if(cls->clsty==BGBDTC_CTY_CLASS)
+			{
+				vi->GetA=BGBDTC_SlotI_GetA_ClsA;
+				vi->SetA=BGBDTC_SlotI_SetA_ClsA;
+			}else if(cls->clsty==BGBDTC_CTY_IFACE)
+			{
+				vi->GetA=BGBDTC_SlotI_GetA_IfaceA;
+				vi->SetA=BGBDTC_SlotI_SetA_IfaceA;
+			}else
+			{
+			}
+		}
 	}
 
 	osz=(osz+(oal-1))&(~(oal-1));
 	cls->szdata=osz;
 	cls->aldata=oal;
 	cls->clean=1;
+	cls->szcldata=clsz;
+	
+	if(!cls->cldata)
+	{
+		cls->cldata=dtmAlloc("bgbdtc_classdata_t", cls->szcldata);
+		if(cls->super && cls->super->cldata)
+		{
+			memcpy(cls->cldata, cls->super->cldata,
+				cls->super->szcldata);
+		}
+
+		for(i=0; i<cls->nslots; i++)
+		{
+			vi=cls->slots[i];
+			if(vi->slotty==BGBDTC_STY_METHOD)
+				{ *(dtVal *)(cls->cldata+vi->offs)=vi->init; }
+		}
+	}
+	
 	return(1);
 }
 
@@ -560,6 +664,64 @@ BGBDTC_SlotInfo *BGBDTC_GetClassSlotName(
 	vi=BGBDTC_GetClassSlotIndex(cls, cls->nslots);
 	vi->name=BGBDT_TagStr_StrSymbol(name);
 	return(vi);
+}
+
+BGBDTC_SlotInfo *BGBDTC_LookupClassSlotNameSig(
+	BGBDTC_ClassInfo *cls, char *name, char *sig)
+{
+	BGBDTC_SlotInfo *vi;
+	int i;
+
+	for(i=0; i<cls->nslots; i++)
+	{
+		vi=cls->slots[i];
+		if((name && vi->name && !strcmp(vi->name, name)) ||
+			(!name && !vi->name))
+		{
+			if((sig && vi->sig && !strcmp(vi->sig, sig)) ||
+				(!sig && !vi->sig))
+			{
+				return(vi);
+			}
+		}
+	}
+	return(NULL);
+}
+
+BGBDTC_SlotInfo *BGBDTC_LookupClassMatchSlot(
+	BGBDTC_ClassInfo *cls, BGBDTC_SlotInfo *svi)
+{
+	BGBDTC_SlotInfo *vi;
+	int i;
+
+	if(!cls || !svi)
+		return(NULL);
+
+	for(i=0; i<cls->nslots; i++)
+	{
+		vi=cls->slots[i];
+		
+		if(vi==svi)
+			return(vi);
+		
+		if((svi->name && vi->name && !strcmp(vi->name, svi->name)) ||
+			(svi->nameh==vi->nameh))
+		{
+			if((svi->sig && vi->sig && !strcmp(vi->sig, svi->sig)) ||
+				(!svi->sig && !vi->sig))
+			{
+				return(vi);
+			}
+		}
+	}
+	
+	if(cls->super)
+	{
+		vi=BGBDTC_LookupClassMatchSlot(cls->super, svi);
+		return(vi);
+	}
+	
+	return(NULL);
 }
 
 dtcObject BGBDTC_AllocClassInstance(

@@ -1,5 +1,26 @@
 #include <bteifgl.h>
 
+char *bs2p_decl_nontypekeyword[]={
+"as",		"break",	"case",		"catch",
+"class",	"continue",	"default",	"delete",
+"do",		"finally",	"for",		"function",
+"goto",		"if",		"import",	"is",
+"new",		"package",	"return",	"sizeof",
+"struct",	"switch",	"throw",	"try",
+"var",		"while",
+NULL};
+
+int BS2P_DeclTypeRejectKeyword(BS2CC_CompileContext *ctx, char *str)
+{
+	int i;
+	
+	for(i=0; bs2p_decl_nontypekeyword[i]; i++)
+		if(!strcmp(bs2p_decl_nontypekeyword[i], str))
+			return(i+1);
+	
+	return(0);
+}
+
 dtVal BS2P_ParseModifierList(BS2CC_CompileContext *ctx)
 {
 	struct {
@@ -171,6 +192,13 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 		break;
 	}
 
+	if(t0 && (*t0=='I') &&
+		BS2P_DeclTypeRejectKeyword(ctx, t0+1))
+	{
+		BS2P_SetCurPosition(ctx, i0);
+		return(DTV_NULL);
+	}
+
 	if(t0 && (*t0=='I'))
 	{
 		t2=tb;
@@ -269,6 +297,9 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 	t0=BS2P_PeekToken(ctx, 0);
 
 	if(!t0 || (*t0!='I'))
+		return(DTV_NULL);
+	
+	if(BS2P_DeclTypeRejectKeyword(ctx, t0+1))
 		return(DTV_NULL);
 	
 	nvars=0;

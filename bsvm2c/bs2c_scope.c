@@ -290,7 +290,7 @@ BS2CC_VarInfo *BS2C_LookupObjectFuncNameArgs(
 			continue;
 		for(j=0; j<na; j++)
 		{
-			if(!BS2C_TypeCompatibleP(ctx, vi->args[i]->bty, aty[i]))
+			if(!BS2C_TypeCompatibleP(ctx, vi->args[j]->bty, aty[j]))
 				break;
 		}
 		if(j<na)
@@ -305,7 +305,7 @@ BS2CC_VarInfo *BS2C_LookupObjectFuncNameArgs(
 int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 {
 	BS2CC_VarInfo *vari;
-	int bty, z;
+	int bty, bty2, z;
 	int i, j, k;
 	
 	i=BS2C_LookupLocal(ctx, name);
@@ -319,6 +319,15 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 		if(BS2C_TypeVarRefP(ctx, bty))
 		{
 			return(BS2C_CompileLoadDerefName(ctx, name));
+		}
+		
+		if(BS2C_TypeFixedStructP(ctx, bty))
+		{
+			bty2=BS2C_TypeRefType(ctx, bty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDA);
+			BS2C_EmitOpcodeIdx(ctx, i);
+			BS2C_CompileExprPushType(ctx, bty2);
+			return(0);
 		}
 		
 		switch(z)
@@ -417,8 +426,8 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 
 int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 {
-	BS2CC_VarInfo *vari;
-	int bty, z;
+	BS2CC_VarInfo *vari, *vi;
+	int bty, bty2, z;
 	int i, j, k;
 	
 	i=BS2C_LookupLocal(ctx, name);
@@ -432,6 +441,29 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 		if(BS2C_TypeVarRefP(ctx, bty))
 		{
 			return(BS2C_CompileStoreDerefName(ctx, name));
+		}
+
+		if(BS2C_TypeFixedStructP(ctx, bty))
+		{
+			vi=BS2C_GetTypeObject(ctx, bty);
+			j=BS2C_IndexFrameGlobal(ctx, vi->gid);
+
+			bty2=BS2C_CompileExprPeekType(ctx);
+
+			if(BS2C_TypeVarRefP(ctx, bty2))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_STFXOBJC);
+				BS2C_EmitOpcodeIdx(ctx, i);
+				BS2C_EmitOpcodeIdx(ctx, j);
+				BS2C_CompileExprPopType1(ctx);
+				return(0);
+			}
+
+			BS2C_EmitOpcode(ctx, BSVM2_OP_STFXOBJD);
+			BS2C_EmitOpcodeIdx(ctx, i);
+			BS2C_EmitOpcodeIdx(ctx, j);
+			BS2C_CompileExprPopType1(ctx);
+			return(0);
 		}
 
 		switch(z)

@@ -88,3 +88,6 @@ void BSVM2_Op_STGSD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 void BSVM2_Op_STGSA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	BSVM2_ImageGlobal *vi;	vi=op->v.p;
 	vi->gvalue->a=frm->stack[op->t0].a;		}
+
+void BSVM2_Op_LDCTH(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].a=frm->self; }

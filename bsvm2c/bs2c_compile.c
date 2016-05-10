@@ -114,10 +114,130 @@ void BS2C_ErrStackUnderflow(BS2CC_CompileContext *ctx)
 	BS2C_CompileError(ctx, BS2CC_ERRN_ERRSTACKUFLOW);
 }
 
+BS2CC_VarInfo *BS2C_AllocVarInfo(BS2CC_CompileContext *ctx)
+{
+	BS2CC_VarInfo *tmp;
+	
+	tmp=dtmAlloc("bs2cc_varinfo_t",
+		sizeof(BS2CC_VarInfo));
+	return(tmp);
+}
+
+BS2CC_CcFrame *BS2C_AllocCcFrame(BS2CC_CompileContext *ctx)
+{
+	BS2CC_CcFrame *tmp;
+	
+	tmp=dtmAlloc("bs2cc_ccframe_t",
+		sizeof(BS2CC_CcFrame));
+	return(tmp);
+}
+
+BS2CC_PkgFrame *BS2C_AllocPkgFrame(BS2CC_CompileContext *ctx)
+{
+	BS2CC_PkgFrame *tmp;
+	
+	tmp=dtmAlloc("bs2cc_pkgframe_t",
+		sizeof(BS2CC_PkgFrame));
+	return(tmp);
+}
+
+BS2CC_PkgFrame *BS2C_LookupPkgFrame(
+	BS2CC_CompileContext *ctx, char *qname)
+{
+	BS2CC_PkgFrame *cur;
+
+	if(!qname)
+	{
+		cur=ctx->pkg_first;
+		while(cur)
+		{
+			if(!cur->qname)
+				return(cur);
+			cur=cur->next;
+		}
+		return(NULL);
+	}
+
+	cur=ctx->pkg_first;
+	while(cur)
+	{
+		if(!cur->qname)
+		{
+			cur=cur->next;
+			continue;
+		}
+		if(!strcmp(cur->qname, qname))
+			return(cur);
+		cur=cur->next;
+	}
+	return(NULL);
+}
+
+BS2CC_PkgFrame *BS2C_GetPkgFrame(
+	BS2CC_CompileContext *ctx, char *qname)
+{
+	BS2CC_PkgFrame *pkg;
+	BS2CC_VarInfo *vi;
+	int i;
+	
+	pkg=BS2C_LookupPkgFrame(ctx, qname);
+	if(pkg)
+		return(pkg);
+
+	pkg=BS2C_AllocPkgFrame(ctx);
+	pkg->qname=BS2P_StrSym(ctx, qname);
+
+	vi=BS2C_AllocVarInfo(ctx);
+	i=ctx->nglobals++;
+	ctx->globals[i]=vi;
+	vi->gid=i;
+	vi->vitype=BS2CC_VITYPE_PACKAGE;
+	vi->pkg=pkg;
+	vi->qname=pkg->qname;
+
+	pkg->gid=i;
+	pkg->next=ctx->pkg_first;
+	ctx->pkg_first=pkg;
+	return(pkg);
+}
+
+BS2CC_PkgFrame *BS2C_EnterPkgFrame(
+	BS2CC_CompileContext *ctx, char *name)
+{
+	char tb[256];
+	BS2CC_PkgFrame *pkg;
+	int i;
+	
+	if(ctx->pkg && ctx->pkg->qname)
+	{
+		sprintf(tb, "%s/%s", ctx->pkg->qname, name);
+		pkg=BS2C_GetPkgFrame(ctx, tb);
+	}else
+	{
+		pkg=BS2C_GetPkgFrame(ctx, name);
+	}
+	
+	i=ctx->pkgstkpos++;
+	ctx->pkgstk[i]=ctx->pkg;
+	ctx->pkg=pkg;
+	return(pkg);
+}
+
+void BS2C_ExitPkgFrame(
+	BS2CC_CompileContext *ctx)
+{
+	int i;
+
+	i=--ctx->pkgstkpos;
+	ctx->pkg=ctx->pkgstk[i];
+}
+
 void BS2C_CompileFuncBodyCleanupVar(
 	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, int ix)
 {
+	BS2CC_VarInfo *vi2;
 	int bty, sz, z;
+	int i;
 
 	bty=vi->bty;
 
@@ -137,6 +257,17 @@ void BS2C_CompileFuncBodyCleanupVar(
 		if(ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 
+		return;
+	}
+
+	if(BS2C_TypeFixedStructP(ctx, bty))
+	{
+		vi2=BS2C_GetTypeObject(ctx, bty);
+		i=BS2C_IndexFrameGlobal(ctx, vi2->gid);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_DFXOBJ);
+		BS2C_EmitOpcodeUCx(ctx, ix);
+		BS2C_EmitOpcodeUCx(ctx, i);
 		return;
 	}
 }

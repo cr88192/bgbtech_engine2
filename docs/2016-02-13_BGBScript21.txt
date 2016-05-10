@@ -437,7 +437,7 @@ ExpressionLiteral:
 * '''function''' ( ''name'' ) '''(''' ''argslist '' ''')''' ( ''':''' ''type'' ) ''body''
 ** Closure
 * '''new''' ''typeexpression'' ( '''(''' ''argslist'' ''')''' )
-* '''delete''' ''expression''
+* '''delete''' ''exprlist''
 * '''sizeof''' ''expression''
 
 OperatorPrecedence:

@@ -83,7 +83,9 @@ The handling of reference counting will be explicit in the bytecode.
 Copying between arrays or objects will require both to be the same type and size.
 
 
-Native Long will be a non-core type which will primarily effect its storage size. It will be treated as a 64-bit long type in the bytecode.
+Native Long will be a non-core type which will primarily effect its storage size. It will generally be treated as a 64-bit long type in the bytecode. The size of an native long will match the size of a native machine address.
+
+In cases where an NLong is used as a long, and is 32-bit in storage, it will be implicitly sign or zero extended to long. A native long is also to be able to be coerced to an int ('native long int').
 
 Narrower types will implicitly widen to their parent core type, with the narrower type primarily effecting storage. As a result, intermediate arithmetic results may reflect the wider type.
 
@@ -241,7 +243,9 @@ Operation Type (Z)
 *	9, UShort
 *	A, ULong
 *	B, Special Value, or Void
-*	C-F, Resv
+*	C, NLong
+*	D, UNLong
+*	E/F, Resv
 
 X128 Operation Type (Z)
 *  0, Int (4I)
@@ -552,6 +556,9 @@ Instructions
 * 73 Gx Ix, CALLL		//Call Local Function Reference
 
 ** These call operations use fixed argument lists. The argument list comes from the signature of the referenced global. This is either a function or a function prototype.
+
+** The object or reference is pushed first, followed by args.
+** Function arguments are pushed in left-to-right order.
 
 * 74, RETI				//Return Int
 * 75, RETL				//Return Long
@@ -930,3 +937,22 @@ More Array ops:
 
 * E1 92, CATST				//Append two strings.
 * E1 93, CMPST				//Compare two strings.
+** Strings are compared exactly (by byte or character value).
+** Results are undefined if comparing strings of different types.
+
+* E1 94, CMPSST				//Compare two strings (case sensitive).
+* E1 95, CMPUST				//Compare two strings (case insensitive).
+** Strings are compared in terms of codepoint values.
+** Case insensitive comparisons will map lower-case code-points to their upper-case equivalents.
+** No mapping will be performed if the codepoint lacks a direct upper-case equivalent, or if case is not applicable.
+
+* E1 96 Zn, MATHUFN
+** Math Unary Function
+** 0=Sin, 1=Cos, 2=Tan, 3=Sqrt, ...
+
+* E1 97 Zn, MATHBFN
+** Math Binary Function
+** 0=Atan2
+
+* E1 98 Ix Gx, STFXOBJC				//Store Fixed Object (Copy)
+* E1 99 Ix Gx, STFXOBJD				//Store Fixed Object (Destroy)

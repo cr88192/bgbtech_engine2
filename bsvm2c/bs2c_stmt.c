@@ -19,7 +19,7 @@ void BS2C_CompileStmtVarInit(
 
 void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 {
-	BS2CC_VarInfo *vi;
+	BS2CC_VarInfo *vi, *vi2;
 	dtVal nn, nt, ni;
 	char *name;
 	int bty, ix, sz, z;
@@ -55,6 +55,27 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 		if(ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 
+		return;
+	}
+	
+	if(BS2C_TypeFixedStructP(ctx, bty))
+	{
+		vi2=BS2C_GetTypeObject(ctx, bty);
+		i=BS2C_IndexFrameGlobal(ctx, vi2->gid);
+
+		BS2C_EmitOpcode(ctx, BSVM2_OP_IFXOBJ);
+		BS2C_EmitOpcodeUCx(ctx, ix);
+		BS2C_EmitOpcodeUCx(ctx, i);
+
+		if(dtvTrueP(ni))
+		{
+			BS2C_CompileExpr(ctx, ni, bty);
+			BS2C_CompileStoreName(ctx, name);
+			return;
+		}
+
+		if(ctx->frm->jcleanup<=0)
+			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 		return;
 	}
 
@@ -332,7 +353,7 @@ void BS2C_CompileStmtSwitch(BS2CC_CompileContext *ctx, dtVal expr)
 void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 {
 	dtVal n0, n1, n2, n3;
-	dtVal cc, nt, nf, ni, ns;
+	dtVal cc, nt, nf, ni, ns, na;
 	s64 li, lj, lk;
 	int cty, ln;
 	char *tag, *fn;
@@ -559,6 +580,35 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		return;
 	}
 
+	if(!strcmp(tag, "delete"))
+	{
+		na=BS2P_GetAstNodeAttr(expr, "value");
+//		nt=BS2C_ReduceExpr(ctx, nt);
+		if(dtvIsArrayP(na))
+		{
+			l=dtvArrayGetSize(na);
+			for(i=0; i<l; i++)
+			{
+				nt=dtvArrayGetIndexDtVal(na, i);
+				nt=BS2C_ReduceExpr(ctx, nt);
+				t0=BS2C_InferExpr(ctx, nt);
+				BS2C_CompileExpr(ctx, nt, t0);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_DELETE);
+				BS2C_CompileExprPopType1(ctx);
+			}
+			return;
+		}else
+		{
+			nt=BS2C_ReduceExpr(ctx, na);
+			t0=BS2C_InferExpr(ctx, nt);
+			BS2C_CompileExpr(ctx, nt, t0);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_DELETE);
+			BS2C_CompileExprPopType1(ctx);
+			return;
+		}
+	}
+
+
 	if(!strcmp(tag, "return"))
 	{
 		nt=BS2P_GetAstNodeAttr(expr, "value");
@@ -750,202 +800,6 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	BS2C_CompileExpr(ctx, expr, BSVM2_OPZ_VOID);
 }
 
-BS2CC_VarInfo *BS2C_AllocVarInfo(BS2CC_CompileContext *ctx)
-{
-	BS2CC_VarInfo *tmp;
-	
-	tmp=dtmAlloc("bs2cc_varinfo_t",
-		sizeof(BS2CC_VarInfo));
-	return(tmp);
-}
-
-BS2CC_CcFrame *BS2C_AllocCcFrame(BS2CC_CompileContext *ctx)
-{
-	BS2CC_CcFrame *tmp;
-	
-	tmp=dtmAlloc("bs2cc_ccframe_t",
-		sizeof(BS2CC_CcFrame));
-	return(tmp);
-}
-
-BS2CC_PkgFrame *BS2C_AllocPkgFrame(BS2CC_CompileContext *ctx)
-{
-	BS2CC_PkgFrame *tmp;
-	
-	tmp=dtmAlloc("bs2cc_pkgframe_t",
-		sizeof(BS2CC_PkgFrame));
-	return(tmp);
-}
-
-BS2CC_PkgFrame *BS2C_LookupPkgFrame(
-	BS2CC_CompileContext *ctx, char *qname)
-{
-	BS2CC_PkgFrame *cur;
-
-	if(!qname)
-	{
-		cur=ctx->pkg_first;
-		while(cur)
-		{
-			if(!cur->qname)
-				return(cur);
-			cur=cur->next;
-		}
-		return(NULL);
-	}
-
-	cur=ctx->pkg_first;
-	while(cur)
-	{
-		if(!cur->qname)
-		{
-			cur=cur->next;
-			continue;
-		}
-		if(!strcmp(cur->qname, qname))
-			return(cur);
-		cur=cur->next;
-	}
-	return(NULL);
-}
-
-BS2CC_PkgFrame *BS2C_GetPkgFrame(
-	BS2CC_CompileContext *ctx, char *qname)
-{
-	BS2CC_PkgFrame *pkg;
-	BS2CC_VarInfo *vi;
-	int i;
-	
-	pkg=BS2C_LookupPkgFrame(ctx, qname);
-	if(pkg)
-		return(pkg);
-
-	pkg=BS2C_AllocPkgFrame(ctx);
-	pkg->qname=BS2P_StrSym(ctx, qname);
-
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->nglobals++;
-	ctx->globals[i]=vi;
-	vi->gid=i;
-	vi->vitype=BS2CC_VITYPE_PACKAGE;
-	vi->pkg=pkg;
-	vi->qname=pkg->qname;
-
-	pkg->gid=i;
-	pkg->next=ctx->pkg_first;
-	ctx->pkg_first=pkg;
-	return(pkg);
-}
-
-BS2CC_PkgFrame *BS2C_EnterPkgFrame(
-	BS2CC_CompileContext *ctx, char *name)
-{
-	char tb[256];
-	BS2CC_PkgFrame *pkg;
-	int i;
-	
-	if(ctx->pkg && ctx->pkg->qname)
-	{
-		sprintf(tb, "%s/%s", ctx->pkg->qname, name);
-		pkg=BS2C_GetPkgFrame(ctx, tb);
-	}else
-	{
-		pkg=BS2C_GetPkgFrame(ctx, name);
-	}
-	
-	i=ctx->pkgstkpos++;
-	ctx->pkgstk[i]=ctx->pkg;
-	ctx->pkg=pkg;
-	return(pkg);
-}
-
-void BS2C_ExitPkgFrame(
-	BS2CC_CompileContext *ctx)
-{
-	int i;
-
-	i=--ctx->pkgstkpos;
-	ctx->pkg=ctx->pkgstk[i];
-}
-
-void BS2C_CompileSetupVarInfo(
-	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, dtVal expr)
-{
-	char tb[256];
-	dtVal nn, nt;
-	s64 bmfl;
-	char *name, *tag;
-	int bty;
-	int i;
-
-	tag=BS2P_GetAstNodeTag(expr);
-
-	if(!strcmp(tag, "var"))
-	{
-		name=BS2P_GetAstNodeAttrS(expr, "name");
-		bmfl=BS2P_GetAstNodeAttrI(expr, "modi");
-		nt=BS2P_GetAstNodeAttr(expr, "type");
-
-//		bty=BS2C_TypeBaseType(ctx, nt);
-		bty=BS2C_TypeExtType(ctx, nt);
-
-		vi->name=BS2P_StrSym(ctx, name);
-		vi->bty=bty;
-		vi->bmfl=bmfl;
-		vi->typeExp=nt;
-		return;
-	}
-
-	if(!strcmp(tag, "vararg"))
-	{
-		vi->name=NULL;
-		vi->bty=BS2CC_TYZ_VARARG;
-		vi->bmfl=0;
-//		vi->typeExp=nt;
-		return;
-	}
-
-	BS2C_CaseError(ctx);
-}
-
-void BS2C_CompileFunVar(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	char tb[256];
-	BS2CC_VarInfo *vi;
-	s64 bmfl;
-	int i;
-
-	bmfl=BS2P_GetAstNodeAttrI(expr, "modi");
-
-	if(bmfl&BS2CC_TYFL_STATIC)
-	{
-		vi=BS2C_AllocVarInfo(ctx);
-
-		i=ctx->nglobals++;
-		ctx->globals[i]=vi;
-		vi->gid=i;
-		vi->vitype=BS2CC_VITYPE_GBLVAR;
-
-		vi->pkg=ctx->pkg;
-		vi->obj=ctx->obj;
-
-		BS2C_CompileSetupVarInfo(ctx, vi, expr);
-
-		sprintf(tb, "%s/%s", ctx->frm->func->qname, vi->name);
-		vi->qname=BS2P_StrSym(ctx, tb);
-
-		return;
-	}
-
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->frm->nlocals++;
-	ctx->frm->locals[i]=vi;
-	vi->vitype=BS2CC_VITYPE_LCLVAR;
-	
-	BS2C_CompileSetupVarInfo(ctx, vi, expr);
-	
-}
-
 void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 {
 	dtVal n0, n1, n2, n3;
@@ -1066,6 +920,8 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		return;
 	if(!strcmp(tag, "default"))
 		return;
+	if(!strcmp(tag, "delete"))
+		return;
 	if(!strcmp(tag, "goto"))
 		return;
 	if(!strcmp(tag, "label"))
@@ -1078,513 +934,5 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	if(!strcmp(tag, "empty_block"))
 		return;
 
-	BS2C_CaseError(ctx);
-}
-
-void BS2C_CompileStructVar(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	char tb[256];
-	BS2CC_VarInfo *vi;
-	int i;
-
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->obj->nargs++;
-	ctx->obj->args[i]=vi;
-
-	i=ctx->nglobals++;
-	ctx->globals[i]=vi;
-	vi->gid=i;
-	vi->vitype=BS2CC_VITYPE_STRVAR;
-
-	vi->pkg=ctx->pkg;
-	vi->obj=ctx->obj;
-
-	BS2C_CompileSetupVarInfo(ctx, vi, expr);
-
-	if(vi->bmfl&BS2CC_TYFL_STATIC)
-		vi->vitype=BS2CC_VITYPE_GBLVAR;
-
-	if(!(vi->bmfl&BS2CC_TYFL_PPP))
-	{
-		if(vi->vitype==BS2CC_VITYPE_STRUCT)
-			{ vi->bmfl|=BS2CC_TYFL_PUBLIC; }
-		else
-			{ vi->bmfl|=BS2CC_TYFL_PROTECTED; }
-	}
-
-	sprintf(tb, "%s/%s", ctx->obj->qname, vi->name);
-	vi->qname=BS2P_StrSym(ctx, tb);
-}
-
-void BS2C_CompileStructFunc(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	char tb[256];
-	dtVal n0, n1, n2, n3;
-	dtVal nn, nt, na, nb;
-	BS2CC_VarInfo *vi;
-	BS2CC_CcFrame *frm;
-	char *name;
-	s64 bmfl;
-	int bty;
-	int i, j, k, l;
-
-	name=BS2P_GetAstNodeAttrS(expr, "name");
-	bmfl=BS2P_GetAstNodeAttrI(expr, "modi");
-	nt=BS2P_GetAstNodeAttr(expr, "type");
-	na=BS2P_GetAstNodeAttr(expr, "args");
-	nb=BS2P_GetAstNodeAttr(expr, "body");
-	
-	if(dtvTrueP(nt))
-	{
-		bty=BS2C_TypeBaseType(ctx, nt);
-	}else
-	{
-		bty=BS2CC_TYZ_VOID;
-	}
-	
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->obj->nargs++;
-	ctx->obj->args[i]=vi;
-
-	i=ctx->nglobals++;
-	ctx->globals[i]=vi;
-	vi->gid=i;
-	vi->vitype=BS2CC_VITYPE_STRFUNC;
-	if(bmfl&BS2CC_TYFL_STATIC)
-		vi->vitype=BS2CC_VITYPE_GBLFUNC;
-	
-
-	if(!(bmfl&BS2CC_TYFL_PPP))
-	{
-		if(vi->vitype==BS2CC_VITYPE_STRUCT)
-			{ bmfl|=BS2CC_TYFL_PUBLIC; }
-		else
-			{ bmfl|=BS2CC_TYFL_PROTECTED; }
-	}
-
-	vi->name=BS2P_StrSym(ctx, name);
-//	vi->bty=BSVM2_OPZ_ADDRESS;
-	vi->bty=vi->gid+256;
-	vi->rty=bty;
-	vi->typeExp=nt;
-	vi->bmfl=bmfl;
-
-	vi->pkg=ctx->pkg;
-	vi->obj=ctx->obj;
-
-	if(ctx->obj && ctx->obj->qname)
-	{
-		sprintf(tb, "%s/%s", ctx->obj->qname, name);
-		vi->qname=BS2P_StrSym(ctx, tb);
-	}else
-	{
-		vi->qname=vi->name;
-	}
-
-	if(dtvIsArrayP(na))
-	{
-		vi->nargs=0;
-		l=dtvArrayGetSize(na);
-		for(i=0; i<l; i++)
-		{
-			n0=dtvArrayGetIndexDtVal(na, i);
-			BS2C_CompileTopFuncArg(ctx, vi, n0);
-		}
-	}else if(dtvTrueP(na))
-	{
-		vi->nargs=0;
-		BS2C_CompileTopFuncArg(ctx, vi, na);
-	}else
-	{
-		vi->nargs=0;
-	} 
-	
-	vi->bodyExp=nb;
-}
-
-
-void BS2C_CompileStructVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	dtVal n0, n1, n2, n3;
-	char *tag, *fn;
-	int ln;
-	int i, j, k, l;
-
-	if(ctx->ncfatal)
-		return;
-
-	if(dtvIsArrayP(expr))
-	{
-		l=dtvArrayGetSize(expr);
-		for(i=0; i<l; i++)
-		{
-			n0=dtvArrayGetIndexDtVal(expr, i);
-			BS2C_CompileStructVarStatement(ctx, n0);
-			if(ctx->ncfatal)
-				break;
-		}
-		return;
-	}
-
-	tag=BS2P_GetAstNodeTag(expr);
-	
-	if(!tag)
-	{
-		BS2C_CaseError(ctx);
-		return;
-	}
-
-	fn=BS2P_GetAstNodeAttrS(expr, "fn");
-	ln=BS2P_GetAstNodeAttrI(expr, "ln");
-	if(fn)ctx->srcfn=fn;
-	if(ln>0)ctx->srcln=ln;
-
-	if(!strcmp(tag, "block") || !strcmp(tag, "psblock"))
-	{
-		n0=BS2P_GetAstNodeAttr(expr, "value");
-		BS2C_CompileStructVarStatement(ctx, n0);
-		return;
-	}
-
-	if(!strcmp(tag, "var"))
-	{
-		BS2C_CompileStructVar(ctx, expr);
-		return;
-	}
-	
-	if(!strcmp(tag, "vars"))
-	{
-		n0=BS2P_GetAstNodeAttr(expr, "value");
-		l=dtvArrayGetSize(n0);
-		for(i=0; i<l; i++)
-		{
-			n1=dtvArrayGetIndexDtVal(n0, i);
-			BS2C_CompileStructVar(ctx, n1);
-		}
-		return;
-	}
-
-	if(!strcmp(tag, "func"))
-	{
-		BS2C_CompileStructFunc(ctx, expr);
-		return;
-	}
-
-	BS2C_CaseError(ctx);
-}
-
-void BS2C_CompileSetupTopVarInfo(
-	BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, dtVal expr)
-{
-	char tb[256];
-	dtVal nn, nt;
-	s64 bmfl;
-	char *name;
-	int bty;
-	int i;
-
-	name=BS2P_GetAstNodeAttrS(expr, "name");
-	bmfl=BS2P_GetAstNodeAttrI(expr, "modi");
-	nt=BS2P_GetAstNodeAttr(expr, "type");
-
-	bty=BS2C_TypeBaseType(ctx, nt);
-
-	vi->name=BS2P_StrSym(ctx, name);
-	vi->bty=bty;
-	vi->bmfl=bmfl;
-	vi->typeExp=nt;
-
-	if(ctx->pkg)
-	{
-		vi->pkg=ctx->pkg;
-		vi->pknext=ctx->pkg->vars;
-		ctx->pkg->vars=vi;
-	}
-	
-	if(ctx->pkg && ctx->pkg->qname)
-	{
-		sprintf(tb, "%s/%s", ctx->pkg->qname, name);
-		vi->qname=BS2P_StrSym(ctx, tb);
-	}else
-	{
-		vi->qname=vi->name;
-	}
-}
-
-void BS2C_CompileTopVar(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	BS2CC_VarInfo *vi;
-	int i;
-
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->nglobals++;
-	ctx->globals[i]=vi;
-	vi->gid=i;
-	vi->vitype=BS2CC_VITYPE_GBLVAR;
-	
-	BS2C_CompileSetupTopVarInfo(ctx, vi, expr);
-}
-
-void BS2C_CompileTopFuncArg(BS2CC_CompileContext *ctx,
-	BS2CC_VarInfo *func, dtVal expr)
-{
-	BS2CC_VarInfo *vi;
-	int i;
-
-	vi=BS2C_AllocVarInfo(ctx);
-	i=func->nargs++;
-	func->args[i]=vi;
-
-	BS2C_CompileSetupVarInfo(ctx, vi, expr);
-}
-
-void BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	char tb[256];
-	dtVal n0, n1, n2, n3;
-	dtVal nn, nt, na, nb;
-	BS2CC_VarInfo *vi;
-	BS2CC_CcFrame *frm;
-	char *name;
-	int bty;
-	int i, j, k, l;
-
-	name=BS2P_GetAstNodeAttrS(expr, "name");
-	nt=BS2P_GetAstNodeAttr(expr, "type");
-	na=BS2P_GetAstNodeAttr(expr, "args");
-	nb=BS2P_GetAstNodeAttr(expr, "body");
-	
-	bty=BS2C_TypeBaseType(ctx, nt);
-	
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->nglobals++;
-	ctx->globals[i]=vi;
-	vi->gid=i;
-	vi->vitype=BS2CC_VITYPE_GBLFUNC;
-	
-	vi->name=BS2P_StrSym(ctx, name);
-//	vi->bty=BSVM2_OPZ_ADDRESS;
-	vi->bty=vi->gid+256;
-	vi->rty=bty;
-	vi->typeExp=nt;
-	
-	if(ctx->pkg)
-	{
-		vi->pkg=ctx->pkg;
-		vi->pknext=ctx->pkg->vars;
-		ctx->pkg->vars=vi;
-	}
-	
-	if(ctx->pkg && ctx->pkg->qname)
-	{
-		sprintf(tb, "%s/%s", ctx->pkg->qname, name);
-		vi->qname=BS2P_StrSym(ctx, tb);
-	}else
-	{
-		vi->qname=vi->name;
-	}
-
-	if(dtvIsArrayP(na))
-	{
-		vi->nargs=0;
-		l=dtvArrayGetSize(na);
-		for(i=0; i<l; i++)
-		{
-			n0=dtvArrayGetIndexDtVal(na, i);
-			BS2C_CompileTopFuncArg(ctx, vi, n0);
-		}
-	}else if(dtvTrueP(na))
-	{
-		vi->nargs=0;
-		BS2C_CompileTopFuncArg(ctx, vi, na);
-	}else
-	{
-		vi->nargs=0;
-	}
-	 	
-	vi->bodyExp=nb;
-}
-
-void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr)
-{
-	char tb[256];
-	dtVal n0, n1, n2, n3;
-	dtVal nn, nt, na, nb, ne, ni;
-	s64 bmfl;
-	BS2CC_VarInfo *vi;
-	BS2CC_CcFrame *frm;
-	char *name, *tag;
-	int bty;
-	int i, j, k, l;
-
-	name=BS2P_GetAstNodeAttrS(expr, "name");
-	bmfl=BS2P_GetAstNodeAttrI(expr, "modi");
-	ne=BS2P_GetAstNodeAttr(expr, "exts");
-	ni=BS2P_GetAstNodeAttr(expr, "impl");
-	nb=BS2P_GetAstNodeAttr(expr, "body");
-	tag=BS2P_GetAstNodeTag(expr);
-	
-	if(!(bmfl&BS2CC_TYFL_PPP))
-		bmfl|=BS2CC_TYFL_PROTECTED;
-	
-	vi=BS2C_AllocVarInfo(ctx);
-	i=ctx->nglobals++;
-	ctx->globals[i]=vi;
-	vi->gid=i;
-	vi->bmfl=bmfl;
-	vi->vitype=BS2CC_VITYPE_STRUCT;
-	if(!strcmp(tag, "class"))
-		vi->vitype=BS2CC_VITYPE_CLASS;
-	if(!strcmp(tag, "interface"))
-		vi->vitype=BS2CC_VITYPE_IFACE;
-	
-	vi->name=BS2P_StrSym(ctx, name);
-//	vi->bty=BSVM2_OPZ_ADDRESS;
-	vi->bty=vi->gid+256;
-
-	vi->extsExp=ne;
-	vi->implExp=ni;
-
-	if(ctx->pkg)
-	{
-		vi->pkg=ctx->pkg;
-		vi->pknext=ctx->pkg->vars;
-		ctx->pkg->vars=vi;
-	}
-	
-	if(ctx->pkg && ctx->pkg->qname)
-	{
-		sprintf(tb, "%s/%s", ctx->pkg->qname, name);
-		vi->qname=BS2P_StrSym(ctx, tb);
-	}else
-	{
-		vi->qname=vi->name;
-	}
-
-	j=ctx->objstkpos++;
-	ctx->objstk[j]=ctx->obj;
-	ctx->obj=vi;
-
-	BS2C_CompileStructVarStatement(ctx, nb);
-	
-	ctx->objstkpos=j;
-	ctx->obj=ctx->objstk[j];
-}
-
-
-BTEIFGL_API void BS2C_CompileTopStatement(
-	BS2CC_CompileContext *ctx, dtVal expr)
-{
-	dtVal n0, n1, n2, n3;
-	char *tag, *fn, *s0;
-	int ln;
-	int i, j, k, l;
-
-	if(ctx->ncfatal)
-		return;
-
-	if(dtvIsArrayP(expr))
-	{
-		l=dtvArrayGetSize(expr);
-		for(i=0; i<l; i++)
-		{
-			n0=dtvArrayGetIndexDtVal(expr, i);
-			BS2C_CompileTopStatement(ctx, n0);
-			if(ctx->ncfatal)
-				break;
-		}
-		return;
-	}
-
-	tag=BS2P_GetAstNodeTag(expr);
-	
-	if(!tag)
-	{
-		BS2C_CaseError(ctx);
-		return;
-	}
-
-	fn=BS2P_GetAstNodeAttrS(expr, "fn");
-	ln=BS2P_GetAstNodeAttrI(expr, "ln");
-	if(fn)ctx->srcfn=fn;
-	if(ln>0)ctx->srcln=ln;
-
-	if(!strcmp(tag, "psblock"))
-	{
-		n0=BS2P_GetAstNodeAttr(expr, "value");
-
-		if(!ctx->pkgstkpos)
-		{
-			BS2C_EnterPkgFrame(ctx, NULL);
-			BS2C_CompileTopStatement(ctx, n0);
-			BS2C_ExitPkgFrame(ctx);
-		}else
-		{
-			BS2C_CompileTopStatement(ctx, n0);
-		}
-		return;
-	}
-
-	if(!strcmp(tag, "package"))
-	{
-		n0=BS2P_GetAstNodeAttr(expr, "body");
-		s0=BS2P_GetAstNodeAttrS(expr, "name");
-		BS2C_EnterPkgFrame(ctx, s0);
-		BS2C_CompileTopStatement(ctx, n0);
-		BS2C_ExitPkgFrame(ctx);
-		return;
-	}
-
-	if(!strcmp(tag, "import"))
-	{
-//		n0=BS2P_GetAstNodeAttr(expr, "body");
-		s0=BS2P_GetAstNodeAttrS(expr, "name");
-		
-		for(i=0; i<ctx->pkg->nimps; i++)
-		{
-			if(!strcmp(ctx->pkg->imps[i]->qname, s0))
-				break;
-		}
-		
-		if(i<ctx->pkg->nimps)
-			return;
-		
-		i=ctx->pkg->nimps++;
-		ctx->pkg->imps[i]=BS2C_GetPkgFrame(ctx, s0);
-		return;
-	}
-
-	if(!strcmp(tag, "var"))
-	{
-		BS2C_CompileTopVar(ctx, expr);
-		return;
-	}
-	
-	if(!strcmp(tag, "vars"))
-	{
-		n0=BS2P_GetAstNodeAttr(expr, "value");
-		l=dtvArrayGetSize(n0);
-		for(i=0; i<l; i++)
-		{
-			n1=dtvArrayGetIndexDtVal(n0, i);
-			BS2C_CompileTopVar(ctx, n1);
-		}
-		return;
-	}
-
-	if(!strcmp(tag, "func"))
-	{
-		BS2C_CompileTopFunc(ctx, expr);
-		return;
-	}
-	
-	if(!strcmp(tag, "struct") ||
-		!strcmp(tag, "class") ||
-		!strcmp(tag, "interface"))
-	{
-		BS2C_CompileTopStruct(ctx, expr);
-		return;
-	}
-	
 	BS2C_CaseError(ctx);
 }

@@ -413,6 +413,18 @@ void BSVM2_Interp_DecodeOpGx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 	op->i1=vi->brty;
 }
 
+void BSVM2_Interp_DecodeOpIxGx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	int ix;
+
+	op->i0=BSVM2_Interp_DecodeOpUCxI(cblk);
+	ix=BSVM2_Interp_DecodeOpUCxI(cblk);
+	vi=BSVM2_Interp_DecodeOpAddrPtr(cblk, ix);
+	op->v.p=vi;
+	op->i1=vi->brty;
+}
+
 void BSVM2_Interp_DecodeOpIx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 	{ op->i0=BSVM2_Interp_DecodeOpUCxI(cblk); }
 
@@ -534,6 +546,8 @@ void BSVM2_Interp_DecodeOpZx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 		op->v.i=lj; break;
 	case BSVM2_OPZ_ULONG:
 		op->v.ul=lj; break;
+	case BSVM2_OPZ_CONST:
+		op->v.i=lj; break;
 	default:
 		break;
 	}

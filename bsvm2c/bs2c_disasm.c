@@ -343,6 +343,17 @@ char *name;
 {"E18ECi",    "RSTIXSC"},
 {"E18FZiCi",  "STIXZLC"},
 
+{"E190",      "CVTAA2ST"},
+{"E191",      "CVTST2AA"},
+{"E192",      "CATST"},
+{"E193",      "CMPST"},
+{"E194",      "CMPSST"},
+{"E195",      "CMPUST"},
+{"E196Zn",    "MATHUFN"},
+{"E197Zn",    "MATHBFN"},
+{"E198IxGx",  "STFXOBJC"},
+{"E199IxGx",  "STFXOBJD"},
+
 {NULL,        NULL}
 };
 

@@ -13,6 +13,16 @@ package bstest {
 	public class Foo2 {
 		public int x, y;
 		public double z;
+		
+		public Foo2(int a)
+		{
+			printf("Foo2 Ctor %d\n", 4);
+		}
+		
+		public double method0()
+		{
+			return(x+y+z);
+		}
 	}
 
 	private int i, j;
@@ -52,7 +62,8 @@ package bstest {
 			arr[i]=rand();
 		selsort(arr, n);
 	}
-	
+
+/*
 	public interface IFoo {
 		public void doSomething();
 	}
@@ -79,9 +90,10 @@ package bstest {
 			vo={x: 2, y: 3};
 		}
 
-		public void doSomething()
-			{ /* does nothing*/ }
+//		public void doSomething()
+//			{ }
 	}
+*/
 
 //	public int tst_ref(&int i, &int j)
 //	{
@@ -99,6 +111,7 @@ package bstest {
 			foo.z=foo.x+foo.y;
 		}
 
+/*
 		public int tst_switch(int i)
 		{
 			int j;
@@ -127,9 +140,11 @@ package bstest {
 			i=i+j;
 			return(j);
 		}
+*/
 	
 		public static void main(string[] argv)
 		{
+			Foo fstr;
 			Fib tfib;
 			Foo2 fobj;
 			int i, j;
@@ -163,14 +178,20 @@ package bstest {
 			printf("Na SortTst Dt %d\n", t1-t0);
 
 
-			fobj=new Foo2;
+//			fobj=new Foo2;
+			fobj=new Foo2(1);
 			fobj.x=3;
 			fobj.y=4;
 			fobj.z=5;
 			
+			printf("FObj ");
 			printf("%d ", fobj.x);
 			printf("%d ", fobj.y);
 			printf("%f\n", fobj.z);
+
+			printf("FObj Method %f\n", fobj.method0());
+
+			delete fobj;
 
 //			arr=new int[64];
 //			for(i=0; i<32; i++)

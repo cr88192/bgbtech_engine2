@@ -52,6 +52,16 @@ dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx)
 			return(n0);
 		}
 
+		if(!strcmp(t0, "Idelete"))
+		{
+			BS2P_NextToken(ctx);
+			t0=BS2P_PeekToken(ctx, 0);
+//			n1=BS2P_ParseExpr(ctx);
+			n1=BS2P_ParseExprList(ctx);
+			n0=BS2P_ParseWrapSimpleTagVal(ctx, "delete", n1);
+			return(n0);
+		}
+
 		if(!strcmp(t0, "Igoto"))
 		{
 			BS2P_NextToken(ctx);

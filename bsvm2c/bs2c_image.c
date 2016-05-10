@@ -342,6 +342,27 @@ byte *BS2C_Image_EmitTagSVLI(byte *ct, u32 tag, s64 val)
 	return(ct);
 }
 
+s64 BS2C_Image_QHashName(char *str)
+{
+	u64 h;
+	char *s;
+	int i;
+
+	if(!str)
+		return(-1);
+	
+	h=0;
+	for(i=0; i<4; i++)
+	{
+		s=str;
+		while(*s)
+			{ h=(h*251)+(*s++); }
+	}
+	h=h*251+1;
+	h=(h>>8)&0xFFFFFFFFFFFFLL;
+	return(h);
+}
+
 byte *BS2C_Image_FlattenGlobalInfo_GblDefI(
 	BS2CC_CompileContext *ctx,
 	BS2CC_VarInfo *vari,
@@ -349,6 +370,7 @@ byte *BS2C_Image_FlattenGlobalInfo_GblDefI(
 {
 	BS2CC_CcFrame *frm;
 	byte *ct1, *ct2;
+	s64 li;
 	int i, j, k;
 
 //	if(vari->bmfl&BS2CC_TYFL_PUBLIC)
@@ -357,6 +379,10 @@ byte *BS2C_Image_FlattenGlobalInfo_GblDefI(
 		i=BS2C_ImgLookupString(ctx, vari->name);
 		if(i>0)
 			{ ct=BS2C_Image_EmitTagSVLI(ct, BS2CC_I1CC_NAME, i); }
+	}else if(vari->vitype==BS2CC_VITYPE_STRFUNC)
+	{
+		li=BS2C_Image_QHashName(vari->name);
+		ct=BS2C_Image_EmitTagSVLI(ct, BS2CC_I1CC_NAMEH, li);
 	}
 
 	i=BS2C_ImgLookupString(ctx, vari->sig);
@@ -471,6 +497,7 @@ byte *BS2C_Image_FlattenGlobalInfo_StructI(
 	byte *ct)
 {
 	byte *ct1, *ct2;
+	s64 li;
 	int i, j, k;
 
 //	if(vari->bmfl&BS2CC_TYFL_PUBLIC)
@@ -479,6 +506,10 @@ byte *BS2C_Image_FlattenGlobalInfo_StructI(
 		i=BS2C_ImgLookupString(ctx, vari->name);
 		if(i>0)
 			{ ct=BS2C_Image_EmitTagSVLI(ct, BS2CC_I1CC_NAME, i); }
+	}else
+	{
+		li=BS2C_Image_QHashName(vari->name);
+		ct=BS2C_Image_EmitTagSVLI(ct, BS2CC_I1CC_NAMEH, li);
 	}
 
 	if(vari->pkg)
@@ -569,7 +600,8 @@ byte *BS2C_Image_FlattenGlobalInfo_Package(
 	
 	ct1=obuf+256; ct2=ct1;
 	
-	if(vari->bmfl&BS2CC_TYFL_PUBLIC)
+//	if(vari->bmfl&BS2CC_TYFL_PUBLIC)
+	if(1)
 	{
 		i=BS2C_ImgLookupString(ctx, vari->qname);
 		if(i>0)
@@ -846,6 +878,8 @@ BTEIFGL_API int BS2C_TouchReachable(
 	{
 		vcur=ctx->globals[pcur->gid];
 		vcur->bmfl|=BS2CC_TYFL_CANREACH;
+
+		BS2C_ImgGetString(ctx, vcur->qname);
 
 		vcur=pcur->vars;
 		while(vcur)

@@ -862,3 +862,84 @@ BSVM2_Trace *BSVM2_TrOp_CALLG(
 	tr=BS2I_ImageGetFuncTrace(vi);
 	return(tr);
 }
+
+
+BSVM2_Trace *BSVM2_TrOp_CALLV(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	BSVM2_ImageGlobal *vi, *fvi;
+	BSVM2_Trace *tr;
+	dtVal obj, fcn;
+	int i;
+	
+	ctx=frm->ctx;
+	vi=op->v.p;
+	
+	obj=frm->stack[(op->t1)-1].a;
+	fcn=dtcVaGetA(obj, vi->objinf);
+	fvi=dtvUnwrapPtr(fcn);
+	
+	frmb=BSVM2_Interp_AllocFrame(ctx);
+
+	frmb->stack=ctx->tstack+ctx->tstackref;
+	frmb->local=frmb->stack+fvi->cblk->stkdepth;
+	ctx->tstackref=ctx->tstackref+fvi->cblk->szframe;
+	frmb->tstkpos=ctx->tstackref;
+	frmb->self=obj;
+
+	frmb->rnext=frm;
+	frm->rtrace=op->nexttrace;
+	frm->rcsrv=op->t0;
+	ctx->frame=frmb;
+
+	for(i=0; i<fvi->nargs; i++)
+	{
+		frmb->local[fvi->cblk->bargs+i]=
+			frm->stack[op->t1+i];
+	}
+
+	tr=BS2I_ImageGetFuncTrace(fvi);
+	return(tr);
+}
+
+BSVM2_Trace *BSVM2_TrOp_CALLTH(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	BSVM2_ImageGlobal *vi, *fvi;
+	BSVM2_Trace *tr;
+	dtVal obj, fcn;
+	int i;
+	
+	ctx=frm->ctx;
+	vi=op->v.p;
+	
+	obj=frm->self;
+	fcn=dtcVaGetA(obj, vi->objinf);
+	fvi=dtvUnwrapPtr(fcn);
+	
+	frmb=BSVM2_Interp_AllocFrame(ctx);
+
+	frmb->stack=ctx->tstack+ctx->tstackref;
+	frmb->local=frmb->stack+fvi->cblk->stkdepth;
+	ctx->tstackref=ctx->tstackref+fvi->cblk->szframe;
+	frmb->tstkpos=ctx->tstackref;
+	frmb->self=obj;
+
+	frmb->rnext=frm;
+	frm->rtrace=op->nexttrace;
+	frm->rcsrv=op->t0;
+	ctx->frame=frmb;
+
+	for(i=0; i<fvi->nargs; i++)
+	{
+		frmb->local[fvi->cblk->bargs+i]=
+			frm->stack[op->t1+i];
+	}
+
+	tr=BS2I_ImageGetFuncTrace(fvi);
+	return(tr);
+}

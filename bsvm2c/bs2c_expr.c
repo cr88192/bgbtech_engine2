@@ -315,6 +315,16 @@ void BS2C_CompileExprPopType4(BS2CC_CompileContext *ctx)
 		BS2C_ErrStackUnderflow(ctx);
 }
 
+int BS2C_CompileExprPeekType(BS2CC_CompileContext *ctx)
+{
+	int ty;
+	int i;
+	
+	i=ctx->frm->stackpos-1;
+	ty=ctx->frm->stack_bty[i];
+	return(ty);
+}
+
 void BS2C_CompilePop(BS2CC_CompileContext *ctx)
 {
 	int ty;
@@ -756,14 +766,14 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 			vai=vari->args[i];
 		}else { vai=NULL; }
 
-		if(vai && vai->bty==BS2CC_TYZ_VARARG)
+		if(vai && (vai->bty==BS2CC_TYZ_VARARG) && dtvIsArrayP(an))
 		{
 			l=dtvArrayGetSize(an);
 			l2=vari->nargs-1;
 			if(l<l2)
 			{
-				l=l2;
 				BS2C_ErrTooFewArgs(ctx);
+				l=l2;
 			}
 			
 			for(i=0; i<l2; i++)
@@ -771,22 +781,6 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 				vai=vari->args[i];
 				n0=dtvArrayGetIndexDtVal(an, i);
 				BS2C_CompileCallArg(ctx, vai, n0);
-
-#if 0
-				if(BS2C_TypeVarRefP(ctx, vai->bty))
-				{
-					if(BGBDT_TagStr_IsSymbolP(fnn))
-					{
-						fn1=BGBDT_TagStr_GetUtf8(n0);
-						BS2C_CompileLoadRefName(ctx, fn1);
-						continue;
-					}
-					BS2C_CaseError(ctx);
-					return;
-				}
-
-				BS2C_CompileExpr(ctx, n0, vai->bty);
-#endif
 			}
 
 			if(l>l2)
@@ -848,9 +842,27 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 				BS2C_CompileExpr(ctx, n0, vai->bty);
 #endif
 			}
-//		}else if(!dtvNullP(an))
-		}else if(dtvTrueP(an))
+		}else if(vai && (vai->bty==BS2CC_TYZ_VARARG))
 		{
+			l=1;
+			l2=vari->nargs-1;
+			if(l<l2)
+			{
+				BS2C_ErrTooFewArgs(ctx);
+			}else if(l>l2)
+			{
+				BS2C_ErrTooManyArgs(ctx);
+				l=vari->nargs;
+			}
+
+			vai=vari->args[0];
+//			BS2C_CompileExpr(ctx, an, vai->bty);
+			BS2C_CompileCallArg(ctx, vai, an);
+
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHA);
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_ADDRESS);
+		}else if(dtvTrueP(an))
+		{			
 			l=1;
 			if(l<vari->nargs)
 			{
@@ -997,6 +1009,9 @@ void BS2C_CompileObjMethodCallB(BS2CC_CompileContext *ctx,
 	int ix, bty, stp;
 	int i, j, k, l, l2, na;
 
+	if(dtvEqqP(args, DTV_EMPTYLIST))
+		args=DTV_NULL;
+
 	if(dtvIsArrayP(args))
 	{
 		na=dtvArrayGetSize(args);
@@ -1044,7 +1059,7 @@ void BS2C_CompileObjMethodCallB(BS2CC_CompileContext *ctx,
 			vai=vari->args[i];
 		}else { vai=NULL; }
 
-		if(vai && vai->bty==BS2CC_TYZ_VARARG)
+		if(vai && (vai->bty==BS2CC_TYZ_VARARG) && dtvIsArrayP(an))
 		{
 			l=dtvArrayGetSize(an);
 			l2=vari->nargs-1;

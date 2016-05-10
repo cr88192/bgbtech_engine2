@@ -61,6 +61,7 @@ BTEIFGL_SRCS=\
 	bsvm2c/bs2c_reduce.c \
 	bsvm2c/bs2c_scope.c \
 	bsvm2c/bs2c_stmt.c \
+	bsvm2c/bs2c_topstmt.c \
 	bsvm2c/bs2c_type.c \
 	\
 	bsvm2i/bs2i_fcnblock.c \

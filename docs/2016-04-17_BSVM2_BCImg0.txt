@@ -153,10 +153,14 @@ Within Definitions:
 ** Gives a fully qualified name.
 ** Used for packages.
 ** Generally absent for other types of global.
-* 'R':
+* 'R': QName QHash (SVLI)
 * 'S': Signature String
 ** SVLI, Positive values map to STRS.
-* 'T'..'Z':
+* 'T': Name QHash (SVLI)
+** Positive=Hash
+** Negative=Locally Assigned ID
+
+* 'U'..'Z':
 
 Variable:
 * 'H': Initialization value for variable.
@@ -219,6 +223,28 @@ Names:
 ** Such as a class being extended within another image.
 ** Note that the class will itself need to be publicly visible for this.
 * Names may also be present as a debugging aid.
+* If a name is absent, then a QHash is needed instead for some decl types.
+** Class, Struct, and Interface will require either a name or a qhash.
+*** Either one or the other is needed.
+** Overloaded virtual methods will require either a name or a qhash.
+** For methods, all overloads require a matching name or qhash.
+*** Either all need a name, or all need a qhash.
+*** If a qhash is used, a name may present in addition to the qhash.
+*** Similar applies to implementing a method from an interface.
+*** This also applies for the overloaded root method or declaration.
+*** This is not needed if the method is never overloaded or implemented.
+
+QHash:
+* It is a signed 64 bit number.
+* Negative values represent image local ID numbers.
+** The assignment of values is purely at the discretion of the compiler.
+** They are to be assumed meaningless outside the image which contains them.
+* Positive values represent unique name hashes.
+** The hashing function is undefined.
+** It may use a combination of hashing and sequential assignment as-needed.
+** It is assumed, however, that results are reproducible.
+* They may be used for imports and exports.
+** The means for assigning them are left up to the compiler.
 
 
 == Image Startup ==

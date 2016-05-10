@@ -464,6 +464,18 @@ int BS2I_ImageDecodeGlobalFunc(
 				continue;
 			}
 			
+			if(tag==BS2CC_I1CC_NAMEH)
+			{
+				gbl->nameh=v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_QNAMEH)
+			{
+				gbl->qnameh=v;
+				continue;
+			}
+			
 			if(tag==BS2CC_I1CC_SIG)
 			{
 				gbl->sig=img->strtab+v;
@@ -599,6 +611,27 @@ char *BS2I_ImageTryGetGlobalQName(
 	return(gbl->name);
 }
 
+s64 BS2I_Image_QHashName(char *str)
+{
+	u64 h;
+	char *s;
+	int i;
+	
+	if(!str)
+		return(-1);
+	
+	h=0;
+	for(i=0; i<4; i++)
+	{
+		s=str;
+		while(*s)
+			{ h=(h*251)+(*s++); }
+	}
+	h=h*251+1;
+	h=(h>>8)&0xFFFFFFFFFFFFLL;
+	return(h);
+}
+
 int BS2I_ImageDecodeGlobalVar(
 	BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl,
 	u32 dtag, byte *data, byte *edata)
@@ -634,6 +667,18 @@ int BS2I_ImageDecodeGlobalVar(
 			if(tag==BS2CC_I1CC_QNAME)
 			{
 				gbl->qname=img->strtab+v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_NAMEH)
+			{
+				gbl->nameh=v;
+				continue;
+			}
+
+			if(tag==BS2CC_I1CC_QNAMEH)
+			{
+				gbl->qnameh=v;
 				continue;
 			}
 			
@@ -732,6 +777,13 @@ int BS2I_ImageDecodeGlobalVar(
 		
 		BGBDTC_BeginLayoutClass(clsi);
 		
+		if(dtag==BS2CC_ITCC_CL)
+			clsi->clsty=BGBDTC_CTY_CLASS;
+		if(dtag==BS2CC_ITCC_ST)
+			clsi->clsty=BGBDTC_CTY_STRUCT;
+		if(dtag==BS2CC_ITCC_IF)
+			clsi->clsty=BGBDTC_CTY_IFACE;
+		
 		if(gbl->obj)
 			{ clsi->super=gbl->obj->objinf; }
 		
@@ -749,6 +801,19 @@ int BS2I_ImageDecodeGlobalVar(
 				clsvi->name=vi->name;
 			if(vi->sig)
 				clsvi->sig=vi->sig;
+				
+			if(vi->tag==BS2CC_ITCC_SV)
+				clsvi->slotty=BGBDTC_STY_FIELD;
+
+			if(vi->tag==BS2CC_ITCC_SF)
+			{
+				if(!vi->nameh)
+					{ vi->nameh=BS2I_Image_QHashName(vi->name); }
+			
+				clsvi->slotty=BGBDTC_STY_METHOD;
+				clsvi->init=dtvWrapPtr(vi);
+				clsvi->nameh=vi->nameh;
+			}
 		}
 		
 		BGBDTC_EndLayoutClass(clsi);

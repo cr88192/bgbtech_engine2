@@ -3,6 +3,15 @@ Instance Layout:
   ClsInfo, data...
  */
 
+#define BGBDTC_STY_UNKNOWN	0		//unknown
+#define BGBDTC_STY_FIELD	1		//instance field
+#define BGBDTC_STY_METHOD	2		//virtual method
+
+#define BGBDTC_CTY_UNKNOWN	0		//unknown
+#define BGBDTC_CTY_CLASS	1		//class
+#define BGBDTC_CTY_STRUCT	2		//structure
+#define BGBDTC_CTY_IFACE	3		//interface
+
 typedef struct _dtcobject_s *dtcObject;		//opaque
 
 typedef struct BGBDTC_SlotInfo_s *dtcField;
@@ -12,9 +21,12 @@ typedef struct BGBDTC_SlotInfo_s BGBDTC_SlotInfo;
 typedef struct BGBDTC_ClassInfo_s BGBDTC_ClassInfo;
 
 struct BGBDTC_SlotInfo_s {
-char *name;
-char *sig;
-int offs;
+char *name;			//name
+char *sig;			//signature
+int offs;			//offset in object body
+byte slotty;		//slot type
+dtVal init;			//initial value
+s64 nameh;
 
 void *(*GetPtr)(dtcObject obj, dtcField fi);
 
@@ -41,6 +53,10 @@ BGBDTC_SlotInfo **slots;
 int nslots, mslots;
 int szdata, aldata;
 byte clean;
+byte clsty;
+
+byte *cldata;				//class data
+int szcldata;				//size of class data
 };
 
 static_inline s32 dtcGetI(dtcObject obj, dtcField fi)

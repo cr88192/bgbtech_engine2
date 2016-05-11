@@ -330,6 +330,17 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 			return(0);
 		}
 		
+		if(BS2C_TypeX64P(ctx, bty))
+			z=BSVM2_OPZ_DOUBLE;
+
+		if(BS2C_TypeX128P(ctx, bty))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDXL);
+			BS2C_EmitOpcodeIdx(ctx, i);
+			BS2C_CompileExprPushType(ctx, bty);
+			return(0);
+		}
+		
 		switch(z)
 		{
 		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
@@ -466,6 +477,17 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 			return(0);
 		}
 
+		if(BS2C_TypeX64P(ctx, bty))
+			z=BSVM2_OPZ_DOUBLE;
+
+		if(BS2C_TypeX128P(ctx, bty))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_STXL);
+			BS2C_EmitOpcodeIdx(ctx, i);
+			BS2C_CompileExprPopType1(ctx);
+			return(0);
+		}
+		
 		switch(z)
 		{
 		case BSVM2_OPZ_INT:		case BSVM2_OPZ_UINT:
@@ -473,27 +495,27 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
 			BS2C_EmitOpcode(ctx, BSVM2_OP_STI);
 			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
+			BS2C_CompileExprPopType1(ctx);
 			break;
 		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
 			BS2C_EmitOpcode(ctx, BSVM2_OP_STL);
 			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
+			BS2C_CompileExprPopType1(ctx);
 			break;
 		case BSVM2_OPZ_FLOAT:
 			BS2C_EmitOpcode(ctx, BSVM2_OP_STF);
 			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
+			BS2C_CompileExprPopType1(ctx);
 			break;
 		case BSVM2_OPZ_DOUBLE:
 			BS2C_EmitOpcode(ctx, BSVM2_OP_STD);
 			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
+			BS2C_CompileExprPopType1(ctx);
 			break;
 		case BSVM2_OPZ_ADDRESS:
 			BS2C_EmitOpcode(ctx, BSVM2_OP_STA);
 			BS2C_EmitOpcodeIdx(ctx, i);
-			ctx->frm->stackpos--;
+			BS2C_CompileExprPopType1(ctx);
 			break;
 		}
 		return(0);

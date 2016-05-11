@@ -1044,6 +1044,7 @@ dtVal BS2P_ParseWrapTagFor(BS2CC_CompileContext *ctx,char *tag, dtVal in, dtVal 
 dtVal BS2P_ParseWrapTagBinary(BS2CC_CompileContext *ctx,char *tag, char *op, dtVal ln, dtVal rn);
 dtVal BS2P_ParseWrapArray(BS2CC_CompileContext *ctx, dtVal lst);
 dtVal BS2P_ParseWrapObject(BS2CC_CompileContext *ctx, dtVal lst);
+dtVal BS2P_ParseWrapVector(BS2CC_CompileContext *ctx, dtVal lst);
 //AHSRC:bsvm2c/bs2p_decl.c
 int BS2P_DeclTypeRejectKeyword(BS2CC_CompileContext *ctx, char *str);
 dtVal BS2P_ParseModifierList(BS2CC_CompileContext *ctx);
@@ -1304,6 +1305,7 @@ void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr);
 BTEIFGL_API void BS2C_CompileTopStatement(BS2CC_CompileContext *ctx, dtVal expr);
 //AHSRC:bsvm2c/bs2c_type.c
 int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty);
+int BS2C_GetTypeVecZ(BS2CC_CompileContext *ctx, int ty);
 char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty);
 BS2CC_VarInfo *BS2C_GetTypeObject(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeFixedStructP(BS2CC_CompileContext *ctx, int ty);
@@ -1323,6 +1325,13 @@ int BS2C_TypeSizedArrayP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVoidP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVariantP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeStringP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeVec2fP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeVec3fP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeVec4fP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeVec2dP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeX64P(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeX128P(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeOpXvP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeRefType(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeGetArraySize(BS2CC_CompileContext *ctx, int ty);

@@ -133,6 +133,15 @@ If the vector operation type is narrower than the full width of the vector, then
 Note that these vectors do not necessarily correspond with SIMD features provided by the underlying CPU architecture.
 
 
+X64 will exist as an extended-core subtype of Double.
+
+Subtypes:
+* Double
+** X64
+*** vec2i
+*** vec2f
+
+
 === Signature Strings ===
 
 Signature Characters:
@@ -162,6 +171,14 @@ Signature Characters:
 *  x, long
 *  y, ulong
 *  z, vararg (array of remaining arguments)
+*  Ca, vec2f
+*  Cb, vec3f
+*  Cc, vec4f
+*  Cd, Complex Double (vec2d)
+*  Ce, vec2d
+*  Cf, Complex Float (vec2f)
+*  Cg, Complex Float128 (N/A)
+*  Cq, Quaternion (vec4f)
 *  Cs, string
 *  Pc, cstring
 
@@ -252,13 +269,14 @@ X128 Operation Type (Z)
 *  1, Long (2L)
 *  2, Float (4F)
 *  3, Double (2D)
-*  4, Int (2I)
-*  5, Float (2F)
+*  4, Int (2I, X64)
+*  5, Float (2F, X64)
 *  6, Int (3I)
 *  7, Float (3F)
 *  8, Int128
 *  9, UInt128
 *  A, Float128
+*  B-F
 
 X128 Binary Operators
 *  Int128: Same as for other Int types.
@@ -363,6 +381,9 @@ Zn: Type+Count / Type+Index
 
 Zo: Type+Binary
 Zc: Type+Compare
+
+Va: Vector Type+Unary
+Vb: Vector Type+Binary
 
 Zx: Type+Constant
 * Consists of a VLI value with Z stuck in the 4 low bits.
@@ -883,8 +904,8 @@ Vector operations (NACHO2):
 ** Z gives element type, and n gives index.
 * E1 6D Zn, STXX				//Store X Element ( X A -> Y )
 ** Store an element, resulting in a new X128.
-* E1 6E ZO, BINOPX				//Binary Operator ( A B -> C )
-* E1 6F ZO, UNOPX				//Unary Operator ( A -> C )
+* E1 6E Vb, BINOPX				//Binary Operator ( A B -> C )
+* E1 6F Va, UNOPX				//Unary Operator ( A -> C )
 ** Apply binary operators to vectors.
 ** Not all operators are defined for all vector types.
 ** Some operators may have different behavior.

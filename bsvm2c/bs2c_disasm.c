@@ -337,8 +337,23 @@ char *name;
 {"E16BZn",    "LDXX"},
 {"E16CZn",    "DLDXX"},
 {"E16DZn",    "STXX"},
-{"E16EZo",    "BINOPX"},
-{"E16FZo",    "UNOPX"},
+{"E16EVb",    "BINOPX"},
+{"E16FVa",    "UNOPX"},
+
+{"E170",      "CVTI2XL"},
+{"E171",      "CVTL2XL"},
+{"E172",      "CVTUI2XL"},
+{"E173",      "CVTUL2XL"},
+{"E174",      "CVTXL2I"},
+{"E175",      "CVTXL2L"},
+{"E176",      "CVTD2XF"},
+{"E177",      "CVTXF2D"},
+{"E178",      "CVTXL2XF"},
+{"E179",      "CVTXF2XL"},
+{"E17A",      "CVTXL2AA"},
+{"E17B",      "CVTXF2AA"},
+{"E17C",      "CVTAA2XL"},
+{"E17D",      "CVTAA2XF"},
 
 {"E17EZiIx",  "LDIXZLL"},
 {"E17FZiCi",  "LDIXZLC"},
@@ -905,7 +920,8 @@ int bs2c_disasm_matchItem(
 	}
 	
 	if(!strncmp(ps, "Zn", 2) ||
-		!strncmp(ps, "Za", 2) || !strncmp(ps, "Zi", 2))
+		!strncmp(ps, "Za", 2) || !strncmp(ps, "Zi", 2) ||
+		!strncmp(ps, "Va", 2) || !strncmp(ps, "Vb", 2))
 	{
 		ps+=2;
 		cs=bs2c_disasm_ReadZxVLI(cs, &i, &j);
@@ -931,6 +947,17 @@ int bs2c_disasm_PrintItem(
 	char *pat_zc[]={
 		"==", "!=", "<", ">", "<=", ">=", "===", "!==",
 		"~==", "~!=", "~<", "~>", "~<=", "~>=", "~===", "~!=="};
+
+	char *pat_zv[]={
+		"v4i","v2l","v4f","v2d","v2i","v2f","v3i","v3f",
+		"ix","ux","fx","?", "v2ih", "v2fh", "?", "?"};
+	char *pat_zva[]={
+		"neg","rcp","sqrt","rsqrt","len","len2","?","?",
+		"?","?","?","?", "?", "?", "?", "?"};
+	char *pat_zvb[]={
+		"add","sub","mul","div","dot","cross","cmul","cmul2",
+		"?","?","?","?", "?", "?", "?", "?"};
+	char **pat_zvo;
 
 	double f;
 	s64 li;
@@ -1126,6 +1153,28 @@ int bs2c_disasm_PrintItem(
 
 		BGBDT_MM_PrintPutPrintf(prn, "%c%s",
 			pat_zz[frm->zpf], pat_zo[frm->zpo]);
+		if(*ps)
+			BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+		*rcs1=cs;
+		*rpa1=ps;
+		return(1);
+	}
+
+	if(!strncmp(ps, "Va", 2) || !strncmp(ps, "Vb", 2))
+	{
+		pat_zvo=pat_zva;
+		if(!strncmp(ps, "Vb", 2))
+			pat_zvo=pat_zvb;
+
+		ps+=2;
+//		i=*cs++;
+		cs=bs2c_disasm_ReadVLI(cs, &i);
+		frm->zpf=i>>4;
+		frm->zpo=i&15;
+		
+		BGBDT_MM_PrintPutPrintf(prn, "%s.%s",
+			pat_zvo[frm->zpf], pat_zv[frm->zpo]);
 		if(*ps)
 			BGBDT_MM_PrintPutPrintf(prn, ", ");
 

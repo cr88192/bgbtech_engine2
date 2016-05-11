@@ -378,3 +378,13 @@ dtVal BS2P_ParseWrapObject(BS2CC_CompileContext *ctx, dtVal lst)
 	BS2P_SetAstNodeAttr(obj, "value", lst);
 	return(obj);
 }
+
+dtVal BS2P_ParseWrapVector(BS2CC_CompileContext *ctx, dtVal lst)
+{
+	dtVal obj;
+	char *s;
+	
+	obj=BS2P_NewAstNode(ctx, "vector");
+	BS2P_SetAstNodeAttr(obj, "value", lst);
+	return(obj);
+}

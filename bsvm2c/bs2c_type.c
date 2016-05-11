@@ -22,7 +22,24 @@ int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty)
 	if(ty==BS2CC_TYZ_BOOL)
 		return(BSVM2_OPZ_UBYTE);
 
+	if(ty==BS2CC_TYZ_VEC2F)
+		return(BSVM2_OPZ_LONG);
+
 	return(BSVM2_OPZ_ADDRESS);
+}
+
+int BS2C_GetTypeVecZ(BS2CC_CompileContext *ctx, int ty)
+{
+	if(ty==BS2CC_TYZ_VEC2F)
+		return(5);
+	if(ty==BS2CC_TYZ_VEC3F)
+		return(7);
+	if(ty==BS2CC_TYZ_VEC4F)
+		return(2);
+	if(ty==BS2CC_TYZ_VEC4F)
+		return(3);
+
+	return(15);
 }
 
 char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
@@ -92,6 +109,12 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		case BS2CC_TYZ_STRING:	*t++='C'; *t++='s'; break;
 		case BS2CC_TYZ_CSTRING:	*t++='P'; *t++='c'; break;
 		case BS2CC_TYZ_BOOL:	*t++='b'; break;
+
+		case BS2CC_TYZ_VEC2F:	*t++='C'; *t++='a'; break;
+		case BS2CC_TYZ_VEC3F:	*t++='C'; *t++='b'; break;
+		case BS2CC_TYZ_VEC4F:	*t++='C'; *t++='c'; break;
+		case BS2CC_TYZ_VEC2D:	*t++='C'; *t++='e'; break;
+
 		default:				*t++='r'; break;
 		}
 		*t=0;
@@ -222,6 +245,8 @@ int BS2C_TypeSignedP(BS2CC_CompileContext *ctx, int ty)
 		return(1);
 	if(ty==BS2CC_TYZ_NLONG)
 		return(1);
+	if(ty==BS2CC_TYZ_INT128)
+		return(1);
 	return(0);
 }
 
@@ -242,6 +267,8 @@ int BS2C_TypeUnsignedP(BS2CC_CompileContext *ctx, int ty)
 	if(ty==BS2CC_TYZ_CHAR8)
 		return(1);
 	if(ty==BS2CC_TYZ_BOOL)
+		return(1);
+	if(ty==BS2CC_TYZ_UINT128)
 		return(1);
 	return(0);
 }
@@ -425,6 +452,35 @@ int BS2C_TypeStringP(BS2CC_CompileContext *ctx, int ty)
 {
 	return((ty==BS2CC_TYZ_STRING)||
 		(ty==BS2CC_TYZ_CSTRING));
+}
+
+int BS2C_TypeVec2fP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC2F); }
+int BS2C_TypeVec3fP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC3F); }
+int BS2C_TypeVec4fP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC4F); }
+int BS2C_TypeVec2dP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC2D); }
+
+int BS2C_TypeX64P(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC2F); }
+
+int BS2C_TypeX128P(BS2CC_CompileContext *ctx, int ty)
+{
+	return(
+		(ty==BS2CC_TYZ_VEC3F)||
+		(ty==BS2CC_TYZ_VEC4F)||
+		(ty==BS2CC_TYZ_VEC2D));
+}
+
+int BS2C_TypeOpXvP(BS2CC_CompileContext *ctx, int ty)
+{
+	return(
+		(ty==BS2CC_TYZ_VEC2F)||
+		(ty==BS2CC_TYZ_VEC3F)||
+		(ty==BS2CC_TYZ_VEC4F)||
+		(ty==BS2CC_TYZ_VEC2D));
 }
 
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)
@@ -821,6 +877,22 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_CHAR8);
 		if(!strcmp(tyn, "bool"))
 			return(BS2CC_TYZ_BOOL);
+
+		if(!strcmp(tyn, "int128"))
+			return(BS2CC_TYZ_INT128);
+		if(!strcmp(tyn, "uint128"))
+			return(BS2CC_TYZ_UINT128);
+		if(!strcmp(tyn, "float128"))
+			return(BS2CC_TYZ_FLOAT128);
+
+		if(!strcmp(tyn, "vec2f"))
+			return(BS2CC_TYZ_VEC2F);
+		if(!strcmp(tyn, "vec3f"))
+			return(BS2CC_TYZ_VEC3F);
+		if(!strcmp(tyn, "vec4f"))
+			return(BS2CC_TYZ_VEC4F);
+		if(!strcmp(tyn, "vec2d"))
+			return(BS2CC_TYZ_VEC2D);
 	}
 	return(BS2CC_TYZ_ADDRESS);
 }
@@ -1064,6 +1136,20 @@ int BS2C_TypeRefinedType(
 			{ bt=BS2CC_TYZ_CHAR8; }
 		else if(!strcmp(tyn, "bool"))
 			{ bt=BS2CC_TYZ_BOOL; }
+		else if(!strcmp(tyn, "int128"))
+			{ bt=BS2CC_TYZ_INT128; }
+		else if(!strcmp(tyn, "uint128"))
+			{ bt=BS2CC_TYZ_UINT128; }
+		else if(!strcmp(tyn, "float128"))
+			{ bt=BS2CC_TYZ_FLOAT128; }
+		else if(!strcmp(tyn, "vec2f"))
+			{ bt=BS2CC_TYZ_VEC2F; }
+		else if(!strcmp(tyn, "vec3f"))
+			{ bt=BS2CC_TYZ_VEC3F; }
+		else if(!strcmp(tyn, "vec4f"))
+			{ bt=BS2CC_TYZ_VEC4F; }
+		else if(!strcmp(tyn, "vec2d"))
+			{ bt=BS2CC_TYZ_VEC2D; }
 		else
 		{
 			i=BS2C_LookupVariGlobal(ctx, vari, tyn);
@@ -1079,6 +1165,7 @@ int BS2C_TypeRefinedType(
 		bt=BS2CC_TYZ_VARIANT;
 	}
 	
+#if 0
 	if((bt>=0x0000) && (bt<=0xFFFF) && (al2>=0) && (al2<=7) &&
 		(asz>=0) && (asz<=0x1FFF))
 	{
@@ -1086,6 +1173,7 @@ int BS2C_TypeRefinedType(
 			(asz<<BS2CC_TYS_SHR);
 		return(ty);
 	}
+#endif
 
 	memset(&tovf, 0, sizeof(BS2CC_TypeOverflow));
 	tovf.base=bt;
@@ -1096,13 +1184,16 @@ int BS2C_TypeRefinedType(
 	for(i=0; i<an; i++)
 		tovf.asz[i]=asza[i];
 
-	i=BS2C_TypeGetTypeOverflow(ctx, &tovf);
-	if(i>=0)
-	{
-		ty=BS2CC_TYT_OVF|i;
-		return(ty);
-	}
+	ty=BS2C_TypeFromTypeOverflow(ctx, &tovf);
+	return(ty);
 
-	BS2C_CaseError(ctx);
-	return(BS2CC_TYZ_VARIANT);
+//	i=BS2C_TypeGetTypeOverflow(ctx, &tovf);
+//	if(i>=0)
+//	{
+//		ty=BS2CC_TYT_OVF|i;
+//		return(ty);
+//	}
+
+//	BS2C_CaseError(ctx);
+//	return(BS2CC_TYZ_VARIANT);
 }

@@ -407,6 +407,42 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 		return(n0);
 	}
 
+	if(!strcmp(t0, "X#["))
+	{
+		BS2P_NextToken(ctx);
+		n0=BS2P_ParseExprList(ctx);
+
+		BS2P_ParseExpectToken(ctx, "X]");
+
+		t0=BS2P_PeekToken(ctx, 0); t2=NULL;
+		if(!strcmp(t0, "II") || !strcmp(t0, "Ii"))t2="SI";
+		if(!strcmp(t0, "ISI") || !strcmp(t0, "Isi"))t2="SI";
+		if(!strcmp(t0, "IUI") || !strcmp(t0, "Iui"))t2="UI";
+		if(!strcmp(t0, "IL") || !strcmp(t0, "Il"))t2="SL";
+		if(!strcmp(t0, "ISL") || !strcmp(t0, "Isl"))t2="SL";
+		if(!strcmp(t0, "IUL") || !strcmp(t0, "Iul"))t2="UL";
+		if(!strcmp(t0, "IS") || !strcmp(t0, "Is"))t2="SS";
+		if(!strcmp(t0, "ISS") || !strcmp(t0, "Iss"))t2="SS";
+		if(!strcmp(t0, "IUS") || !strcmp(t0, "Ius"))t2="US";
+		if(!strcmp(t0, "ISB") || !strcmp(t0, "Isb"))t2="SB";
+		if(!strcmp(t0, "IUB") || !strcmp(t0, "Iub"))t2="UB";
+		if(!strcmp(t0, "IB") || !strcmp(t0, "Ib"))t2="B";
+		if(!strcmp(t0, "IF") || !strcmp(t0, "If"))t2="F";
+		if(!strcmp(t0, "ID") || !strcmp(t0, "Id"))t2="D";
+		if(!strcmp(t0, "IC") || !strcmp(t0, "Ic"))t2="C";
+		if(!strcmp(t0, "IW") || !strcmp(t0, "Iw"))t2="W";
+		
+		if(t2)
+			{ BS2P_NextToken(ctx); }
+		
+		n0=BS2P_ParseWrapVector(ctx, n0);
+
+		if(t2)
+			BS2P_SetAstNodeAttrStr(n0, "sfx", t2);
+		
+		return(n0);
+	}
+
 	if(!strcmp(t0, "X,"))
 		return(DTV_NULL);
 	if(!strcmp(t0, "X;"))

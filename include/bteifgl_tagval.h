@@ -940,3 +940,17 @@ static_inline void dtvUnwrapVec2fv(dtVal v, float *fv)
 	fv[0]=*(float *)(&ix);
 	fv[1]=*(float *)(&iy);
 }
+
+static_inline dtVal dtvWrapVec2v(vec2 v)
+	{ return(dtvWrapVec2f(v2x(v), v2y(v))); }
+
+static_inline vec2 dtvUnwrapVec2v(dtVal v)
+{
+	u32 ix, iy;
+	float fx, fy;
+	ix=v.lo<<2;
+	iy=v.vi>>28;
+	fx=*(float *)(&ix);
+	fy=*(float *)(&iy);
+	return(vec2(fx, fy));
+}

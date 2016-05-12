@@ -147,6 +147,8 @@ package bstest {
 			Foo fstr;
 			Fib tfib;
 			Foo2 fobj;
+			vec2f v0, v1, v2;
+			vec3f w0, w1, w2;
 			int[] a1, a2;
 			int i, j;
 			int t0, t1, t2;
@@ -193,6 +195,17 @@ package bstest {
 			printf("FObj Method %f\n", fobj.method0());
 
 			delete fobj;
+
+			v0=#[2, 3];
+			v1=#[4, 5];
+			v2=v0+v1;
+
+			w0=#[1, 0, 0];
+			w1=#[0, 1, 0];
+			w2=w0%w1;
+			
+			printf("w2=(%f %f %f)\n", w2.x, w2.y, w2.z);
+//			printf("w2.x=%f\n", w2.x);
 
 //			a1=new int[64];
 //			a2=a1+32;

@@ -76,6 +76,8 @@ BTEIFGL_SRCS=\
 	bsvm2i/bs2i_opinit.c \
 	bsvm2i/bs2i_opobj.c \
 	bsvm2i/bs2i_opvars.c \
+	bsvm2i/bs2i_opvec2.c \
+	bsvm2i/bs2i_opvec3.c \
 	bsvm2i/bs2i_tailop.c \
 	bsvm2i/bs2i_topinit.c \
 	\

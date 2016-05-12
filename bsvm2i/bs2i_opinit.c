@@ -486,6 +486,20 @@ void BSVM2_Interp_DecodeOpFx2(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,
 	li=BSVM2_Interp_DecodeOpSCxL(cblk);
 	li2=li;
 
+	if(!li)
+	{
+		switch(zty)
+		{
+		case BSVM2_OPZ_FLOAT:
+			op->v.f=0; break;
+		case BSVM2_OPZ_DOUBLE:
+			op->v.d=0; break;
+		default:
+			break;
+		}
+		return;
+	}
+
 	sg=0;
 	if(li<0)
 		{ li=-li; sg=1; }
@@ -989,4 +1003,28 @@ void BSVM2_Interp_SetupOpPopTrinCI(BSVM2_CodeBlock *cblk,
 	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
 {
 	BSVM2_Interp_SetupOpPopTrinC(cblk, op, BSVM2_OPZ_INT, run);
+}
+
+
+void BSVM2_Interp_SetupOpTrin(BSVM2_CodeBlock *cblk,
+	BSVM2_Opcode *op, int zty,
+	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
+{
+	op->Run=run;
+
+	op->t2=cblk->stkpos--;
+	op->t1=cblk->stkpos--;
+	op->t0=cblk->stkpos-1;
+}
+
+void BSVM2_Interp_SetupOpQuad(BSVM2_CodeBlock *cblk,
+	BSVM2_Opcode *op, int zty,
+	void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op))
+{
+	op->Run=run;
+
+	cblk->stkpos--;
+	op->t2=cblk->stkpos--;
+	op->t1=cblk->stkpos--;
+	op->t0=cblk->stkpos-1;
 }

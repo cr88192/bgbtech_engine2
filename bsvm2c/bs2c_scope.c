@@ -331,7 +331,7 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 		}
 		
 		if(BS2C_TypeX64P(ctx, bty))
-			z=BSVM2_OPZ_DOUBLE;
+			z=BSVM2_OPZ_ADDRESS;
 
 		if(BS2C_TypeX128P(ctx, bty))
 		{
@@ -478,7 +478,7 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 		}
 
 		if(BS2C_TypeX64P(ctx, bty))
-			z=BSVM2_OPZ_DOUBLE;
+			z=BSVM2_OPZ_ADDRESS;
 
 		if(BS2C_TypeX128P(ctx, bty))
 		{

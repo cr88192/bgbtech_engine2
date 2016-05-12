@@ -81,6 +81,8 @@ static_inline void dtcSetD(dtcObject obj, dtcField fi, f64 v)
 static_inline void dtcSetA(dtcObject obj, dtcField fi, dtVal v)
 	{ fi->SetA(obj, fi, v); }
 
+static_inline void *dtcGetPtr(dtcObject obj, dtcField fi)
+	{ return(fi->GetPtr(obj, fi)); }
 
 
 static_inline s32 dtcVaGetI(dtVal obj, dtcField fi)
@@ -104,6 +106,9 @@ static_inline void dtcVaSetD(dtVal obj, dtcField fi, f64 v)
 	{ fi->SetD(dtvUnwrapPtr(obj), fi, v); }
 static_inline void dtcVaSetA(dtVal obj, dtcField fi, dtVal v)
 	{ fi->SetA(dtvUnwrapPtr(obj), fi, v); }
+
+static_inline void *dtcVaGetPtr(dtVal obj, dtcField fi)
+	{ return(fi->GetPtr(dtvUnwrapPtr(obj), fi)); }
 
 
 typedef struct BGBDTC_X128_s BGBDTC_X128;

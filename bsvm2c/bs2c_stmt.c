@@ -78,6 +78,23 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 		return;
 	}
+	
+	if(BS2C_TypeX128P(ctx, bty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_IFXX);
+		BS2C_EmitOpcodeUCx(ctx, ix);
+
+		if(dtvTrueP(ni))
+		{
+			BS2C_CompileExpr(ctx, ni, bty);
+			BS2C_CompileStoreName(ctx, name);
+			return;
+		}
+
+		if(ctx->frm->jcleanup<=0)
+			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
+		return;
+	}
 
 	if(dtvTrueP(ni))
 	{

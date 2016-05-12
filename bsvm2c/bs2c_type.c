@@ -22,8 +22,8 @@ int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty)
 	if(ty==BS2CC_TYZ_BOOL)
 		return(BSVM2_OPZ_UBYTE);
 
-	if(ty==BS2CC_TYZ_VEC2F)
-		return(BSVM2_OPZ_LONG);
+//	if(ty==BS2CC_TYZ_VEC2F)
+//		return(BSVM2_OPZ_LONG);
 
 	return(BSVM2_OPZ_ADDRESS);
 }
@@ -36,10 +36,16 @@ int BS2C_GetTypeVecZ(BS2CC_CompileContext *ctx, int ty)
 		return(7);
 	if(ty==BS2CC_TYZ_VEC4F)
 		return(2);
-	if(ty==BS2CC_TYZ_VEC4F)
+	if(ty==BS2CC_TYZ_VEC2D)
+		return(3);
+	if(ty==BS2CC_TYZ_QUATF)
+		return(2);
+	if(ty==BS2CC_TYZ_FCPLX)
+		return(5);
+	if(ty==BS2CC_TYZ_DCPLX)
 		return(3);
 
-	return(15);
+	return(-1);
 }
 
 char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
@@ -114,6 +120,9 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		case BS2CC_TYZ_VEC3F:	*t++='C'; *t++='b'; break;
 		case BS2CC_TYZ_VEC4F:	*t++='C'; *t++='c'; break;
 		case BS2CC_TYZ_VEC2D:	*t++='C'; *t++='e'; break;
+		case BS2CC_TYZ_QUATF:	*t++='C'; *t++='q'; break;
+		case BS2CC_TYZ_FCPLX:	*t++='C'; *t++='f'; break;
+		case BS2CC_TYZ_DCPLX:	*t++='C'; *t++='d'; break;
 
 		default:				*t++='r'; break;
 		}
@@ -462,16 +471,32 @@ int BS2C_TypeVec4fP(BS2CC_CompileContext *ctx, int ty)
 	{ return(ty==BS2CC_TYZ_VEC4F); }
 int BS2C_TypeVec2dP(BS2CC_CompileContext *ctx, int ty)
 	{ return(ty==BS2CC_TYZ_VEC2D); }
+int BS2C_TypeQuatfP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_QUATF); }
+
+int BS2C_TypeOpXvCplxP(BS2CC_CompileContext *ctx, int ty)
+{
+	return(
+		(ty==BS2CC_TYZ_QUATF)||
+		(ty==BS2CC_TYZ_FCPLX)||
+		(ty==BS2CC_TYZ_DCPLX));
+}
 
 int BS2C_TypeX64P(BS2CC_CompileContext *ctx, int ty)
-	{ return(ty==BS2CC_TYZ_VEC2F); }
+{
+	return(
+		(ty==BS2CC_TYZ_VEC2F)||
+		(ty==BS2CC_TYZ_FCPLX));
+}
 
 int BS2C_TypeX128P(BS2CC_CompileContext *ctx, int ty)
 {
 	return(
 		(ty==BS2CC_TYZ_VEC3F)||
 		(ty==BS2CC_TYZ_VEC4F)||
-		(ty==BS2CC_TYZ_VEC2D));
+		(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_QUATF)||
+		(ty==BS2CC_TYZ_DCPLX));
 }
 
 int BS2C_TypeOpXvP(BS2CC_CompileContext *ctx, int ty)
@@ -480,7 +505,41 @@ int BS2C_TypeOpXvP(BS2CC_CompileContext *ctx, int ty)
 		(ty==BS2CC_TYZ_VEC2F)||
 		(ty==BS2CC_TYZ_VEC3F)||
 		(ty==BS2CC_TYZ_VEC4F)||
-		(ty==BS2CC_TYZ_VEC2D));
+		(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_QUATF)||
+		(ty==BS2CC_TYZ_FCPLX)||
+		(ty==BS2CC_TYZ_DCPLX));
+}
+
+int BS2C_TypeXvGetElemType(BS2CC_CompileContext *ctx, int ty)
+{
+	if(	(ty==BS2CC_TYZ_VEC2F)||
+		(ty==BS2CC_TYZ_VEC3F)||
+		(ty==BS2CC_TYZ_VEC4F)||
+		(ty==BS2CC_TYZ_QUATF)||
+		(ty==BS2CC_TYZ_FCPLX))
+			return(BS2CC_TYZ_FLOAT);
+
+	if(	(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_DCPLX))
+			return(BS2CC_TYZ_DOUBLE);
+
+	return(-1);
+}
+
+int BS2C_TypeXvGetElemCount(BS2CC_CompileContext *ctx, int ty)
+{
+	if(	(ty==BS2CC_TYZ_VEC2F)||
+		(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_FCPLX)||
+		(ty==BS2CC_TYZ_DCPLX))
+			return(2);
+	if(	(ty==BS2CC_TYZ_VEC3F))
+			return(3);
+	if(	(ty==BS2CC_TYZ_VEC4F)||
+		(ty==BS2CC_TYZ_QUATF))
+			return(4);
+	return(-1);
 }
 
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)

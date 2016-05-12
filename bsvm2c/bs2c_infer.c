@@ -102,7 +102,7 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 	BS2CC_VarInfo *vi, *vi2;
 	char *tag, *fn, *op;
 	int lt, rt, ty;
-	int i;
+	int i, j, k, l;
 
 	if(dtvIsFixIntP(expr))
 		{ return(BS2CC_TYZ_INT); }
@@ -337,6 +337,63 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 	if(!strcmp(tag, "object"))
 	{
 		return(BS2CC_TYZ_VARIANT);
+	}
+
+	if(!strcmp(tag, "vector"))
+	{
+		ln=BS2P_GetAstNodeAttr(expr, "value");
+		fn=BS2P_GetAstNodeAttrS(expr, "sfx");
+
+		l=dtvArrayGetSize(ln);
+
+		lt=BS2CC_TYZ_FLOAT;
+		
+		if(fn)
+		{
+			if(!strcmp(fn, "SI"))
+				lt=BS2CC_TYZ_INT;
+			if(!strcmp(fn, "UI"))
+				lt=BS2CC_TYZ_UINT;
+			if(!strcmp(fn, "SL"))
+				lt=BS2CC_TYZ_LONG;
+			if(!strcmp(fn, "UL"))
+				lt=BS2CC_TYZ_ULONG;
+			if(!strcmp(fn, "F"))
+				lt=BS2CC_TYZ_FLOAT;
+			if(!strcmp(fn, "D"))
+				lt=BS2CC_TYZ_DOUBLE;
+			if(!strcmp(fn, "SB"))
+				lt=BS2CC_TYZ_SBYTE;
+			if(!strcmp(fn, "UB"))
+				lt=BS2CC_TYZ_UBYTE;
+			if(!strcmp(fn, "SS"))
+				lt=BS2CC_TYZ_SHORT;
+			if(!strcmp(fn, "US"))
+				lt=BS2CC_TYZ_USHORT;
+		}
+		
+		ty=-1;
+		if(lt==BS2CC_TYZ_FLOAT)
+		{
+			if(l==2)
+				ty=BS2CC_TYZ_VEC2F;
+			if(l==3)
+				ty=BS2CC_TYZ_VEC3F;
+			if(l==4)
+				ty=BS2CC_TYZ_VEC4F;
+		}
+
+		if(lt==BS2CC_TYZ_DOUBLE)
+		{
+			if(l==2)
+				ty=BS2CC_TYZ_VEC2D;
+		}
+
+		if(ty>=0)
+			return(ty);
+
+		BS2C_CaseError(ctx);
+		return(-1);
 	}
 
 	BS2C_CaseError(ctx);

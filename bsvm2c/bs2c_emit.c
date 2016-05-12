@@ -590,6 +590,13 @@ void BS2C_EmitOpcodeZxFI(BS2CC_CompileContext *ctx, double f, int z)
 	int m;
 	int e;
 
+	if(f==0)
+	{
+		BS2C_EmitOpcodeSZx(ctx, z, 0);
+		BS2C_EmitOpcodeSCx(ctx, 0);
+		return;
+	}
+
 	fc=f; ix=*(u32 *)(&fc);
 //	BS2C_EmitByte(ctx, (BSVM2_OPZ_FLOAT<<4)|14);
 //	BS2C_EmitByte(ctx, ix>>24);

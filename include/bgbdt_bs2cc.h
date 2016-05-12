@@ -144,7 +144,10 @@
 #define BS2CC_TYZ_VEC2F		0x0024
 #define BS2CC_TYZ_VEC3F		0x0025
 #define BS2CC_TYZ_VEC4F		0x0026
-#define BS2CC_TYZ_VEC2D		0x0027
+#define BS2CC_TYZ_QUATF		0x0027
+#define BS2CC_TYZ_VEC2D		0x0028
+#define BS2CC_TYZ_FCPLX		0x0029
+#define BS2CC_TYZ_DCPLX		0x002A
 
 
 //#define BS2CC_IMG_TWOCC(a, b)			(((b)<<8)|(a))

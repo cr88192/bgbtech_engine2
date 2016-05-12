@@ -37,7 +37,6 @@ void BSVM2_Op_STOSA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	BSVM2_ImageGlobal *vi;	vi=op->v.p;
 	dtcVaSetA(frm->stack[op->t1].a, vi->objinf, frm->stack[op->t0].a);	}
 
-
 void BSVM2_Op_NEWOBJ(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	BSVM2_ImageGlobal *vi;
@@ -110,3 +109,57 @@ void BSVM2_Op_STTHISD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 void BSVM2_Op_STTHISA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	BSVM2_ImageGlobal *vi;	vi=op->v.p;
 	dtcVaSetA(frm->self, vi->objinf, frm->stack[op->t0].a);	}
+
+
+void BSVM2_Op_LDOSX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	a=BSVM2_FrameAllocX128(frm);
+	vi=op->v.p;
+	p=dtcVaGetPtr(frm->stack[op->t0].a, vi->objinf);
+	*a=*(BSVM2_ValX128 *)p;
+	frm->stack[op->t0].p=a;
+}
+
+void BSVM2_Op_STOSX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	a=frm->stack[op->t0].p;
+	vi=op->v.p;
+	p=dtcVaGetPtr(frm->stack[op->t1].a, vi->objinf);
+	*(BSVM2_ValX128 *)p=*a;
+	BSVM2_FrameFreeX128(frm, a);
+}
+
+void BSVM2_Op_LDTHISX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	a=BSVM2_FrameAllocX128(frm);
+	vi=op->v.p;
+	p=dtcVaGetPtr(frm->self, vi->objinf);
+	*a=*(BSVM2_ValX128 *)p;
+	frm->stack[op->t0].p=a;
+}
+
+void BSVM2_Op_STTHISX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	a=frm->stack[op->t0].p;
+	vi=op->v.p;
+	p=dtcVaGetPtr(frm->self, vi->objinf);
+	*(BSVM2_ValX128 *)p=*a;
+	BSVM2_FrameFreeX128(frm, a);
+}
+

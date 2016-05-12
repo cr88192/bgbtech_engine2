@@ -270,6 +270,13 @@ void BS2C_CompileFuncBodyCleanupVar(
 		BS2C_EmitOpcodeUCx(ctx, i);
 		return;
 	}
+
+	if(BS2C_TypeX128P(ctx, bty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_DFXX);
+		BS2C_EmitOpcodeUCx(ctx, ix);
+		return;
+	}
 }
 
 void BS2C_CompileFuncBodyCleanup(

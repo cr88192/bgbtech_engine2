@@ -18,15 +18,6 @@
 #define BSVM2_OPRF_MUL		2
 #define BSVM2_OPRF_DIV		3
 
-#define BSVM2_OPRV_ADD		0
-#define BSVM2_OPRV_SUB		1
-#define BSVM2_OPRV_MUL		2
-#define BSVM2_OPRV_DIV		3
-#define BSVM2_OPRV_DOT		4
-#define BSVM2_OPRV_CROSS	5
-#define BSVM2_OPRV_CMUL		6
-#define BSVM2_OPRV_CMUL2	7
-
 #define BSVM2_OPRC_EQ		0
 #define BSVM2_OPRC_NE		1
 #define BSVM2_OPRC_LT		2
@@ -52,6 +43,37 @@
 #define BSVM2_OPZ_ADDR		4
 // #define BSVM2_OPZ_VARIANT	4
 #define BSVM2_OPZ_VOID		11
+
+
+#define BSVM2_OPRV_ADD		0
+#define BSVM2_OPRV_SUB		1
+#define BSVM2_OPRV_MUL		2
+#define BSVM2_OPRV_DIV		3
+#define BSVM2_OPRV_DOT		4
+#define BSVM2_OPRV_CROSS	5
+#define BSVM2_OPRV_CMUL		6
+#define BSVM2_OPRV_CDIV		7
+#define BSVM2_OPRV_CMUL2	8
+#define BSVM2_OPRV_CDIV2	9
+
+#define BSVM2_OPUV_NEG		0
+#define BSVM2_OPUV_RCP		1
+#define BSVM2_OPUV_SQRT		2
+#define BSVM2_OPUV_RSQRT	3
+#define BSVM2_OPUV_LEN		4
+#define BSVM2_OPUV_LEN2		5
+
+#define BSVM2_OPVZ_V4I		0
+#define BSVM2_OPVZ_V2L		1
+#define BSVM2_OPVZ_V4F		2
+#define BSVM2_OPVZ_V2D		3
+#define BSVM2_OPVZ_V2I		4
+#define BSVM2_OPVZ_V2F		5
+#define BSVM2_OPVZ_V3I		6
+#define BSVM2_OPVZ_V3F		7
+#define BSVM2_OPVZ_I128		8
+#define BSVM2_OPVZ_UI128	9
+#define BSVM2_OPVZ_F128		10
 
 
 #define BSVM2_OPZY_STRU8	1
@@ -387,37 +409,6 @@
 //#define BSVM2_OP_LDDRAL		0x015E
 //#define BSVM2_OP_STDRAL		0x015F
 
-#define BSVM2_OP_MKX4I		0x0160
-#define BSVM2_OP_MKX2L		0x0161
-#define BSVM2_OP_MKX4F		0x0162
-#define BSVM2_OP_MKX2D		0x0163
-#define BSVM2_OP_DUPX		0x0164
-#define BSVM2_OP_POPX		0x0165
-#define BSVM2_OP_LDXL		0x0166
-#define BSVM2_OP_STXL		0x0167
-#define BSVM2_OP_IFXX		0x0168
-#define BSVM2_OP_DFXX		0x0169
-#define BSVM2_OP_IFXXA		0x016A
-#define BSVM2_OP_LDXX		0x016B
-#define BSVM2_OP_DLDXX		0x016C
-#define BSVM2_OP_STXX		0x016D
-#define BSVM2_OP_BINOPX		0x016E
-#define BSVM2_OP_UNOPX		0x016F
-
-#define BSVM2_OP_CVTI2XL	0x0170
-#define BSVM2_OP_CVTL2XL	0x0171
-#define BSVM2_OP_CVTUI2XL	0x0172
-#define BSVM2_OP_CVTUL2XL	0x0173
-#define BSVM2_OP_CVTXL2I	0x0174
-#define BSVM2_OP_CVTXL2L	0x0175
-#define BSVM2_OP_CVTD2XF	0x0176
-#define BSVM2_OP_CVTXF2D	0x0177
-#define BSVM2_OP_CVTXL2XF	0x0178
-#define BSVM2_OP_CVTXF2XL	0x0179
-#define BSVM2_OP_CVTXL2AA	0x017A
-#define BSVM2_OP_CVTXF2AA	0x017B
-#define BSVM2_OP_CVTAA2XL	0x017C
-#define BSVM2_OP_CVTAA2XF	0x017D
 
 #define BSVM2_OP_LDIXZLL	0x017E	//Load Index Z-LL ( A, I; => V )
 #define BSVM2_OP_LDIXZLC	0x017F	//Load Index Z-LC ( A, C; => V )
@@ -460,7 +451,75 @@
 #define BSVM2_OP_JEQNULLL	0x019E	//
 #define BSVM2_OP_JNENULLL	0x019F	//
 
+
+
+#define BSVM2_OP_MKX4I		0x0400
+#define BSVM2_OP_MKX2L		0x0401
+#define BSVM2_OP_MKX4F		0x0402
+#define BSVM2_OP_MKX2D		0x0403
+#define BSVM2_OP_DUPX		0x0404
+#define BSVM2_OP_POPX		0x0405
+#define BSVM2_OP_LDXL		0x0406
+#define BSVM2_OP_STXL		0x0407
+#define BSVM2_OP_IFXX		0x0408
+#define BSVM2_OP_DFXX		0x0409
+#define BSVM2_OP_IFXXA		0x040A
+#define BSVM2_OP_LDXX		0x040B
+#define BSVM2_OP_DLDXX		0x040C
+#define BSVM2_OP_STXX		0x040D
+#define BSVM2_OP_BINOPX		0x040E
+#define BSVM2_OP_UNOPX		0x040F
+
+#define BSVM2_OP_CVTI2XL	0x0410
+#define BSVM2_OP_CVTL2XL	0x0411
+#define BSVM2_OP_CVTUI2XL	0x0412
+#define BSVM2_OP_CVTUL2XL	0x0413
+#define BSVM2_OP_CVTXL2I	0x0414
+#define BSVM2_OP_CVTXL2L	0x0415
+#define BSVM2_OP_CVTD2XF	0x0416
+#define BSVM2_OP_CVTXF2D	0x0417
+#define BSVM2_OP_CVTXL2XF	0x0418
+#define BSVM2_OP_CVTXF2XL	0x0419
+#define BSVM2_OP_CVTXL2AA	0x041A
+#define BSVM2_OP_CVTXF2AA	0x041B
+#define BSVM2_OP_CVTAA2XL	0x041C
+#define BSVM2_OP_CVTAA2XF	0x041D
+
+#define BSVM2_OP_CVTCF2AA	0x0420	//
+#define BSVM2_OP_CVTCD2AA	0x0421	//
+#define BSVM2_OP_CVTVI2AA	0x0422	//
+#define BSVM2_OP_CVTVF2AA	0x0423	//
+#define BSVM2_OP_CVTAA2VI	0x0424	//
+#define BSVM2_OP_CVTAA2VF	0x0425	//
+#define BSVM2_OP_CVTAA2X4I	0x0426	//
+#define BSVM2_OP_CVTAA2X4F	0x0427	//
+#define BSVM2_OP_CVTX4F2AA	0x0428	//
+#define BSVM2_OP_CVTX3F2AA	0x0429	//
+#define BSVM2_OP_CVTXQF2AA	0x042A	//
+#define BSVM2_OP_CVTX2D2AA	0x042B	//
+
+#define BSVM2_OP_MKV2I		0x0430	//
+#define BSVM2_OP_MKV2F		0x0431	//
+
+#define BSVM2_OP_LDV2IA		0x0440	//
+#define BSVM2_OP_LDV2IB		0x0441	//
+#define BSVM2_OP_LDV2FA		0x0442	//
+#define BSVM2_OP_LDV2FB		0x0443	//
+#define BSVM2_OP_LDX2LA		0x0444	//
+#define BSVM2_OP_LDX2LB		0x0445	//
+#define BSVM2_OP_LDX2DA		0x0446	//
+#define BSVM2_OP_LDX2DB		0x0447	//
+#define BSVM2_OP_LDX4IA		0x0448	//
+#define BSVM2_OP_LDX4IB		0x0449	//
+#define BSVM2_OP_LDX4IC		0x044A	//
+#define BSVM2_OP_LDX4ID		0x044B	//
+#define BSVM2_OP_LDX4FA		0x044C	//
+#define BSVM2_OP_LDX4FB		0x044D	//
+#define BSVM2_OP_LDX4FC		0x044E	//
+#define BSVM2_OP_LDX4FD		0x044F	//
+
 typedef union BSVM2_Value_u BSVM2_Value;
+typedef union BSVM2_ValX128_u BSVM2_ValX128;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
 typedef struct BSVM2_TailOpcode_s BSVM2_TailOpcode;
 typedef struct BSVM2_Trace_s BSVM2_Trace;
@@ -477,12 +536,22 @@ typedef struct BSVM2_CodeImage_s BSVM2_CodeImage;
 union BSVM2_Value_u {
 struct { s32 i, j; };
 struct { u32 ui, uj; };
+struct { f32 fx, fy; };
 s64 l;
 u64 ul;
 f32 f;
 f64 d;
 dtVal a;
 void *p;
+};
+
+union BSVM2_ValX128_u {
+struct { s32 ia, ib, ic, id; };
+struct { u32 ua, ub, uc, ud; };
+struct { f32 fx, fy, fz, fw; };
+struct { s64 la, lb; };
+struct { u64 ula, ulb; };
+struct { f64 dx, dy; };
 };
 
 struct BSVM2_Opcode_s {
@@ -534,6 +603,7 @@ BSVM2_Value *tstack;		//temp stack (locals and stack)
 int tstackref;				//ref position of temp stack
 
 BSVM2_Frame *freeframe;		//free frames
+void *freex128;				//free X128 vectors
 
 BSVM2_Frame *frame;			//current frame
 BSVM2_Trace *trace;			//current trace

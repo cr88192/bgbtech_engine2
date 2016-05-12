@@ -457,12 +457,16 @@ int BSVM2_NatCall_GetSigOpZ(char *sig)
 		i=BSVM2_OPZ_DOUBLE; break;
 
 	case 'g':	case 'n':	case 'o':
+		i=BS2CC_TYZ_INT128; break;
+
 	case 'p':	case 'q':	case 'r':
 		i=BSVM2_OPZ_ADDRESS; break;
 
 	case 'C':
-//		if(sig[1]=='s')
-//			{ i=-1; break; }
+		if((sig[1]=='b') || (sig[1]=='c') ||
+			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='q'))
+				{ i=BS2CC_TYZ_VEC4F; break; }
 		i=BSVM2_OPZ_ADDRESS; break;
 
 	case 'Q':

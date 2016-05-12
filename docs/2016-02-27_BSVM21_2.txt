@@ -90,9 +90,10 @@ In cases where an NLong is used as a long, and is 32-bit in storage, it will be 
 Narrower types will implicitly widen to their parent core type, with the narrower type primarily effecting storage. As a result, intermediate arithmetic results may reflect the wider type.
 
 
-=== X128 ===
+=== V64 and X128 ===
 
 X128 will be an extended-core type which exists as a subset of Address.
+V64 will exist as an extended-core subtype of Address.
 
 IOW:
 * Address
@@ -104,7 +105,11 @@ IOW:
 *** vec2l
 *** vec2f/vec3f/vec4f
 *** vec2d
-
+**** dcomplex
+** V64
+*** vec2i
+*** vec2f
+**** fcomplex
 
 An X128 value represents a 128 bit quantity, which may have one of several possible interpretations:
 * 4 Integers
@@ -123,23 +128,19 @@ Components will be labeled as:
 ** As a 128 bit element
 * A will be the low-order bits, and D the high order bits.
 ** AB will thus be the low half of an Int128, and CD the upper half.
+* V64 will only have A and B.
 
 For vec3f and vec4f:
 * X, Y, Z, W
-** Where X=A and W=D
+** Where X=A, Y=B, Z=C, and W=D
 
 If the vector operation type is narrower than the full width of the vector, then the contents of the remaining vector elements is undefined.
 
-Note that these vectors do not necessarily correspond with SIMD features provided by the underlying CPU architecture.
+Note that these vectors do not necessarily correspond with or map to SIMD features provided by the underlying CPU architecture.
 
+Note that the VM will not remember the type of values held in a V64 or X128 value. As a result, type-specific conversion ops are needed to produce variant. However, when converting variant to V64 or X128 values, only the element type will be relevant in the conversion (thus, for example, Vec2f and FComplex will use the same conversion ops).
 
-X64 will exist as an extended-core subtype of Double.
-
-Subtypes:
-* Double
-** X64
-*** vec2i
-*** vec2f
+While X128 requires dedicated init/deinit/copy ops, these will be unnecessary for V64 types (which are narrower and thus can be stored directly).
 
 
 === Signature Strings ===
@@ -149,7 +150,7 @@ Signature Characters:
 *  b, bool (byte)
 *  c, char8
 *  d, double
-*  e, (long double)
+*  e, (long double), alias for double.
 *  f, float
 *  g, float128
 *  h, ubyte (unsigned byte)
@@ -208,10 +209,19 @@ A per function global table will exist. This table may potentially contain const
 
 == Instruction Set ==
 
+Opcode Coding
 * 00-DF: Single Byte
 * E0-EF: Two Byte (0000-0FFF)
 * F0-F7: Three Byte (00000-7FFFF)
 * F8-FF: Reserved (Longer instructions)
+
+Within the 2 byte range
+* 0000..03FF: Core Opcode Range
+* 0400..07FF: Core Extended Blocks
+* 0800..0FFF: VM/Image Extended Blocks
+** These will be named blocks of 256 opcodes assigned per image.
+** A VM is to throw if an attempt is made to call into a block containing unrecognized instructions.
+** An AOT may reject the image if such a block is reachable.
 
 Core Bin Ops (Int/Long)
 *  0, ADD
@@ -263,47 +273,6 @@ Operation Type (Z)
 *	C, NLong
 *	D, UNLong
 *	E/F, Resv
-
-X128 Operation Type (Z)
-*  0, Int (4I)
-*  1, Long (2L)
-*  2, Float (4F)
-*  3, Double (2D)
-*  4, Int (2I, X64)
-*  5, Float (2F, X64)
-*  6, Int (3I)
-*  7, Float (3F)
-*  8, Int128
-*  9, UInt128
-*  A, Float128
-*  B-F
-
-X128 Binary Operators
-*  Int128: Same as for other Int types.
-*  Float128: Same as for other Float types.
-*  Int Vec: Int operation applied to each element.
-*  Float Vec:
-**  0, ADD
-**  1, SUB
-**  2, MUL
-**  3, DIV
-**  4, Dot Product
-**  5, Cross Product
-**  6, CMul or QMul (Vec2=Complex, Vec4=Quat)
-**  7, CMul2 or QMul2 (Vec2=Complex, Vec4=Quat)
-
-X128 Unary Operators
-*  Int128: Same as for other Int types.
-*  Float128: Same as for other Float types.
-*  Int Vec: Int operation applied to each element.
-*  Float Vec:
-**   0, NEG (A=-A)
-**   1, Rcp (A=1/A)
-**   2, Sqrt (A=sqrt(A))
-**   3, RSqrt (A=1/sqrt(A))
-**   4, Length (A.a=sqrt(dot(A, A)))
-**   5, Length^2 (A.a=dot(A, A))
-
 
 Ix: Variable Index
 *  00-7F, Variable 00-7F
@@ -381,9 +350,6 @@ Zn: Type+Count / Type+Index
 
 Zo: Type+Binary
 Zc: Type+Compare
-
-Va: Vector Type+Unary
-Vb: Vector Type+Binary
 
 Zx: Type+Constant
 * Consists of a VLI value with Z stuck in the 4 low bits.
@@ -881,50 +847,6 @@ Instructions
 ** However, LDIX/STIX may not be used on VarRefs.
 
 
-Vector operations (NACHO2):
-* E1 60, MKX4I					//Make X128 From 4 Integers ( A B C D -> X )
-* E1 61, MKX2L					//Make X128 From 2 Longs ( AB CD -> X )
-* E1 62, MKX4F					//Make X128 From 4 Floats ( A B C D -> X )
-* E1 63, MKX2D					//Make X128 From 2 Doubles ( AB CD -> X )
-** Make X128 from component values.
-** Int128 or Float128 values may be made using 4I or 2L.
-* E1 64, DUPX					//DUP X128
-* E1 65, POPX					//POP X128
-** These are required for X128 values, rather than DUPA/POPA.
-* E1 66 Ix, LDXL				//Load X128 From Local
-* E1 67 Ix, STXL				//Store X128 To Local
-** Load or store X128 value from local.
-** May copy value as needed.
-* E1 68 Ix, IFXX				//Init X128
-* E1 69 Ix, DFXX				//Deinit X128
-* E1 6A Ix, IFXXA				//Init X128 Argument
-** These are similar in use to fixed-object ops.
-* E1 6B Zn, LDXX				//Load X Element ( X -> A )
-* E1 6C Zn, DLDXX				//Dup Load X Element ( X -> X A )
-** Z gives element type, and n gives index.
-* E1 6D Zn, STXX				//Store X Element ( X A -> Y )
-** Store an element, resulting in a new X128.
-* E1 6E Vb, BINOPX				//Binary Operator ( A B -> C )
-* E1 6F Va, UNOPX				//Unary Operator ( A -> C )
-** Apply binary operators to vectors.
-** Not all operators are defined for all vector types.
-** Some operators may have different behavior.
-
-Vector convert operations (NACHO2):
-* E1 70, CVTI2XL				//Convert Int to Int128 (Sign Extend)
-* E1 71, CVTL2XL				//Convert Long to Int128 (Sign Extend)
-* E1 72, CVTUI2XL				//Convert UInt to Int128 (Zero Extend)
-* E1 73, CVTUL2XL				//Convert ULong to Int128 (Zero Extend)
-* E1 74, CVTXL2I				//Convert Int128 to Int (Truncate)
-* E1 75, CVTXL2L				//Convert Int128 to Long (Truncate)
-* E1 76, CVTD2XF				//Convert Double to Float128
-* E1 77, CVTXF2D				//Convert Float128 to Double
-* E1 78, CVTXL2XF				//Convert Int128 to Float128
-* E1 79, CVTXF2XL				//Convert Float128 to Int128
-* E1 7A, CVTXL2AA				//Convert Int128 to Variant
-* E1 7B, CVTXF2AA				//Convert Float128 to Variant
-* E1 7C, CVTAA2XL				//Convert Variant to Int128
-* E1 7D, CVTAA2XF				//Convert Variant to Float128
 
 More Array ops:
 * E1 7E Zi Ix, LDIXZLL		//Store Index Local-Local (A, I; => V )
@@ -985,3 +907,134 @@ More Array ops:
 * E1 9D Ax, JNENULL					//Jump If Not Null
 * E1 9E Ix Ax, JEQNULLL				//Jump If Null (Local)
 * E1 9F Ix Ax, JNENULLL				//Jump If Not Null (Local)
+
+
+=== Vector Block (0x400) ===
+
+X128 Operation Type (Z)
+*  0, Int (4I)
+*  1, Long (2L)
+*  2, Float (4F)
+*  3, Double (2D)
+*  4, Int (2I, V64)
+*  5, Float (2F, V64)
+*  6, Int (3I)
+*  7, Float (3F)
+*  8, Int128
+*  9, UInt128
+*  A, Float128
+*  B-F
+
+X128 Binary Operators
+*  Int128: Same as for other Int types.
+*  Float128: Same as for other Float types.
+*  Int Vec: Int operation applied to each element.
+*  Float Vec:
+**  0, ADD
+**  1, SUB
+**  2, MUL
+**  3, DIV
+**  4, Dot Product
+**  5, Cross Product
+**  6, CMul or QMul (Vec2=Complex, Vec4=Quat)
+**  7, CDiv or QDiv (Vec2=Complex, Vec4=Quat)
+*** Quat: A*B, A*(1/B)
+
+**  8, CMul or QMul2 (Vec2=Complex, Vec4=Quat)
+**  9, CDiv or QDiv2 (Vec2=Complex, Vec4=Quat)
+*** Quat: B*A, (1/B)*A
+
+X128 Unary Operators
+*  Int128: Same as for other Int types.
+*  Float128: Same as for other Float types.
+*  Int Vec: Int operation applied to each element.
+*  Float Vec:
+**   0, NEG (A=-A)
+**   1, Rcp (A=1/A)
+**   2, Sqrt (A=sqrt(A))
+**   3, RSqrt (A=1/sqrt(A))
+**   4, Length (A.a=sqrt(dot(A, A)))
+**   5, Length^2 (A.a=dot(A, A))
+
+Va: Vector Type+Unary
+Vb: Vector Type+Binary
+
+
+Vector operations (NACHO2):
+* E4 00, MKX4I					//Make X128 From 4 Integers ( A B C D -> X )
+* E4 01, MKX2L					//Make X128 From 2 Longs ( AB CD -> X )
+* E4 02, MKX4F					//Make X128 From 4 Floats ( A B C D -> X )
+* E4 03, MKX2D					//Make X128 From 2 Doubles ( AB CD -> X )
+** Make X128 from component values.
+** Int128 or Float128 values may be made using 4I or 2L.
+* E4 04, DUPX					//DUP X128
+* E4 05, POPX					//POP X128
+** These are required for X128 values, rather than DUPA/POPA.
+* E4 06 Ix, LDXL				//Load X128 From Local
+* E4 07 Ix, STXL				//Store X128 To Local
+** Load or store X128 value from local.
+** May copy value as needed.
+* E4 08 Ix, IFXX				//Init X128
+* E4 09 Ix, DFXX				//Deinit X128
+* E4 0A Ix, IFXXA				//Init X128 Argument
+** These are similar in use to fixed-object ops.
+* E4 0B Zn, LDXX				//Load X Element ( X -> A )
+* E4 0C Zn, DLDXX				//Dup Load X Element ( X -> X A )
+** Z gives element type, and n gives index.
+* E4 0D Zn, STXX				//Store X Element ( X A -> Y )
+** Store an element, resulting in a new X128.
+* E4 0E Vb, BINOPX				//Binary Operator ( A B -> C )
+* E4 0F Va, UNOPX				//Unary Operator ( A -> C )
+** Apply binary operators to vectors.
+** Not all operators are defined for all vector types.
+** Some operators may have different behavior.
+
+Vector convert operations (NACHO2):
+* E4 10, CVTI2XL				//Convert Int to Int128 (Sign Extend)
+* E4 11, CVTL2XL				//Convert Long to Int128 (Sign Extend)
+* E4 12, CVTUI2XL				//Convert UInt to Int128 (Zero Extend)
+* E4 13, CVTUL2XL				//Convert ULong to Int128 (Zero Extend)
+* E4 14, CVTXL2I				//Convert Int128 to Int (Truncate)
+* E4 15, CVTXL2L				//Convert Int128 to Long (Truncate)
+* E4 16, CVTD2XF				//Convert Double to Float128
+* E4 17, CVTXF2D				//Convert Float128 to Double
+* E4 18, CVTXL2XF				//Convert Int128 to Float128
+* E4 19, CVTXF2XL				//Convert Float128 to Int128
+* E4 1A, CVTXL2AA				//Convert Int128 to Variant
+* E4 1B, CVTXF2AA				//Convert Float128 to Variant
+* E4 1C, CVTAA2XL				//Convert Variant to Int128
+* E4 1D, CVTAA2XF				//Convert Variant to Float128
+
+* E4 20, CVTCF2AA				//Convert FComplex to Variant
+* E4 21, CVTCD2AA				//Convert DComplex to Variant
+* E4 22, CVTVI2AA				//Convert Vec2i to Variant
+* E4 23, CVTVF2AA				//Convert Vec2f to Variant
+* E4 24, CVTAA2VI				//Variant to Vec2i
+* E4 25, CVTAA2VF				//Variant to Vec2f
+* E4 26, CVTAA2X4I				//Variant to Vec4i (also Vec3i)
+* E4 27, CVTAA2X4F				//Variant to Vec4f (also Vec3f)
+* E4 28, CVTX4F2AA				//Convert Vec4f to Variant
+* E4 29, CVTX3F2AA				//Convert Vec3f to Variant
+* E4 2A, CVTXQF2AA				//Convert Quat to Variant
+* E4 2B, CVTX2D2AA				//Convert Vec2d to Variant
+
+
+* E4 30, MKV2I					//Make Vec2i from 2 ints
+* E4 31, MKV2F					//Make Vec2f from 2 floats
+
+* E4 40, LDV2IA					//Load V2I.A
+* E4 41, LDV2IB					//Load V2I.B
+* E4 42, LDV2FA					//Load V2F.A
+* E4 43, LDV2FB					//Load V2F.B
+* E4 44, LDX2LA					//Load X2L.A
+* E4 45, LDX2LB					//Load X2L.B
+* E4 46, LDX2DA					//Load X2D.A
+* E4 47, LDX2DB					//Load X2D.B
+* E4 48, LDV2IA					//Load X4I.A
+* E4 49, LDV2IB					//Load X4I.B
+* E4 4A, LDV2IC					//Load X4I.C
+* E4 4B, LDV2ID					//Load X4I.D
+* E4 4C, LDV2FA					//Load X4F.A
+* E4 4D, LDV2FB					//Load X4F.B
+* E4 4E, LDV2FC					//Load X4F.C
+* E4 4F, LDV2FD					//Load X4F.D

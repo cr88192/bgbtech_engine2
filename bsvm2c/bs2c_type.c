@@ -474,6 +474,41 @@ int BS2C_TypeVec2dP(BS2CC_CompileContext *ctx, int ty)
 int BS2C_TypeQuatfP(BS2CC_CompileContext *ctx, int ty)
 	{ return(ty==BS2CC_TYZ_QUATF); }
 
+int BS2C_TypeFComplexP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_FCPLX); }
+int BS2C_TypeDComplexP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_DCPLX); }
+
+int BS2C_TypeSmallFComplexP(BS2CC_CompileContext *ctx, int ty)
+{
+//	if(BS2C_TypeSmallFloatP(ctx, ty))
+	if(BS2C_TypeSmallDoubleP(ctx, ty))
+		return(1);
+	if(ty==BS2CC_TYZ_FCPLX)
+		return(1);
+	return(0);
+}
+
+int BS2C_TypeSmallDComplexP(BS2CC_CompileContext *ctx, int ty)
+{
+	if(BS2C_TypeSmallDoubleP(ctx, ty))
+		return(1);
+	if(ty==BS2CC_TYZ_FCPLX)
+		return(1);
+	if(ty==BS2CC_TYZ_DCPLX)
+		return(1);
+	return(0);
+}
+
+int BS2C_TypeSmallQuatfP(BS2CC_CompileContext *ctx, int ty)
+{
+	if(BS2C_TypeSmallFComplexP(ctx, ty))
+		return(1);
+	if(ty==BS2CC_TYZ_QUATF)
+		return(1);
+	return(0);
+}
+
 int BS2C_TypeOpXvCplxP(BS2CC_CompileContext *ctx, int ty)
 {
 	return(
@@ -715,6 +750,24 @@ int BS2C_InferSuperType(
 	{
 		return(BS2CC_TYZ_DOUBLE);
 	}
+
+	if(BS2C_TypeSmallFComplexP(ctx, lty) &&
+		BS2C_TypeSmallFComplexP(ctx, rty))
+	{
+		return(BS2CC_TYZ_FCPLX);
+	}
+
+	if(BS2C_TypeSmallDComplexP(ctx, lty) &&
+		BS2C_TypeSmallDComplexP(ctx, rty))
+	{
+		return(BS2CC_TYZ_DCPLX);
+	}
+
+	if(BS2C_TypeSmallQuatfP(ctx, lty) &&
+		BS2C_TypeSmallQuatfP(ctx, rty))
+	{
+		return(BS2CC_TYZ_QUATF);
+	}
 	
 	if(BS2C_TypeVariantP(ctx, lty) ||
 		BS2C_TypeVariantP(ctx, rty))
@@ -952,6 +1005,12 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_VEC4F);
 		if(!strcmp(tyn, "vec2d"))
 			return(BS2CC_TYZ_VEC2D);
+		if(!strcmp(tyn, "quatf"))
+			return(BS2CC_TYZ_QUATF);
+		if(!strcmp(tyn, "fcomplex"))
+			return(BS2CC_TYZ_FCPLX);
+		if(!strcmp(tyn, "dcomplex"))
+			return(BS2CC_TYZ_DCPLX);
 	}
 	return(BS2CC_TYZ_ADDRESS);
 }
@@ -1209,6 +1268,12 @@ int BS2C_TypeRefinedType(
 			{ bt=BS2CC_TYZ_VEC4F; }
 		else if(!strcmp(tyn, "vec2d"))
 			{ bt=BS2CC_TYZ_VEC2D; }
+		else if(!strcmp(tyn, "quatf"))
+			{ bt=BS2CC_TYZ_QUATF; }
+		else if(!strcmp(tyn, "fcomplex"))
+			{ bt=BS2CC_TYZ_FCPLX; }
+		else if(!strcmp(tyn, "dcomplex"))
+			{ bt=BS2CC_TYZ_DCPLX; }
 		else
 		{
 			i=BS2C_LookupVariGlobal(ctx, vari, tyn);

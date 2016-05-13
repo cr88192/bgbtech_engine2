@@ -140,7 +140,7 @@ Within Definitions:
 ** SVLI, Positive values map to STRS.
 * 'G': Global Indices
 * 'H': Initialization Value for Variables
-* 'I': Implements, Class Specific
+* 'I': Implements (Class), Alias Table (Func)
 * 'J'..'M':
 * 'N': Name Symbol
 ** SVLI, Positive values map to STRS.
@@ -185,6 +185,9 @@ Function Specific:
 * 'G': Global Indices
 ** Encoded as a series of tagged constant values.
 ** Tagged constants are encoded as unsigned.
+* 'I': Alias Table
+** Encoded series of opcode numbers.
+** May be referenced in bytecode as a shorthand for multibyte ops.
 
 Class/Struct/Interface:
 * 'G': Global Indices

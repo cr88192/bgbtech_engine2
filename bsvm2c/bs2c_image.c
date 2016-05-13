@@ -699,6 +699,8 @@ byte *BS2C_Image_FlattenGlobals(
 	for(i=0; i<ctx->nglobals; i++)
 	{
 		vari=ctx->globals[i];
+		if(!vari)
+			continue;
 
 		if(!(vari->bmfl&BS2CC_TYFL_CANREACH))
 		{
@@ -872,6 +874,7 @@ BTEIFGL_API int BS2C_TouchReachable(
 {
 	BS2CC_PkgFrame *pcur;
 	BS2CC_VarInfo *vcur;
+	int i;
 	
 	pcur=ctx->pkg_first;
 	while(pcur)
@@ -889,6 +892,25 @@ BTEIFGL_API int BS2C_TouchReachable(
 		}
 		pcur=pcur->next;
 	}
+
+	for(i=0; i<ctx->nglobals; i++)
+	{
+		vcur=ctx->globals[i];
+		if(!vcur)
+			continue;
+
+		if(vcur->vitype!=BS2CC_VITYPE_GBLFUNC)
+			continue;
+		
+		if(!vcur->name)
+			continue;
+		if(!strcmp(vcur->name, "main"))
+		{
+			BS2C_TouchReachable_TouchReachDef(ctx, vcur);
+//			vitab[n++]=vari;
+		}
+	}
+
 	return(0);
 }
 
@@ -941,6 +963,8 @@ byte *BS2C_Image_FlattenMains(
 	for(i=0; i<ctx->nglobals; i++)
 	{
 		vari=ctx->globals[i];
+		if(!vari)
+			continue;
 
 		if(vari->vitype!=BS2CC_VITYPE_GBLFUNC)
 			continue;

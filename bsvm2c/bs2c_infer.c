@@ -339,6 +339,18 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		return(BS2CC_TYZ_VARIANT);
 	}
 
+	if(!strcmp(tag, "imag"))
+	{
+		fn=BS2P_GetAstNodeAttrS(expr, "sfx");
+
+		lt=BS2CC_TYZ_FCPLX;
+		if(!strcmp(fn, "JF"))
+			lt=BS2CC_TYZ_FCPLX;
+		if(!strcmp(fn, "JD"))
+			lt=BS2CC_TYZ_DCPLX;
+		return(lt);
+	}
+
 	if(!strcmp(tag, "vector"))
 	{
 		ln=BS2P_GetAstNodeAttr(expr, "value");
@@ -370,6 +382,13 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 				lt=BS2CC_TYZ_SHORT;
 			if(!strcmp(fn, "US"))
 				lt=BS2CC_TYZ_USHORT;
+
+			if(!strcmp(fn, "QF"))
+				lt=BS2CC_TYZ_QUATF;
+			if(!strcmp(fn, "JF"))
+				lt=BS2CC_TYZ_FCPLX;
+			if(!strcmp(fn, "JD"))
+				lt=BS2CC_TYZ_DCPLX;
 		}
 		
 		ty=-1;
@@ -388,6 +407,13 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			if(l==2)
 				ty=BS2CC_TYZ_VEC2D;
 		}
+
+		if(lt==BS2CC_TYZ_QUATF)
+			{ ty=BS2CC_TYZ_QUATF; }
+		if(lt==BS2CC_TYZ_FCPLX)
+			{ ty=BS2CC_TYZ_FCPLX; }
+		if(lt==BS2CC_TYZ_DCPLX)
+			{ ty=BS2CC_TYZ_DCPLX; }
 
 		if(ty>=0)
 			return(ty);

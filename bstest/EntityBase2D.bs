@@ -1,0 +1,4 @@
+public class EntityBase2D {
+	public vec2f origin;
+	public float angle;
+}

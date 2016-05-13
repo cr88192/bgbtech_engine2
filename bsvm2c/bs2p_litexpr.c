@@ -190,11 +190,21 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 	
 	if(*t0=='#')
 	{
-		if(!strcmp(t1, "IF") || !strcmp(t1, "If"))
+		if(t1 && *t1=='I')
 		{
-			BS2P_NextTokenN(ctx, 2);
-			return(dtvWrapFloatF(atof(t0+1)));
+			if(!strcmp(t1, "IF") || !strcmp(t1, "If"))
+			{
+				BS2P_NextTokenN(ctx, 2);
+				return(dtvWrapFloatF(atof(t0+1)));
+			}
 
+			if(!strcmp(t1, "IJ") || !strcmp(t1, "Ij") ||
+				!strcmp(t1, "IJF") || !strcmp(t1, "Ijf") ||
+				!strcmp(t1, "IJD") || !strcmp(t1, "Ijd"))
+			{
+				BS2P_NextTokenN(ctx, 2);
+				return(BS2P_ParseWrapImaginary(ctx, t1+1, atof(t0+1)));
+			}
 		}
 	
 		BS2P_NextToken(ctx);
@@ -205,6 +215,14 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 	{
 		if(t1 && *t1=='I')
 		{
+			if(!strcmp(t1, "IJ") || !strcmp(t1, "Ij") ||
+				!strcmp(t1, "IJF") || !strcmp(t1, "Ijf") ||
+				!strcmp(t1, "IJD") || !strcmp(t1, "Ijd"))
+			{
+				BS2P_NextTokenN(ctx, 2);
+				return(BS2P_ParseWrapImaginary(ctx, t1+1, atof(t0+1)));
+			}
+
 			if(!strcmp(t1, "II") || !strcmp(t1, "Ii"))
 			{
 				BS2P_NextTokenN(ctx, 2);
@@ -431,6 +449,10 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 		if(!strcmp(t0, "ID") || !strcmp(t0, "Id"))t2="D";
 		if(!strcmp(t0, "IC") || !strcmp(t0, "Ic"))t2="C";
 		if(!strcmp(t0, "IW") || !strcmp(t0, "Iw"))t2="W";
+		if(!strcmp(t0, "IQ") || !strcmp(t0, "Iq"))t2="QF";
+		if(!strcmp(t0, "IJ") || !strcmp(t0, "Ij"))t2="JF";
+		if(!strcmp(t0, "IJF") || !strcmp(t0, "Ijf"))t2="JF";
+		if(!strcmp(t0, "IJD") || !strcmp(t0, "Ijd"))t2="JD";
 		
 		if(t2)
 			{ BS2P_NextToken(ctx); }

@@ -512,30 +512,31 @@ Instructions
 ** Load/Store Array Index using constant, given as a signed integer constant.
 ** Note that for many types of arrays, indices may be negative.
 
-* 60 ZO, BINOP			//Binary Operator
-* 61 ZO, CMPOP			//Compare Operator
-* 62 ZO Ix, BINOPL		//Binary Operator (A op I)
-* 63 ZO Ix, CMPOPL		//Compare Operator (A op I)
-* 64 ZO Jx, BINOPLL		//Binary Operator (I op J)
-* 65 ZO Jx, CMPOPLL		//Compare Operator (I op J)
-* 66 ZO Cx, BINOPC		//Binary Operator (A op C)
-* 67 ZO Kx, BINOPLC		//Binary Operator (I op C)
-* 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
-* 69 ZO Kx, CMPOPLC		//Compare Operator (I op C)
+* 60, HNOEX			//Non-Execute, Trace
+* 61, HNOEX1		//Non-Execute, 1 Op
+* 62, HNOEX2		//Non-Execute, 2 Ops
+* 63, HNOEX3		//Non-Execute, 3 Ops
+** These indicate that the following instructions are unreachable.
+** It is invalid for any control-flow path to target a NOEX or its ops.
+** HNOEX indicates a non-executable sequence terminated by a LABEL.
+** HNOEX1..HNOEX3 indicate 1-3 non-executable instructions.
+*** A new trace will be started following these instructions.
+** Only a small subset of opcodes will be allowed in NOEX blocks.
+*** Its intent is mostly to be used for stack manipulation.
 
-** (NACHO).
-** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
+* 64 Zx, RETC			//Return Constant
 
-* 6A Zn, PUSHN				//Push n Items (null/zero)
-* 6B Zn, POPN				//Pop n Items
-* 6C Zn, SWAPN				//Swap top-of-stack with Item n
-* 6D Zn, ROTLN				//Rotate Left 1 position over n items.
-* 6E Zn, ROTRN				//Rotate Right 1 position over n items.
-* 6F Zn, DUPN				//Duplicate Top n items.
-** (NACHO).
+* 66, UCMPI				//Unsigned Compare Int
+* 67, UCMPL				//Unsigned Compare Long
+* 68 Cx, CMPIC			//Compare Int Const
+* 69 Ix, CMPIL			//Compare Int Local
+* 6A Kx, CMPILC			//Compare Int Local Const
+* 6B Jx, CMPILL			//Compare Int Local Local
+* 6C, INCI				//Increment Integer ( A => A+1 )
+* 6D, DECI				//Decrement Integer ( A => A-1 )
+* 6E Ix, INCIL			//Increment Integer Local ( I++; )
+* 6F Ix, DECIL			//Decrement Integer Local ( I--; )
 
-** Stack operations. May work on groups of items.
-** The items are required to be of the base type given by Z.
 
 * 70 Gx, CALLG			//Call Static/Global Function
 * 71 Gx, CALLA			//Call Function Reference (Pops Func)
@@ -666,31 +667,9 @@ Instructions
 * BF Ix, SARIL		//A B => A>>I
 ** Integer arithmetic operations with between a stack item and a constant or local.
 
-* C0, HNOEX			//Non-Execute, Trace
-* C1, HNOEX1		//Non-Execute, 1 Op
-* C2, HNOEX2		//Non-Execute, 2 Ops
-* C3, HNOEX3		//Non-Execute, 3 Ops
-** These indicate that the following instructions are unreachable.
-** It is invalid for any control-flow path to target a NOEX or its ops.
-** HNOEX indicates a non-executable sequence terminated by a LABEL.
-** HNOEX1..HNOEX3 indicate 1-3 non-executable instructions.
-*** A new trace will be started following these instructions.
-** Only a small subset of opcodes will be allowed in NOEX blocks.
-*** Its intent is mostly to be used for stack manipulation.
-
-* C4 Zx, RETC			//Return Constant
-
-* C6, UCMPI				//Unsigned Compare Int
-* C7, UCMPL				//Unsigned Compare Long
-* C8 Cx, CMPIC			//Compare Int Const
-* C9 Ix, CMPIL			//Compare Int Local
-* CA Kx, CMPILC			//Compare Int Local Const
-* CB Jx, CMPILL			//Compare Int Local Local
-
-* CC, INCI				//Increment Integer ( A => A+1 )
-* CD, DECI				//Decrement Integer ( A => A-1 )
-* CE Ix, INCIL			//Increment Integer Local ( I++; )
-* CF Ix, DECIL			//Decrement Integer Local ( I--; )
+* C0..DF, Alias Table
+** The alias is used as a shorthand for multibyte opcodes.
+** The table is optionally built by the compiler, and exists per-block.
 
 * E1 00, ADDAA			//Variant Add
 * E1 01, SUBAA			//Variant Subtract
@@ -847,6 +826,30 @@ Instructions
 ** However, LDIX/STIX may not be used on VarRefs.
 
 
+* E1 60 ZO, BINOP			//Binary Operator
+* E1 61 ZO, CMPOP			//Compare Operator
+* E1 62 ZO Ix, BINOPL		//Binary Operator (A op I)
+* E1 63 ZO Ix, CMPOPL		//Compare Operator (A op I)
+* E1 64 ZO Jx, BINOPLL		//Binary Operator (I op J)
+* E1 65 ZO Jx, CMPOPLL		//Compare Operator (I op J)
+* E1 66 ZO Cx, BINOPC		//Binary Operator (A op C)
+* E1 67 ZO Kx, BINOPLC		//Binary Operator (I op C)
+* E1 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
+* E1 69 ZO Kx, CMPOPLC		//Compare Operator (I op C)
+
+** (NACHO).
+** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
+
+* E1 6A Zn, PUSHN				//Push n Items (null/zero)
+* E1 6B Zn, POPN				//Pop n Items
+* E1 6C Zn, SWAPN				//Swap top-of-stack with Item n
+* E1 6D Zn, ROTLN				//Rotate Left 1 position over n items.
+* E1 6E Zn, ROTRN				//Rotate Right 1 position over n items.
+* E1 6F Zn, DUPN				//Duplicate Top n items.
+** (NACHO).
+
+** Stack operations. May work on groups of items.
+** The items are required to be of the base type given by Z.
 
 More Array ops:
 * E1 7E Zi Ix, LDIXZLL		//Store Index Local-Local (A, I; => V )
@@ -910,6 +913,9 @@ More Array ops:
 
 
 === Vector Block (0x400) ===
+
+Support for the Vector Block is optional.
+
 
 X128 Operation Type (Z)
 *  0, Int (4I)
@@ -1018,9 +1024,19 @@ Vector convert operations (NACHO2):
 * E4 2A, CVTXQF2AA				//Convert Quat to Variant
 * E4 2B, CVTX2D2AA				//Convert Vec2d to Variant
 
+* E4 2C, CVTV2F2X2D				//Vec2f to Vec2d
+* E4 2D, CVTX2D2V2F				//Vec2d to Vec2f
+* E4 2E, CVTV2F2X4F				//Vec2f to Vec4f (XY)
+* E4 2F, CVTX4F2V2F				//Vec4f to Vec2f (XY)
 
 * E4 30, MKV2I					//Make Vec2i from 2 ints
 * E4 31, MKV2F					//Make Vec2f from 2 floats
+* E4 32, SWEV2I					//Swap Elements A/B (V2I)
+* E4 33, SWEV2F					//Swap Elements A/B (V2F)
+* E4 34, SWEX2L					//Swap Elements A/B (X2L)
+* E4 35, SWEX2D					//Swap Elements A/B (X2D)
+* E4 36 Xx, SHUFX4I				//Shuffle Elements (X4I)
+* E4 37 Xx, SHUFX4F				//Shuffle Elements (X2F)
 
 * E4 40, LDV2IA					//Load V2I.A
 * E4 41, LDV2IB					//Load V2I.B
@@ -1038,3 +1054,4 @@ Vector convert operations (NACHO2):
 * E4 4D, LDV2FB					//Load X4F.B
 * E4 4E, LDV2FC					//Load X4F.C
 * E4 4F, LDV2FD					//Load X4F.D
+

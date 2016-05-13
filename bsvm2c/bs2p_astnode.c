@@ -45,6 +45,12 @@ void BS2P_SetAstNodeAttrI(dtVal obj, char *attr, s64 val)
 		dtvWrapLongF(val));
 }
 
+void BS2P_SetAstNodeAttrF(dtVal obj, char *attr, double val)
+{
+	BGBDT_MapObj_BindObjvSlotValueName(obj, attr,
+		dtvWrapDoubleF(val));
+}
+
 dtVal BS2P_GetAstNodeAttr(dtVal obj, char *attr)
 {
 	dtVal val;
@@ -386,5 +392,25 @@ dtVal BS2P_ParseWrapVector(BS2CC_CompileContext *ctx, dtVal lst)
 	
 	obj=BS2P_NewAstNode(ctx, "vector");
 	BS2P_SetAstNodeAttr(obj, "value", lst);
+	return(obj);
+}
+
+
+dtVal BS2P_ParseWrapImaginary(BS2CC_CompileContext *ctx,
+	char *sfx, double val)
+{
+	dtVal obj;
+	char *s;
+	
+	obj=BS2P_NewAstNode(ctx, "imag");
+	BS2P_SetAstNodeAttrF(obj, "value", val);
+
+	if(sfx)
+	{
+		if(!strcmp(sfx, "j"))sfx="J";
+		if(!strcmp(sfx, "jf"))sfx="JF";
+		if(!strcmp(sfx, "jd"))sfx="JD";
+		BS2P_SetAstNodeAttrS(obj, "sfx", sfx);
+	}
 	return(obj);
 }

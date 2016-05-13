@@ -314,6 +314,37 @@ byte *BS2I_ReadSVLI(byte *cs, s64 *rv)
 	return(cs);
 }
 
+byte *BS2I_ReadOpcodeNumber(byte *cs, int *rv)
+{
+	int i;
+
+	i=*cs++;
+	if(i<0xE0)
+	{
+		*rv=i;
+		return(cs);
+	}
+
+	if((i>=0xE0) && (i<=0xEF))
+	{
+		i=((i-0xE0)<<8)|(*cs++);
+	}else if((i>=0xF0) && (i<=0xF7))
+	{
+		i=i-0xF0;
+		i=(i<<8)|(*cs++);
+		i=(i<<8)|(*cs++);
+	}else if((i>=0xF8) && (i<=0xFB))
+	{
+		i=i-0xF8;
+		i=(i<<8)|(*cs++);
+		i=(i<<8)|(*cs++);
+		i=(i<<8)|(*cs++);
+	}
+	
+	*rv=i;
+	return(cs);
+}
+
 BSVM2_CodeImage *BS2I_AllocImage(void)
 {
 	BSVM2_CodeImage *tmp;
@@ -571,7 +602,29 @@ int BS2I_ImageDecodeGlobalFunc(
 			cs=csn;
 			continue;
 		}
-			
+
+		if(tag==BS2CC_I1CC_IMPL)
+		{
+			if(!gbl->cblk)
+				gbl->cblk=BS2I_AllocImageCodeBlock(img);
+
+			cs1=cs; ngi=0;
+			while(cs1<csn)
+			{
+//				cs1=BS2I_ReadUVLI(cs1, &v);
+				cs1=BS2I_ReadOpcodeNumber(cs1, &i);
+				tgitab[ngi++]=i;
+			}
+
+			gbl->cblk->altab=dtmMalloc(ngi*sizeof(int));
+//			gbl->nifgix=ngi;
+			for(i=0; i<ngi; i++)
+				{ gbl->cblk->altab[i]=tgitab[i]; }
+
+			cs=csn;
+			continue;
+		}
+	
 		BS2I_ImageCheckUnknownTag(img, tag);
 		cs=csn;
 	}
@@ -905,6 +958,68 @@ BSVM2_ImageGlobal *BS2I_ImageGetGlobal(BSVM2_CodeImage *img, int gix)
 	return(gbl);
 }
 
+BSVM2_ImageGlobal *BS2I_ImageGetGlobalInitial(BSVM2_CodeImage *img, int gix)
+{
+	BSVM2_ImageGlobal *gbl;
+	byte *gdat;
+	int gofs;
+	u32 tag;
+	int len;
+	int i;
+	
+	if(gix<=0)
+		return(NULL);
+	if(gix>=img->ngbls)
+		return(NULL);
+	
+	gbl=img->gbls[gix];
+	if(gbl)
+		return(gbl);
+
+	gdat=BS2I_ImageGetGlobalLump(img, gix);
+	if(!gdat)
+		return(NULL);
+
+	BS2I_ReadTag2(gdat, &tag, &len);
+
+	i=0;
+	if(tag==BS2CC_ITCC_ST)i=1;
+	if(tag==BS2CC_ITCC_CL)i=1;
+	if(tag==BS2CC_ITCC_IF)i=1;
+	if(tag==BS2CC_ITCC_GF)i=1;
+
+	if(!i)
+		return(NULL);
+
+	gbl=BS2I_AllocImageGlobal(img);
+	gbl->gix=gix;
+	img->gbls[gix]=gbl;
+	
+//	gofs=BS2I_ImageGetGlobalOfs(img, gix);
+	BS2I_ImageDecodeGlobal(img, gbl, gdat);
+	
+	return(gbl);
+}
+
+BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageLookupFunc(
+	BSVM2_CodeImage *img, char *qname)
+{
+	BSVM2_ImageGlobal *gbl;
+	int i;
+
+	for(i=1; i<img->ngbls; i++)
+	{
+		gbl=img->gbls[i];
+		if(!gbl)
+			continue;
+		if(gbl->name && !strcmp(gbl->name, qname))
+			return(gbl);
+		if(gbl->qname && !strcmp(gbl->qname, qname))
+			return(gbl);
+	}
+	return(NULL);
+}
+
 BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageGetMain(
 	BSVM2_CodeImage *img, char *qnpkg)
 {
@@ -1122,6 +1237,9 @@ BTEIFGL_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 	}
 
 	img->gbls=dtmMalloc(img->ngbls*sizeof(BSVM2_ImageGlobal *));
+	
+	for(i=1; i<img->ngbls; i++)
+		BS2I_ImageGetGlobalInitial(img, i);
 	
 	return(img);
 }

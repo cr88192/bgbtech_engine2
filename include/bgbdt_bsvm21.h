@@ -186,22 +186,23 @@
 #define BSVM2_OP_STIXAC		0x5D	//Store Index Address ( I; A V => )
 #define BSVM2_OP_STIXBC		0x5E	//Store Index Byte ( I; A V => )
 #define BSVM2_OP_STIXSC		0x5F	//Store Index Short ( I; A V => )
-#define BSVM2_OP_BINOP		0x60	//Binary Operator
-#define BSVM2_OP_CMPOP		0x61	//Compare Operator
-#define BSVM2_OP_BINOPL		0x62	//Binary Operator (A op I)
-#define BSVM2_OP_CMPOPL		0x63	//Compare Operator (A op I)
-#define BSVM2_OP_BINOPLL	0x64	//Binary Operator (I op J)
-#define BSVM2_OP_CMPOPLL	0x65	//Compare Operator (I op J)
-#define BSVM2_OP_BINOPC		0x66	//Binary Operator (A op C)
-#define BSVM2_OP_BINOPLC	0x67	//Binary Operator (I op C)
-#define BSVM2_OP_CMPOPC		0x68	//Compare Operator (A op C)
-#define BSVM2_OP_CMPOPLC	0x69	//Compare Operator (I op C)
-#define BSVM2_OP_PUSHN		0x6A	//Push n Items (null/zero)
-#define BSVM2_OP_POPN		0x6B	//Pop n Items
-#define BSVM2_OP_SWAPN		0x6C	//Swap top-of-stack with Item n
-#define BSVM2_OP_ROTLN		0x6D	//Rotate Left 1 position over n items.
-#define BSVM2_OP_ROTRN		0x6E	//Rotate Right 1 position over n items.
-#define BSVM2_OP_DUPN		0x6F	//Duplicate Top n items.
+
+#define BSVM2_OP_HNOEX		0x60	//Non-Execute (Trace)
+#define BSVM2_OP_HNOEX1		0x61	//Non-Execute (1 Op)
+#define BSVM2_OP_HNOEX2		0x62	//Non-Execute (2 Op)
+#define BSVM2_OP_HNOEX3		0x63	//Non-Execute (3 Op)
+#define BSVM2_OP_RETC		0x64	//Return Constant
+#define BSVM2_OP_UCMPI		0x66	//Unsigned Compare Int
+#define BSVM2_OP_UCMPL		0x67	//Unsigned Compare Long
+#define BSVM2_OP_CMPIC		0x68	//Compare Int Const
+#define BSVM2_OP_CMPIL		0x69	//Compare Int Local
+#define BSVM2_OP_CMPILC		0x6A	//Compare Int Local/Const
+#define BSVM2_OP_CMPILL		0x6B	//Compare Int Local/Local
+#define BSVM2_OP_INCI		0x6C	//Increment Integer
+#define BSVM2_OP_DECI		0x6D	//Decrement Integer
+#define BSVM2_OP_INCIL		0x6E	//Increment Integer Local
+#define BSVM2_OP_DECIL		0x6F	//Decrement Integer Local
+
 #define BSVM2_OP_CALLG		0x70	//Call Static/Global Function
 #define BSVM2_OP_CALLA		0x71	//Call Function Reference (Pops Func)
 #define BSVM2_OP_CALLV		0x72	//Call Virtual Method (Pops Obj)
@@ -282,21 +283,6 @@
 #define BSVM2_OP_XORIL		0xBD	//A B => A^I
 #define BSVM2_OP_SHLIL		0xBE	//A B => A<<I
 #define BSVM2_OP_SARIL		0xBF	//A B => A>>I
-#define BSVM2_OP_HNOEX		0xC0	//Non-Execute (Trace)
-#define BSVM2_OP_HNOEX1		0xC1	//Non-Execute (1 Op)
-#define BSVM2_OP_HNOEX2		0xC2	//Non-Execute (2 Op)
-#define BSVM2_OP_HNOEX3		0xC3	//Non-Execute (3 Op)
-#define BSVM2_OP_RETC		0xC4	//Return Constant
-#define BSVM2_OP_UCMPI		0xC6	//Unsigned Compare Int
-#define BSVM2_OP_UCMPL		0xC7	//Unsigned Compare Long
-#define BSVM2_OP_CMPIC		0xC8	//Compare Int Const
-#define BSVM2_OP_CMPIL		0xC9	//Compare Int Local
-#define BSVM2_OP_CMPILC		0xCA	//Compare Int Local/Const
-#define BSVM2_OP_CMPILL		0xCB	//Compare Int Local/Local
-#define BSVM2_OP_INCI		0xCC	//Increment Integer
-#define BSVM2_OP_DECI		0xCD	//Decrement Integer
-#define BSVM2_OP_INCIL		0xCE	//Increment Integer Local
-#define BSVM2_OP_DECIL		0xCF	//Decrement Integer Local
 
 #define BSVM2_OP_ADDAA		0x0100	//Variant Add
 #define BSVM2_OP_SUBAA		0x0101	//Variant Subtract
@@ -409,6 +395,23 @@
 //#define BSVM2_OP_LDDRAL		0x015E
 //#define BSVM2_OP_STDRAL		0x015F
 
+#define BSVM2_OP_BINOP		0x0160	//Binary Operator
+#define BSVM2_OP_CMPOP		0x0161	//Compare Operator
+#define BSVM2_OP_BINOPL		0x0162	//Binary Operator (A op I)
+#define BSVM2_OP_CMPOPL		0x0163	//Compare Operator (A op I)
+#define BSVM2_OP_BINOPLL	0x0164	//Binary Operator (I op J)
+#define BSVM2_OP_CMPOPLL	0x0165	//Compare Operator (I op J)
+#define BSVM2_OP_BINOPC		0x0166	//Binary Operator (A op C)
+#define BSVM2_OP_BINOPLC	0x0167	//Binary Operator (I op C)
+#define BSVM2_OP_CMPOPC		0x0168	//Compare Operator (A op C)
+#define BSVM2_OP_CMPOPLC	0x0169	//Compare Operator (I op C)
+#define BSVM2_OP_PUSHN		0x016A	//Push n Items (null/zero)
+#define BSVM2_OP_POPN		0x016B	//Pop n Items
+#define BSVM2_OP_SWAPN		0x016C	//Swap top-of-stack with Item n
+#define BSVM2_OP_ROTLN		0x016D	//Rotate Left 1 position over n items.
+#define BSVM2_OP_ROTRN		0x016E	//Rotate Right 1 position over n items.
+#define BSVM2_OP_DUPN		0x016F	//Duplicate Top n items.
+
 
 #define BSVM2_OP_LDIXZLL	0x017E	//Load Index Z-LL ( A, I; => V )
 #define BSVM2_OP_LDIXZLC	0x017F	//Load Index Z-LC ( A, C; => V )
@@ -497,9 +500,21 @@
 #define BSVM2_OP_CVTX3F2AA	0x0429	//
 #define BSVM2_OP_CVTXQF2AA	0x042A	//
 #define BSVM2_OP_CVTX2D2AA	0x042B	//
+#define BSVM2_OP_CVTV2F2X2D	0x042C	//
+#define BSVM2_OP_CVTX2D2V2F	0x042D	//
+#define BSVM2_OP_CVTV2F2X4F	0x042E	//
+#define BSVM2_OP_CVTX4F2V2F	0x042F	//
+
 
 #define BSVM2_OP_MKV2I		0x0430	//
 #define BSVM2_OP_MKV2F		0x0431	//
+
+#define BSVM2_OP_SWEV2I		0x0432	//Swap A and B
+#define BSVM2_OP_SWEV2F		0x0433	//Swap A and B
+#define BSVM2_OP_SWEX2L		0x0434	//Swap A and B
+#define BSVM2_OP_SWEX2D		0x0435	//Swap A and B
+#define BSVM2_OP_SHUFX4I	0x0436	//Shuffle Elements
+#define BSVM2_OP_SHUFX4F	0x0437	//Shuffle Elements
 
 #define BSVM2_OP_LDV2IA		0x0440	//
 #define BSVM2_OP_LDV2IB		0x0441	//
@@ -616,6 +631,7 @@ byte *cs, *cse;
 byte *code;
 BSVM2_Trace **trace;
 int *gitab;
+int *altab;
 int tgitab[8];
 int szcode;
 
@@ -627,6 +643,7 @@ short stkdepth;
 short ngi;
 short largs;
 short szframe;
+// byte alrov;
 };
 
 struct BSVM2_ImageGlobal_s {

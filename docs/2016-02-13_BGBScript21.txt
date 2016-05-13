@@ -522,6 +522,10 @@ Literal Type Suffix:
 * SS, Signed Short
 * US, Unsigned Short
 * W, Char
+* Q, Quaternion (for vectors)
+* J, Complex (Vector), Imaginary (Number)
+** JF, Complex Float, Imaginary Float
+** JD, Complex Double, Imaginary Double
 
 
 Modifier:
@@ -622,12 +626,17 @@ TypeName:
 * '''void'''
 * '''variant'''
 ** Dynamically typed value.
+* 64-bit vector types
+** '''vec2f'''
+** '''fcomplex'''
 * 128-bit types
 ** '''int128'''
 ** '''uint128'''
 ** '''float128'''
+** '''vec2d'''
 ** '''vec3f'''
 ** '''vec4f'''
+** '''dcomplex'''
 
 TypeExpression:
 * ''typename''

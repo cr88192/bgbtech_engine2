@@ -216,7 +216,7 @@
 
 #define BS2CC_ILEN_SVLI		-2
 
-
+#define BS2CC_V4SHUF(a, b, c, d)  (((d)<<6)|((c)<<4)|((b)<<2)|(a))
 
 typedef struct BS2CC_CompileContext_s BS2CC_CompileContext;
 

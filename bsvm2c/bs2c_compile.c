@@ -479,6 +479,8 @@ BTEIFGL_API void BS2C_CompileFuncs(
 	for(i=0; i<ctx->nglobals; i++)
 	{
 		vari=ctx->globals[i];
+		if(!vari)
+			continue;
 
 //		if(!dtvTrueP(vari->typeExp))
 //			continue;
@@ -510,6 +512,9 @@ BTEIFGL_API void BS2C_CompileFuncs(
 	{
 		vari=ctx->globals[i];
 //		if(dtvNullP(vari->bodyExp))
+
+		if(!vari)
+			continue;
 
 		if((vari->vitype==BS2CC_VITYPE_GBLFUNC) ||
 			(vari->vitype==BS2CC_VITYPE_STRFUNC))
@@ -594,6 +599,9 @@ BTEIFGL_API int BS2C_CompileModuleList(
 	int tsz;
 	dtVal v0;
 	int i, j, k;
+
+	if(!ctx->nglobals)
+		ctx->nglobals++;
 
 	for(i=0; names[i]; i++)
 	{

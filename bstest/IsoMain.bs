@@ -1,0 +1,12 @@
+native int frgl_printf(cstring str, ...);
+native int clock();
+native int rand();
+
+public void update(double dt)
+{
+}
+
+public int main(string[] args)
+{
+	frgl_printf("IsoMain\n");
+}

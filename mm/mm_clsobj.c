@@ -10,7 +10,7 @@ BGBDTC_ClassInfo *BGBDTC_AllocClass()
 	return(tmp);
 }
 
-BGBDTC_ClassInfo *BGBDTC_LookupClassQName(char *qname)
+BTEIFGL_API BGBDTC_ClassInfo *BGBDTC_LookupClassQName(char *qname)
 {
 	BGBDTC_ClassInfo *cur;
 	
@@ -24,7 +24,7 @@ BGBDTC_ClassInfo *BGBDTC_LookupClassQName(char *qname)
 	return(NULL);
 }
 
-BGBDTC_ClassInfo *BGBDTC_GetClassQName(char *qname)
+BTEIFGL_API BGBDTC_ClassInfo *BGBDTC_GetClassQName(char *qname)
 {
 	BGBDTC_ClassInfo *cur;
 
@@ -445,7 +445,7 @@ int BGBDTC_SlotSetupVtGetSet(
 	return(0);
 }
 
-int BGBDTC_FinishLayoutClass(
+BTEIFGL_API int BGBDTC_FinishLayoutClass(
 	BGBDTC_ClassInfo *cls)
 {
 	BGBDTC_SlotInfo *vi, *vi2;
@@ -555,21 +555,21 @@ int BGBDTC_FinishLayoutClass(
 	return(1);
 }
 
-int BGBDTC_BeginLayoutClass(
+BTEIFGL_API int BGBDTC_BeginLayoutClass(
 	BGBDTC_ClassInfo *cls)
 {
 	cls->clean=0;
 	return(0);
 }
 
-int BGBDTC_EndLayoutClass(
+BTEIFGL_API int BGBDTC_EndLayoutClass(
 	BGBDTC_ClassInfo *cls)
 {
 	BGBDTC_FinishLayoutClass(cls);
 	return(0);
 }
 
-BGBDTC_SlotInfo *BGBDTC_FetchClassSlotIndex(
+BTEIFGL_API BGBDTC_SlotInfo *BGBDTC_FetchClassSlotIndex(
 	BGBDTC_ClassInfo *cls, int idx)
 {
 	if(!cls || (idx<0) || (idx>=cls->nslots))
@@ -614,7 +614,7 @@ int BGBDTC_CheckExpandClassSlotIndex(
 	return(0);
 }
 
-BGBDTC_SlotInfo *BGBDTC_GetClassSlotIndex(
+BTEIFGL_API BGBDTC_SlotInfo *BGBDTC_GetClassSlotIndex(
 	BGBDTC_ClassInfo *cls, int idx)
 {
 	BGBDTC_SlotInfo *vi;
@@ -638,11 +638,14 @@ BGBDTC_SlotInfo *BGBDTC_GetClassSlotIndex(
 	return(vi);
 }
 
-BGBDTC_SlotInfo *BGBDTC_LookupClassSlotName(
+BTEIFGL_API BGBDTC_SlotInfo *BGBDTC_LookupClassSlotName(
 	BGBDTC_ClassInfo *cls, char *name)
 {
 	BGBDTC_SlotInfo *vi;
 	int i;
+
+	if(!cls)
+		return(NULL);
 
 	for(i=0; i<cls->nslots; i++)
 	{
@@ -653,10 +656,13 @@ BGBDTC_SlotInfo *BGBDTC_LookupClassSlotName(
 	return(NULL);
 }
 
-BGBDTC_SlotInfo *BGBDTC_GetClassSlotName(
+BTEIFGL_API BGBDTC_SlotInfo *BGBDTC_GetClassSlotName(
 	BGBDTC_ClassInfo *cls, char *name)
 {
 	BGBDTC_SlotInfo *vi;
+
+	if(!cls)
+		return(NULL);
 
 	vi=BGBDTC_LookupClassSlotName(cls, name);
 	if(vi)return(vi);
@@ -666,11 +672,14 @@ BGBDTC_SlotInfo *BGBDTC_GetClassSlotName(
 	return(vi);
 }
 
-BGBDTC_SlotInfo *BGBDTC_LookupClassSlotNameSig(
+BTEIFGL_API BGBDTC_SlotInfo *BGBDTC_LookupClassSlotNameSig(
 	BGBDTC_ClassInfo *cls, char *name, char *sig)
 {
 	BGBDTC_SlotInfo *vi;
 	int i;
+
+	if(!cls)
+		return(NULL);
 
 	for(i=0; i<cls->nslots; i++)
 	{
@@ -688,7 +697,7 @@ BGBDTC_SlotInfo *BGBDTC_LookupClassSlotNameSig(
 	return(NULL);
 }
 
-BGBDTC_SlotInfo *BGBDTC_LookupClassMatchSlot(
+BTEIFGL_API BGBDTC_SlotInfo *BGBDTC_LookupClassMatchSlot(
 	BGBDTC_ClassInfo *cls, BGBDTC_SlotInfo *svi)
 {
 	BGBDTC_SlotInfo *vi;
@@ -724,7 +733,7 @@ BGBDTC_SlotInfo *BGBDTC_LookupClassMatchSlot(
 	return(NULL);
 }
 
-dtcObject BGBDTC_AllocClassInstance(
+BTEIFGL_API dtcObject BGBDTC_AllocClassInstance(
 	BGBDTC_ClassInfo *cls)
 {
 	void *ptr;

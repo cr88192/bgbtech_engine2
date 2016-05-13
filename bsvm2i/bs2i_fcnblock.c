@@ -63,11 +63,16 @@ void BSVM2_Interp_FreeTailOpcode(BSVM2_CodeBlock *cblk,
 
 int BSVM2_Interp_ReadOpcodeNumber(BSVM2_CodeBlock *cblk)
 {
-	int i;
+	int i0, i1, i2, i3;
+	int i, j, k;
 
 	i=(*cblk->cs++);
-	if(i<0xE0)
+//	if(i<0xE0)
+	if(i<0xC0)
 		return(i);
+
+	if((i>=0xC0) && (i<=0xDF))
+		{ return(cblk->altab[i-0xC0]); }
 
 	if((i>=0xE0) && (i<=0xEF))
 	{
@@ -91,12 +96,16 @@ int BSVM2_Interp_ReadOpcodeNumber(BSVM2_CodeBlock *cblk)
 int BSVM2_Interp_PeekOpcodeNumber(BSVM2_CodeBlock *cblk)
 {
 	byte *cs;
-	int i;
+	int i, j, k;
 
 	cs=cblk->cs;
 	i=*cs++;
-	if(i<0xE0)
+//	if(i<0xE0)
+	if(i<0xC0)
 		return(i);
+
+	if((i>=0xC0) && (i<=0xDF))
+		{ return(cblk->altab[i-0xC0]); }
 
 	if((i>=0xE0) && (i<=0xEF))
 	{
@@ -128,8 +137,12 @@ int BSVM2_Interp_PeekIxOpcodeNumber(BSVM2_CodeBlock *cblk)
 	cs=BS2I_ReadUVLI(cs, &li);
 
 	i=*cs++;
-	if(i<0xE0)
+//	if(i<0xE0)
+	if(i<0xC0)
 		return(i);
+
+	if((i>=0xC0) && (i<=0xDF))
+		{ return(cblk->altab[i-0xC0]); }
 
 	if((i>=0xE0) && (i<=0xEF))
 	{
@@ -174,7 +187,8 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 {
 	BSVM2_Trace *trsa[1024];
 	BSVM2_Opcode *opsa[64];
-
+//	int alias[32];
+	
 	BSVM2_Opcode *op;
 	BSVM2_TailOpcode *top;
 	BSVM2_Trace *tr, *tr1;
@@ -184,6 +198,9 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 
 	cblk->cs=cblk->code;
 	cblk->cse=cblk->code+cblk->szcode;
+	
+//	cblk->altab=alias;
+//	cblk->alrov=0;
 	
 	nopsa=0; ntrsa=0; csa=cblk->cs;
 	while(cblk->cs<cblk->cse)

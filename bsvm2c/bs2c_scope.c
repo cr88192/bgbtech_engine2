@@ -22,6 +22,9 @@ int BS2C_LookupGlobal(BS2CC_CompileContext *ctx, char *name)
 	for(i=0; i<ctx->nglobals; i++)
 	{
 		vari=ctx->globals[i];
+		if(!vari)
+			continue;
+
 		if(!vari->qname)
 			continue;
 		

@@ -2,6 +2,8 @@
 
 BSVM2_Context *bsvm2_interp_freectx;
 
+BSVM2_Context *bsvm2_interp_freepoolctx;
+
 BTEIFGL_API int bsvm2_natfib(int x)
 {
 		if(x<2)return(1);
@@ -45,6 +47,27 @@ BTEIFGL_API BSVM2_Context *BSVM2_Interp_AllocContext(void)
 	
 	tmp=dtmAlloc("bsvm2_context_t", sizeof(BSVM2_Context));
 	return(tmp);
+}
+
+BTEIFGL_API BSVM2_Context *BSVM2_Interp_AllocPoolContext(void)
+{
+	BSVM2_Context *tmp;
+	
+	tmp=bsvm2_interp_freepoolctx;
+	if(tmp)
+	{
+		bsvm2_interp_freepoolctx=tmp->next;
+		return(tmp);
+	}
+	
+	tmp=BSVM2_Interp_AllocContext();
+	return(tmp);
+}
+
+BTEIFGL_API void BSVM2_Interp_FreePoolContext(BSVM2_Context *ctx)
+{
+	ctx->next=bsvm2_interp_freepoolctx;
+	bsvm2_interp_freepoolctx=ctx;
 }
 
 BTEIFGL_API BSVM2_Frame *BSVM2_Interp_AllocFrame(BSVM2_Context *ctx)

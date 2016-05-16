@@ -386,15 +386,6 @@
 #define BSVM2_OP_STDRB		0x015E
 #define BSVM2_OP_STDRS		0x015F
 
-//#define BSVM2_OP_LDDRA		0x0158
-//#define BSVM2_OP_STDRA		0x0159
-//#define BSVM2_OP_LDDRIL		0x015A
-//#define BSVM2_OP_STDRIL		0x015B
-//#define BSVM2_OP_LDDRDL		0x015C
-//#define BSVM2_OP_STDRDL		0x015D
-//#define BSVM2_OP_LDDRAL		0x015E
-//#define BSVM2_OP_STDRAL		0x015F
-
 #define BSVM2_OP_BINOP		0x0160	//Binary Operator
 #define BSVM2_OP_CMPOP		0x0161	//Compare Operator
 #define BSVM2_OP_BINOPL		0x0162	//Binary Operator (A op I)
@@ -412,6 +403,21 @@
 #define BSVM2_OP_ROTRN		0x016E	//Rotate Right 1 position over n items.
 #define BSVM2_OP_DUPN		0x016F	//Duplicate Top n items.
 
+#define BSVM2_OP_DIVI		0x0170	//
+#define BSVM2_OP_DIVL		0x0171	//
+#define BSVM2_OP_MODI		0x0172	//
+#define BSVM2_OP_MODL		0x0173	//
+#define BSVM2_OP_SHRI		0x0174	//
+#define BSVM2_OP_SHRL		0x0175	//
+#define BSVM2_OP_UDIVI		0x0176	//
+#define BSVM2_OP_UDIVL		0x0177	//
+
+#define BSVM2_OP_CMIEQ		0x0178	//
+#define BSVM2_OP_CMINE		0x0179	//
+#define BSVM2_OP_CMILT		0x017A	//
+#define BSVM2_OP_CMIGT		0x017B	//
+#define BSVM2_OP_CMILE		0x017C	//
+#define BSVM2_OP_CMIGE		0x017D	//
 
 #define BSVM2_OP_LDIXZLL	0x017E	//Load Index Z-LL ( A, I; => V )
 #define BSVM2_OP_LDIXZLC	0x017F	//Load Index Z-LC ( A, C; => V )

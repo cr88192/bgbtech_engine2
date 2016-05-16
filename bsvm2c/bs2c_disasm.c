@@ -325,6 +325,21 @@ char *name;
 {"E16EZn",      "ROTRN"},
 {"E16FZn",      "DUPN"},
 
+{"E170",      "DIVI"},
+{"E171",      "DIVL"},
+{"E172",      "MODI"},
+{"E173",      "MODL"},
+{"E174",      "SHRI"},
+{"E175",      "SHRL"},
+{"E176",      "UDIVI"},
+{"E177",      "UDIVL"},
+{"E178",      "CMIEQ"},
+{"E179",      "CMINE"},
+{"E17A",      "CMILT"},
+{"E17B",      "CMIGT"},
+{"E17C",      "CMILE"},
+{"E17D",      "CMIGE"},
+
 {"E17EZiIx",  "LDIXZLL"},
 {"E17FZiCi",  "LDIXZLC"},
 

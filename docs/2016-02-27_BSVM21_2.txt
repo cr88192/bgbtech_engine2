@@ -448,7 +448,7 @@ Instructions
 ** Compare the item on the top of the stack with 0 and jump accordingly.
 ** The value is interpreted as an integer.
 
-* 36 ZO Ax, JCMP	//Jump-Compare ( (A op B) =>)
+* / 36 ZO Ax, JCMP	//Jump-Compare ( (A op B) =>)
 ** Compare two stack items and jump according to the operator.
 ** (NACHO).
 
@@ -525,6 +525,10 @@ Instructions
 *** Its intent is mostly to be used for stack manipulation.
 
 * 64 Zx, RETC			//Return Constant
+
+* 65, HNINT				//Hint Native Long/Int
+** Long: Hint that Native Long is used.
+** Int: Need not preserve normal overflow semantics.
 
 * 66, UCMPI				//Unsigned Compare Int
 * 67, UCMPL				//Unsigned Compare Long
@@ -605,8 +609,8 @@ Instructions
 * 8C, MOVOBJ				//Copy object contents ( A B => )
 * 8D, MOVARR				//Copy array contents ( A B => )
 
-* 8E, INCREF				//Increment object reference count ( A => A )
-* 8F, DECREF				//Decrement object reference count ( A => A )
+* / 8E, INCREF				//Increment object reference count ( A => A )
+* / 8F, DECREF				//Decrement object reference count ( A => A )
 ** Adjust reference counts.
 ** If reference counting is used, it is managed explicitly by the language.
 ** Similar applies to the handling of value types.
@@ -826,17 +830,16 @@ Instructions
 ** However, LDIX/STIX may not be used on VarRefs.
 
 
-* E1 60 ZO, BINOP			//Binary Operator
-* E1 61 ZO, CMPOP			//Compare Operator
-* E1 62 ZO Ix, BINOPL		//Binary Operator (A op I)
-* E1 63 ZO Ix, CMPOPL		//Compare Operator (A op I)
-* E1 64 ZO Jx, BINOPLL		//Binary Operator (I op J)
-* E1 65 ZO Jx, CMPOPLL		//Compare Operator (I op J)
-* E1 66 ZO Cx, BINOPC		//Binary Operator (A op C)
-* E1 67 ZO Kx, BINOPLC		//Binary Operator (I op C)
-* E1 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
-* E1 69 ZO Kx, CMPOPLC		//Compare Operator (I op C)
-
+* / E1 60 ZO, BINOP			//Binary Operator
+* / E1 61 ZO, CMPOP			//Compare Operator
+* / E1 62 ZO Ix, BINOPL		//Binary Operator (A op I)
+* / E1 63 ZO Ix, CMPOPL		//Compare Operator (A op I)
+* / E1 64 ZO Jx, BINOPLL	//Binary Operator (I op J)
+* / E1 65 ZO Jx, CMPOPLL	//Compare Operator (I op J)
+* / E1 66 ZO Cx, BINOPC		//Binary Operator (A op C)
+* / E1 67 ZO Kx, BINOPLC	//Binary Operator (I op C)
+* / E1 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
+* / E1 69 ZO Kx, CMPOPLC	//Compare Operator (I op C)
 ** (NACHO).
 ** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
 
@@ -847,9 +850,26 @@ Instructions
 * E1 6E Zn, ROTRN				//Rotate Right 1 position over n items.
 * E1 6F Zn, DUPN				//Duplicate Top n items.
 ** (NACHO).
-
 ** Stack operations. May work on groups of items.
 ** The items are required to be of the base type given by Z.
+
+* E1 70, DIVI				//Divide Int
+* E1 71, DIVL				//Divide Long
+* E1 72, MODI				//Modulo Int
+* E1 73, MODL				//Modulo Long
+* E1 74, SHRI				//Bitwise Shift Right Int
+* E1 75, SHRL				//Bitwise Shift Right Long
+* E1 76, UDIVI				//Unsigned Divide Int
+* E1 77, UDIVL				//Unsigned Divide Long
+
+* E1 78, CMIEQ				//A==0 (Same as LNTI)
+* E1 79, CMINE				//A!=0
+* E1 7A, CMILT				//A< 0
+* E1 7B, CMIGT				//A> 0
+* E1 7C, CMILE				//A<=0
+* E1 7D, CMIGE				//A>=0
+** These ops map an integer value to a boolean value.
+** May be combined with compare operators.
 
 More Array ops:
 * E1 7E Zi Ix, LDIXZLL		//Store Index Local-Local (A, I; => V )
@@ -914,7 +934,7 @@ More Array ops:
 
 === Vector Block (0x400) ===
 
-Support for the Vector Block is optional.
+Support for the Vector Block is optional (If the VM backend has support for vectors).
 
 
 X128 Operation Type (Z)
@@ -1054,4 +1074,9 @@ Vector convert operations (NACHO2):
 * E4 4D, LDV2FB					//Load X4F.B
 * E4 4E, LDV2FC					//Load X4F.C
 * E4 4F, LDV2FD					//Load X4F.D
+
+* E4 50, LDIXX				//Load Index X128 ( A I => B )
+* E4 51, STIXX				//Store Index X128 ( V A I => )
+* E4 52 Ci, LDIXXC			//Load Index X128 ( I; A => B )
+* E4 53 Ci, STIXXC			//Store Index X128 ( I; V A => )
 

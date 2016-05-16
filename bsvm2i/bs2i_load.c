@@ -1020,6 +1020,25 @@ BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageLookupFunc(
 	return(NULL);
 }
 
+BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageLookupGlobalVar(
+	BSVM2_CodeImage *img, char *qname)
+{
+	BSVM2_ImageGlobal *gbl;
+	int i;
+
+	for(i=1; i<img->ngbls; i++)
+	{
+		gbl=img->gbls[i];
+		if(!gbl)
+			continue;
+		if(gbl->name && !strcmp(gbl->name, qname))
+			return(gbl);
+		if(gbl->qname && !strcmp(gbl->qname, qname))
+			return(gbl);
+	}
+	return(NULL);
+}
+
 BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageGetMain(
 	BSVM2_CodeImage *img, char *qnpkg)
 {
@@ -1114,12 +1133,13 @@ BTEIFGL_API BSVM2_Trace *BS2I_ImageGetMainTrace(
 
 BTEIFGL_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 {
+	byte tb[4096];
 	int tarri[256];
 	BSVM2_CodeImage *img;
 	u64 tag;
 	s64 len, v;
 	byte *cs, *cs1, *cse, *cse1, *csn;
-	int i, j, k, n;
+	int i, j, k, l, n;
 
 	cs=ibuf; cse=ibuf+isz;
 	cs=BS2I_ReadTag(cs, &tag, &len);
@@ -1231,6 +1251,14 @@ BTEIFGL_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 			continue;
 		}
 
+		if((tag==BS2CC_IFCC_PVBM) || (tag==BS2CC_ITCC_PV))
+		{
+			img->pvbm=cs;
+			img->epvbm=csn;
+			cs=csn;
+			continue;
+		}
+
 		BS2I_ImageCheckUnknownTag(img, tag);
 		cs=csn;
 		continue;
@@ -1238,8 +1266,47 @@ BTEIFGL_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 
 	img->gbls=dtmMalloc(img->ngbls*sizeof(BSVM2_ImageGlobal *));
 	
-	for(i=1; i<img->ngbls; i++)
-		BS2I_ImageGetGlobalInitial(img, i);
+	if(img->pvbm)
+	{
+		cs=img->pvbm; cse=img->epvbm;
+		n=0;
+		while((cs<cse) && ((n*8)<img->ngbls))
+		{
+			i=*cs++;
+			switch(i>>5)
+			{
+			case 0:
+				l=(i&31)+1;
+				for(j=0; j<l; j++)
+					tb[n++]=0x00;
+				break;
+			case 1:
+				l=(i&31)+1;
+				for(j=0; j<l; j++)
+					tb[n++]=0xFF;
+				break;
+			case 2:
+				l=(i&31)+1;
+				for(j=0; j<l; j++)
+					tb[n++]=*cs++;
+				break;
+
+			case 4: tb[n++]=0x00|(i&31); break;
+			case 5: tb[n++]=0xE0|(i&31); break;
+			case 6: tb[n++]=0x00|((i&31)<<3); break;
+			case 7: tb[n++]=0x07|((i&31)<<3); break;
+			default:
+				break;
+			}
+		}
+		for(i=1; i<img->ngbls; i++)
+			if(tb[i>>3]&(128>>(i&7)))
+				BS2I_ImageGetGlobal(img, i);
+	}else
+	{
+		for(i=1; i<img->ngbls; i++)
+			BS2I_ImageGetGlobalInitial(img, i);
+	}
 	
 	return(img);
 }

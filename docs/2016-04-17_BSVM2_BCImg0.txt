@@ -103,6 +103,11 @@ Tags within toplevel:
 ** These are encoded as a series of UVLI values.
 ** If present, the global main precedes any package main functions.
 ** Otherwise, the first main is the default main.
+* FOURCC('PVBM')
+** Public Visible BitMap
+** Encodes a bitmap for which declarations are publicly visible.
+** In cases where exports are relevant, entries listed in PVBM are loaded when the image is loaded.
+** Other entries will be demand-loaded as needed.
 
 
 GBLS consists of a series of tags, each defining an entry in the global table. The GIX table will have a corresponding offset for each tag in this table, relative to the start of the GBLS data area. Note that there is not necessarily a 1:1 mapping between tags in GBLS and entries in GIX. Padding may exist in GBLS, and entries may be null in GIX. References to the globals table will be keyed against GIX.
@@ -126,6 +131,18 @@ GBLS lumps:
 ** Interface
 * TWOCC('PK')
 ** Package
+
+
+PVBM:
+* RLE compressed bitmap, with 1 bit per GIX entry.
+* 000x-xxxx: Run of 1-32 0x00 bytes.
+* 001x-xxxx: Run of 1-32 0xFF bytes
+* 010x-xxxx (xxxx-xxxx)+: Run of 1-32 Raw bytes
+* 011x-xxxx: reserved
+* 100x-xxxx: Byte encoding bits 0..4, 5..7=0
+* 101x-xxxx: Byte encoding bits 0..4, 5..7=1
+* 110x-xxxx: Byte encoding bits 3..7, 0..2=0
+* 111x-xxxx: Byte encoding bits 3..7, 0..2=1
 
 
 === Definitions ===

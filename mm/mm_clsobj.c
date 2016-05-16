@@ -415,6 +415,7 @@ int BGBDTC_SlotSetupVtGetSet(
 
 	case 'p':	case 'q':	case 'r':
 	case 'Q':	case 'L':
+	case 'C':
 		vi->GetI=BGBDTC_SlotI_GetI_DeA;
 		vi->GetL=BGBDTC_SlotI_GetL_DeA;
 		vi->GetF=BGBDTC_SlotI_GetF_DeA;
@@ -427,6 +428,7 @@ int BGBDTC_SlotSetupVtGetSet(
 		vi->SetD=BGBDTC_SlotI_SetD_DeA;
 		vi->SetA=BGBDTC_SlotI_SetA_DflA;
 		break;
+
 	case 'P':
 		vi->GetI=BGBDTC_SlotI_GetI_DeA;
 		vi->GetL=BGBDTC_SlotI_GetL_DeA;

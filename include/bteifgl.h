@@ -314,6 +314,8 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bteifgl_wire.h>
 #include <bteifgl_msp430.h>
 
+#include <bgbdt_isotest.h>
+
 struct BGBDT_MM_ParsePrintInfo_s {
 BGBDT_MM_ParsePrintInfo *next;
 char *buf;

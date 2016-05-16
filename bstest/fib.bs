@@ -205,6 +205,12 @@ package bstest {
 			w2=w0%w1;
 			
 			printf("w2=(%f %f %f)\n", w2.x, w2.y, w2.z);
+			
+			if(i && j)
+			{
+				printf("T\n");
+			}
+			
 //			printf("w2.x=%f\n", w2.x);
 
 //			a1=new int[64];

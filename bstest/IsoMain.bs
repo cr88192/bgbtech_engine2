@@ -2,8 +2,84 @@ native int frgl_printf(cstring str, ...);
 native int clock();
 native int rand();
 
+public EntityBase2D[] world_entity;
+public int world_max_entity;
+
+public class misc_chest extends EntityBase2D {
+	int isOpen;
+
+	public void spawn()
+	{
+		radius=16;
+		if(rand()&1)
+		{
+			isOpen=0;
+			sprite="sprites/isotest/chest_closed";
+		}else
+		{
+			isOpen=1;
+			sprite="sprites/isotest/chest_open";
+		}
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+	}
+
+	public void use(EntityBase2D other)
+	{
+//		isOpen=!isOpen;
+		if(isOpen)
+		{
+			sprite="sprites/isotest/chest_closed";
+			isOpen=0;
+			return;
+		}
+
+		sprite="sprites/isotest/chest_open";
+		isOpen=1;
+	}
+}
+
+
+public class player extends EntityBase2D {
+	public void spawn()
+	{
+		radius=16;
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+double accDt;
+
 public void update(double dt)
 {
+	int i;
+	
+	accDt=accDt+dt;
+	if(accDt<0.04)
+		return;
+	accDt-=0.04;
+	
+	for(i=0; i<world_max_entity; i++)
+	{
+		world_entity[i].tick();
+	}
 }
 
 public int main(string[] args)

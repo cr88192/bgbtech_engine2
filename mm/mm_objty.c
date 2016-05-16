@@ -164,7 +164,7 @@ int BGBDT_MM_QHashBytes(byte *buf, int sz)
 	return(h);
 }
 
-byte *BGBDT_MM_AllocObject(int tyid, int size, int lln)
+BTEIFGL_API byte *BGBDT_MM_AllocObject(int tyid, int size, int lln)
 {
 	BGBDT_MM_ObjHead *objh;
 	int h;
@@ -181,7 +181,7 @@ byte *BGBDT_MM_AllocObject(int tyid, int size, int lln)
 	return((byte *)(objh+1));
 }
 
-void *BGBDT_MM_AllocLLn(char *type, int size, char *fn, int ln)
+BTEIFGL_API void *BGBDT_MM_AllocLLn(char *type, int size, char *fn, int ln)
 {
 	void *ptr;
 	int tid, lid;
@@ -192,7 +192,7 @@ void *BGBDT_MM_AllocLLn(char *type, int size, char *fn, int ln)
 	return(ptr);
 }
 
-void *BGBDT_MM_ReallocLLn(void *ptr, int size, char *fn, int ln)
+BTEIFGL_API void *BGBDT_MM_ReallocLLn(void *ptr, int size, char *fn, int ln)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *ptr1, *ptr2;
@@ -220,7 +220,7 @@ void *BGBDT_MM_ReallocLLn(void *ptr, int size, char *fn, int ln)
 	return(ptr2);
 }
 
-int BGBDT_MM_GetSize(void *ptr)
+BTEIFGL_API int BGBDT_MM_GetSize(void *ptr)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *bptr;
@@ -231,7 +231,7 @@ int BGBDT_MM_GetSize(void *ptr)
 	return(objh->sz);
 }
 
-int BGBDT_MM_GetTypeID(void *ptr)
+BTEIFGL_API int BGBDT_MM_GetTypeID(void *ptr)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *bptr;
@@ -242,7 +242,7 @@ int BGBDT_MM_GetTypeID(void *ptr)
 	return((objh->ty)&4095);
 }
 
-char *BGBDT_MM_GetTypeName(void *ptr)
+BTEIFGL_API char *BGBDT_MM_GetTypeName(void *ptr)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *bptr;
@@ -253,7 +253,7 @@ char *BGBDT_MM_GetTypeName(void *ptr)
 	return(BGBDT_MM_GetObjTypeNameForIndex(objh->ty));
 }
 
-void *BGBDT_MM_GetBase(void *ptr)
+BTEIFGL_API void *BGBDT_MM_GetBase(void *ptr)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *bptr, *ptr1;
@@ -266,7 +266,7 @@ void *BGBDT_MM_GetBase(void *ptr)
 }
 
 
-void BGBDT_MM_FreeAny(void *ptr)
+BTEIFGL_API void BGBDT_MM_FreeAny(void *ptr)
 {
 	void *bptr;
 	
@@ -275,7 +275,7 @@ void BGBDT_MM_FreeAny(void *ptr)
 		BGBDT_MM_FreeObjectInner(bptr);
 }
 
-void BGBDT_MM_Free(void *ptr)
+BTEIFGL_API void BGBDT_MM_Free(void *ptr)
 {
 	void *bptr;
 
@@ -286,7 +286,7 @@ void BGBDT_MM_Free(void *ptr)
 	BGBDT_MM_FreeObjectInner(bptr);
 }
 
-void BGBDT_MM_Destroy(void *ptr)
+BTEIFGL_API void BGBDT_MM_Destroy(void *ptr)
 {
 	BGBDT_MM_ObjTypeInfo *oti;
 	BGBDT_MM_ObjHead *objh;
@@ -305,7 +305,7 @@ void BGBDT_MM_Destroy(void *ptr)
 	BGBDT_MM_FreeObjectInner(bptr);
 }
 
-dtVal BGBDT_MM_DtvWrapObjPtrF(void *ptr)
+BTEIFGL_API dtVal BGBDT_MM_DtvWrapObjPtrF(void *ptr)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *bptr;
@@ -321,7 +321,7 @@ dtVal BGBDT_MM_DtvWrapObjPtrF(void *ptr)
 	return(dtvWrapTagPtrF(ptr, tyid));
 }
 
-dtVal BGBDT_MM_DtvWrapObjPtr(void *ptr)
+BTEIFGL_API dtVal BGBDT_MM_DtvWrapObjPtr(void *ptr)
 {
 	BGBDT_MM_ObjHead *objh;
 	void *bptr;

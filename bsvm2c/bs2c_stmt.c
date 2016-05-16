@@ -440,7 +440,7 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		return;
 	}
 
-	if(!strcmp(tag, "if"))
+	if(!strcmp(tag, "if") || !strcmp(tag, "ifelse"))
 	{
 		cc=BS2P_GetAstNodeAttr(expr, "cond");
 		nt=BS2P_GetAstNodeAttr(expr, "then");
@@ -902,6 +902,17 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		return;
 	}
 
+	if(!strcmp(tag, "ifelse"))
+	{
+		n0=BS2P_GetAstNodeAttr(expr, "then");
+		n1=BS2P_GetAstNodeAttr(expr, "else");
+		BS2C_CompileFunVarStatement(ctx, n0);
+//		if(!dtvNullP(n1))
+		if(dtvTrueP(n1))
+			BS2C_CompileFunVarStatement(ctx, n1);
+		return;
+	}
+
 	if(!strcmp(tag, "while"))
 	{
 		n0=BS2P_GetAstNodeAttr(expr, "then");
@@ -924,6 +935,8 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	}
 
 	if(!strcmp(tag, "assign"))
+		return;
+	if(!strcmp(tag, "assignop"))
 		return;
 	if(!strcmp(tag, "break"))
 		return;

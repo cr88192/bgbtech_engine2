@@ -249,7 +249,7 @@ static_inline dtVal dtvWrapTagPtrF(void *ptr, int tag)
 }
 #endif
 
-dtVal BGBDT_MM_DtvWrapObjPtr(void *ptr);
+BTEIFGL_API dtVal BGBDT_MM_DtvWrapObjPtr(void *ptr);
 
 static_inline dtVal dtvWrapPtr(void *ptr)
 	{ return(BGBDT_MM_DtvWrapObjPtr(ptr)); }

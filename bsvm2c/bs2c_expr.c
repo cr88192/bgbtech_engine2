@@ -2656,13 +2656,13 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		if(!strcmp(op, "-"))
 		{
 			o=-1;
-			if(BS2C_TypeSmallIntP(ctx, dty))
+			if(BS2C_TypeSmallIntP(ctx, lt))
 				{ o=BSVM2_OP_NEGI; }
-			else if(BS2C_TypeSmallLongP(ctx, dty))
+			else if(BS2C_TypeSmallLongP(ctx, lt))
 				{ o=BSVM2_OP_NEGL; }
-			else if(BS2C_TypeSmallFloatP(ctx, dty))
+			else if(BS2C_TypeSmallFloatP(ctx, lt))
 				{ o=BSVM2_OP_NEGF; }
-			else if(BS2C_TypeSmallDoubleP(ctx, dty))
+			else if(BS2C_TypeSmallDoubleP(ctx, lt))
 				{ o=BSVM2_OP_NEGD; }
 			
 			if(o>=0)
@@ -2677,9 +2677,9 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		if(!strcmp(op, "~"))
 		{
 			o=-1;
-			if(BS2C_TypeSmallIntP(ctx, dty))
+			if(BS2C_TypeSmallIntP(ctx, lt))
 				{ o=BSVM2_OP_NOTI; }
-			else if(BS2C_TypeSmallLongP(ctx, dty))
+			else if(BS2C_TypeSmallLongP(ctx, lt))
 				{ o=BSVM2_OP_NOTL; }
 			
 			if(o>=0)

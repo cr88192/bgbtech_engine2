@@ -971,9 +971,23 @@ dtVal BS2P_ParseExprAssignOp(BS2CC_CompileContext *ctx)
 			!strcmp(t0, "X>>>=") || !strcmp(t0, "X&=") ||
 			!strcmp(t0, "X|=") || !strcmp(t0, "X^="))
 		{
+			t2=NULL;
+
+			if(!strcmp(t0, "X+="))t2="+";
+			if(!strcmp(t0, "X-="))t2="-";
+			if(!strcmp(t0, "X*="))t2="*";
+			if(!strcmp(t0, "X/="))t2="/";
+			if(!strcmp(t0, "X<<="))t2="<<";
+			if(!strcmp(t0, "X>>="))t2=">>";
+			if(!strcmp(t0, "X>>>="))t2=">>>";
+			if(!strcmp(t0, "X&="))t2="&";
+			if(!strcmp(t0, "X|="))t2="|";
+			if(!strcmp(t0, "X^="))t2="^";
+
 			BS2P_NextToken(ctx);
 			n1=BS2P_ParseExprTern(ctx);
-			n0=BS2P_ParseWrapTagBinary(ctx, "assignop", t0+1, n0, n1);
+//			n0=BS2P_ParseWrapTagBinary(ctx, "assignop", t0+1, n0, n1);
+			n0=BS2P_ParseWrapTagBinary(ctx, "assignop", t2, n0, n1);
 
 			t0=BS2P_PeekToken(ctx, 0);
 			continue;

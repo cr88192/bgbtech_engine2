@@ -689,6 +689,9 @@ byte *egblsdat;	//end of globals data area
 byte *gixtab;
 byte gixstr;
 
+byte *pvbm;		//public visible bitmap
+byte *epvbm;	//end of public visible bitmap
+
 BSVM2_ImageGlobal **gbls;
 int ngbls;
 

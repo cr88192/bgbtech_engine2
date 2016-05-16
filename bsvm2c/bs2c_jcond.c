@@ -175,177 +175,217 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 
 	tag=BS2P_GetAstNodeTag(cc);
 	
-	if(!tag)
-	{
-		BS2C_EmitTempJump(ctx, tt);
-		return;
-	}
+//	if(!tag)
+//	{
+//		BS2C_EmitTempJump(ctx, tt);
+//		return;
+//	}
 	
-	if(!strcmp(tag, "bincmp"))
+	if(tag)
 	{
-		ln=BS2P_GetAstNodeAttr(cc, "lhs");
-		rn=BS2P_GetAstNodeAttr(cc, "rhs");
-		op=BS2P_GetAstNodeAttrS(cc, "op");
-
-		ln=BS2C_ReduceExpr(ctx, ln);
-		rn=BS2C_ReduceExpr(ctx, rn);
-
-		lt=BS2C_InferExpr(ctx, ln);
-		rt=BS2C_InferExpr(ctx, rn);
-		cty=BS2C_InferSuperType(ctx, lt, rt);
-
-		o=-1;
-		if(!strcmp(op, "=="))
-			{ o=BSVM2_OP_JEQ; o2=o; }
-		if(!strcmp(op, "!="))
-			{ o=BSVM2_OP_JNE; o2=o; }
-		if(!strcmp(op, "<"))
-			{ o=BSVM2_OP_JLT; o=BSVM2_OP_JGT; }
-		if(!strcmp(op, ">"))
-			{ o=BSVM2_OP_JGT; o=BSVM2_OP_JLT; }
-		if(!strcmp(op, "<="))
-			{ o=BSVM2_OP_JLE; o=BSVM2_OP_JGE; }
-		if(!strcmp(op, ">="))
-			{ o=BSVM2_OP_JGE; o=BSVM2_OP_JLE; }
-		if(!strcmp(op, "==="))
-			{ o=BSVM2_OP_JEQ; o2=o; }
-		if(!strcmp(op, "!=="))
-			{ o=BSVM2_OP_JNE; o2=o; }
-
-		if(dtvIsSmallLongP(rn))
+		if(!strcmp(tag, "bincmp"))
 		{
-			li=dtvUnwrapLong(rn);
-		
-			t0=BS2C_InferExprLocalIndex(ctx, ln);
-			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+			ln=BS2P_GetAstNodeAttr(cc, "lhs");
+			rn=BS2P_GetAstNodeAttr(cc, "rhs");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
+
+			ln=BS2C_ReduceExpr(ctx, ln);
+			rn=BS2C_ReduceExpr(ctx, rn);
+
+			lt=BS2C_InferExpr(ctx, ln);
+			rt=BS2C_InferExpr(ctx, rn);
+			cty=BS2C_InferSuperType(ctx, lt, rt);
+
+			o=-1;
+			if(!strcmp(op, "=="))
+				{ o=BSVM2_OP_JEQ; o2=o; }
+			if(!strcmp(op, "!="))
+				{ o=BSVM2_OP_JNE; o2=o; }
+			if(!strcmp(op, "<"))
+				{ o=BSVM2_OP_JLT; o=BSVM2_OP_JGT; }
+			if(!strcmp(op, ">"))
+				{ o=BSVM2_OP_JGT; o=BSVM2_OP_JLT; }
+			if(!strcmp(op, "<="))
+				{ o=BSVM2_OP_JLE; o=BSVM2_OP_JGE; }
+			if(!strcmp(op, ">="))
+				{ o=BSVM2_OP_JGE; o=BSVM2_OP_JLE; }
+			if(!strcmp(op, "==="))
+				{ o=BSVM2_OP_JEQ; o2=o; }
+			if(!strcmp(op, "!=="))
+				{ o=BSVM2_OP_JNE; o2=o; }
+
+			if(dtvIsSmallLongP(rn))
 			{
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
-				BS2C_EmitOpcodeSKx(ctx, t0, li);
-				BS2C_EmitOpcode(ctx, o);
-				BS2C_EmitTempJAddr(ctx, tt);
-				return;
+				li=dtvUnwrapLong(rn);
+			
+				t0=BS2C_InferExprLocalIndex(ctx, ln);
+				if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+				{
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+					BS2C_EmitOpcodeSKx(ctx, t0, li);
+					BS2C_EmitOpcode(ctx, o);
+					BS2C_EmitTempJAddr(ctx, tt);
+					return;
+				}
+			
+				if(BS2C_TypeSmallIntP(ctx, cty))
+				{
+					BS2C_CompileExpr(ctx, ln, cty);
+
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
+					BS2C_EmitOpcodeSCx(ctx, li);
+
+					BS2C_EmitOpcode(ctx, o);
+					BS2C_EmitTempJAddr(ctx, tt);
+					BS2C_CompileExprPopType1(ctx);
+					return;
+				}
 			}
-		
-			if(BS2C_TypeSmallIntP(ctx, cty))
+
+			if(dtvIsSmallLongP(ln))
 			{
-				BS2C_CompileExpr(ctx, ln, cty);
+				li=dtvUnwrapLong(ln);
+			
+				t0=BS2C_InferExprLocalIndex(ctx, rn);
+				if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+				{
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+					BS2C_EmitOpcodeSKx(ctx, t0, li);
+					BS2C_EmitOpcode(ctx, o2);
+					BS2C_EmitTempJAddr(ctx, tt);
+					return;
+				}
+			
+				if(BS2C_TypeSmallIntP(ctx, cty))
+				{
+					BS2C_CompileExpr(ctx, rn, cty);
 
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
-				BS2C_EmitOpcodeSCx(ctx, li);
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
+					BS2C_EmitOpcodeSCx(ctx, li);
 
-				BS2C_EmitOpcode(ctx, o);
-				BS2C_EmitTempJAddr(ctx, tt);
-				BS2C_CompileExprPopType1(ctx);
-				return;
+					BS2C_EmitOpcode(ctx, o2);
+					BS2C_EmitTempJAddr(ctx, tt);
+					BS2C_CompileExprPopType1(ctx);
+					return;
+				}
 			}
-		}
-
-		if(dtvIsSmallLongP(ln))
-		{
-			li=dtvUnwrapLong(ln);
-		
-			t0=BS2C_InferExprLocalIndex(ctx, rn);
-			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
-			{
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
-				BS2C_EmitOpcodeSKx(ctx, t0, li);
-				BS2C_EmitOpcode(ctx, o2);
-				BS2C_EmitTempJAddr(ctx, tt);
-				return;
-			}
-		
-			if(BS2C_TypeSmallIntP(ctx, cty))
-			{
-				BS2C_CompileExpr(ctx, rn, cty);
-
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
-				BS2C_EmitOpcodeSCx(ctx, li);
-
-				BS2C_EmitOpcode(ctx, o2);
-				BS2C_EmitTempJAddr(ctx, tt);
-				BS2C_CompileExprPopType1(ctx);
-				return;
-			}
-		}
 
 #if 1
-		t0=BS2C_InferExprLocalIndex(ctx, ln);
-		t1=BS2C_InferExprLocalIndex(ctx, rn);
-		if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
-		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILL);
-			BS2C_EmitOpcodeJx(ctx, t0, t1);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tt);
-			return;
-		}
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			t1=BS2C_InferExprLocalIndex(ctx, rn);
+			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILL);
+				BS2C_EmitOpcodeJx(ctx, t0, t1);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				return;
+			}
 #endif
 
-		BS2C_CompileExpr(ctx, ln, cty);
-		BS2C_CompileExpr(ctx, rn, cty);
+			BS2C_CompileExpr(ctx, ln, cty);
+			BS2C_CompileExpr(ctx, rn, cty);
 
-		if(BS2C_TypeSmallIntP(ctx, cty))
-		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPI);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tt);
-			BS2C_CompileExprPopType2(ctx);
+			if(BS2C_TypeSmallIntP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPI);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeSmallLongP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeSmallFloatP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPF);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeSmallDoubleP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPD);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeAddressP(ctx, cty))
+			{
+				if(!strcmp(op, "===") || !strcmp(op, "!=="))
+					{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMP2A); }
+				else
+					{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMPA); }
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tt);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			BS2C_CaseError(ctx);
 			return;
 		}
 
-		if(BS2C_TypeSmallLongP(ctx, cty))
+		if(!strcmp(tag, "unary"))
 		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tt);
-			BS2C_CompileExprPopType2(ctx);
-			return;
+			ln=BS2P_GetAstNodeAttr(cc, "value");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
+
+			if(!strcmp(op, "!"))
+			{
+				ln=BS2C_ReduceExpr(ctx, ln);
+				BS2C_CompileTempJmpElse(ctx, ln, tt);
+				return;
+			}
 		}
 
-		if(BS2C_TypeSmallFloatP(ctx, cty))
+		if(!strcmp(tag, "binary"))
 		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPF);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tt);
-			BS2C_CompileExprPopType2(ctx);
-			return;
-		}
+			ln=BS2P_GetAstNodeAttr(cc, "lhs");
+			rn=BS2P_GetAstNodeAttr(cc, "rhs");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
 
-		if(BS2C_TypeSmallDoubleP(ctx, cty))
-		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPD);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tt);
-			BS2C_CompileExprPopType2(ctx);
-			return;
-		}
+	//		ln=BS2C_ReduceExpr(ctx, ln);
+	//		rn=BS2C_ReduceExpr(ctx, rn);
 
-		if(BS2C_TypeAddressP(ctx, cty))
-		{
-			if(!strcmp(op, "===") || !strcmp(op, "!=="))
-				{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMP2A); }
-			else
-				{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMPA); }
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tt);
-			BS2C_CompileExprPopType2(ctx);
-			return;
-		}
+	//		lt=BS2C_InferExpr(ctx, ln);
+	//		rt=BS2C_InferExpr(ctx, rn);
+			
+			if(!strcmp(op, "&&"))
+			{
+				t0=BS2C_GenTempLabel(ctx);
+				ln=BS2C_ReduceExpr(ctx, ln);
+				rn=BS2C_ReduceExpr(ctx, rn);
+				BS2C_CompileTempJmpElse(ctx, ln, t0);
+				BS2C_CompileTempJmpElse(ctx, rn, t0);
+				BS2C_EmitTempJump(ctx, tt);
+				BS2C_EmitTempLabelB(ctx, t0);
+				return;
+			}
 
-		BS2C_CaseError(ctx);
-		return;
-	}
-
-	if(!strcmp(tag, "unary"))
-	{
-		ln=BS2P_GetAstNodeAttr(cc, "value");
-		op=BS2P_GetAstNodeAttrS(cc, "op");
-
-		if(!strcmp(op, "!"))
-		{
-			ln=BS2C_ReduceExpr(ctx, ln);
-			BS2C_CompileTempJmpElse(ctx, ln, tt);
-			return;
+			if(!strcmp(op, "||"))
+			{
+	//			t0=BS2C_GenTempLabel(ctx);
+				ln=BS2C_ReduceExpr(ctx, ln);
+				rn=BS2C_ReduceExpr(ctx, rn);
+				BS2C_CompileTempJmpThen(ctx, ln, tt);
+				BS2C_CompileTempJmpThen(ctx, rn, tt);
+	//			BS2C_EmitTempJump(ctx, tf);
+	//			BS2C_EmitTempLabelB(ctx, t0);
+				return;
+			}
 		}
 	}
 
@@ -405,176 +445,213 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 
 	tag=BS2P_GetAstNodeTag(cc);
 	
-	if(!tag)
-	{
-		return;
-	}
+//	if(!tag)
+//	{
+//		return;
+//	}
 	
-	if(!strcmp(tag, "bincmp"))
+	if(tag)
 	{
-		ln=BS2P_GetAstNodeAttr(cc, "lhs");
-		rn=BS2P_GetAstNodeAttr(cc, "rhs");
-		op=BS2P_GetAstNodeAttrS(cc, "op");
-
-		ln=BS2C_ReduceExpr(ctx, ln);
-		rn=BS2C_ReduceExpr(ctx, rn);
-
-		lt=BS2C_InferExpr(ctx, ln);
-		rt=BS2C_InferExpr(ctx, rn);
-		cty=BS2C_InferSuperType(ctx, lt, rt);
-
-		o=-1;
-		if(!strcmp(op, "=="))
-			{ o=BSVM2_OP_JNE; o2=o; }
-		if(!strcmp(op, "!="))
-			{ o=BSVM2_OP_JEQ; o2=o; }
-		if(!strcmp(op, "<"))
-			{ o=BSVM2_OP_JGE; o2=BSVM2_OP_JLE; }
-		if(!strcmp(op, ">"))
-			{ o=BSVM2_OP_JLE; o2=BSVM2_OP_JGE; }
-		if(!strcmp(op, "<="))
-			{ o=BSVM2_OP_JGT; o2=BSVM2_OP_JLT; }
-		if(!strcmp(op, ">="))
-			{ o=BSVM2_OP_JLT; o2=BSVM2_OP_JGT; }
-		if(!strcmp(op, "==="))
-			{ o=BSVM2_OP_JNE; o2=o; }
-		if(!strcmp(op, "!=="))
-			{ o=BSVM2_OP_JEQ; o2=o; }
-
-		if(dtvIsSmallLongP(rn))
+		if(!strcmp(tag, "bincmp"))
 		{
-			li=dtvUnwrapLong(rn);
+			ln=BS2P_GetAstNodeAttr(cc, "lhs");
+			rn=BS2P_GetAstNodeAttr(cc, "rhs");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
 
-			t0=BS2C_InferExprLocalIndex(ctx, ln);
-			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+			ln=BS2C_ReduceExpr(ctx, ln);
+			rn=BS2C_ReduceExpr(ctx, rn);
+
+			lt=BS2C_InferExpr(ctx, ln);
+			rt=BS2C_InferExpr(ctx, rn);
+			cty=BS2C_InferSuperType(ctx, lt, rt);
+
+			o=-1;
+			if(!strcmp(op, "=="))
+				{ o=BSVM2_OP_JNE; o2=o; }
+			if(!strcmp(op, "!="))
+				{ o=BSVM2_OP_JEQ; o2=o; }
+			if(!strcmp(op, "<"))
+				{ o=BSVM2_OP_JGE; o2=BSVM2_OP_JLE; }
+			if(!strcmp(op, ">"))
+				{ o=BSVM2_OP_JLE; o2=BSVM2_OP_JGE; }
+			if(!strcmp(op, "<="))
+				{ o=BSVM2_OP_JGT; o2=BSVM2_OP_JLT; }
+			if(!strcmp(op, ">="))
+				{ o=BSVM2_OP_JLT; o2=BSVM2_OP_JGT; }
+			if(!strcmp(op, "==="))
+				{ o=BSVM2_OP_JNE; o2=o; }
+			if(!strcmp(op, "!=="))
+				{ o=BSVM2_OP_JEQ; o2=o; }
+
+			if(dtvIsSmallLongP(rn))
 			{
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
-				BS2C_EmitOpcodeSKx(ctx, t0, li);
-				BS2C_EmitOpcode(ctx, o);
-				BS2C_EmitTempJAddr(ctx, tf);
-				return;
+				li=dtvUnwrapLong(rn);
+
+				t0=BS2C_InferExprLocalIndex(ctx, ln);
+				if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+				{
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+					BS2C_EmitOpcodeSKx(ctx, t0, li);
+					BS2C_EmitOpcode(ctx, o);
+					BS2C_EmitTempJAddr(ctx, tf);
+					return;
+				}
+			
+				if(BS2C_TypeSmallIntP(ctx, cty))
+				{
+					BS2C_CompileExpr(ctx, ln, cty);
+
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
+					BS2C_EmitOpcodeSCx(ctx, li);
+
+					BS2C_EmitOpcode(ctx, o);
+					BS2C_EmitTempJAddr(ctx, tf);
+					BS2C_CompileExprPopType1(ctx);
+					return;
+				}
 			}
-		
-			if(BS2C_TypeSmallIntP(ctx, cty))
+
+			if(dtvIsSmallLongP(ln))
 			{
-				BS2C_CompileExpr(ctx, ln, cty);
+				li=dtvUnwrapLong(ln);
+			
+				t0=BS2C_InferExprLocalIndex(ctx, rn);
+				if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
+				{
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
+					BS2C_EmitOpcodeSKx(ctx, t0, li);
+					BS2C_EmitOpcode(ctx, o2);
+					BS2C_EmitTempJAddr(ctx, tf);
+					return;
+				}
+			
+				if(BS2C_TypeSmallIntP(ctx, cty))
+				{
+					BS2C_CompileExpr(ctx, rn, cty);
 
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
-				BS2C_EmitOpcodeSCx(ctx, li);
+					BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
+					BS2C_EmitOpcodeSCx(ctx, li);
 
-				BS2C_EmitOpcode(ctx, o);
-				BS2C_EmitTempJAddr(ctx, tf);
-				BS2C_CompileExprPopType1(ctx);
-				return;
+					BS2C_EmitOpcode(ctx, o2);
+					BS2C_EmitTempJAddr(ctx, tf);
+					BS2C_CompileExprPopType1(ctx);
+					return;
+				}
 			}
-		}
-
-		if(dtvIsSmallLongP(ln))
-		{
-			li=dtvUnwrapLong(ln);
-		
-			t0=BS2C_InferExprLocalIndex(ctx, rn);
-			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0))
-			{
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILC);
-				BS2C_EmitOpcodeSKx(ctx, t0, li);
-				BS2C_EmitOpcode(ctx, o2);
-				BS2C_EmitTempJAddr(ctx, tf);
-				return;
-			}
-		
-			if(BS2C_TypeSmallIntP(ctx, cty))
-			{
-				BS2C_CompileExpr(ctx, rn, cty);
-
-				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPIC);
-				BS2C_EmitOpcodeSCx(ctx, li);
-
-				BS2C_EmitOpcode(ctx, o2);
-				BS2C_EmitTempJAddr(ctx, tf);
-				BS2C_CompileExprPopType1(ctx);
-				return;
-			}
-		}
 
 #if 1
-		t0=BS2C_InferExprLocalIndex(ctx, ln);
-		t1=BS2C_InferExprLocalIndex(ctx, rn);
-		if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
-		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILL);
-			BS2C_EmitOpcodeJx(ctx, t0, t1);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tf);
-			return;
-		}
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			t1=BS2C_InferExprLocalIndex(ctx, rn);
+			if(BS2C_TypeSmallIntP(ctx, cty) && (t0>=0) && (t1>=0))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPILL);
+				BS2C_EmitOpcodeJx(ctx, t0, t1);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				return;
+			}
 #endif
 
-		BS2C_CompileExpr(ctx, ln, cty);
-		BS2C_CompileExpr(ctx, rn, cty);
+			BS2C_CompileExpr(ctx, ln, cty);
+			BS2C_CompileExpr(ctx, rn, cty);
 
-		if(BS2C_TypeSmallIntP(ctx, cty))
-		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPI);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tf);
-			BS2C_CompileExprPopType2(ctx);
+			if(BS2C_TypeSmallIntP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPI);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeSmallLongP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeSmallFloatP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPF);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeSmallDoubleP(ctx, cty))
+			{
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CMPD);
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			if(BS2C_TypeAddressP(ctx, cty))
+			{
+				if(!strcmp(op, "===") || !strcmp(op, "!=="))
+					{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMP2A); }
+				else
+					{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMPA); }
+				BS2C_EmitOpcode(ctx, o);
+				BS2C_EmitTempJAddr(ctx, tf);
+				BS2C_CompileExprPopType2(ctx);
+				return;
+			}
+
+			BS2C_CaseError(ctx);
 			return;
 		}
 
-		if(BS2C_TypeSmallLongP(ctx, cty))
+		if(!strcmp(tag, "unary"))
 		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tf);
-			BS2C_CompileExprPopType2(ctx);
-			return;
+			ln=BS2P_GetAstNodeAttr(cc, "value");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
+
+			if(!strcmp(op, "!"))
+			{
+				ln=BS2C_ReduceExpr(ctx, ln);
+				BS2C_CompileTempJmpThen(ctx, ln, tf);
+				return;
+			}
 		}
 
-		if(BS2C_TypeSmallFloatP(ctx, cty))
+		if(!strcmp(tag, "binary"))
 		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPF);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tf);
-			BS2C_CompileExprPopType2(ctx);
-			return;
-		}
+			ln=BS2P_GetAstNodeAttr(cc, "lhs");
+			rn=BS2P_GetAstNodeAttr(cc, "rhs");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
 
-		if(BS2C_TypeSmallDoubleP(ctx, cty))
-		{
-			BS2C_EmitOpcode(ctx, BSVM2_OP_CMPD);
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tf);
-			BS2C_CompileExprPopType2(ctx);
-			return;
-		}
+	//		ln=BS2C_ReduceExpr(ctx, ln);
+	//		rn=BS2C_ReduceExpr(ctx, rn);
 
-		if(BS2C_TypeAddressP(ctx, cty))
-		{
-			if(!strcmp(op, "===") || !strcmp(op, "!=="))
-				{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMP2A); }
-			else
-				{ BS2C_EmitOpcode(ctx, BSVM2_OP_CMPA); }
-			BS2C_EmitOpcode(ctx, o);
-			BS2C_EmitTempJAddr(ctx, tf);
-			BS2C_CompileExprPopType2(ctx);
-			return;
-		}
+	//		lt=BS2C_InferExpr(ctx, ln);
+	//		rt=BS2C_InferExpr(ctx, rn);
+			
+			if(!strcmp(op, "&&"))
+			{
+				ln=BS2C_ReduceExpr(ctx, ln);
+				rn=BS2C_ReduceExpr(ctx, rn);
+				BS2C_CompileTempJmpElse(ctx, ln, tf);
+				BS2C_CompileTempJmpElse(ctx, rn, tf);
+				return;
+			}
 
-		BS2C_CaseError(ctx);
-		return;
-	}
-
-	if(!strcmp(tag, "unary"))
-	{
-		ln=BS2P_GetAstNodeAttr(cc, "value");
-		op=BS2P_GetAstNodeAttrS(cc, "op");
-
-		if(!strcmp(op, "!"))
-		{
-			ln=BS2C_ReduceExpr(ctx, ln);
-			BS2C_CompileTempJmpThen(ctx, ln, tf);
-			return;
+			if(!strcmp(op, "||"))
+			{
+				t0=BS2C_GenTempLabel(ctx);
+				ln=BS2C_ReduceExpr(ctx, ln);
+				rn=BS2C_ReduceExpr(ctx, rn);
+				BS2C_CompileTempJmpThen(ctx, ln, t0);
+				BS2C_CompileTempJmpThen(ctx, rn, t0);
+				BS2C_EmitTempJump(ctx, tf);
+				BS2C_EmitTempLabelB(ctx, t0);
+				return;
+			}
 		}
 	}
 

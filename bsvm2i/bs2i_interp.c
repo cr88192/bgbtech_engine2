@@ -133,6 +133,141 @@ BTEIFGL_API BSVM2_Trace *BSVM2_Interp_SetupCallVM(
 	return(tr);
 }
 
+BTEIFGL_API BSVM2_Trace *BSVM2_Interp_SetupMethodCallVM(
+	BSVM2_Context *ctx, BSVM2_ImageGlobal *vi,
+	dtVal self, BSVM2_Value *args)
+{
+	BSVM2_Frame *frm;
+	BSVM2_Frame *frmb;
+	BSVM2_Trace *tr;
+	int i;
+	
+	if(!ctx->tstack)
+	{
+//		ctx->cstack=dtmMalloc((1<<8)*sizeof(BSVM2_Value));
+		ctx->tstack=dtmMalloc((1<<16)*sizeof(BSVM2_Value));
+		ctx->tstackref=0;
+	}
+	
+	frm=BSVM2_Interp_AllocFrame(ctx);
+	frmb=BSVM2_Interp_AllocFrame(ctx);
+
+	tr=BSVM2_Interp_AllocTrace(NULL);
+	tr->Run=BSVM2_TrRun_NULL;
+
+	frm->stack=ctx->tstack+(ctx->tstackref++);
+
+	frmb->stack=ctx->tstack+ctx->tstackref;
+	frmb->local=frmb->stack+vi->cblk->stkdepth;
+	ctx->tstackref=ctx->tstackref+vi->cblk->szframe;
+	frmb->tstkpos=ctx->tstackref;
+	frmb->self=self;
+
+	frmb->rnext=frm;
+	frm->rtrace=tr;
+	frm->rcsrv=0;
+	ctx->frame=frmb;
+
+	if(args)
+	{
+		for(i=0; i<vi->nargs; i++)
+			{ frmb->local[vi->cblk->bargs+i]=args[i]; }
+	}
+
+	tr=BS2I_ImageGetFuncTrace(vi);
+	ctx->trace=tr;
+	return(tr);
+}
+
+BTEIFGL_API BSVM2_Value *BSVM2_Interp_GetGlobalValue(BSVM2_ImageGlobal *vi)
+{
+	return(vi->gvalue);
+}
+
+BTEIFGL_API s32 BSVM2_Interp_GetGlobalI(BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(0);
+	return(gv->i);
+}
+
+BTEIFGL_API s64 BSVM2_Interp_GetGlobalL(BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(0);
+	return(gv->l);
+}
+
+BTEIFGL_API f32 BSVM2_Interp_GetGlobalF(BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(0);
+	return(gv->f);
+}
+
+BTEIFGL_API f64 BSVM2_Interp_GetGlobalD(BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(0);
+	return(gv->d);
+}
+
+BTEIFGL_API dtVal BSVM2_Interp_GetGlobalA(BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(DTV_UNDEFINED);
+	return(gv->a);
+}
+
+BTEIFGL_API int BSVM2_Interp_SetGlobalI(BSVM2_ImageGlobal *vi, s32 v)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(-1);
+	gv->i=v;
+	return(0);
+}
+
+BTEIFGL_API int BSVM2_Interp_SetGlobalL(BSVM2_ImageGlobal *vi, s64 v)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(-1);
+	gv->l=v;
+	return(0);
+}
+
+BTEIFGL_API int BSVM2_Interp_SetGlobalF(BSVM2_ImageGlobal *vi, f32 v)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(-1);
+	gv->f=v;
+	return(0);
+}
+
+BTEIFGL_API int BSVM2_Interp_SetGlobalD(BSVM2_ImageGlobal *vi, f64 v)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(-1);
+	gv->d=v;
+	return(0);
+}
+
+BTEIFGL_API int BSVM2_Interp_SetGlobalA(BSVM2_ImageGlobal *vi, dtVal v)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(-1);
+	gv->a=v;
+	return(0);
+}
 
 BTEIFGL_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim)
 {

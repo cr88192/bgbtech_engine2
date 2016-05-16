@@ -123,6 +123,16 @@ BTEIFGL_API void frglDisableLighting(void)
 	glDisable(GL_LIGHTING);
 }
 
+BTEIFGL_API void frglEnable(int flag)
+{
+	glEnable(flag);
+}
+
+BTEIFGL_API void frglDisable(int flag)
+{
+	glDisable(flag);
+}
+
 
 BTEIFGL_API void frglModelviewMatrix(void)
 {

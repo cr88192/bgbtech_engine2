@@ -784,7 +784,15 @@ BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(
 	int i, j, k;
 
 	if(vari->bmfl&BS2CC_TYFL_CANREACH)
+	{
+		if((vari->bmfl&BS2CC_TYFL_PUBLIC) &&
+			(vari->bmfl&BS2CC_TYFL_PUBVISIBLE))
+		{
+			BS2C_ImgGetString(ctx, vari->name);
+		}
+
 		return;
+	}
 
 	if(vari->vitype==BS2CC_VITYPE_GBLFUNC)
 	{
@@ -1008,6 +1016,103 @@ byte *BS2C_Image_FlattenMains(
 }
 
 
+byte *BS2C_Image_FlattenPvbm(
+	BS2CC_CompileContext *ctx, byte *obuf)
+{
+	byte tb[4096];
+	byte tb2[4096];
+	BS2CC_VarInfo *vitab[256];
+	BS2CC_VarInfo *vari;
+	byte *cs, *cs1, *cse;
+	byte *ct, *ct1, *ct2;
+	int n, o;
+	int i, j, k, l;
+
+	ct1=obuf+256; ct2=ct1;
+
+	memset(tb, 0, 4096);
+
+	n=0;
+	for(i=0; i<ctx->nglobals; i++)
+	{
+		vari=ctx->globals[i];
+		if(!vari)
+			continue;
+
+		if(	(vari->vitype!=BS2CC_VITYPE_GBLFUNC) &&
+			(vari->vitype!=BS2CC_VITYPE_GBLVAR) &&
+			(vari->vitype!=BS2CC_VITYPE_CLASS) &&
+			(vari->vitype!=BS2CC_VITYPE_STRUCT) &&
+			(vari->vitype!=BS2CC_VITYPE_IFACE))
+				continue;
+		if(!vari->name)
+			continue;
+		if(!(vari->bmfl&BS2CC_TYFL_PUBVISIBLE))
+			continue;
+
+		n=i+1;
+		tb[i>>3]|=(128>>(i&7));
+	}
+	
+	l=(n+7)>>3;
+	cs=tb; cse=tb+l;
+	ct1=tb2; ct2=ct1;
+	while(cs<cse)
+	{
+		if((*cs)==0x00)
+		{
+			cs1=cs+1;
+			while((cs1<cse) && ((*cs1)==0x00))
+				cs1++;
+			i=cs1-cs;
+			if(i>32)i=32;
+			*ct2++=0x00|(i-1);
+			cs+=i;
+			continue;
+		}
+
+		if((*cs)==0xFF)
+		{
+			cs1=cs+1;
+			while((cs1<cse) && ((*cs1)==0xFF))
+				cs1++;
+			i=cs1-cs;
+			if(i>32)i=32;
+			*ct2++=0x20|(i-1);
+			cs+=i;
+			continue;
+		}
+
+		cs1=cs+1;
+		while((cs1<cse) &&
+			((*cs1)!=0x00) && ((*cs1)!=0xFF))
+				cs1++;
+		i=cs1-cs;
+		if(i==1)
+		{
+			j=*cs;
+			if(j==(j&31))
+				{ *ct2++=0x80|(j&31); cs++; continue; }
+			if(j==(0xE0|(j&31)))
+				{ *ct2++=0xA0|(j&31); cs++; continue; }
+			if(j==(j&0xF8))
+				{ *ct2++=0xC0|(j>>3); cs++; continue; }
+			if(j==((j&0xF8)|0x07))
+				{ *ct2++=0xE0|(j>>3); cs++; continue; }
+		}
+		if(i>32)i=32;
+		*ct2++=0x40|(i-1);
+		cs1=cs+i;
+		while(cs<cs1)
+			*ct2++=*cs++;
+	}
+
+//	ct=BS2C_Image_EmitTagData(obuf, BS2CC_IFCC_PVBM, ct2-ct1, ct1);
+	ct=BS2C_Image_EmitTagData(obuf, BS2CC_ITCC_PV, ct2-ct1, ct1);
+	return(ct);
+}
+
+
 BTEIFGL_API int BS2C_FlattenImage(
 	BS2CC_CompileContext *ctx,
 	byte *obuf, int obmsz)
@@ -1027,6 +1132,7 @@ BTEIFGL_API int BS2C_FlattenImage(
 	ct=BS2C_Image_FlattenGlobals(ctx, ct, tgix);
 	ct=BS2C_Image_FlattenGixArray(ctx, ct, tgix);
 	ct=BS2C_Image_FlattenMains(ctx, ct);
+	ct=BS2C_Image_FlattenPvbm(ctx, ct);
 
 	ct=BS2C_Image_EmitTagData(obuf, BS2CC_IFCC_BS2I,
 		ct-ct1, ct1);

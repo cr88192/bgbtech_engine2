@@ -2622,6 +2622,7 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		BS2C_CompileExpr(ctx, ln, cty);
 		BS2C_CompileExpr(ctx, rn, cty);
 
+#if 0
 		z=BS2C_GetTypeBaseZ(ctx, cty);
 		if(!strcmp(op, "=="))
 			o=BSVM2_OPRC_EQ;
@@ -2653,6 +2654,53 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_INT);
 		BS2C_CompileConvType(ctx, dty);
+#endif
+
+#if 1
+		o=-1;
+		if(!strcmp(op, "=="))
+			o=BSVM2_OP_CMIEQ;
+		if(!strcmp(op, "!="))
+			o=BSVM2_OP_CMINE;
+		if(!strcmp(op, "<"))
+			o=BSVM2_OP_CMILT;
+		if(!strcmp(op, ">"))
+			o=BSVM2_OP_CMIGT;
+		if(!strcmp(op, "<="))
+			o=BSVM2_OP_CMILE;
+		if(!strcmp(op, ">="))
+			o=BSVM2_OP_CMIGE;
+		if(!strcmp(op, "==="))
+			o=BSVM2_OP_CMIEQ;
+		if(!strcmp(op, "!=="))
+			o=BSVM2_OP_CMINE;
+
+		u=-1;
+		if(BS2C_TypeSmallIntP(ctx, cty))
+			u=BSVM2_OP_CMPI;
+		else if(BS2C_TypeSmallLongP(ctx, cty))
+			u=BSVM2_OP_CMPL;
+		else if(BS2C_TypeSmallFloatP(ctx, cty))
+			u=BSVM2_OP_CMPF;
+		else if(BS2C_TypeSmallDoubleP(ctx, cty))
+			u=BSVM2_OP_CMPD;
+		else if(BS2C_TypeAddressP(ctx, cty))
+			u=BSVM2_OP_CMPA;
+
+		if((o>=0) && (u>=0))
+		{
+			BS2C_CompileExprPopType2(ctx);
+
+			BS2C_EmitOpcode(ctx, u);
+			BS2C_EmitOpcode(ctx, o);
+
+			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_INT);
+			BS2C_CompileConvType(ctx, dty);
+			return;
+		}
+#endif
+
+		BS2C_CaseError(ctx);
 		return;
 	}
 
@@ -2680,6 +2728,16 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			{
 				BS2C_CompileExpr(ctx, ln, lt);
 				BS2C_EmitOpcode(ctx, o);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+
+			if(BS2C_TypeOpXvP(ctx, lt))
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				z=BS2C_GetTypeVecZ(ctx, lt);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_UNOPX);
+				BS2C_EmitOpcodeUZx(ctx, z, BSVM2_OPUV_NEG);
 				BS2C_CompileConvType(ctx, dty);
 				return;
 			}

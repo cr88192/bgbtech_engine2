@@ -74,6 +74,12 @@ These are stored at 30 bits each.
 #define BGBDT_BASETY_SBYTE		8
 #define BGBDT_BASETY_USHORT		9
 #define BGBDT_BASETY_ULONG		10
+#define BGBDT_BASETY_VOID		11
+#define BGBDT_BASETY_NLONG		12
+#define BGBDT_BASETY_UNLONG		13
+#define BGBDT_BASETY_X128		14
+
+#define BGBDT_BASETY_VARIANT	16		//tagval
 
 typedef union BGBDT_TagValue_s		BGBDT_TagValue;
 typedef union BGBDT_TagValue_s		dtVal;

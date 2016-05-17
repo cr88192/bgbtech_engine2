@@ -132,6 +132,19 @@ void BSVM2_Op_MODI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	frm->stack[op->t0].i=i;
 }
 
+void BSVM2_Op_UDIVI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	u32 i, j;
+
+	i=frm->stack[op->t0].ui;
+	j=frm->stack[op->t1].ui;
+	if(!j)
+		{ i=0; }
+	else
+		{ i=i/j; }
+	frm->stack[op->t0].ui=i;
+}
+
 void BSVM2_Op_DIVL(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	s64 i, j;
@@ -156,6 +169,19 @@ void BSVM2_Op_MODL(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	else
 		{ i=i%j; }
 	frm->stack[op->t0].l=i;
+}
+
+void BSVM2_Op_UDIVL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	u64 i, j;
+
+	i=frm->stack[op->t0].ul;
+	j=frm->stack[op->t1].ul;
+	if(!j)
+		{ i=0; }
+	else
+		{ i=i/j; }
+	frm->stack[op->t0].ul=i;
 }
 
 void BSVM2_Op_ADDF(BSVM2_Frame *frm, BSVM2_Opcode *op)
@@ -333,6 +359,19 @@ void BSVM2_Op_DCMPIC(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	b=op->v.i;
 	frm->stack[op->t0].i=(a>b)|(0-(a<b));
 }
+
+void BSVM2_Op_CMIEQ(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=(frm->stack[op->t0].i==0); }
+void BSVM2_Op_CMINE(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=(frm->stack[op->t0].i!=0); }
+void BSVM2_Op_CMILT(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=(frm->stack[op->t0].i< 0); }
+void BSVM2_Op_CMIGT(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=(frm->stack[op->t0].i> 0); }
+void BSVM2_Op_CMILE(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=(frm->stack[op->t0].i<=0); }
+void BSVM2_Op_CMIGE(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=(frm->stack[op->t0].i>=0); }
 
 
 void BSVM2_Op_ADDIC(BSVM2_Frame *frm, BSVM2_Opcode *op)

@@ -39,6 +39,9 @@
 #define BSVM2_OPZ_USHORT	9
 #define BSVM2_OPZ_ULONG		10
 #define BSVM2_OPZ_CONST		11
+#define BSVM2_OPZ_NLONG		12
+#define BSVM2_OPZ_UNLONG	13
+#define BSVM2_OPZ_X128		14
 
 #define BSVM2_OPZ_ADDR		4
 // #define BSVM2_OPZ_VARIANT	4
@@ -192,6 +195,7 @@
 #define BSVM2_OP_HNOEX2		0x62	//Non-Execute (2 Op)
 #define BSVM2_OP_HNOEX3		0x63	//Non-Execute (3 Op)
 #define BSVM2_OP_RETC		0x64	//Return Constant
+
 #define BSVM2_OP_UCMPI		0x66	//Unsigned Compare Int
 #define BSVM2_OP_UCMPL		0x67	//Unsigned Compare Long
 #define BSVM2_OP_CMPIC		0x68	//Compare Int Const

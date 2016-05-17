@@ -400,6 +400,49 @@ int BGBDT_MM_PrintTagArr(BGBDT_MM_ParsePrintInfo *inf, dtVal val)
 	}
 
 	i=BGBDT_MM_PrintPutStr(inf, "]");
+	
+	if((bt!=BGBDT_BASETY_ADDRESS) && (bt!=BGBDT_BASETY_VARIANT))
+	{
+		switch(bt)
+		{
+		case BGBDT_BASETY_INT:
+			i=BGBDT_MM_PrintPutStr(inf, "I");
+			break;
+		case BGBDT_BASETY_LONG:
+			i=BGBDT_MM_PrintPutStr(inf, "L");
+			break;
+		case BGBDT_BASETY_FLOAT:
+			i=BGBDT_MM_PrintPutStr(inf, "F");
+			break;
+		case BGBDT_BASETY_DOUBLE:
+			i=BGBDT_MM_PrintPutStr(inf, "D");
+			break;
+		case BGBDT_BASETY_ADDRESS:
+			i=BGBDT_MM_PrintPutStr(inf, "A");
+			break;
+		case BGBDT_BASETY_UINT:
+			i=BGBDT_MM_PrintPutStr(inf, "UI");
+			break;
+		case BGBDT_BASETY_UBYTE:
+			i=BGBDT_MM_PrintPutStr(inf, "UB");
+			break;
+		case BGBDT_BASETY_SHORT:
+			i=BGBDT_MM_PrintPutStr(inf, "S");
+			break;
+		case BGBDT_BASETY_SBYTE:
+			i=BGBDT_MM_PrintPutStr(inf, "SB");
+			break;
+		case BGBDT_BASETY_USHORT:
+			i=BGBDT_MM_PrintPutStr(inf, "US");
+			break;
+		case BGBDT_BASETY_ULONG:
+			i=BGBDT_MM_PrintPutStr(inf, "UL");
+			break;
+		default:
+			break;
+		}
+	}
+	
 	inf->nrec--;
 	return(i);
 }

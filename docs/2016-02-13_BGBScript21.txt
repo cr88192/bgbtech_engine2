@@ -79,7 +79,10 @@ Integer types will be fixed size twos complement types.
 ** double, 64-bit IEEE binary64
 ** float128, 128-bit IEEE binary128
 ** float16, 16-bit IEEE half-float
-
+* Vector
+** FComplex, DComplex
+** Vec2f, Vec3f, Vec4f, Vec2d
+** Quatf
 
 SmallInt types will implicitly promote to int in operations. If the destination is a wider type, then the types will implicitly promote to the wider type. This promotion will happen prior to performing arithmetic operations, and may be applied recursively.
 
@@ -138,7 +141,7 @@ The native endianess for numbers is undefined.
  var fn=function(int x, int y):void { ... }		//closure
 
 
-==== Lists ====
+==== Lists (Drop) ====
 
 Lists will be a special type and will be implicitly variant.
 They will consist of chains of 'cons cells' each of which contains a member known as 'car' and another known as 'cdr'. The lists will be formed by linking them end-to-end via 'cdr', with the 'car' member existing primarily to hold the value. Alternatively, these fields may be accessed as 'a' or 'd', and by sequences of 'a' and 'd'.
@@ -201,6 +204,7 @@ Objects may be created using a type suffix.
   Foo obj={x: 3, y: 4}:Foo;
 
 This will allocate an object of the specified type and initialize the fields to the default values.
+
 
 ==== Tail Position ====
 
@@ -428,11 +432,14 @@ ExpressionLiteral:
 ** Large String
 * '''{''' ( ''name'' ''':''' ''value'' ( ''',''' ) )* '''}''' ( ''':''' ''type'' )
 ** Dynamic Object
-* [ ''exprlist'' ] ( ''':''' ''type'' )
+* '''[''' ''exprlist'' ''']''' ( ''':''' ''type'' )
 ** Array
 * '''#{''' exprlist '''}'''
 ** List
 * '''(''' ''Expression'' ''')'''
+* '''#[''' ''exprlist'' ''']''' ( ''':''' ''type'' )
+** Vector
+
 ** Parenthesized Expression
 * '''function''' ( ''name'' ) '''(''' ''argslist '' ''')''' ( ''':''' ''type'' ) ''body''
 ** Closure
@@ -637,6 +644,7 @@ TypeName:
 ** '''vec3f'''
 ** '''vec4f'''
 ** '''dcomplex'''
+** '''quatf'''
 
 TypeExpression:
 * ''typename''

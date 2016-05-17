@@ -272,7 +272,8 @@ Operation Type (Z)
 *	B, Special Value, or Void
 *	C, NLong
 *	D, UNLong
-*	E/F, Resv
+*   E, X128
+*	F, Resv
 
 Ix: Variable Index
 *  00-7F, Variable 00-7F

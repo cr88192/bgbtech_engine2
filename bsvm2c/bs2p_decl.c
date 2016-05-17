@@ -283,6 +283,7 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 	dtVal modif, dtVal tyexp)
 {
+	char tb[256];
 	dtVal varlst[256];
 	dtVal ty2;
 	dtVal n0, n1, n2;
@@ -295,10 +296,94 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 		return(DTV_NULL);
 
 	t0=BS2P_PeekToken(ctx, 0);
+	t1=BS2P_PeekToken(ctx, 1);
+	t2=BS2P_PeekToken(ctx, 2);
 
 	if(!t0 || (*t0!='I'))
 		return(DTV_NULL);
 	
+#if 1
+	if(!strcmp(t0, "Iget") && (*t1=='I'))
+	{
+		tn=t1+1;
+		sprintf(tb, "$GET$%s", tn);
+		tn=BGBDT_TagStr_StrSymbol(tn);
+		
+		BS2P_NextToken(ctx);
+		BS2P_NextToken(ctx);
+
+//		n1=BS2P_ParseFunVars(ctx);
+//		BS2P_ParseExpectToken(ctx, "X)");
+
+		t0=BS2P_PeekToken(ctx, 0);
+		if(!strcmp(t0, "X:"))
+		{
+			BS2P_NextToken(ctx);
+			ty2=BS2P_ParseTypeExpr(ctx);
+			t0=BS2P_PeekToken(ctx, 0);
+		}
+
+		n2=BS2P_ParseBlockStatementTail(ctx);
+
+		n0=BS2P_NewAstNode(ctx, "func");
+		BS2P_SetAstNodeAttrS(n0, "name", tn);
+//			BS2P_SetAstNodeAttr(n0, "type", tyexp);
+		BS2P_SetAstNodeAttr(n0, "type", ty2);
+		if(dtvTrueP(modif))
+			BS2P_SetAstNodeAttr(n0, "modi", modif);
+
+//		if(dtvTrueP(n1))
+//			BS2P_SetAstNodeAttr(n0, "args", n1);
+		if(dtvTrueP(n2))
+			BS2P_SetAstNodeAttr(n0, "body", n2);
+
+//		varlst[nvars++]=n0;
+//		break;
+		return(n0);
+	}
+
+	if(!strcmp(t0, "Iset") && (*t1=='I') &&
+		!strcmp(t2, "X("))
+	{
+		tn=t1+1;
+		sprintf(tb, "$SET$%s", tn);
+		tn=BGBDT_TagStr_StrSymbol(tn);
+
+		BS2P_NextToken(ctx);
+		BS2P_NextToken(ctx);
+		BS2P_NextToken(ctx);
+
+		n1=BS2P_ParseFunVars(ctx);
+		BS2P_ParseExpectToken(ctx, "X)");
+
+		t0=BS2P_PeekToken(ctx, 0);
+		if(!strcmp(t0, "X:"))
+		{
+			BS2P_NextToken(ctx);
+			ty2=BS2P_ParseTypeExpr(ctx);
+			t0=BS2P_PeekToken(ctx, 0);
+		}
+
+		n2=BS2P_ParseBlockStatementTail(ctx);
+
+		n0=BS2P_NewAstNode(ctx, "func");
+		BS2P_SetAstNodeAttrS(n0, "name", tn);
+//			BS2P_SetAstNodeAttr(n0, "type", tyexp);
+		BS2P_SetAstNodeAttr(n0, "type", ty2);
+		if(dtvTrueP(modif))
+			BS2P_SetAstNodeAttr(n0, "modi", modif);
+
+		if(dtvTrueP(n1))
+			BS2P_SetAstNodeAttr(n0, "args", n1);
+		if(dtvTrueP(n2))
+			BS2P_SetAstNodeAttr(n0, "body", n2);
+
+//		varlst[nvars++]=n0;	
+//		break;
+		return(n0);
+	}
+#endif
+
 	if(BS2P_DeclTypeRejectKeyword(ctx, t0+1))
 		return(DTV_NULL);
 	
@@ -353,6 +438,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 				BS2P_NextToken(ctx);
 				break;
 			}
+			break;
 		}
 
 		if(!strcmp(t0, "X("))
@@ -369,7 +455,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 				t0=BS2P_PeekToken(ctx, 0);
 			}
 
-			n2=BS2P_ParseBlockStatement(ctx);
+			n2=BS2P_ParseBlockStatementTail(ctx);
 
 			n0=BS2P_NewAstNode(ctx, "func");
 			BS2P_SetAstNodeAttrS(n0, "name", tn);
@@ -606,7 +692,7 @@ dtVal BS2P_TryParseDeclSingle(BS2CC_CompileContext *ctx,
 			n2=DTV_NULL;
 		}else
 		{
-			n2=BS2P_ParseBlockStatement(ctx);
+			n2=BS2P_ParseBlockStatementTail(ctx);
 		}
 
 		n0=BS2P_NewAstNode(ctx, "func");

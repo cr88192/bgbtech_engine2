@@ -89,3 +89,17 @@ void BSVM2_Op_CVTAA2F(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].f=dtvUnwrapFloat(frm->stack[op->t0].a); }
 void BSVM2_Op_CVTAA2D(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].d=dtvUnwrapDouble(frm->stack[op->t0].a); }
+
+
+void BSVM2_Op_CVTAA2ST(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	char tb[4096];
+	dtVal v;
+	a=frm->stack[op->t0].a;
+	BGBDT_MM_PrintValueToStrBuf(tb, 4095, v);
+	frm->stack[op->t0].a=BGBDT_TagStr_String(tb);
+}
+
+void BSVM2_Op_CVTST2AA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+}

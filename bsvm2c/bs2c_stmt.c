@@ -626,7 +626,9 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	}
 
 
-	if(!strcmp(tag, "return"))
+//	if(!strcmp(tag, "return"))
+	if(!strcmp(tag, "return") ||
+		!strcmp(tag, "tail"))
 	{
 		nt=BS2P_GetAstNodeAttr(expr, "value");
 		nt=BS2C_ReduceExpr(ctx, nt);
@@ -634,6 +636,24 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		cty=ctx->frm->func->rty;
 		
 		ctx->frm->wasret=1;
+
+		if(!strcmp(tag, "tail") && (cty==BSVM2_OPZ_VOID))
+		{
+			if(!dtvNullP(nt))
+			{
+				BS2C_CompileExpr(ctx, nt, BSVM2_OPZ_VOID);
+			}
+
+			if(ctx->frm->jcleanup>0)
+			{
+				BS2C_EmitTempJump(ctx, ctx->frm->jcleanup);
+				return;
+			}
+
+			BS2C_EmitOpcode(ctx, BSVM2_OP_RETV);
+			ctx->frm->newtrace=1;
+			return;
+		}
 		
 		if(dtvNullP(nt))
 		{
@@ -959,6 +979,9 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	if(!strcmp(tag, "return"))
 		return;
 	if(!strcmp(tag, "throw"))
+		return;
+
+	if(!strcmp(tag, "tail"))
 		return;
 
 	if(!strcmp(tag, "empty_block"))

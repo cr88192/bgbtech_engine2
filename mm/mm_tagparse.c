@@ -562,11 +562,66 @@ s64 BGBDT_TagParse_ParseInt(char *s)
 
 double BGBDT_TagParse_ParseFloat(char *s)
 {
-	return(atof(s));
+#if 1
+	double v, sc;
+	int sg, se;
+	int i, j, k;
+
+	if(*s=='-')
+		{ s++; sg=-1; }
+	else { sg=1; }
+
+	v=0;
+	while(*s)
+	{
+		i=*s++; j=0;
+		if(i=='_')
+			continue;
+		if(i=='.')
+			{ s--; break; }
+		if((i>='0') && (i<='9'))
+			{ j=i-'0'; }
+		v=(v*10)+j;
+	}
+	if(*s=='.')
+	{
+		s++; sc=0.1;
+
+		while(*s)
+		{
+			i=*s++; j=0;
+			if(i=='_')
+				continue;
+			if((i>='0') && (i<='9'))
+				{ j=i-'0'; }
+			else
+				{ break; }
+			v=v+(j*sc); sc=sc*0.1;
+		}
+		
+		if((*s=='e') || (*s=='E'))
+		{
+			s++;
+			if(*s=='+')s++;
+			se=BGBDT_TagParse_ParseInt(s);
+			if(se>0)
+			{
+				i=se;
+				while(i--)v=v*10;
+			}else if(se<0)
+			{
+				i=-se;
+				while(i--)v=v*0.1;
+			}
+		}
+	}
+	return(v*sg);
+#endif
+//	return(atof(s));
 }
 
 
-dtVal BGBDT_TagParse_ParseValueArr(char **rstr)
+dtVal BGBDT_TagParse_ParseValueArr(BGBDT_MM_ParsePrintInfo *inf)
 {
 	char tb1[256], tb2[256];
 	dtVal tva[1024];
@@ -574,8 +629,9 @@ dtVal BGBDT_TagParse_ParseValueArr(char **rstr)
 	char *sig, *tsig;
 	char *s, *s1, *s2;
 	int ntva, sfx;
+	int i, j, k;
 
-	s=*rstr;
+	s=inf->cs;
 
 	s=BGBDT_TagParse_ParseTokenBasic(s, tb1);
 	s1=BGBDT_TagParse_ParseTokenBasic(s, tb2);
@@ -589,8 +645,11 @@ dtVal BGBDT_TagParse_ParseValueArr(char **rstr)
 		s1=BGBDT_TagParse_ParseTokenBasic(s, tb1);
 		if(!strcmp(tb1, "X]"))
 			{ s=s1; break; }
-		tv=BGBDT_TagParse_ParseValue(&s);
+		
+		inf->cs=s;
+		tv=BGBDT_TagParse_ParseValue(inf);
 		tva[ntva++]=tv;
+		s=inf->cs;
 
 		s1=BGBDT_TagParse_ParseTokenBasic(s, tb2);
 		if(!strcmp(tb2, "X,"))
@@ -644,10 +703,10 @@ dtVal BGBDT_TagParse_ParseValueArr(char **rstr)
 		case BGBDT_BASETY_ULONG:
 			dtvArraySetIndexInt(arr, i, dtvUnwrapLong(tv));
 			break;
-		case BGBDT_ENTBTY_FLOAT:
+		case BGBDT_BASETY_FLOAT:
 			dtvArraySetIndexFloat(arr, i, dtvUnwrapFloat(tv));
 			break;
-		case BGBDT_ENTBTY_DOUBLE:
+		case BGBDT_BASETY_DOUBLE:
 			dtvArraySetIndexDouble(arr, i, dtvUnwrapDouble(tv));
 			break;
 		case BGBDT_BASETY_UBYTE:
@@ -664,11 +723,11 @@ dtVal BGBDT_TagParse_ParseValueArr(char **rstr)
 		}
 	}
 
-	*rstr=s;
+	inf->cs=s;
 	return(arr);
 }
 
-dtVal BGBDT_TagParse_ParseValue(char **rstr)
+dtVal BGBDT_TagParse_ParseValue(BGBDT_MM_ParsePrintInfo *inf)
 {
 	char tb1[256], tb2[256];
 	dtVal tv;
@@ -676,7 +735,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 	double vf;
 	char *s, *s1, *s2;
 
-	s=*rstr;
+	s=inf->cs;
 
 	s1=BGBDT_TagParse_ParseTokenBasic(s, tb1);
 	s2=BGBDT_TagParse_ParseTokenBasic(s1, tb2);
@@ -689,7 +748,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 			{ tv=dtvWrapInt(vi); }
 		else
 			{ tv=dtvWrapLong(vi); }
-		*rstr=s;
+		inf->cs=s;
 		return(tv);
 	}
 		
@@ -698,7 +757,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 		s=s1;
 		vf=BGBDT_TagParse_ParseFloat(tb1+1);
 		tv=dtvWrapDouble(vf);
-		*rstr=s;
+		inf->cs=s;
 		return(tv);
 	}
 
@@ -706,7 +765,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 	{
 		s=s1;
 		tv=BGBDT_TagStr_String(tb1+1);
-		*rstr=s;
+		inf->cs=s;
 		return(tv);
 	}
 
@@ -714,7 +773,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 	{
 		s=s1;
 		tv=DTV_TRUE;
-		*rstr=s;
+		inf->cs=s;
 		return(tv);
 	}
 
@@ -722,7 +781,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 	{
 		s=s1;
 		tv=DTV_FALSE;
-		*rstr=s;
+		inf->cs=s;
 		return(tv);
 	}
 
@@ -730,7 +789,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 	{
 		s=s1;
 		tv=DTV_NULL;
-		*rstr=s;
+		inf->cs=s;
 		return(tv);
 	}
 
@@ -745,7 +804,7 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 				{ tv=dtvWrapInt(vi); }
 			else
 				{ tv=dtvWrapLong(vi); }
-			*rstr=s;
+			inf->cs=s;
 			return(tv);
 		}
 		
@@ -754,35 +813,35 @@ dtVal BGBDT_TagParse_ParseValue(char **rstr)
 			s=s2;
 			vf=BGBDT_TagParse_ParseFloat(tb2+1);
 			tv=dtvWrapDouble(-vf);
-			*rstr=s;
+			inf->cs=s;
 			return(tv);
 		}
 	}
 
 	if(!strcmp(tb1, "X{"))
 	{
-		tv=BGBDT_TagParse_ParseEntObj(&s);
-		*rstr=s;
+		inf->cs=s;
+		tv=BGBDT_TagParse_ParseEntObj(inf);
 		return(tv);
 	}
 
 	if(!strcmp(tb1, "X["))
 	{
-		tv=BGBDT_TagParse_ParseValueArr(&s);
-		*rstr=s;
+		inf->cs=s;
+		tv=BGBDT_TagParse_ParseValueArr(inf);
 		return(tv);
 	}
 	
-	*rstr=s;
+	inf->cs=s;
 	return(DTV_UNDEFINED);
 }
 
 
-dtVal BGBDT_TagParse_ParseEntObj(char **rstr)
+dtVal BGBDT_TagParse_ParseEntObj(BGBDT_MM_ParsePrintInfo *inf)
 {
 	char tb1[256], tb2[256];
 	char *afn[256];
-	dtv afv[256];
+	dtVal afv[256];
 	dtcClass clz;
 	dtcField fi;
 	dtVal tval;
@@ -790,13 +849,14 @@ dtVal BGBDT_TagParse_ParseEntObj(char **rstr)
 	char *fn, *sig;
 	char *s, *s1, *s2;
 	int nfn;
+	int i, j, k;
 	
-	s=*rstr;
+	s=inf->cs;
 	s=BGBDT_TagParse_ParseTokenBasic(s, tb1);
 	BGBDT_TagParse_ParseTokenBasic(s, tb2);
 	
 	if(strcmp(tb1, "X{"))
-		return(NULL);
+		return(DTV_UNDEFINED);
 	
 	nfn=0;
 	while(1)
@@ -812,11 +872,11 @@ dtVal BGBDT_TagParse_ParseEntObj(char **rstr)
 			break;
 		}
 		
-		fn=BGBDT_TagStr_Symbol(tb1+1);
+		fn=BGBDT_TagStr_StrSymbol(tb1+1);
 		
-		s=s1;
-
-		tval=BGBDT_TagParse_ParseValue(&s);
+		inf->cs=s1;
+		tval=BGBDT_TagParse_ParseValue(inf);
+		s=inf->cs;
 
 		s1=BGBDT_TagParse_ParseTokenBasic(s, tb2);
 		if(!strcmp(tb2, "X,"))
@@ -846,6 +906,7 @@ dtVal BGBDT_TagParse_ParseEntObj(char **rstr)
 					dtcVaSetA(obj, fi, afv[i]);
 				}
 			}
+			inf->cs=s;
 			return(obj);
 		}
 	}
@@ -856,5 +917,34 @@ dtVal BGBDT_TagParse_ParseEntObj(char **rstr)
 		BGBDT_MapObj_BindObjvSlotValueName(obj, afn[i], afv[i]);
 	}
 
+	inf->cs=s;
 	return(obj);
+}
+
+BTEIFGL_API BGBDT_MM_ParsePrintInfo *BGBDT_TagParse_NewStringParser(
+	char *strbuf, int szbuf)
+{
+	BGBDT_MM_ParsePrintInfo *tmp;
+
+	tmp=BGBDT_MM_AllocParsePrintInfo();
+
+	tmp->cs=strbuf;
+	tmp->css=strbuf;
+	tmp->cse=strbuf+szbuf;
+//	tmp->putstr=bgbdt_mm_strprint_putstr;
+	
+	return(tmp);
+}
+
+BTEIFGL_API dtVal BGBDT_TagParse_ParseValueFromStrBuf(
+	char *strbuf, int szbuf)
+{
+	BGBDT_MM_ParsePrintInfo *inf;
+	dtVal val;
+	int i;
+
+	inf=BGBDT_TagParse_NewStringParser(strbuf, szbuf);
+	val=BGBDT_TagParse_ParseValue(inf);
+	BGBDT_MM_FreeParsePrintInfo(inf);
+	return(val);
 }

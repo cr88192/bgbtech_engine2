@@ -1294,11 +1294,27 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 
 	case BSVM2_OP_CVTAA2ST:
 		BSVM2_Interp_SetupOpUn(cblk, op,
-			BSVM2_OPZ_DOUBLE, BSVM2_Op_CVTAA2ST);
+			BSVM2_OPZ_ADDR, BSVM2_Op_CVTAA2ST);
 		break;
 	case BSVM2_OP_CVTST2AA:
 		BSVM2_Interp_SetupOpUn(cblk, op,
-			BSVM2_OPZ_DOUBLE, BSVM2_Op_CVTST2AA);
+			BSVM2_OPZ_ADDR, BSVM2_Op_CVTST2AA);
+		break;
+	case BSVM2_OP_CATST:
+		BSVM2_Interp_SetupOpBin(cblk, op,
+			BSVM2_OPZ_ADDR, BSVM2_Op_CATST);
+		break;
+	case BSVM2_OP_CMPST:
+		BSVM2_Interp_SetupOpBin(cblk, op,
+			BSVM2_OPZ_INT, BSVM2_Op_CMPST);
+		break;
+	case BSVM2_OP_CMPSST:
+		BSVM2_Interp_SetupOpBin(cblk, op,
+			BSVM2_OPZ_INT, BSVM2_Op_CMPSST);
+		break;
+	case BSVM2_OP_CMPUST:
+		BSVM2_Interp_SetupOpBin(cblk, op,
+			BSVM2_OPZ_INT, BSVM2_Op_CMPUST);
 		break;
 
 	case BSVM2_OP_MVIC:

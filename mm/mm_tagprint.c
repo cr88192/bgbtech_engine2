@@ -107,14 +107,16 @@ int BGBDT_MM_PrintPutFloat(BGBDT_MM_ParsePrintInfo *inf, double v)
 
 	if(*s=='0')
 	{
-		while((s>tb) && (*s=='0'))
+//		while((s>tb) && (*s=='0'))
+		while(((s-1)>tb) && !strncmp(s-1, "00", 2))
 			s--;
 		s[1]=0;
 	}
 	
 	if((*s=='9') && ((s-3)>tb) && !strcmp(s-3, "9999"))
 	{
-		while((s>tb) && (*s=='9'))
+//		while((s>tb) && (*s=='9'))
+		while(((s-1)>tb) && !strncmp(s-1, "99", 2))
 			s--;
 		if((*s>='0') && (*s<='8'))
 			{ *s=*s+1; s[1]=0; }

@@ -856,6 +856,20 @@ BTEIFGL_API dtVal BGBDT_TagArr_NewArray(int size, int bty);
 int BGBDT_TagArr_IsArrayP(dtVal objv);
 BTEIFGL_API dtVal BGBDT_TagTy_EncodeRotLong(s64 value);
 BTEIFGL_API s64 BGBDT_TagTy_DecodeRotLong(dtVal val);
+//AHSRC:mm/mm_tagparse.c
+char *BGBDT_TagParse_EatWhiteOnly(char *s);
+char *BGBDT_TagParse_EatWhite(char *s);
+int BGBDT_TagParse_ParseHexN(char *s, int n);
+char *BGBDT_TagParse_ReadUtf8(char *sb, int *rv);
+char *BGBDT_TagParse_EmitUtf8(char *t, int v);
+char *BGBDT_TagParse_ParseTokenBasic(char *s, char *tb);
+s64 BGBDT_TagParse_ParseInt(char *s);
+double BGBDT_TagParse_ParseFloat(char *s);
+dtVal BGBDT_TagParse_ParseValueArr(BGBDT_MM_ParsePrintInfo *inf);
+dtVal BGBDT_TagParse_ParseValue(BGBDT_MM_ParsePrintInfo *inf);
+dtVal BGBDT_TagParse_ParseEntObj(BGBDT_MM_ParsePrintInfo *inf);
+BTEIFGL_API BGBDT_MM_ParsePrintInfo *BGBDT_TagParse_NewStringParser(char *strbuf, int szbuf);
+BTEIFGL_API dtVal BGBDT_TagParse_ParseValueFromStrBuf(char *strbuf, int szbuf);
 //AHSRC:mm/mm_tagprint.c
 BTEIFGL_API BGBDT_MM_ParsePrintInfo *BGBDT_MM_AllocParsePrintInfo();
 BTEIFGL_API int BGBDT_MM_FreeParsePrintInfo(BGBDT_MM_ParsePrintInfo *inf);
@@ -902,6 +916,7 @@ BTEIFGL_API int BGBDT_TagStr_IsStringP(dtVal val);
 BTEIFGL_API int BGBDT_TagStr_IsSymbolP(dtVal val);
 BTEIFGL_API int BGBDT_TagStr_IsKeywordP(dtVal val);
 BTEIFGL_API char *BGBDT_TagStr_GetUtf8(dtVal val);
+BTEIFGL_API char *BGBDT_TagStr_GetChars(dtVal val);
 BTEIFGL_API dtVal BGBDT_TagStr_StringAdjustOffset(dtVal val, int idx);
 //AHSRC:mm/mm_thread.c
 thContext *thGetContext();
@@ -1704,6 +1719,16 @@ void BSVM2_Op_CVTAA2I(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_CVTAA2L(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_CVTAA2F(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_CVTAA2D(BSVM2_Frame *frm, BSVM2_Opcode *op);
+void BSVM2_Op_CVTAA2ST(BSVM2_Frame *frm, BSVM2_Opcode *op);
+void BSVM2_Op_CVTST2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
+void BSVM2_Op_CATST(BSVM2_Frame *frm, BSVM2_Opcode *op);
+int bsvm2_op_strcmp(byte *s0, byte *s1);
+byte *bsvm2_op_strgetutf8(byte *cs, int *rv);
+int bsvm2_op_mapucase(int ch);
+int bsvm2_op_stricmp(byte *s0, byte *s1);
+void BSVM2_Op_CMPST(BSVM2_Frame *frm, BSVM2_Opcode *op);
+void BSVM2_Op_CMPSST(BSVM2_Frame *frm, BSVM2_Opcode *op);
+void BSVM2_Op_CMPUST(BSVM2_Frame *frm, BSVM2_Opcode *op);
 //AHSRC:bsvm2i/bs2i_opdtvar.c
 void BSVM2_Op_ADDAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_SUBAA(BSVM2_Frame *frm, BSVM2_Opcode *op);

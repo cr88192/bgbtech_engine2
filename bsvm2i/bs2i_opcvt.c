@@ -95,11 +95,166 @@ void BSVM2_Op_CVTAA2ST(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	char tb[4096];
 	dtVal v;
-	a=frm->stack[op->t0].a;
+	v=frm->stack[op->t0].a;
 	BGBDT_MM_PrintValueToStrBuf(tb, 4095, v);
 	frm->stack[op->t0].a=BGBDT_TagStr_String(tb);
 }
 
 void BSVM2_Op_CVTST2AA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
+	char *s;
+	dtVal v;
+
+	v=frm->stack[op->t0].a;
+	s=BGBDT_TagStr_GetChars(v);
+	v=BGBDT_TagParse_ParseValueFromStrBuf(s, strlen(s));
+	frm->stack[op->t0].a=v;
+}
+
+void BSVM2_Op_CATST(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	char *s0, *s1, *s2;
+	dtVal v0, v1;
+
+	v0=frm->stack[op->t0].a;
+	v1=frm->stack[op->t1].a;
+	s0=BGBDT_TagStr_GetChars(v0);
+	s1=BGBDT_TagStr_GetChars(v1);
+	s2=frgl_ralloc(strlen(s0)+strlen(s1)+2);
+	strcpy(s2, s0);
+	strcat(s2, s1);
+	frm->stack[op->t0].a=BGBDT_TagStr_String(s2);
+}
+
+int bsvm2_op_strcmp(byte *s0, byte *s1)
+{
+	if(!s0 || !s1)
+	{
+		if(s0)
+			return(1);
+		if(s1)
+			return(-1);
+		return(0);
+	}
+	while(*s0 && *s1 && (*s0==*s1))
+		{ s0++; s1++; }
+	if((*s0)<(*s1))
+		return(-1);
+	if((*s0)>(*s1))
+		return(1);
+	return(0);
+}
+
+byte *bsvm2_op_strgetutf8(byte *cs, int *rv)
+{
+	int i;
+
+	i=*cs++;
+
+	if(i<0x80)
+		{ *rv=i; return(cs); }
+	if(i<0xE0)
+	{
+		i=((i&0x1F)<<6)|((*cs++)&0x3F);
+		*rv=i;
+		return(cs);
+	}
+	if(i<0xF0)
+	{
+		i=((i&0x0F)<<6)|((*cs++)&0x3F);
+		i=(i<<6)|((*cs++)&0x3F);
+		*rv=i;
+		return(cs);
+	}
+	if(i<0xF8)
+	{
+		i=((i&0x07)<<6)|((*cs++)&0x3F);
+		i=(i<<6)|((*cs++)&0x3F);
+		i=(i<<6)|((*cs++)&0x3F);
+		*rv=i;
+		return(cs);
+	}
+	*rv=i;
+	return(cs);
+}
+
+int bsvm2_op_mapucase(int ch)
+{
+	if((ch>='a') && (ch<='z'))
+		return((ch-'a')+'A');
+	return(ch);
+}
+
+int bsvm2_op_stricmp(byte *s0, byte *s1)
+{
+	int i, j;
+
+	if(!s0 || !s1)
+	{
+		if(s0)
+			return(1);
+		if(s1)
+			return(-1);
+		return(0);
+	}
+	while(*s0 && *s1)
+	{
+		s0=bsvm2_op_strgetutf8(s0, &i);
+		s1=bsvm2_op_strgetutf8(s1, &j);
+		i=bsvm2_op_mapucase(i);
+		j=bsvm2_op_mapucase(j);
+		if(i!=j)
+			break;
+	}
+	
+	if(!(*s0) || !(*s1))
+	{
+		if(*s0)
+			return(1);
+		if(*s1)
+			return(-1);
+		return(0);
+	}
+	
+	if(i<j)
+		return(-1);
+	if(i>j)
+		return(1);
+	return(0);
+}
+
+void BSVM2_Op_CMPST(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	char *s0, *s1, *s2;
+	dtVal v0, v1;
+
+	v0=frm->stack[op->t0].a;
+	v1=frm->stack[op->t1].a;
+	s0=BGBDT_TagStr_GetChars(v0);
+	s1=BGBDT_TagStr_GetChars(v1);
+	frm->stack[op->t0].i=bsvm2_op_strcmp((byte *)s0, (byte *)s1);
+}
+
+void BSVM2_Op_CMPSST(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	char *s0, *s1, *s2;
+	dtVal v0, v1;
+
+	v0=frm->stack[op->t0].a;
+	v1=frm->stack[op->t1].a;
+	s0=BGBDT_TagStr_GetUtf8(v0);
+	s1=BGBDT_TagStr_GetUtf8(v1);
+	frm->stack[op->t0].i=bsvm2_op_strcmp((byte *)s0, (byte *)s1);
+}
+
+void BSVM2_Op_CMPUST(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	char *s0, *s1, *s2;
+	dtVal v0, v1;
+
+	v0=frm->stack[op->t0].a;
+	v1=frm->stack[op->t1].a;
+	s0=BGBDT_TagStr_GetUtf8(v0);
+	s1=BGBDT_TagStr_GetUtf8(v1);
+	frm->stack[op->t0].i=bsvm2_op_stricmp((byte *)s0, (byte *)s1);
 }

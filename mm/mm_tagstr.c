@@ -418,6 +418,27 @@ BTEIFGL_API char *BGBDT_TagStr_GetUtf8(dtVal val)
 	return(NULL);
 }
 
+BTEIFGL_API char *BGBDT_TagStr_GetChars(dtVal val)
+{
+	char *tbuf;
+	char *str;
+	u16 *ws;
+	byte *s, *t;
+	int tag, len;
+	int i, j, k;
+
+	tag=dtvGetPtrTagF(val);
+	str=dtvUnwrapPtrF(val);
+	
+	if((tag==objty_tagstr) | (tag==objty_tagsym) |
+		(tag==objty_tagkeyw) | (tag==objty_tagstr_l1))
+	{
+		return(str);
+	}
+
+	return(BGBDT_TagStr_GetUtf8(val));
+}
+
 
 BTEIFGL_API dtVal BGBDT_TagStr_StringAdjustOffset(dtVal val, int idx)
 {

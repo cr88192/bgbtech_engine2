@@ -390,6 +390,17 @@ BTEIFGL_API dtVal BS2P_ParseBuffer(BS2CC_CompileContext *ctx,
 	return(n0);
 }
 
+BTEIFGL_API dtVal BS2P_ParseBufferExpression(BS2CC_CompileContext *ctx,
+	char *srcbuf, int szsrcbuf)
+{
+	dtVal n0;
+
+	BS2P_LexBuffer(ctx, srcbuf, szsrcbuf);
+	n0=BS2P_ParseExpr(ctx);
+	
+	return(n0);
+}
+
 BTEIFGL_API BS2CC_CompileContext *BS2CC_AllocCompileContext()
 {
 	BS2CC_CompileContext *ctx;
@@ -397,4 +408,9 @@ BTEIFGL_API BS2CC_CompileContext *BS2CC_AllocCompileContext()
 	ctx=dtmAlloc("bs2cc_compilecontext_t",
 		sizeof(BS2CC_CompileContext));
 	return(ctx);
+}
+
+BTEIFGL_API void BS2P_FreeCompileContext(BS2CC_CompileContext *ctx)
+{
+	dtmFree(ctx);
 }

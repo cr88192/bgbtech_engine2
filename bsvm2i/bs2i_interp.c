@@ -269,6 +269,25 @@ BTEIFGL_API int BSVM2_Interp_SetGlobalA(BSVM2_ImageGlobal *vi, dtVal v)
 	return(0);
 }
 
+BTEIFGL_API dtVal BSVM2_Interp_GetGlobalDy(BSVM2_ImageGlobal *vi)
+{
+	BSVM2_Value *gv;
+	dtVal v;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(DTV_UNDEFINED);
+	v=BSVM2_Sig_GetSigPtrDtVal(gv, vi->sig);
+	return(v);
+}
+
+BTEIFGL_API dtVal BSVM2_Interp_SetGlobalDy(BSVM2_ImageGlobal *vi, dtVal v)
+{
+	BSVM2_Value *gv;
+	gv=BSVM2_Interp_GetGlobalValue(vi);
+	if(!gv)return(DTV_UNDEFINED);
+	BSVM2_Sig_SetSigPtrDtVal(gv, vi->sig, v);
+	return(v);
+}
+
 BTEIFGL_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim)
 {
 	BSVM2_Trace *tr;

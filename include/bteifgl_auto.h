@@ -1110,7 +1110,9 @@ dtVal BS2P_ParseBlockStatementI(BS2CC_CompileContext *ctx, int flag);
 dtVal BS2P_ParsePackageStatement(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParsePackageStatementBlock(BS2CC_CompileContext *ctx);
 BTEIFGL_API dtVal BS2P_ParseBuffer(BS2CC_CompileContext *ctx,char *srcbuf, int szsrcbuf);
+BTEIFGL_API dtVal BS2P_ParseBufferExpression(BS2CC_CompileContext *ctx,char *srcbuf, int szsrcbuf);
 BTEIFGL_API BS2CC_CompileContext *BS2CC_AllocCompileContext();
+BTEIFGL_API void BS2P_FreeCompileContext(BS2CC_CompileContext *ctx);
 //AHSRC:bsvm2c/bs2p_token.c
 char *BS2P_EatWhiteOnly(char *s);
 char *BS2P_EatWhite(char *s);
@@ -1156,6 +1158,7 @@ BTEIFGL_API void BS2C_CompileFuncs(BS2CC_CompileContext *ctx);
 BTEIFGL_API void BS2C_DumpErrors(BS2CC_CompileContext *ctx);
 BTEIFGL_API int BS2C_CompileModuleBuffer(BS2CC_CompileContext *ctx, char *buf, int szbuf);
 BTEIFGL_API int BS2C_CompileModuleList(BS2CC_CompileContext *ctx, char *base, char **names);
+BTEIFGL_API dtVal BS2C_EvalExpr(char *str);
 //AHSRC:bsvm2c/bs2c_disasm.c
 int bs2c_disasm_decnbl(char *ps);
 int bs2c_disasm_decbyte(char *ps);
@@ -1376,6 +1379,10 @@ int BS2C_TypeLookupTypeOverflow(BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *t
 int BS2C_TypeGetTypeOverflow(BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *tovf);
 int BS2C_TypeFromTypeOverflow(BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *ovf);
 int BS2C_TypeRefinedType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, dtVal expr);
+//AHSRC:bsvm2c/bs2e_expr.c
+dtVal BS2E_LoadName(BS2CC_CompileContext *ctx, char *name);
+dtVal BS2E_StoreName(BS2CC_CompileContext *ctx,char *name, dtVal val);
+dtVal BS2E_EvalExpr(BS2CC_CompileContext *ctx, dtVal expr);
 //AHSRC:bsvm2i/bs2i_fcnblock.c
 BSVM2_Opcode *BSVM2_Interp_AllocOpcode(BSVM2_CodeBlock *cblk);
 BSVM2_TailOpcode *BSVM2_Interp_AllocTailOpcode(BSVM2_CodeBlock *cblk);

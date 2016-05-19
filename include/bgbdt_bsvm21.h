@@ -688,6 +688,8 @@ BSVM2_CodeBlock *cblk;
 };
 
 struct BSVM2_CodeImage_s {
+BSVM2_CodeImage *next;
+
 byte *data;		//image data
 int szdata;		//size of image data
 byte *strtab;	//string table

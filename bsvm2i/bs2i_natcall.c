@@ -679,3 +679,134 @@ BSVM2_Trace *BSVM2_TrOp_NatCallG1(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 		frm->stack+op->t0, argt);
 	return(op->nexttrace);
 }
+
+
+dtVal BSVM2_Sig_GetSigPtrDtVal(void *ptr, char *sig)
+{
+	dtVal v;
+	int i;
+
+	switch(*sig)
+	{
+	case 'a':	case 'c':
+		v=dtvWrapInt(*(sbyte *)ptr); break;
+	case 'b':	case 'h':
+		v=dtvWrapInt(*(byte *)ptr); break;
+	case 'k':
+	case 's':
+		v=dtvWrapInt(*(s16 *)ptr); break;
+	case 't':	case 'w':
+		v=dtvWrapInt(*(u16 *)ptr); break;
+
+	case 'i':
+		v=dtvWrapInt(*(s32 *)ptr); break;
+	case 'j':
+		v=dtvWrapUInt(*(u32 *)ptr); break;
+	case 'l':	case 'm':
+		v=dtvWrapLong(*(long *)ptr); break;
+	case 'x':	case 'y':
+		v=dtvWrapLong(*(s64 *)ptr); break;
+	case 'f':
+		v=dtvWrapFloat(*(f32 *)ptr); break;
+	case 'd':	case 'e':
+		v=dtvWrapDouble(*(f64 *)ptr); break;
+
+	case 'g':	case 'n':	case 'o':
+
+	case 'p':	case 'q':	case 'r':
+		v=*(dtVal *)ptr; break;
+
+	case 'C':
+		if((sig[1]=='b') || (sig[1]=='c') ||
+			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='q'))
+		{
+			i=BS2CC_TYZ_VEC4F; break;
+		}
+		v=*(dtVal *)ptr; break;
+
+	case 'Q':
+	case 'X':	case 'L':
+		v=*(dtVal *)ptr; break;
+
+	case 'v':
+		i=BSVM2_OPZ_VOID; break;
+	case 'z':
+		i=BSVM2_OPZ_ADDR; break;
+
+	case 'P':
+		v=dtvWrapPtr(*(void **)ptr); break;
+//		i=BSVM2_OPZ_ADDR;
+		break;
+//		i=5; break;
+
+	default:
+		v=DTV_UNDEFINED;
+		break;
+	}
+	
+	return(v);
+}
+
+dtVal BSVM2_Sig_SetSigPtrDtVal(void *ptr, char *sig, dtVal v)
+{
+	int i;
+
+	switch(*sig)
+	{
+	case 'a':	case 'c':
+		*(sbyte *)ptr=dtvUnwrapInt(v); break;
+	case 'b':	case 'h':
+		*(byte *)ptr=dtvUnwrapInt(v); break;
+	case 'k':
+	case 's':
+		*(s16 *)ptr=dtvUnwrapInt(v); break;
+	case 't':	case 'w':
+		*(u16 *)ptr=dtvUnwrapInt(v); break;
+
+	case 'i':
+		*(s32 *)ptr=dtvUnwrapInt(v); break;
+	case 'j':
+		*(u32 *)ptr=dtvUnwrapUInt(v); break;
+	case 'l':	case 'm':
+		*(long *)ptr=dtvUnwrapLong(v); break;
+	case 'x':	case 'y':
+		*(s64 *)ptr=dtvUnwrapLong(v); break;
+	case 'f':
+		*(f32 *)ptr=dtvUnwrapFloat(v); break;
+	case 'd':	case 'e':
+		*(f64 *)ptr=dtvUnwrapDouble(v); break;
+
+	case 'g':	case 'n':	case 'o':
+
+	case 'p':	case 'q':	case 'r':
+		*(dtVal *)ptr=v; break;
+
+	case 'C':
+		if((sig[1]=='b') || (sig[1]=='c') ||
+			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='q'))
+		{
+			i=BS2CC_TYZ_VEC4F; break;
+		}
+		*(dtVal *)ptr=v; break;
+
+	case 'Q':
+	case 'X':	case 'L':
+		*(dtVal *)ptr=v; break;
+
+	case 'v':
+		break;
+	case 'z':
+		break;
+
+	case 'P':
+		*(void **)ptr=dtvUnwrapPtr(v); break;
+		break;
+
+	default:
+		break;
+	}
+	
+	return(v);
+}

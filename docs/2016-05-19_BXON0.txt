@@ -1,0 +1,66 @@
+BXON: BGBScript Object Notation
+
+It is closely related to JSON, and JSON will exist as a subset.
+
+Identifier:
+* Starts with a letter or underscore.
+* May contain letters, numbers, or underscores.
+
+String:
+* May contain arbitrary characters surrounded in quotes.
+* Some characters may require escape sequences.
+** \r, carriage return
+** \n, newline
+** \t, tab
+** ...
+** \xHH, character in the range of 0000 to 00FF
+** \uHHHH, character in the range of 0000 to FFFF
+
+TripleQouteString:
+* String surrounded in tripple quotes.
+* May include arbitrary characters, including control characters.
+* Does not translate most escape sequences.
+** Allowing escaping the ending tripple quote being the main exception.
+
+Integer:
+* Decimal, starting with 1..9
+* Octal, starting with 0
+* Hexadecimal, starting with 0x
+* May contain underscores between digits.
+** These are ignored and have no effect on the value.
+* May be prefixed with '-' to indicate negative.
+
+Float:
+* Series of decimal digits beginning with 0..9.
+* Has '.' followed by more digits for the fractional part.
+* Optionally has 'E' or 'e' followed by a sign-prefixed exponent.
+* Likewise, may contain underscores or be prefixed with a sign.
+
+Object:
+* Series of name:value pairs in curly brackets and separated by commas.
+* Name may be either a string or identifier.
+** Keywords are reserved and will require quotes.
+
+Array:
+* Series of values enclosed in square brackets and separated by commas.
+* By default, values will be assumed to be any type.
+* A type suffix may be used to indicate a specific element type.
+** 'I': Int32
+** 'UI': UInt32
+** 'L': Int64
+** 'UL': UInt64
+** 'F': Float32
+** 'D': Float64
+** 'SB': Int8
+** 'UB': UInt8
+** 'SS': Int16
+** 'US': UInt16
+
+Vector:
+* Similar syntax to an array, just with a hash-symbol prefix.
+* Values are 2 to 4 numbers.
+* A suffix may encode the vector type:
+** 'I': VecNi (2..4 elements)
+** 'F': VecNf (2..4 elements)
+** 'D': VecNd (2 elements)
+** 'Q': Quatf (4 elements, in i,j,k,r order)

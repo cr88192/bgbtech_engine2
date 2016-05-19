@@ -1,6 +1,7 @@
 #include <bteifgl.h>
 
 int bs2i_img_seqid=1;
+BSVM2_CodeImage *bs2i_liveimg=NULL;
 
 byte *BS2I_ReadTag(byte *cs, u64 *rtag, s64 *rlen)
 {
@@ -1308,5 +1309,26 @@ BTEIFGL_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz)
 			BS2I_ImageGetGlobalInitial(img, i);
 	}
 	
+	//HACK: need a "loader" or "process" context here
+	img->next=bs2i_liveimg;
+	bs2i_liveimg=img;
+	
 	return(img);
+}
+
+
+BTEIFGL_API BSVM2_ImageGlobal *BS2I_GlobalLookupGlobalVar(char *qname)
+{
+	BSVM2_CodeImage *icur;
+	BSVM2_ImageGlobal *gbl;
+	
+	icur=bs2i_liveimg;
+	while(icur)
+	{
+		gbl=BS2I_ImageLookupGlobalVar(icur, qname);
+		if(gbl)
+			return(gbl);
+		icur=icur->next;
+	}
+	return(NULL);
 }

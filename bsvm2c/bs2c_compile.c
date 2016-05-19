@@ -647,3 +647,16 @@ BTEIFGL_API int BS2C_CompileModuleList(
 	}
 	return(0);
 }
+
+
+BTEIFGL_API dtVal BS2C_EvalExpr(char *str)
+{
+	BS2CC_CompileContext *ctx;
+	dtVal n0, v;
+	
+	ctx=BS2CC_AllocCompileContext();
+	n0=BS2P_ParseBufferExpression(ctx, str, strlen(str));
+	v=BS2E_EvalExpr(ctx, n0);
+	BS2P_FreeCompileContext(ctx);
+	return(v);
+}

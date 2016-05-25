@@ -1,0 +1,138 @@
+;Instruction Layout:
+;name
+;	format	args	flag
+;	...
+;or:
+;name	format	args	flag
+;
+;an format without any contents will be viewed as a placeholder.
+;
+; (omitted, irrelevant to ARM)
+;
+; (ARM) name suffixes will take the form . <suffix>
+;	c	condition code
+;	cs	condition and S modifier
+;
+;args will be a comma seperated list
+;r8/16/32/64		will name a register
+;rm8/16/32/64		will identify the value in the modrm fields
+;i8/16/32/64		will define an immediate
+;u8/16			unsigned 8/16 bit immediate
+;al/ax/eax/rax		oprand is simply a form of ax
+;ar8/ar16/ar32/ar64	relative address (jump, call, ...)
+;sr				segment register
+;cr				control register
+;dr				debug register
+;mo16/32/64			fixed memory offset (constant address)
+;m				generic untyped memory
+;fr				float/MMX reg
+;frm				float/MMX reg/memory
+;frm16/32/64/80		float reg/memory
+;xr				SSE XMM reg	(untyped)
+;xrm				SSE XMM reg/memory (untyped)
+;xr2				SSE XMM reg (secondary, rm)
+;xrv				SSE XMM reg (VEX/XOP vvvv)
+;xri				SSE XMM reg (VEX/XOP immed)
+;yr				SSE YMM reg	(untyped)
+;yrm				SSE YMM reg/memory (untyped)
+;yr2				SSE YMM reg (secondary, rm)
+;yrv				SSE YMM reg (VEX/XOP vvvv)
+;yri				SSE YMM reg (VEX/XOP immed)
+;
+;of which, r32, ar32, i32, ... will be used
+;
+;flag (currently unused on ARM)
+;newly added, will be a short string indicating the modes for some ops
+;will be a comma seperated list
+;long: long-mode only (unneeded if the op' wouldn't be encoded anyways)
+;leg: legacy mode only (invalid in long mode)
+;vex: opcode could be confused with a VEX or XOP prefix
+;
+;
+;ARM instructions forms:
+;<prefix> <bits> <args>
+;prefix will effectively tell the instruction form and serve as a mask
+;the bits will be a glob of 8 hex characters (ARM forms)
+;	bits may be 4 hex chars for Thumb forms ()
+;args will indicate arguments to encode
+;
+;Ga		Data Processing Immediate Shift
+;Gb		Misc Instructions
+;Gc		Data Processing Register Shift
+;Gt		Generic Thumb Instruction
+;Gx		Zero Dword
+;Gy		Zero Dword (3 words, aligns)
+;Gz		Default
+;
+;GT*	Thumb Instruction Forms
+;
+;Note that the high 4 bits are condition code bits
+;	E=always, F=special
+;
+;args:
+;|ia	(ARM) Immediate Address, low 24 bits
+;|ib	(ARM) Immediate Byte, low 8 bits
+;|ic	(ARM) Immediate DWord, 32 bits
+;|id	(ARM) Immediate Address, 32 bits
+;|io	(ARM) Immediate Offset, low 12 bits
+;|ir	(ARM) Immediate Rotate, bits 8..11
+;|is	(ARM) Immediate Shift, bits 4..11
+;|irb	(ARM) Immediate Rotated Byte, low 12 bits
+;
+;|ja	(Thumb) Immediate Address, low 8 bits
+;|jb	(Thumb) Immediate Byte, low 8 bits
+;|jc	(Thumb) Immediate Byte, low 7 bits
+;|jd	(Thumb) Immediate Address, low 11 bits
+;|je	(Thumb) Immediate Address (High), low 11 bits
+;|jf	(Thumb) Immediate Address (Low), low 11 bits
+;|ji	(Thumb) Immediate 3-bits, bits 6..8
+;|jj	(Thumb) Immediate 5-bits, bits 6..10
+;|jk	(Thumb) Immediate Byte, low 3 bits
+;|jl	(Thumb) Immediate Short, low 8 bits
+;					Also bits 12..14, bits 0..3,10 (prior opcode)
+;
+;|ra	Register (ARM), bits 0..3
+;|rb	Register (ARM), bits 4..7
+;|rc	Register (ARM), bits 8..11
+;|rd	Register (ARM), bits 12..15
+;|re	Register (ARM), bits 16..19
+;|rf	Register (ARM), bits 20..23
+;
+;|rg	Register (Thumb), bits 0..2
+;|rh	Register (Thumb), bits 3..5
+;|ri	Register (Thumb), bits 6..8
+;|rj	Register (Thumb), bits 8..10
+;|rk	Register (Thumb), bits 3..6
+;|rl	Register (Thumb), bits 0..2, 7
+;|rz	Register (Thumb), skipped
+
+
+bx.c		Gz012FFF10|ra	r32
+b.c			Gz0A000000|ia	ar32
+bl.c		Gz0A000000|ia	ar32
+
+and.cs
+			Gc00000000|rd|re|ra|is		r32,r32,r32,armsh
+			Gc02000000|rd|re|irb		r32,r32,i32
+
+;note: register numbers are magic numbers
+.reg r0		32
+.reg r1		33
+.reg r2		34
+.reg r3		35
+.reg r4		36
+.reg r5		37
+.reg r6		38
+.reg r7		39
+.reg r8		40
+.reg r9		41
+.reg r10	42
+.reg r11	43
+.reg r12	44
+.reg r13	45
+.reg r14	46
+.reg r15	47
+
+.reg sp		45
+.reg lr		46
+.reg pc		47

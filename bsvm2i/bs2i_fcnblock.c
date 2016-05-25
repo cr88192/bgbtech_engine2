@@ -202,6 +202,12 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 //	cblk->altab=alias;
 //	cblk->alrov=0;
 	
+	if(cblk->func && cblk->func->name &&
+		!strcmp(cblk->func->name, "init"))
+	{
+		k=99;
+	}
+	
 	nopsa=0; ntrsa=0; csa=cblk->cs;
 	while(cblk->cs<cblk->cse)
 	{
@@ -336,6 +342,13 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 	cblk->ntrace=ntrsa;
 	
 	for(i=0; i<ntrsa; i++)
-		{ cblk->trace[i]=trsa[i]; }
+	{
+#ifdef BS2I_USE_BASM
+		BS2J_CheckSetupJitTrace(trsa[i]);
+#endif
+
+		cblk->trace[i]=trsa[i];
+	}
+
 	return(cblk->trace[0]);
 }

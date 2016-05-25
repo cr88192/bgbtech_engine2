@@ -78,7 +78,7 @@ BTEIFGL_API BSVM2_Frame *BSVM2_Interp_AllocFrame(BSVM2_Context *ctx)
 	if(tmp)
 	{
 		ctx->freeframe=tmp->rnext;
-		memset(tmp, 0, sizeof(BSVM2_Frame));
+//		memset(tmp, 0, sizeof(BSVM2_Frame));
 		tmp->ctx=ctx;
 		return(tmp);
 	}
@@ -293,8 +293,20 @@ BTEIFGL_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim)
 	BSVM2_Trace *tr;
 	int l;
 	
+	if(lim<0)
+	{
+		tr=ctx->trace;
+//		while(tr && !(ctx->status))
+		while(tr)
+			{ tr=tr->Run(ctx->frame, tr); }
+		if(tr)
+			{ ctx->trace=tr; }
+		return(ctx->status);
+	}
+	
 	tr=ctx->trace; l=lim;
-	while(tr && !(ctx->status) && ((l--)>0))
+//	while(tr && !(ctx->status) && ((l--)>0))
+	while(tr && ((l--)>0))
 		{ tr=tr->Run(ctx->frame, tr); }
 	if(tr)
 		{ ctx->trace=tr; }

@@ -820,9 +820,10 @@ void BS2C_CompileDup(BS2CC_CompileContext *ctx)
 		{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPX); }
 	else
 	{
-		z=BS2C_GetTypeBaseZ(ctx, ty);
-		BS2C_EmitOpcode(ctx, BSVM2_OP_DUPN);
-		BS2C_EmitOpcodeUZx(ctx, z, 1);
+//		z=BS2C_GetTypeBaseZ(ctx, ty);
+//		BS2C_EmitOpcode(ctx, BSVM2_OP_DUPN);
+//		BS2C_EmitOpcodeUZx(ctx, z, 1);
+		BS2C_CaseError(ctx);
 	}
 }
 
@@ -2988,6 +2989,9 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		
 		if(!BS2C_TypeVoidP(ctx, dty))
 		{
+			BS2C_CompileDup(ctx);
+
+#if 0
 			if(BS2C_TypeSmallIntP(ctx, lt))
 				{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPI); }
 			else if(BS2C_TypeSmallLongP(ctx, lt))
@@ -3000,10 +3004,12 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA); }
 			else
 			{
-				z=lt&15;
-				BS2C_EmitOpcode(ctx, BSVM2_OP_DUPN);
-				BS2C_EmitByte(ctx, (z<<4)|1);
+//				z=lt&15;
+//				BS2C_EmitOpcode(ctx, BSVM2_OP_DUPN);
+//				BS2C_EmitByte(ctx, (z<<4)|1);
+				BS2C_CaseError(ctx);
 			}
+#endif
 		}
 		
 		BS2C_CompileStoreExpr(ctx, ln);
@@ -3536,7 +3542,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		ln=BS2P_GetAstNodeAttr(expr, "value");
 		fn=BS2P_GetAstNodeAttrS(expr, "sfx");
 
-		l=dtvArrayGetSize(ln);
+		if(dtvIsArrayP(ln))
+			{ l=dtvArrayGetSize(ln); }
+		else
+			{ l=1; }
 
 		cty=BS2CC_TYZ_VARIANT;
 		
@@ -3610,7 +3619,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 		for(i=0; i<l; i++)
 		{
-			n0=dtvArrayGetIndexDtVal(ln, i);
+			if(dtvIsArrayP(ln))
+				{ n0=dtvArrayGetIndexDtVal(ln, i); }
+			else
+				{ n0=ln; }
 
 			if(dtvIsSmallLongP(n0))
 			{
@@ -3630,12 +3642,14 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				continue;
 			}
 
+			BS2C_CompileExprPushType(ctx, bty);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
 			BS2C_CompileExpr(ctx, n0, cty);
 //			BS2C_EmitOpcode(ctx, BSVM2_OP_STIXAC);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitOpcodeSCx(ctx, i);
-			BS2C_CompileExprPopType1(ctx);
+//			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPopType2(ctx);
 		}
 		return;
 	}
@@ -3645,7 +3659,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		ln=BS2P_GetAstNodeAttr(expr, "value");
 		fn=BS2P_GetAstNodeAttrS(expr, "sfx");
 
-		l=dtvArrayGetSize(ln);
+		if(dtvIsArrayP(ln))
+			{ l=dtvArrayGetSize(ln); }
+		else
+			{ l=1; }
 
 		cty=BS2CC_TYZ_FLOAT;
 		
@@ -3712,7 +3729,11 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 		for(i=0; i<l; i++)
 		{
-			n0=dtvArrayGetIndexDtVal(ln, i);
+			if(dtvIsArrayP(ln))
+				{ n0=dtvArrayGetIndexDtVal(ln, i); }
+			else
+				{ n0=ln; }
+//			n0=dtvArrayGetIndexDtVal(ln, i);
 			BS2C_CompileExpr(ctx, n0, cty);
 		}
 

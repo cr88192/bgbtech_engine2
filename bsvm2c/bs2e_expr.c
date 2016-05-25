@@ -19,6 +19,14 @@ dtVal BS2E_LoadName(BS2CC_CompileContext *ctx, char *name)
 dtVal BS2E_StoreName(BS2CC_CompileContext *ctx,
 	char *name, dtVal val)
 {
+	BSVM2_ImageGlobal *gbl;
+	dtVal v;
+
+	gbl=BS2I_GlobalLookupGlobalVar(name);
+	if(!gbl)
+		return(DTV_UNDEFINED);
+	BSVM2_Interp_SetGlobalDy(gbl, val);
+	return(val);
 }
 
 dtVal BS2E_EvalExpr(BS2CC_CompileContext *ctx, dtVal expr)

@@ -3,6 +3,7 @@ public class EntityBase2D {
 	public float angle;
 	public float radius;
 	public string sprite;
+	public vec2f sprite_sz;
 	
 	/** called after entity creation */
 	public abstract void spawn();

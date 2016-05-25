@@ -17,7 +17,7 @@ int BGBDT_MM_QHashName(char *name)
 	return(h);
 }
 
-int BGBDT_MM_LookupIndexObjTypeName(char *name)
+BTEIFGL_API int BGBDT_MM_LookupIndexObjTypeName(char *name)
 {
 	BGBDT_MM_ObjTypeInfo *oti;
 	int ch;
@@ -47,7 +47,7 @@ int BGBDT_MM_LookupIndexObjTypeName(char *name)
 	return(-1);
 }
 
-int BGBDT_MM_GetIndexObjTypeName(char *name)
+BTEIFGL_API int BGBDT_MM_GetIndexObjTypeName(char *name)
 {
 	BGBDT_MM_ObjTypeInfo *oti;
 	int ch;
@@ -92,7 +92,7 @@ int BGBDT_MM_GetIndexObjTypeName(char *name)
 	return(-1);
 }
 
-char *BGBDT_MM_GetObjTypeNameForIndex(int idx)
+BTEIFGL_API char *BGBDT_MM_GetObjTypeNameForIndex(int idx)
 {
 	BGBDT_MM_ObjTypeInfo *oti;
 	oti=&(bgbdt_mm_objtype[idx&4095]);

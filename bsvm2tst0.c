@@ -64,6 +64,7 @@ int main()
 	BSVM2_ImageGlobal *vi;
 
 	char tb[1<<18];
+	char *s;
 	dtVal v0, v1, v2, v3;
 	int i, j, k;
 
@@ -108,6 +109,19 @@ int main()
 	BGBDT_MM_PrintValueToStrBuf(tb, 1023, v3);
 	printf("TB v3: %s\n", tb);
 	
+
+	s="[{x: [1, 2], y: [3, 4], z: 5.0}, 3.14159]";
+	v0=BGBDT_TagParse_ParseValueFromStrBuf(s, strlen(s));
+
+	BGBDT_MM_PrintValueToStrBuf(tb, 1023, v0);
+	printf("Parse0 v3: %s\n", tb);
+	
+	s="2+3";
+	v0=BS2C_EvalExpr(s);
+	BGBDT_MM_PrintValueToStrBuf(tb, 1023, v0);
+	printf("Eval0 v3: %s\n", tb);
+	
+	
 	ctx=BS2CC_AllocCompileContext();
 //	prn=BGBDT_MM_NewStringPrinter(tb, 16383);
 	prn=BGBDT_MM_NewStringPrinter(tb, (1<<18)-1);
@@ -126,7 +140,8 @@ int main()
 
 	vctx=BSVM2_Interp_AllocContext();
 	BSVM2_Interp_SetupCallVM(vctx, vi, NULL);
-	BSVM2_Interp_RunContext(vctx, 999999999);
+//	BSVM2_Interp_RunContext(vctx, 999999999);
+	BSVM2_Interp_RunContext(vctx, -1);
 
 #if 0
 	v0=BS2P_ParseBuffer(ctx, bsvmt_tstprg, strlen(bsvmt_tstprg));

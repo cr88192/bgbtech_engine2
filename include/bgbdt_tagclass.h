@@ -114,8 +114,24 @@ static_inline void *dtcVaGetPtr(dtVal obj, dtcField fi)
 typedef struct BGBDTC_X128_s BGBDTC_X128;
 
 struct BGBDTC_X128_s {
-u32 a;
-u32 b;
-u32 c;
-u32 d;
+struct {
+	u32 a;
+	u32 b;
+	u32 c;
+	u32 d;
+};
+struct {
+	f32 x;
+	f32 y;
+	f32 z;
+	f32 w;
+};
+struct {
+	u64 la;
+	u64 lb;
+};
+struct {
+	f64 dx;
+	f64 dy;
+};
 };

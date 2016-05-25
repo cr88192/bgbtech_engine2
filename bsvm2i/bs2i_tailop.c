@@ -248,6 +248,40 @@ BSVM2_Trace *BSVM2_TrRun_DefN7(BSVM2_Frame *frm, BSVM2_Trace *tr)
 	return(tr->top->Run(frm, tr->top));
 }
 
+BSVM2_Trace *BSVM2_TrRun_ThrowN(BSVM2_Frame *frm, BSVM2_Trace *tr)
+{
+	BSVM2_Opcode **ops, **opse;
+	
+	ops=tr->ops; opse=ops+tr->n_ops;
+	while((ops+4)<=opse)
+	{
+		(*ops)->Run(frm, *ops); ops++;
+		if(frm->ctx->status)goto exth;
+		(*ops)->Run(frm, *ops); ops++;
+		if(frm->ctx->status)goto exth;
+		(*ops)->Run(frm, *ops); ops++;
+		if(frm->ctx->status)goto exth;
+		(*ops)->Run(frm, *ops); ops++;
+		if(frm->ctx->status)goto exth;
+	}
+	if((ops+1)<opse)
+	{
+		(*ops)->Run(frm, *ops); ops++;
+		if(frm->ctx->status)goto exth;
+		(*ops)->Run(frm, *ops); ops++;
+		if(frm->ctx->status)goto exth;
+	}
+	if(ops<opse)
+	{
+		(*ops)->Run(frm, *ops);
+		if(frm->ctx->status)goto exth;
+	}
+	return(tr->top->Run(frm, tr->top));
+	exth:
+	frm->ctx->trace=tr;
+	return(NULL);
+}
+
 BSVM2_Trace *BSVM2_TrRun_Next0(BSVM2_Frame *frm, BSVM2_Trace *tr)
 {
 	return(tr->jnext);
@@ -357,8 +391,16 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(
 {
 	BSVM2_Trace *tr;
 	int i;
-	
+
+	for(i=0; i<n_ops; i++)
+	{
+		if(ops[i]->opfl&BSVM2_TRFL_CANTHROW)
+			flag|=BSVM2_TRFL_CANTHROW;
+//		tr->ops[i]=ops[i];
+	}
+
 	tr=BSVM2_Interp_AllocTrace(cblk);
+	tr->trfl=flag;
 
 	if((n_ops>8) && !top)
 	{
@@ -383,7 +425,10 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(
 		tr->top=top;
 	}
 	
-	if(n_ops>8)
+	if(flag&BSVM2_TRFL_CANTHROW)
+	{
+		tr->Run=BSVM2_TrRun_ThrowN;
+	}else if(n_ops>8)
 	{
 		switch(n_ops&7)
 		{
@@ -429,6 +474,10 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(
 		default: break;
 		}
 	}
+	
+//#ifdef BS2I_USE_BASM
+//	BS2J_CheckSetupJitTrace(tr);
+//#endif
 	
 	return(tr);
 }
@@ -487,6 +536,34 @@ BSVM2_Trace *BSVM2_TrOp_JGE(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	return(op->nexttrace);
 }
 
+
+BSVM2_Trace *BSVM2_TrOp_JEQNULL(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	if(dtvNullP(frm->stack[op->t0].a))
+		return(op->jmptrace);
+	return(op->nexttrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JNENULL(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	if(!dtvNullP(frm->stack[op->t0].a))
+		return(op->jmptrace);
+	return(op->nexttrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JEQNULLL(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	if(dtvNullP(frm->local[op->i0].a))
+		return(op->jmptrace);
+	return(op->nexttrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_JNENULLL(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	if(!dtvNullP(frm->local[op->i0].a))
+		return(op->jmptrace);
+	return(op->nexttrace);
+}
 
 BSVM2_Trace *BSVM2_TrOp_JCMP_EQI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {	if(frm->stack[op->t0].i==frm->stack[op->t1].i)
@@ -668,7 +745,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMPLL_GEUI(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 	return(op->nexttrace);	}
 
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETI(
+BSVM2_Trace *BSVM2_TrOp_RETI(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -684,7 +761,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETI(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETL(
+BSVM2_Trace *BSVM2_TrOp_RETL(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -697,7 +774,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETL(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETF(
+BSVM2_Trace *BSVM2_TrOp_RETF(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -710,7 +787,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETF(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETD(
+BSVM2_Trace *BSVM2_TrOp_RETD(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -723,7 +800,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETD(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETA(
+BSVM2_Trace *BSVM2_TrOp_RETA(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -736,7 +813,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETA(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETV(
+BSVM2_Trace *BSVM2_TrOp_RETV(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -749,7 +826,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETV(
 }
 
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETIC(
+BSVM2_Trace *BSVM2_TrOp_RETIC(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -765,7 +842,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETIC(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETLC(
+BSVM2_Trace *BSVM2_TrOp_RETLC(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -781,7 +858,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETLC(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETFC(
+BSVM2_Trace *BSVM2_TrOp_RETFC(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -797,7 +874,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETFC(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETDC(
+BSVM2_Trace *BSVM2_TrOp_RETDC(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -813,7 +890,7 @@ BSVM2_Trace *BSVM2_TrOp_JCMP_RETDC(
 	return(frmb->rtrace);
 }
 
-BSVM2_Trace *BSVM2_TrOp_JCMP_RETAC(
+BSVM2_Trace *BSVM2_TrOp_RETAC(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
 	BSVM2_Context *ctx;
@@ -853,10 +930,17 @@ BSVM2_Trace *BSVM2_TrOp_CALLG(
 	frm->rcsrv=op->t1;
 	ctx->frame=frmb;
 
-	for(i=0; i<vi->nargs; i++)
+	if(vi->nargs>1)
 	{
-		frmb->local[vi->cblk->bargs+i]=
-			frm->stack[op->t1+i];
+		for(i=0; i<vi->nargs; i++)
+		{
+			frmb->local[vi->cblk->bargs+i]=
+				frm->stack[op->t1+i];
+		}
+	}else if(vi->nargs)
+	{
+		frmb->local[vi->cblk->bargs]=
+			frm->stack[op->t1];
 	}
 
 	tr=BS2I_ImageGetFuncTrace(vi);

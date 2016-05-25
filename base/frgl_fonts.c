@@ -649,6 +649,9 @@ BTEIFGL_API int GfxFont_DrawString(char *str,
 	unsigned char *s;
 	int i;
 
+	if(!str)
+		return(-1);
+
 	GfxFont_SetFontSize(font_name, font_mode, h);
 
 	s=(unsigned char *)str;
@@ -687,6 +690,9 @@ BTEIFGL_API int GfxFont_DrawString2(char *str, int x, int y, int w, int h,
 	unsigned char *s;
 	int cx, cy;
 	int m, i;
+
+	if(!str)
+		return(-1);
 
 	s=(unsigned char *)str;
 
@@ -756,6 +762,9 @@ BTEIFGL_API int GfxFont_DrawFormatString(
 	unsigned char *s;
 	int cx, cy, lu;
 	int m, i;
+
+	if(!str)
+		return(-1);
 
 	s=(unsigned char *)str;
 

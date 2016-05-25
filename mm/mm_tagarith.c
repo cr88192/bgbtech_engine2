@@ -22,6 +22,10 @@ dtVal BGBDT_TagAri_Add(dtVal a, dtVal b)
 		return(c);
 	}
 	
+	c=BGBDT_XV128_Add(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+	
 	return(DTV_UNDEFINED);
 }
 
@@ -47,6 +51,10 @@ dtVal BGBDT_TagAri_Sub(dtVal a, dtVal b)
 		return(c);
 	}
 	
+	c=BGBDT_XV128_Sub(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+	
 	return(DTV_UNDEFINED);
 }
 
@@ -71,6 +79,10 @@ dtVal BGBDT_TagAri_Mul(dtVal a, dtVal b)
 		c=dtvWrapDouble(f*g);
 		return(c);
 	}
+	
+	c=BGBDT_XV128_Mul(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
 	
 	return(DTV_UNDEFINED);
 }
@@ -98,6 +110,10 @@ dtVal BGBDT_TagAri_Div(dtVal a, dtVal b)
 		c=dtvWrapDouble(f/g);
 		return(c);
 	}
+	
+	c=BGBDT_XV128_Div(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
 	
 	return(DTV_UNDEFINED);
 }

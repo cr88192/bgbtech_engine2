@@ -49,6 +49,11 @@ int bgbdt_mm_strprint_putstr(BGBDT_MM_ParsePrintInfo *inf, char *str)
 	return(inf->ct-inf->cts);
 }
 
+int bgbdt_mm_conprint_putstr(BGBDT_MM_ParsePrintInfo *inf, char *str)
+{
+	frgl_puts(str);
+}
+
 BTEIFGL_API BGBDT_MM_ParsePrintInfo *BGBDT_MM_NewStringPrinter(
 	char *strbuf, int szbuf)
 {
@@ -60,6 +65,20 @@ BTEIFGL_API BGBDT_MM_ParsePrintInfo *BGBDT_MM_NewStringPrinter(
 	tmp->cts=strbuf;
 	tmp->cte=strbuf+szbuf;
 	tmp->putstr=bgbdt_mm_strprint_putstr;
+	
+	return(tmp);
+}
+
+BTEIFGL_API BGBDT_MM_ParsePrintInfo *BGBDT_MM_NewConsolePrinter(void)
+{
+	BGBDT_MM_ParsePrintInfo *tmp;
+
+	tmp=BGBDT_MM_AllocParsePrintInfo();
+
+//	tmp->ct=strbuf;
+//	tmp->cts=strbuf;
+//	tmp->cte=strbuf+szbuf;
+	tmp->putstr=bgbdt_mm_conprint_putstr;
 	
 	return(tmp);
 }

@@ -390,22 +390,22 @@
 #define BSVM2_OP_STDRB		0x015E
 #define BSVM2_OP_STDRS		0x015F
 
-#define BSVM2_OP_BINOP		0x0160	//Binary Operator
-#define BSVM2_OP_CMPOP		0x0161	//Compare Operator
-#define BSVM2_OP_BINOPL		0x0162	//Binary Operator (A op I)
-#define BSVM2_OP_CMPOPL		0x0163	//Compare Operator (A op I)
-#define BSVM2_OP_BINOPLL	0x0164	//Binary Operator (I op J)
-#define BSVM2_OP_CMPOPLL	0x0165	//Compare Operator (I op J)
-#define BSVM2_OP_BINOPC		0x0166	//Binary Operator (A op C)
-#define BSVM2_OP_BINOPLC	0x0167	//Binary Operator (I op C)
-#define BSVM2_OP_CMPOPC		0x0168	//Compare Operator (A op C)
-#define BSVM2_OP_CMPOPLC	0x0169	//Compare Operator (I op C)
-#define BSVM2_OP_PUSHN		0x016A	//Push n Items (null/zero)
-#define BSVM2_OP_POPN		0x016B	//Pop n Items
-#define BSVM2_OP_SWAPN		0x016C	//Swap top-of-stack with Item n
-#define BSVM2_OP_ROTLN		0x016D	//Rotate Left 1 position over n items.
-#define BSVM2_OP_ROTRN		0x016E	//Rotate Right 1 position over n items.
-#define BSVM2_OP_DUPN		0x016F	//Duplicate Top n items.
+// #define BSVM2_OP_BINOP		0x0160	//Binary Operator
+// #define BSVM2_OP_CMPOP		0x0161	//Compare Operator
+// #define BSVM2_OP_BINOPL		0x0162	//Binary Operator (A op I)
+// #define BSVM2_OP_CMPOPL		0x0163	//Compare Operator (A op I)
+// #define BSVM2_OP_BINOPLL	0x0164	//Binary Operator (I op J)
+// #define BSVM2_OP_CMPOPLL	0x0165	//Compare Operator (I op J)
+// #define BSVM2_OP_BINOPC		0x0166	//Binary Operator (A op C)
+// #define BSVM2_OP_BINOPLC	0x0167	//Binary Operator (I op C)
+// #define BSVM2_OP_CMPOPC		0x0168	//Compare Operator (A op C)
+// #define BSVM2_OP_CMPOPLC	0x0169	//Compare Operator (I op C)
+// #define BSVM2_OP_PUSHN		0x016A	//Push n Items (null/zero)
+// #define BSVM2_OP_POPN		0x016B	//Pop n Items
+// #define BSVM2_OP_SWAPN		0x016C	//Swap top-of-stack with Item n
+// #define BSVM2_OP_ROTLN		0x016D	//Rotate Left 1 position over n items.
+// #define BSVM2_OP_ROTRN		0x016E	//Rotate Right 1 position over n items.
+// #define BSVM2_OP_DUPN		0x016F	//Duplicate Top n items.
 
 #define BSVM2_OP_DIVI		0x0170	//
 #define BSVM2_OP_DIVL		0x0171	//
@@ -463,6 +463,11 @@
 #define BSVM2_OP_JNENULL	0x019D	//
 #define BSVM2_OP_JEQNULLL	0x019E	//
 #define BSVM2_OP_JNENULLL	0x019F	//
+
+#define BSVM2_OP_CVTF2HF	0x01A0	//
+#define BSVM2_OP_CVTD2HF	0x01A1	//
+#define BSVM2_OP_CVTHF2F	0x01A2	//
+#define BSVM2_OP_CVTHF2D	0x01A3	//
 
 
 
@@ -543,6 +548,20 @@
 #define BSVM2_OP_LDX4FC		0x044E	//
 #define BSVM2_OP_LDX4FD		0x044F	//
 
+
+#define BSVM2_TRFL_TJNEXT		0x00001		//tail is simply jnext
+#define BSVM2_TRFL_CANTHROW		0x00002		//trace can throw
+
+#define BSVM2_TRFL_SAVEDESI		0x00100		//saved ESI
+#define BSVM2_TRFL_SAVEDEDI		0x00200		//saved EDI
+#define BSVM2_TRFL_SAVEDEBX		0x00400		//saved EBX
+#define BSVM2_TRFL_SAVEDEBP		0x00800		//saved EBP
+#define BSVM2_TRFL_FRMONSTK		0x01000		//frame on stack
+#define BSVM2_TRFL_FRMINEDI		0x02000		//frame in EDI
+#define BSVM2_TRFL_OPSINESI		0x04000		//ops in ESI
+#define BSVM2_TRFL_STKINEBX		0x08000		//VM stack in EBX
+#define BSVM2_TRFL_LCLINESI		0x10000		//locals in ESI
+
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef union BSVM2_ValX128_u BSVM2_ValX128;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;
@@ -583,6 +602,8 @@ struct BSVM2_Opcode_s {
 void (*Run)(BSVM2_Frame *frm, BSVM2_Opcode *op);
 int i0, i1, i2;
 int t0, t1, t2;
+short opn;
+int opfl;
 BSVM2_Value v;
 };
 
@@ -594,6 +615,7 @@ BSVM2_Trace *jmptrace;
 byte *jcs;
 int i0, i1;
 int t0, t1;
+short opn, opn2;
 BSVM2_Value v;
 };
 
@@ -607,6 +629,7 @@ byte *cs;				//bytecode addr for trace
 byte *jcs;				//bytecode addr for jump
 void *t_ops[6];
 int n_ops;
+int trfl;
 };
 
 struct BSVM2_Frame_s {
@@ -637,6 +660,7 @@ int status;
 
 struct BSVM2_CodeBlock_s {
 BSVM2_CodeImage *img;
+BSVM2_ImageGlobal *func;
 byte *cs, *cse;
 byte *code;
 BSVM2_Trace **trace;

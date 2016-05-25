@@ -1,0 +1,1604 @@
+;this will be a modified form of the layout in the intel docs
+;name
+;	op	args
+;	...
+;
+;the op will be fully expanded for 32-bit operation, and may omit 
+;opcodes or forms which are generally useless here (far pointers, ...)
+;
+;an op without any contents will be viewed as a placeholder.
+;
+;op/r
+;ModRM field is used, with reg giving the r field.
+;
+;op/[0..7]
+;reg contains a constant for this opcode
+;
+;op|r
+;this opcode uses a reg, which is stored in the low 3 bits of the 
+;opcode.
+;
+;args will be a comma seperated list
+;r8/16/32/64		will name a register
+;rm8/16/32/64		will identify the value in the modrm fields
+;i8/16/32/64		will define an immediate
+;al/ax/eax/rax		oprand is simply a form of ax
+;ar8/ar16/ar32/ar64	relative address (jump, call, ...)
+;sr				segment register
+;cr				control register
+;dr				debug register
+;mo16/32/64			fixed memory offset (constant address)
+;m				generic untyped memory
+;fr				float/MMX reg
+;frm				float/MMX reg/memory
+;xr				SSE XMM reg	(untyped)
+;xrm				SSE XMM reg/memory (untyped)
+;
+;ib		literal byte follows
+;iw		literal word follows
+;id		literal dword follows
+;iq		literal qword follows
+;
+;rb		relative byte follows
+;rw		relative word follows
+;rd		relative dword follows
+;
+;mw		memory-offset word
+;md		memory-offset dword
+;mq		memory-offset qword
+;
+;op
+;the op will mostly be hex version of the coded opcode.
+;a few charachers will be special:
+;V: address prefix (67, x86-32/64)
+;W: word-size prefix (66, x86-32/64)
+;X: REX prefix (ignored in 32-bit x86)
+;
+;S: address prefix (67, x86-16)
+;T: word-size prefix (66, x86-16)
+;
+
+aaa	37
+aad
+	D50A
+	D5,ib
+aam
+	D40A
+	D4,ib
+aas	3F
+adc
+	14,ib		al,i8
+	X80/2,ib	rm8,i8
+	WX83/2,ib	rm16,i8
+	TX83/2,ib	rm32,i8
+	X83/2,ib	rm64,i8
+	X12/r		r8,rm8
+	X10/r		rm8,r8
+	W15,iw	ax,i16
+	WX81/2,iw	rm16,i16
+	WX13/r	r16,rm16
+	WX11/r	rm16,r16
+	T15,id	eax,i32
+	TX13/r	r32,rm32
+	TX81/2,id	rm32,i32
+	TX11/r	rm32,r32
+	X15,id	rax,i32
+	X13/r		r64,rm64
+	X81/2,id	rm64,i32
+	X11/r		rm64,r64
+
+add
+	04,ib		al,i8
+	X80/0,ib	rm8,i8
+	WX83/0,ib	rm16,i8
+	TX83/0,ib	rm32,i8
+	X83/0,ib	rm64,i8
+	X02/r		r8,rm8
+	X00/r		rm8,r8
+	W05,iw	ax,i16
+	WX81/0,iw	rm16,i16
+	WX03/r	r16,rm16
+	WX01/r	rm16,r16
+	T05,id	eax,i32
+	TX81/0,id	rm32,i32
+	TX01/r	rm32,r32
+	TX03/r	r32,rm32
+	X05,id	rax,i32
+	X81/0,id	rm64,i32
+	X03/r		r64,rm64
+	X01/r		rm64,r64
+
+and
+	24,ib		al,i8
+	X80/4,ib	rm8,i8
+	WX83/4,ib	rm16,i8
+	TX83/4,ib	rm32,i8
+	X83/4,ib	rm64,i8
+	X20/r		rm8,r8
+	X22/r		r8,rm8
+	WX25,iw	ax,i16
+	WX81/4,iw	rm16,i16
+	WX23/r	r16,rm16
+	WX21/r	rm16,r16
+	T25,id	eax,i32
+	TX81/4,id	rm32,i32
+	TX23/r	r32,rm32
+	TX21/r	rm32,r32
+	X25,id	rax,i32
+	X81/4,id	rm64,i32
+	X23/r		r64,rm64
+	X21/r		rm64,r64
+
+bsf
+	WX0FBC/r	r16,rm16
+	TX0FBC/r	r32,rm32
+	X0FBC/r	r64,rm64
+bsr
+	WX0FBD/r	r16,rm16
+	TX0FBD/r	r32,rm32
+	X0FBD/r	r64,rm64
+bswap
+	X0FC8|r	r32
+	X0FC8|r	r64
+bt
+	WX0FA3/r	rm16,r16
+	TX0FA3/r	rm32,r32
+	X0FA3/r	rm64,r32
+	WX0FBA/4,ib	rm16,i8
+	TX0FBA/4,ib	rm32,i8
+	X0FBA/4,ib	rm64,i8
+btc
+	WX0FBB/r	rm16,r16
+	TX0FBB/r	rm32,r32
+	X0FBB/r	rm64,r64
+	WX0FBA/7,ib	rm16,i8
+	TX0FBA/7,ib	rm32,i8
+	X0FBA/7,ib	rm64,i8
+btr
+	WX0FB3/r	rm16,r16
+	TX0FB3/r	rm32,r32
+	X0FB3/r	rm64,r64
+	WX0FBA/6,ib	rm16,i8
+	TX0FBA/6,ib	rm32,i8
+	X0FBA/6,ib	rm64,i8
+bts
+	WX0FAB/r	rm16,r16
+	TX0FAB/r	rm32,r32
+	X0FAB/r	rm64,r64
+	WX0FBA/5,ib	rm16,i8
+	TX0FBA/5,ib	rm32,i8
+	X0FBA/5,ib	rm64,i8
+
+call
+	TE8,rd	ar32
+	WXFF/2	rm16
+	TXFF/2	rm32
+	XFF/2		rm64
+
+call_w
+	WE8,rw	ar16
+
+cbw	W98
+cwde	T98
+cdqe	4898
+
+clc	F8
+cld	FC
+cli	FA
+clts	0F06
+cmc	F5
+cmp
+	3C,ib		al,i8
+	X80/7,ib	rm8,i8
+	WX83/7,ib	rm16,i8
+	TX83/7,ib	rm32,i8
+	X83/7,ib	rm64,i8
+	X3A/r		r8,rm8
+	X38/r		rm8,r8
+	W3D,iw	ax,i16
+	WX81/7,iw	rm16,i16
+	WX3B/r	r16,rm16
+	WX39/r	rm16,r16
+	T3D,id	eax,i32
+	TX81/7,id	rm32,i32
+	TX3B/r	r32,rm32
+	TX39/r	rm32,r32
+	X3D,id	rax,i32
+	X81/7,id	rm64,i32
+	X3B/r		r64,rm64
+	X39/r		rm64,r64
+
+cmpsb	A6
+cmpsw	WA7
+cmpsd	TA7
+cmpxchg
+	X0FB0/r	rm8,r8
+	WX0FB1/r	rm16,r16
+	TX0FB1/r	rm32,r32
+	X0FB1/r	rm64,r64
+
+cpuid	0FA2
+cwd	W99
+
+cdq	T99
+cqo	4899
+
+daa	27
+das	2F
+
+dec
+	XFE/1		rm8
+	WXFF/1	rm16
+	TXFF/1	rm32
+	XFF/1		rm64
+
+;don't use on x86-64
+dec_r
+	W48|r		r16
+	T48|r		r32
+
+div
+	XF6/6		r8
+	WXF7/6	r16
+	TXF7/6	r32
+	XF7/6		r64
+
+emms	0F77
+enter	C8,iw,ib	i16,i8
+
+hlt	F4
+idiv
+	XF6/7		rm8
+	WXF7/7	rm16
+	TXF7/7	rm32
+	XF7/7		rm64
+imul
+	XF6/5		rm8
+	WXF7/5	rm16
+	TXF7/5	rm32
+	XF7/5		rm64
+	WX0FAF/r	r16,rm16
+	TX0FAF/r	r32,rm32
+	X0FAF/r	r64,rm64
+	WX6B/r,ib	r16,i8
+	TX6B/r,ib	r32,i8
+	X6B/r,ib	r64,i8
+	WX69/r,iw	r16,i16
+	TX69/r,id	r32,i32
+	X69/r,id	r64,i32
+	WX6B/r,ib	r16,rm16,i8
+	TX6B/r,ib	r32,rm32,i8
+	X6B/r,ib	r64,rm64,i8
+	WX69/r,iw	r16,rm16,i16
+	TX69/r,id	r32,rm32,i32
+	X69/r,id	r64,rm64,i32
+
+in
+	E4,ib		al,i8
+	WE5,ib	ax,i8
+	TE5,ib	eax,i8
+	XE5,ib	rax,i8
+	EC		al
+	WED		ax
+	TED		eax
+	48ED		rax
+inc
+	XFE/0		rm8
+	WXFF/0	rm16
+	TXFF/0	rm32
+	XFF/0		rm64
+
+;don't use on x86-64
+inc_r
+	W40|r		r16
+	T40|r		r32
+
+insb	6C
+insw	W6D
+insd	T6D
+insq	486D
+int
+	CD,ib		i8
+invld	0F08
+invplg
+	0F01/7	m
+iret	CF
+iretd	CF
+
+
+ja
+	77,rb		ar8
+	W0F87,rw	ar16
+	T0F87,rd	ar32
+jae
+	73,rb		ar8
+	W0F83,rw	ar16
+	T0F83,rd	ar32
+jb
+	72,rb		ar8
+	W0F82,rw	ar16
+	T0F82,rd	ar32
+jbe
+	76,rb		ar8
+	W0F86,rw	ar16
+	T0F86,rd	ar32
+jc
+	72,rb		ar8
+	W0F82,rw	ar16
+	T0F82,rd	ar32
+je
+	74,rb		ar8
+	W0F84,rw	ar16
+	T0F84,rd	ar32
+jg
+	7F,rb		ar8
+	W0F8F,rw	ar16
+	T0F8F,rd	ar32
+jge
+	7D,rb		ar8
+	W0F8D,rw	ar16
+	T0F8D,rd	ar32
+jl
+	7C,rb		ar8
+	W0F8C,rw	ar16
+	T0F8C,rd	ar32
+jle
+	7E,rb		ar8
+	W0F8E,rw	ar16
+	T0F8E,rd	ar32
+jna
+	76,rb		ar8
+	W0F86,rw	ar16
+	T0F86,rd	ar32
+jnae
+	72,rb		ar8
+	W0F82,rw	ar16
+	T0F82,rd	ar32
+jnb
+	73,rb		ar8
+	W0F83,rw	ar16
+	T0F83,rd	ar32
+jnbe
+	77,rb		ar8
+	W0F87,rw	ar16
+	T0F87,rd	ar32
+jnc
+	73,rb		ar8
+	W0F83,rw	ar16
+	T0F83,rd	ar32
+jne
+	75,rb		ar8
+	W0F85,rw	ar16
+	T0F85,rd	ar32
+jng
+	7E,rb		ar8
+	W0F8E,rw	ar16
+	T0F8E,rd	ar32
+jnge
+	7C,rb		ar8
+	W0F8C,rw	ar16
+	T0F8C,rd	ar32
+jnl
+	7D,rb		ar8
+	W0F8D,rw	ar16
+	T0F8D,rd	ar32
+jnle
+	7F,rb		ar8
+	W0F8F,rw	ar16
+	T0F8F,rd	ar32
+jno
+	71,rb		ar8
+	W0F81,rw	ar16
+	T0F81,rd	ar32
+jnp
+	7B,rb		ar8
+	W0F8B,rw	ar16
+	T0F8B,rd	ar32
+jns
+	79,rb		ar8
+	W0F89,rw	ar16
+	T0F89,rd	ar32
+jnz
+	75,rb		ar8
+	W0F85,rw	ar16
+	T0F85,rd	ar32
+jo
+	70,rb		ar8
+	W0F80,rw	ar16
+	T0F80,rd	ar32
+jp
+	7A,rb		ar8
+	W0F8A,rw	ar16
+	T0F8A,rd	ar32
+jpe
+	7A,rb		ar8
+	W0F8A,rw	ar16
+	T0F8A,rd	ar32
+jpo
+	7B,rb		ar8
+	W0F8B,rw	ar16
+	T0F8B,rd	ar32
+js
+	78,rb		ar8
+	W0F88,rw	ar16
+	T0F88,rd	ar32
+jz
+	74,rb		ar8
+	W0F84,rw	ar16
+	T0F84,rd	ar32
+
+ja_b		77,rb		ar8
+jae_b		73,rb		ar8
+jb_b		72,rb		ar8
+jbe_b		76,rb		ar8
+jc_b		72,rb		ar8
+jcxz_b	VE3,rb	ar8
+jecxz_b	E3,rb		ar8
+je_b		74,rb		ar8
+jg_b		7F,rb		ar8
+jge_b		7D,rb		ar8
+jl_b		7C,rb		ar8
+jle_b		7E,rb		ar8
+jna_b		76,rb		ar8
+jnae_b	72,rb		ar8
+jnb_b		73,rb		ar8
+jnbe_b	77,rb		ar8
+jnc_b		73,rb		ar8
+jne_b		75,rb		ar8
+jng_b		7E,rb		ar8
+jnge_b	7C,rb		ar8
+jnl_b		7D,rb		ar8
+jnle_b	7F,rb		ar8
+jno_b		71,rb		ar8
+jnp_b		7B,rb		ar8
+jns_b		79,rb		ar8
+jnz_b		75,rb		ar8
+jo_b		70,rb		ar8
+jp_b		7A,rb		ar8
+jpe_b		7A,rb		ar8
+jpo_b		7B,rb		ar8
+js_b		78,rb		ar8
+jz_b		74,rb		ar8
+
+ja_w		W0F87,rw	ar16
+jae_w		W0F83,rw	ar16
+jb_w		W0F82,rw	ar16
+jbe_w		W0F86,rw	ar16
+jc_w		W0F82,rw	ar16
+je_w		W0F84,rw	ar16
+jg_w		W0F8F,rw	ar16
+jge_w		W0F8D,rw	ar16
+jl_w		W0F8C,rw	ar16
+jle_w		W0F8E,rw	ar16
+jna_w		W0F86,rw	ar16
+jnae_w	W0F82,rw	ar16
+jnb_w		W0F83,rw	ar16
+jnbe_w	W0F87,rw	ar16
+jnc_w		W0F83,rw	ar16
+jne_w		W0F85,rw	ar16
+jng_w		W0F8E,rw	ar16
+jnge_w	W0F8C,rw	ar16
+jnl_w		W0F8D,rw	ar16
+jnle_w	W0F8F,rw	ar16
+jno_w		W0F81,rw	ar16
+jnp_w		W0F8B,rw	ar16
+jns_w		W0F89,rw	ar16
+jnz_w		W0F85,rw	ar16
+jo_w		W0F80,rw	ar16
+jp_w		W0F8A,rw	ar16
+jpe_w		W0F8A,rw	ar16
+jpo_w		W0F8B,rw	ar16
+js_w		W0F88,rw	ar16
+jz_w		W0F84,rw	ar16
+
+jo_d		T0F80,rd	ar32
+jno_d		T0F81,rd	ar32
+jb_d		T0F82,rd	ar32
+jc_d		T0F82,rd	ar32
+jnae_d	T0F82,rd	ar32
+jae_d		T0F83,rd	ar32
+jnb_d		T0F83,rd	ar32
+jnc_d		T0F83,rd	ar32
+je_d		T0F84,rd	ar32
+jz_d		T0F84,rd	ar32
+jne_d		T0F85,rd	ar32
+jnz_d		T0F85,rd	ar32
+jbe_d		T0F86,rd	ar32
+jna_d		T0F86,rd	ar32
+ja_d		T0F87,rd	ar32
+jnbe_d	T0F87,rd	ar32
+js_d		T0F88,rd	ar32
+jns_d		T0F89,rd	ar32
+jp_d		T0F8A,rd	ar32
+jpe_d		T0F8A,rd	ar32
+jnp_d		T0F8B,rd	ar32
+jpo_d		T0F8B,rd	ar32
+jl_d		T0F8C,rd	ar32
+jnge_d	T0F8C,rd	ar32
+jge_d		T0F8D,rd	ar32
+jnl_d		T0F8D,rd	ar32
+jle_d		T0F8E,rd	ar32
+jng_d		T0F8E,rd	ar32
+jg_d		T0F8F,rd	ar32
+jnle_d	T0F8F,rd	ar32
+
+
+jmp
+	EB,rb		ar8
+	WE9,rw	ar16
+	TE9,rd	ar32
+	WXFF/4	rm16
+	TXFF/4	rm32
+	XFF/4		rm64
+
+jmp_b	EB,rb		ar8
+jmp_w	WE9,rw	ar16
+jmp_d	TE9,rd	ar32
+
+lahf	9F
+lar
+	WX0F02/r	r16,rm16
+	TX0F02/r	r32,rm32
+	X0F02/r	r64,rm64
+
+lea
+	WX8D/r	r16,rm16
+	TX8D/r	r32,rm32
+	X8D/r		r64,rm64
+
+leave	C9
+lgdt	0F01/2	m
+lidt	0F01/3	m
+lldt	X0F00/2	rm16
+lmsw	X0F01/6	rm16
+lmtr	X0F00/3	rm16
+
+lodsb	AC
+lodsw	WAD
+lodsd	TAD
+lodsq	48AD
+
+loop		E2,rb		ar8
+loope		E1,rb		ar8
+loopz		E1,rb		ar8
+loopne	E0,rb		ar8
+loopnz	E0,rb		ar8
+
+lsl
+	WX0F03/r	r16,rm16
+	TX0F03/r	r32,rm32
+	X0F03/r	r64,rm64
+
+mov
+	VA0,mw	al,mo16
+	VWA1,mw	ax,mo16
+	VTA1,mw	eax,mo16
+	VTXA1,mw	rax,mo16
+	SA0,md	al,mo32
+	SWA1,md	ax,mo32
+	STA1,md	eax,mo32
+	STXA1,md	rax,mo32
+
+	VA2,mw	mo16,al
+	VWA3,mw	mo16,ax
+	VTA3,mw	mo16,eax
+	VTXA3,mw	mo16,rax
+	SA2,md	mo32,al
+	SWA3,md	mo32,ax
+	STA3,md	mo32,eax
+	STXA3,md	mo32,rax
+
+	X8A/r		r8,rm8
+	WX8B/r	r16,rm16
+	TX8B/r	r32,rm32
+	X8B/r		r64,rm64
+
+	X88/r		rm8,r8
+	WX89/r	rm16,r16
+	TX89/r	rm32,r32
+	X89/r		rm64,r64
+
+	XB0|r,ib	r8,i8
+	WXB8|r,iw	r16,i16
+	TXB8|r,id	r32,i32
+	XB8|r,iq	r64,i64
+	XC6/0,ib	rm8,i8
+	WXC7/0,iw	rm16,i16
+	TXC7/0,id	rm32,i32
+	XC7/0,id	rm64,i32
+
+	X8C/r		rm16,sr
+	X8E/r		sr,rm16
+	X0F22/r	cr,r32
+	X0F22/r	cr,r64
+	X0F20/r	r32,cr
+	X0F20/r	r64,cr
+	X0F23/r	dr,r32
+	X0F23/r	dr,r64
+	X0F21/r	r32,dr
+	X0F21/r	r64,dr
+
+movsb	A4
+movsw	WA5
+movsd	TA5
+movsq	48A5
+
+movsx
+		WX0FBE/r	r16,rm8
+		TX0FBE/r	r32,rm8
+		X0FBE/r	r64,rm8
+movsxw
+		X0FBF/r	r32,rm16
+		X0FBF/r	r64,rm32
+movsxd	X63/r		r64,rm32
+
+movzx
+	WX0FB6/r	r16,rm8
+	TX0FB6/r	r32,rm8
+	X0FB6/r	r64,rm8
+movzxw
+	X0FB7/r	r32,rm16
+	X0FB7/r	r64,rm32
+
+mul
+	XF6/4		rm8
+	WXF7/4	rm16
+	TXF7/4	rm32
+	XF7/4		rm64
+
+neg
+	XF6/3		rm8
+	WXF7/3	rm16
+	TXF7/3	rm32
+	XF7/3		rm64
+nop	90
+not
+	XF6/2		rm8
+	WXF7/2	rm16
+	TXF7/2	rm32
+	XF7/2		rm64
+
+or
+	0C,ib		al,i8
+	X80/1,ib	rm8,i8
+	WX83/1,ib	rm16,i8
+	TX83/1,ib	rm32,i8
+	X83/1,ib	rm64,i8
+	X0A/r		r8,rm8
+	X08/r		rm8,r8
+	WX0D,iw	ax,i16
+	WX81/1,iw	rm16,i16
+	WX0B/r	r16,rm16
+	WX09/r	rm16,r16
+	T0D,id	eax,i32
+	TX81/1,id	rm32,i32
+	TX0B/r	r32,rm32
+	TX09/r	rm32,r32
+	480D,id	rax,i32
+	X81/1,id	rm64,i32
+	X0B/r		r64,rm64
+	X09/r		rm64,r64
+
+out	E6,ib		i8,al
+	WE7,ib	i8,ax
+	TE7,ib	i8,eax
+	EE		dx,al
+	WEF		dx,ax
+	TEF		dx,eax
+
+pop
+	WX58|r	r16
+	TX58|r	r32
+	X58|r		r64
+	WX8F/0	rm16
+	TX8F/0	rm32
+	X8F/0		rm64
+
+popa	61
+popad	61
+popf	9D
+popfd	9D
+popfq	489D
+
+push
+	WX50|r	r16
+	TX50|r	r32
+	X50|r		r64
+	6A,ib		i8
+	W68,iw	i16
+	T68,id	i32
+	WXFF/6	rm16
+	TXFF/6	rm32
+	XFF/6		rm64
+
+push_cs	0E
+push_ss	16
+push_ds	1E
+push_es	06
+push_fs	0FA0
+push_gs	0FA8
+
+pusha		60
+pushad	60
+pushf		9C
+pushfd	9C
+pushfq	9C
+
+rcl
+	XD0/2		rm8
+	XD0/2		rm8,1
+	XD2/2		rm8,r8
+	XC0/2,ib	rm8,i8
+	WXD1/2	rm16
+	WXD1/2	rm16,1
+	WXD3/2	rm16,r8
+	WXC1/2,ib	rm16,i8
+	TXD1/2	rm32
+	TXD1/2	rm32,1
+	TXD3/2	rm32,r8
+	TXC1/2,ib	rm32,i8
+	XD1/2		rm64
+	XD1/2		rm64,1
+	XD3/2		rm64,r8
+	XC1/2,ib	rm64,i8
+
+rcr
+	XD0/3		rm8
+	XD0/3		rm8,1
+	XD2/3		rm8,r8
+	XC0/3,ib	rm8,i8
+	WXD1/3	rm16
+	WXD1/3	rm16,1
+	WXD3/3	rm16,r8
+	WXC1/3,ib	rm16,i8
+	TXD1/3	rm32
+	TXD1/3	rm32,1
+	TXD3/3	rm32,r8
+	TXC1/3,ib	rm32,i8
+	XD1/3		rm64
+	XD1/3		rm64,1
+	XD3/3		rm64,r8
+	XC1/3,ib	rm64,i8
+
+rol
+	XD0/0		rm8
+	XD0/0		rm8,1
+	XD2/0		rm8,r8
+	XC0/0,ib	rm8,i8
+	WXD1/0	rm16
+	WXD1/0	rm16,1
+	WXD3/0	rm16,r8
+	WXC1/0,ib	rm16,i8
+	TXD1/0	rm32
+	TXD1/0	rm32,1
+	TXD3/0	rm32,r8
+	TXC1/0,ib	rm32,i8
+	XD1/0		rm64
+	XD1/0		rm64,1
+	XD3/0		rm64,r8
+	XC1/0,ib	rm64,i8
+
+ror
+	XD0/1		rm8
+	XD0/1		rm8,1
+	XD2/1		rm8,r8
+	XC0/1,ib	rm8,i8
+	WXD1/1	rm16
+	WXD1/1	rm16,1
+	WXD3/1	rm16,r8
+	WXC1/1,ib	rm16,i8
+	TXD1/1	rm32
+	TXD1/1	rm32,1
+	TXD3/1	rm32,r8
+	TXC1/1,ib	rm32,i8
+	XD1/1		rm64
+	XD1/1		rm64,1
+	XD3/1		rm64,r8
+	XC1/1,ib	rm64,i8
+
+ret
+	C3
+	C2,iw		i16
+retf
+	CB
+	CA,iw		i16
+
+sahf	9E
+
+sal
+	XD0/4		rm8
+	XD0/4		rm8,1
+	XD2/4		rm8,r8
+	XC0/4,ib	rm8,i8
+	WXD1/4	rm16
+	WXD1/4	rm16,1
+	WXD3/4	rm16,r8
+	WXC1/4,ib	rm16,i8
+	TXD1/4	rm32
+	TXD1/4	rm32,1
+	TXD3/4	rm32,r8
+	TXC1/4,ib	rm32,i8
+	XD1/4		rm64
+	XD1/4		rm64,1
+	XD3/4		rm64,r8
+	XC1/4,ib	rm64,i8
+sar
+	XD0/7		rm8
+	XD0/7		rm8,1
+	XD2/7		rm8,r8
+	XC0/7,ib	rm8,i8
+	WXD1/7	rm16
+	WXD1/7	rm16,1
+	WXD3/7	rm16,r8
+	WXC1/7,ib	rm16,i8
+	TXD1/7	rm32
+	TXD1/7	rm32,1
+	TXD3/7	rm32,r8
+	TXC1/7,ib	rm32,i8
+	XD1/7		rm64
+	XD1/7		rm64,1
+	XD3/7		rm64,r8
+	XC1/7,ib	rm64,i8
+
+sbb
+	1C,ib		al,i8
+	X80/3,ib	rm8,i8
+	WX83/3,ib	rm16,i8
+	TX83/3,ib	rm32,i8
+	X83/3,ib	rm64,i8
+	X1A/r		r8,rm8
+	X18/r		rm8,r8
+	WX1D,iw	ax,i16
+	WX81/3,iw	rm16,i16
+	WX1B/r	r16,rm16
+	WX19/r	rm16,r16
+	T1D,id	eax,i32
+	TX81/3,id	rm32,i32
+	TX1B/r	r32,rm32
+	TX19/r	rm32,r32
+	481D,id	rax,i32
+	X81/3,id	rm64,i32
+	X1B/r		r64,rm64
+	X19/r		rm64,r64
+
+scas
+	AE	rm8
+	WAF	rm16
+	TAF	rm32
+	48AF	rm64
+
+scasb	AE
+scasw WAF
+scasd TAF
+scasq 48AF
+
+seta		X0F97/0	rm8
+setae		X0F93/0	rm8
+setb		X0F92/0	rm8
+setbe		X0F96/0	rm8
+setc		X0F92/0	rm8
+sete		X0F94/0	rm8
+setg		X0F9F/0	rm8
+setge		X0F9D/0	rm8
+setl		X0F9C/0	rm8
+setle		X0F9E/0	rm8
+setna		X0F96/0	rm8
+setnae	X0F92/0	rm8
+setnb		X0F93/0	rm8
+setnbe	X0F97/0	rm8
+setnc		X0F93/0	rm8
+setne		X0F95/0	rm8
+setng		X0F9E/0	rm8
+setnge	X0F9C/0	rm8
+setnl		X0F9D/0	rm8
+setnle	X0F9F/0	rm8
+setno		X0F91/0	rm8
+setnp		X0F9B/0	rm8
+setns		X0F99/0	rm8
+setnz		X0F95/0	rm8
+seto		X0F90/0	rm8
+setp		X0F9A/0	rm8
+setpe		X0F9A/0	rm8
+setpo		X0F9B/0	rm8
+sets		X0F98/0	rm8
+setz		X0F94/0	rm8
+
+sfence	0FAE/7
+sgdt		0F01/0	m
+
+shl
+	XD0/4		rm8
+	XD0/4		rm8,1
+	XD2/4		rm8,r8
+	XC0/4,ib	rm8,i8
+	WXD1/4	rm16
+	WXD1/4	rm16,1
+	WXD3/4	rm16,r8
+	WXC1/4,ib	rm16,i8
+	TXD1/4	rm32
+	TXD1/4	rm32,1
+	TXD3/4	rm32,r8
+	TXC1/4,ib	rm32,i8
+	XD1/4		rm64
+	XD1/4		rm64,1
+	XD3/4		rm64,r8
+	XC1/4,ib	rm64,i8
+
+shld
+	WX0FA5/r,ib	rm16,r16
+	TX0FA5/r,ib	rm32,r32
+	X0FA5/r,ib	rm64,r64
+	WX0FA5/r,ib	rm16,r16,1
+	TX0FA5/r,ib	rm32,r32,1
+	X0FA5/r,ib	rm64,r64,1
+	WX0FA4/r,ib	rm16,r16,i8
+	WX0FA5/r,ib	rm16,r16,cl
+	TX0FA4/r,ib	rm32,r32,i8
+	TX0FA5/r,ib	rm32,r32,cl
+	X0FA4/r,ib	rm64,r64,i8
+	X0FA5/r,ib	rm64,r64,cl
+
+shr
+	XD0/5		rm8
+	XD0/5		rm8,1
+	XD2/5		rm8,r8
+	XC0/5,ib	rm8,i8
+	WXD1/5	rm16
+	WXD1/5	rm16,1
+	WXD3/5	rm16,r8
+	WXC1/5,ib	rm16,i8
+	TXD1/5	rm32
+	TXD1/5	rm32,1
+	TXD3/5	rm32,r8
+	TXC1/5,ib	rm32,i8
+	XD1/5		rm64
+	XD1/5		rm64,1
+	XD3/5		rm64,r8
+	XC1/5,ib	rm64,i8
+
+shrd
+	WX0FAD/r,ib	rm16,r16
+	TX0FAD/r,ib	rm32,r32
+	X0FAD/r,ib	rm64,r64
+	WX0FAD/r,ib	rm16,r16,1
+	TX0FAD/r,ib	rm32,r32,1
+	X0FAD/r,ib	rm64,r64,1
+	WX0FAC/r,ib	rm16,r16,i8
+	WX0FAD/r,ib	rm16,r16,cl
+	TX0FAC/r,ib	rm32,r32,i8
+	TX0FAD/r,ib	rm32,r32,cl
+	X0FAC/r,ib	rm64,r64,i8
+	X0FAD/r,ib	rm64,r64,cl
+
+sidt	0F01/1	m
+
+sldt	0F00/0	rm16
+	480F00/0	rm64
+smsw	0F01/4	rm16
+	0F01/4	rm32
+	480F01/4	rm64
+
+stc	F9
+std	FD
+sti	FB
+stosb	AA
+stosw	WAB
+stosd	AB
+
+str	0F00/1	rm16
+
+sub
+	2C,ib		al,i8
+	X80/5,ib	rm8,i8
+	WX83/5,ib	rm16,i8
+	TX83/5,ib	rm32,i8
+	X83/5,ib	rm64,i8
+	X2A/r		r8,rm8
+	X28/r		rm8,r8
+	W2D,iw	ax,i16
+	WX81/5,iw	rm16,i16
+	WX2B/r	r16,rm16
+	WX29/r	rm16,r16
+	T2D,id	eax,i32
+	TX81/5,id	rm32,i32
+	TX2B/r	r32,rm32
+	TX29/r	rm32,r32
+	482D,id	rax,i32
+	X81/5,id	rm64,i32
+	X2B/r		r64,rm64
+	X29/r		rm64,r64
+
+test
+	A8,ib		al,i8
+	WA9,iw	ax,i16
+	TA9,id	eax,i32
+	48A9,id	rax,i32
+	XF6/0,ib	rm8,i8
+	WXF7/0,iw	rm16,i16
+	TXF7/0,id	rm32,i32
+	XF7/0,id	rm64,i32
+	X84/r		rm8,r8
+	WX85/r	rm16,r16
+	TX85/r	rm32,r32
+	X85/r		rm64,r64
+
+ud2		0F0B
+wait		9B
+fwait		9B
+wbinvd	0F09
+wrmsr		0F30
+
+xadd	X0FC0/r	rm8,r8
+	WX0FC1/r	rm16,r16
+	TX0FC1/r	rm32,r32
+	X0FC1/r	rm64,r64
+
+xchg
+	WX90|r	ax,r16
+	WX90|r	r16,ax
+	TX90|r	eax,r32
+	TX90|r	r32,eax
+	X90|r		rax,r64
+	X90|r		r64,rax
+	X86/r		rm8,r8
+	X86/r		r8,rm8
+	WX87/r	rm16,r16
+	WX87/r	r16,rm16
+	TX87/r	rm32,r32
+	TX87/r	r32,rm32
+	X87/r		rm64,r64
+	X87/r		r64,rm64
+
+xor
+	34,ib		al,i8
+	X80/6,ib	rm8,i8
+	WX83/6,ib	rm16,i8
+	TX83/6,ib	rm32,i8
+	X83/6,ib	rm64,i8
+	X32/r		r8,rm8
+	X30/r		rm8,r8
+	W35,iw	ax,i16
+	WX81/6,iw	rm16,i16
+	WX33/r	r16,rm16
+	WX31/r	rm16,r16
+	T35,id	eax,i32
+	TX81/6,id	rm32,i32
+	TX33/r	r32,rm32
+	TX31/r	rm32,r32
+	4835,id	rax,i32
+	X81/6,id	rm64,i32
+	X33/r		r64,rm64
+	X31/r		rm64,r64
+
+;float ops
+
+f2xm1		D9F0
+fabs		D9E1
+fadd32	D8/0		m
+fadd64	DC/0		m
+fadd0i	D8C0|i	fr
+faddi0	DCC0|i	fr
+faddp
+		DEC0|i	fr
+		DEC1
+fiadd32	DA/0		m
+fiadd16	DE/0		m
+fbld		DF/4		m
+fbstp		DF/6		m
+fchs		D9E0
+fclex		9BDBE2
+fnclex	DBE2
+fcmovb	DAC0|i	fr
+fcmove	DAC8|i	fr
+fcmovbe	DAD8|i	fr
+fcmovu	DAD8|i	fr
+fcmovnb	DBC0|i	fr
+fcmovne	DBC8|i	fr
+fcmovnbe	DBD8|i	fr
+fcmovnu	DBD8|i	fr
+fcom32	D8/2		m
+fcom64	DC/2		m
+fcom
+		D8D0|i	fr
+		D8D1
+fcomp32	D8/3		m
+fcomp64	DC/3		m
+fcomp
+		D8D8|i	fr
+		D8D9
+fcompp	DED9
+fcomi		DBF0|i	fr
+fcomip	DFF0|i	fr
+fucomi	DBE8|i	fr
+fucomip	DFEB|i	fr
+fcos		D9FF
+fdecstp	D9F6
+fdiv32	D8/6		m
+fdiv64	DC/6		m
+fdiv0i	D8F0|i	fr
+fdivi0	DCF8|i	fr
+fdivp
+		DEF8|i	fr
+		DEF9
+fidiv32	DA/6		m
+fidiv16	DE/6		m
+
+fdivr32	D8/7		m
+fdivr64	DC/7		m
+fdivr0i	D8F8|i	fr
+fdivri0	DCF0|i	fr
+fdivpr
+		DEF0|i	fr
+		DEF1
+fidivr16	DA/7		m
+fidivr32	DE/7		m
+
+ffree		DDC0|i	fr
+ficom16	DA/2		m
+ficom32	DE/2		m
+ficomp16	DA/3		m
+ficomp32	DE/3		m
+fild16	DF/0		m
+fild32	DB/0		m
+fild64	DF/5		m
+fincstp	D9F7
+finit		9BDBE3
+fninit	DBE3
+
+
+;MMX/SSE/SSE2 ops
+
+addpd		X660F58/r	xr,xrm
+addps		X0F58/r	xr,xrm
+addsd		XF20F58/r	xr,xrm
+addss		XF30F58/r	xr,xrm
+addsubpd	X660FD0/r	xr,xrm
+addsubps	XF20FD0/r	xr,xrm
+
+addpd		X660F54/r	xr,xrm
+addps		X0F54/r	xr,xrm
+addnpd	X660F55/r	xr,xrm
+addnps	X0F55/r	xr,xrm
+
+
+cmppd	X660FC2/r,ib	xr,xrm,i8	;theoretical form
+cmpps	X0FC2/r,ib		xr,xrm,i8	;theoretical form
+cmpsd	XF20FC2/r,ib	xr,xrm,i8	;theoretical form
+cmpss	XF30FC2/r,ib	xr,xrm,i8	;theoretical form
+
+cmpeqpd	X660FC2/r00	xr,xrm
+cmpltpd	X660FC2/r01	xr,xrm
+cmplepd	X660FC2/r02	xr,xrm
+cmpunordpd	X660FC2/r03	xr,xrm
+cmpneqpd	X660FC2/r04	xr,xrm
+cmpnltpd	X660FC2/r05	xr,xrm
+cmpnlepd	X660FC2/r06	xr,xrm
+cmpordpd	X660FC2/r07	xr,xrm
+
+cmpeqps	X0FC2/r00	xr,xrm
+cmpltps	X0FC2/r01	xr,xrm
+cmpleps	X0FC2/r02	xr,xrm
+cmpunordps	X0FC2/r03	xr,xrm
+cmpneqps	X0FC2/r04	xr,xrm
+cmpnltps	X0FC2/r05	xr,xrm
+cmpnleps	X0FC2/r06	xr,xrm
+cmpordps	X0FC2/r07	xr,xrm
+
+cmpeqsd	XF20FC2/r00	xr,xrm
+cmpltsd	XF20FC2/r01	xr,xrm
+cmplesd	XF20FC2/r02	xr,xrm
+cmpunordsd	XF20FC2/r03	xr,xrm
+cmpneqsd	XF20FC2/r04	xr,xrm
+cmpnltsd	XF20FC2/r05	xr,xrm
+cmpnlesd	XF20FC2/r06	xr,xrm
+cmpordsd	XF20FC2/r07	xr,xrm
+
+cmpeqss	XF30FC2/r00	xr,xrm
+cmpltss	XF30FC2/r01	xr,xrm
+cmpless	XF30FC2/r02	xr,xrm
+cmpunordss	XF30FC2/r03	xr,xrm
+cmpneqss	XF30FC2/r04	xr,xrm
+cmpnltss	XF30FC2/r05	xr,xrm
+cmpnless	XF30FC2/r06	xr,xrm
+cmpordss	XF30FC2/r07	xr,xrm
+
+cmpgepd	X660FC2/r05	xr,xrm
+cmpgtpd	X660FC2/r06	xr,xrm
+cmpgeps	X0FC2/r05	xr,xrm
+cmpgtps	X0FC2/r06	xr,xrm
+
+cmpgesd	XF20FC2/r05	xr,xrm
+cmpgtsd	XF20FC2/r06	xr,xrm
+cmpgess	XF30FC2/r05	xr,xrm
+cmpgtss	XF30FC2/r06	xr,xrm
+
+
+comisd	X660F2F/r	xr,xrm
+comiss	X0F2F/r	xr,xrm
+
+
+cvtdq2pd	XF30FE6/r	xr,xrm
+cvtdq2ps	X0F5B/r	xr,xrm
+cvtpd2dq	XF20FE6/r	xr,xrm
+cvtpd2pi	X660F2D/r	fr,xrm
+cvtpd2ps	X660F5A/r	xr,xrm
+cvtpi2pd	X660F2A/r	xr,frm
+cvtpi2ps	X0F2A/r	xr,frm
+cvtps2dq	X660F5B/r	xr,xrm
+cvtps2pd	X0F5A/r	xr,xrm
+cvtps2pi	X0F2D/r	fr,xrm
+cvtsd2si	XF20F2D/r	r32,xrm
+		XF20F2D/r	r64,xrm
+cvtsd2ss	XF20F5A/r	xr,xrm
+cvtsi2sd	XF20F2A/r	xr,rm32
+		XF20F2A/r	xr,rm64
+cvtsi2ss	XF30F2A/r	xr,rm32
+		XF30F2A/r	xr,rm64
+cvtss2sd	XF30F5A/r	xr,xrm
+cvtss2si	XF30F2D/r	r32,xrm
+		XF30F2D/r	r64,xrm
+cvtpd2pi	X660F2C/r	fr,xrm
+cvtpd2dq	X660FE6/r	xr,xrm
+cvtps2dq	XF30F5B/r	xr,xrm
+cvtps2pi	X0F2C/r	fr,xrm
+cvtsd2si	XF20F2C/r	r32,xrm
+		XF20F2C/r	r64,xrm
+cvtss2si	XF30F2C/r	r32,xrm
+		XF30F2C/r	r64,xrm
+
+divpd		X660F5E/r	xr,xrm
+divps		X0F5E/r	xr,xrm
+divsd		XF20F5E/r	xr,xrm
+divss		XF30F5E/r	xr,xrm
+
+haddpd	X660F7C/r	xr,xrm
+haddps	XF20F7C/r	xr,xrm
+hsubpd	X660F7D/r	xr,xrm
+hsubps	XF20F7D/r	xr,xrm
+
+lddqu		XF20FF0/r	xr,m
+
+maskmovdqu	X660FF7/r	xr,xr2
+maskmovq	X660FF7/r	fr,fr2
+
+maxpd		X660F5F/r	xr,xrm
+maxps		X0F5F/r	xr,xrm
+maxsd		XF20F5F/r	xr,xrm
+maxss		XF30F5F/r	xr,xrm
+
+minpd		X660F5D/r	xr,xrm
+minps		X0F5D/r	xr,xrm
+minsd		XF20F5D/r	xr,xrm
+minss		XF30F5D/r	xr,xrm
+
+movapd	X660F28/r	xr,xrm
+		X660F29/r	xrm,xr
+movaps	X0F28/r	xr,xrm
+		X0F29/r	xrm,xr
+movd		X0F6E		fr,rm32
+		X0F7E		rm32,fr
+		X660F6E	xr,rm32
+		X660F7E	rm32,xr
+movddup	XF20F12/r	xr,xrm
+movdqa	X660F6F/r	xr,xrm
+		X660F7F/r	xrm,xr
+movdqu	XF30F6F/r	xr,xrm
+		XF30F7F/r	xrm,xr
+movdq2q	XF20FD6/r	fr,xr2
+movhlps	X0F12/r	xr,xr2
+movhpd	X660F16/r	xr,m
+		X660F17/r	m,xr
+movhps	X0F16/r	xr,m
+		X0F17/r	m,xr
+movlhps	X0F16/r	xr,xr2
+movlpd	X660F12	xr,m
+		X660F13	m,xr
+movlps	X0F12		xr,m
+		X0F13		m,xr
+movskpd	X660F50	r32,xrm
+		66X0F50	r64,xrm
+movskps	X0F50		r32,xrm
+		X0F50		r64,xrm
+movntdq	X660FE7/r	m,xr
+movnti	X0FC3/r	m,r32
+		X0FC3/r	m,r64
+movntpd	X660F2B/r	m,xr
+movntps	X0F2B/r	m,xr
+movntq	X0FE7/r	m,fr
+movq		X0F6E		fr,frm
+		X0F7E		frm,fr
+		X660F6E	xr,xrm
+		X660F7E	xrm,xr
+		X0F6F		fr,frm
+		X0F7F		frm,fr
+		X660F6F	xr,xrm
+		X660F7F	xrm,xr
+movq2dq	XF30FD6	xr,fr2
+movsd		XF20F10	xr,xrm
+		XF20F11	xrm,xr
+movshdup	XF30F16/r	xr,xrm
+movsldup	XF30F12/r	xr,xrm
+movss		XF30F10	xr,xrm
+		XF30F11	xrm,xr
+movupd	X660F10	xr,xrm
+		X660F11	xrm,xr
+movups	X0F10		xr,xrm
+		X0F11		xrm,xr
+
+mulpd		X660F59/r	xr,xrm
+mulps		X0F59/r	xr,xrm
+mulsd		XF20F59/r	xr,xrm
+mulss		XF30F59/r	xr,xrm
+
+orpd		X660F56/r	xr,xrm
+orps		X0F56/r	xr,xrm
+
+pabsb		X0F381C/r	fr,frm
+		X660F381C/r	xr,xrm
+pabsw		X0F381D/r	fr,frm
+		X660F381D/r	xr,xrm
+pabsd		X0F381E/r	fr,frm
+		X660F381E/r	xr,xrm
+
+packsswb	X0F63/r	fr,frm
+		X660F63/r	xr,xrm
+packssww	X0F6B/r	fr,frm
+		X660F6B/r	xr,xrm
+packuswb	X0F67/r	fr,frm
+		X660F67/r	xr,xrm
+
+paddb		X0FFC/r	fr,frm
+		X660FFC/r	xr,xrm
+paddw		X0FFD/r	fr,frm
+		X660FFD/r	xr,xrm
+paddd		X0FFE/r	fr,frm
+		X660FFE/r	xr,xrm
+
+paddb		X0FD4/r	fr,frm
+		X660FD4/r	xr,xrm
+
+paddsb	X0FEC/r	fr,frm
+		X660FEC/r	xr,xrm
+paddsw	X0FED/r	fr,frm
+		X660FED/r	xr,xrm
+paddusb	X0FDC/r	fr,frm
+		X660FDC/r	xr,xrm
+paddusw	X0FDD/r	fr,frm
+		X660FDD/r	xr,xrm
+
+palignr	X0F3A0F/r,ib	fr,frm,i8
+		X660F3A0F/r,ib	xr,xrm,i8
+
+pand		X0FDB/r	fr,frm
+		X660FDB/r	xr,xrm
+pandn		X0FDF/r	fr,frm
+		X660FDF/r	xr,xrm
+
+pavgb		X0FE0/r	fr,frm
+		X660FE0/r	xr,xrm
+pavgw		X0FE3/r	fr,frm
+		X660FE3/r	xr,xrm
+
+pcmpeqb	X0F74/r	fr,frm
+		X660F74/r	xr,xrm
+pcmpeqw	X0F75/r	fr,frm
+		X660F75/r	xr,xrm
+pcmpeqd	X0F76/r	fr,frm
+		X660F76/r	xr,xrm
+
+pcmpgtb	X0F64/r	fr,frm
+		X660F64/r	xr,xrm
+pcmpgtw	X0F65/r	fr,frm
+		X660F65/r	xr,xrm
+pcmpgtd	X0F66/r	fr,frm
+		X660F66/r	xr,xrm
+
+pextrw	X0FC5/r,ib		r32,fr2,i8
+		X0FC5/r,ib		r64,fr2,i8
+		X660FC5/r,ib	r32,xr2,i8
+		X660FC5/r,ib	r64,xr2,i8
+
+phaddw	X0F3801/r	fr,frm
+		X660F3801/r	xr,xrm
+phaddd	X0F3802/r	fr,frm
+		X660F3802/r	xr,xrm
+phaddsw	X0F3803/r	fr,frm
+		X660F3803/r	xr,xrm
+
+phsubw	X0F3805/r	fr,frm
+		X660F3805/r	xr,xrm
+phsubd	X0F3806/r	fr,frm
+		X660F3806/r	xr,xrm
+phsubsw	X0F3807/r	fr,frm
+		X660F3807/r	xr,xrm
+
+pinsrw	X0FC4/r,ib		fr,rm32,i8
+		X0FC4/r,ib		fr,rm64,i8
+		X660FC4/r,ib	xr,rm32,i8
+		X660FC4/r,ib	xr,rm64,i8
+
+pmaddubsw	X0F3804/r	fr,frm
+		X660F3804/r	xr,xrm
+
+pmaddwd	X0FF5/r	fr,frm
+		X660FF5/r	xr,xrm
+
+pmaxsw	X0FEE/r	fr,frm
+		X660FEE/r	xr,xrm
+pmaxub	X0FDE/r	fr,frm
+		X660FDE/r	xr,xrm
+pminsw	X0FEA/r	fr,frm
+		X660FEA/r	xr,xrm
+pminub	X0FDA/r	fr,frm
+		X660FDA/r	xr,xrm
+
+pmovmskb	X0FD7/r	r32,fr2
+		X0FD7/r	r64,fr2
+		X660FD7/r	r32,xr2
+		X660FD7/r	r64,xr2
+
+pmulhrsw	X0F380B/r	fr,frm
+		X660F380B/r	xr,xrm
+
+pmulhuw	X0FE4/r	fr,frm
+		X660FE4/r	xr,xrm
+pmulhw	X0FE5/r	fr,frm
+		X660FE5/r	xr,xrm
+pmulw		X0FD5/r	fr,frm
+		X660FD5/r	xr,xrm
+pmuludq	X0FF4/r	fr,frm
+		X660FF4/r	xr,xrm
+
+por		X0FEB/r	fr,frm
+		X660FEB/r	xr,xrm
+
+psadbw	X0FF6/r	fr,frm
+		X660FF6/r	xr,xrm
+
+pshufb	X0F3800/r	fr,frm
+		X660F3800/r	xr,xrm
+
+pshufd	X660F70/r,ib	xr,xrm,i8
+pshufhw	XF30F70/r,ib	xr,xrm,i8
+pshuflw	XF20F70/r,ib	xr,xrm,i8
+pshufw	X0F70/r,ib		fr,frm,i8
+
+psignb	X0F3808/r	fr,frm
+		X660F3808/r	xr,xrm
+psignw	X0F3809/r	fr,frm
+		X660F3809/r	xr,xrm
+psignd	X0F380A/r	fr,frm
+		X660F380A/r	xr,xrm
+
+pslldq	660F73/7,ib	xr,i8
+
+psllw		X0FF1/r	fr,frm
+		X660FF1/r	xr,xrm
+		0F71/6,ib	xr,i8
+		660F71/6,ib	xr,i8
+pslld		X0FF2/r	fr,frm
+		X660FF2/r	xr,xrm
+		0F72/6,ib	xr,i8
+		660F72/6,ib	xr,i8
+psllq		X0FF3/r	fr,frm
+		X660FF3/r	xr,xrm
+		0F73/6,ib	xr,i8
+		660F73/6,ib	xr,i8
+
+psraw		X0FE1/r	fr,frm
+		X660FE1/r	xr,xrm
+		0F71/4,ib	xr,i8
+		660F71/4,ib	xr,i8
+psrad		X0FE2/r	fr,frm
+		X660FE2/r	xr,xrm
+		0F72/4,ib	xr,i8
+		660F72/4,ib	xr,i8
+
+psrldq	660F73/3,ib	xr,i8
+
+psubb		X0FF8/r	fr,frm
+		X660FF8/r	xr,xrm
+psubw		X0FF9/r	fr,frm
+		X660FF9/r	xr,xrm
+psubd		X0FFA/r	fr,frm
+		X660FFA/r	xr,xrm
+psubq		X0FFB/r	fr,frm
+		X660FFB/r	xr,xrm
+
+psubsb	X0FE8/r	fr,frm
+		X660FE8/r	xr,xrm
+psubsw	X0FE9/r	fr,frm
+		X660FE9/r	xr,xrm
+
+psubusb	X0FD8/r	fr,frm
+		X660FD8/r	xr,xrm
+psubusw	X0FD9/r	fr,frm
+		X660FD9/r	xr,xrm
+
+punpckhbw	X0F68/r	fr,frm
+		X660F68/r	xr,xrm
+punpckhwd	X0F69/r	fr,frm
+		X660F69/r	xr,xrm
+punpckhdq	X0F6A/r	fr,frm
+		X660F6A/r	xr,xrm
+punpckhqdq	X660F6D/r	xr,xrm
+
+punpcklbw	X0F60/r	fr,frm
+		X660F60/r	xr,xrm
+punpcklwd	X0F61/r	fr,frm
+		X660F61/r	xr,xrm
+punpckldq	X0F62/r	fr,frm
+		X660F62/r	xr,xrm
+punpcklqdq	X660F6C/r	xr,xrm
+
+pxor		X0FEF/r	fr,frm
+		X660FEF/r	xr,xrm
+
+rcpps		X0F53/r	xr,xrm
+rcpss		XF30F53/r	xr,xrm
+rsqrtps	X0F52/r	xr,xrm
+rsqrtss	XF30F52/r	xr,xrm
+
+;shld		WX0FA4/r,ib	rm16,r16,i8
+;		WX0FA5/r	rm16,r16,cl
+;		TX0FA4/r,ib	rm32,r32,i8
+;		TX0FA5/r	rm32,r32,cl
+;		X0FA4/r,ib	rm64,r64,i8
+;		X0FA5/r	rm64,r64,cl
+
+;shrd		WX0FAC/r,ib	rm16,r16,i8
+;		WX0FAD/r	rm16,r16,cl
+;		TX0FAC/r,ib	rm32,r32,i8
+;		TX0FAD/r	rm32,r32,cl
+;		X0FAC/r,ib	rm64,r64,i8
+;		X0FAD/r	rm64,r64,cl
+
+shufpd	X660FC6/r,ib	xr,xrm,i8
+shufps	X0FC6/r,ib		xr,xrm,i8
+
+sqrtps	X0F51/r	xr,xrm
+sqrtsd	XF20F51/r	xr,xrm
+sqrtss	XF30F51/r	xr,xrm
+
+subpd		X660F5C/r	xr,xrm
+subps		X0F5C/r	xr,xrm
+subsd		XF20F5C/r	xr,xrm
+subss		XF30F5C/r	xr,xrm
+
+ucomisd	X660F2E/r	xr,xrm
+ucomiss	X0F2E/r	xr,xrm
+
+unpckhpd	X660F15/r	xr,xrm
+unpckhps	X0F15/r	xr,xrm
+unpcklpd	X660F14/r	xr,xrm
+unpcklps	X0F14/r	xr,xrm
+
+xorpd		X660F57/r	xr,xrm
+xorps		X0F57/r	xr,xrm
+
+
+;prefixes (put after opcodes in case used as part of an opcode)
+
+cs	2E
+ss	36
+ds	3E
+es	26
+fs	64
+gs	65
+
+lock	F0
+
+rep	F3
+repe	F3
+repz	F3
+repne	F2
+repnz	F2
+
+o16	W
+o32	T
+a16	V
+a32	S
+
+brf	2E	;branch prediction false
+brt	3E	;branch prediction true
+

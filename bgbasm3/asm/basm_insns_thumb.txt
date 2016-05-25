@@ -1,0 +1,153 @@
+;See comments in ARM file.
+;Thumb is given a different listing as thumb opcodes have overlapping
+;nmonics with ARM opcodes, but have different instruction encodings.
+
+adc		Gt4140|rg|rh		r32,r32
+add		Gt1C00|rg|rh|ji		r32,r32,i8
+		Gt1C00|rj|jb		r32,i8
+		Gt1800|rg|rh|ri		r32,r32,r32
+		Gt4400|rg|rh		r32,r32
+		GtA000|rj|jb		r32,cs,i8
+		GtA800|rj|jb		r32,ss,i8
+		GtA800|jb			ss,i8
+and		Gt4000|rg|rh		r32,r32
+asr		Gt1000|rg|rh|jj		r32,r32,i8
+		Gt4100|rg|rh		r32,r32
+b		GtE000|jd			ar16
+beq		GtD000|ja			ar8
+bne		GtD100|ja			ar8
+bcs		GtD200|ja			ar8
+bhs		GtD200|ja			ar8
+bcc		GtD300|ja			ar8
+blo		GtD300|ja			ar8
+bmi		GtD400|ja			ar8
+bpl		GtD500|ja			ar8
+bvs		GtD600|ja			ar8
+bvc		GtD700|ja			ar8
+bhi		GtD800|ja			ar8
+bls		GtD900|ja			ar8
+bge		GtDA00|ja			ar8
+blt		GtDB00|ja			ar8
+bgt		GtDC00|ja			ar8
+ble		GtDD00|ja			ar8
+bal		GtDE00|ja			ar8
+bic		Gt4380|rg|rh		r32,r32
+bkpt	GtDE00|jb			i8
+bl		GtF000|je;GtF800|jf			ar32
+blx		GtF000|je;GtE800|jf			ar32
+		Gt4780|jk					r32
+bx		Gt4700|jk					r32
+cmn		Gt42C0|rg|rh				r32,r32
+cmp		Gt2800|rj|jb				r32,i8
+		Gt4280|rg|rh				r32,r32
+		Gt4500|rl|rk				r32,r32
+cpsie	GtD660|jk					i8
+cpsid	GtD670|jk					i8
+
+cpy		Gt4600|rl|rk				r32,r32
+eor		Gt4040|rg|rh				r32,r32
+ldmia	GtC800|rj|jb				r32,i8
+
+ldr		Gt6800|rg|rh|jj				r32,r32,i8
+		Gt5800|rg|rh|ri				r32,r32,r32
+		Gt4800|rj|jb				r32,cs,i8
+		Gt9800|rj|jb				r32,ss,i8
+		Gt4800|rj|jb				r32,ar8
+		GtE002|rz,id;Gt48FE|rj			r32,i32		odd
+		GtE003;GtBF00|rz,id;Gt48FE|rj	r32,i32		even
+		Gt6800|rg|rh				r32,r32
+
+ldrb	Gt7800|rg|rh|jj				r32,r32,i8
+		Gt5C00|rg|rh|ri				r32,r32,r32
+ldrh	Gt8800|rg|rh|jj				r32,r32,i8
+		Gt5A00|rg|rh|ri				r32,r32,r32
+
+ldrsb	Gt5600|rg|rh|ri				r32,r32,r32
+ldrsh	Gt5E00|rg|rh|ri				r32,r32,r32
+
+lsl		Gt0000|rg|rh|jj				r32,r32,i8
+		Gt4080|rg|rh				r32,r32
+lsr		Gt0800|rg|rh|jj				r32,r32,i8
+		Gt40C0|rg|rh				r32,r32
+
+mov		Gt2000|rj|jb				r32,i8
+		Gt1C00|rg|rh				r32,r32
+		Gt4600|rl|rk				r32,r32
+		GtF240;Gt0000|rj|jl			r32,i16
+		GtE002|rz,id;Gt48FE|rj			r32,i32		odd
+		GtE003;GtBF00|rz,id;Gt48FE|rj	r32,i32		even
+
+movw	GtF240;Gt0000|rj|jl			r32,i16
+
+mul		Gt4340|rg|rh				r32,r32
+mvn		Gt43C0|rg|rh				r32,r32
+neg		Gt4240|rg|rh				r32,r32
+
+nop		GtBF00
+
+orr		Gt4300|rg|rh				r32,r32
+
+pop		GtBC00|jb					i8
+		GtBD00|jb					cs,i8
+push	GtB400|jb					i8
+		GtB500|jb					cs,i8
+rev		GtBA00|rg|rh				r32,r32
+rev16	GtBA40|rg|rh				r32,r32
+revsh	GtBAC0|rg|rh				r32,r32
+ror		Gt41C0|rg|rh				r32,r32
+sbc		Gt4180|rg|rh				r32,r32
+
+setendbe	GtB658
+setendle	GtB650
+stmia		GtC000|rj|jb				r32,i8
+
+str		Gt6000|rg|rh|jj				r32,r32,i8
+		Gt5000|rg|rh|ri				r32,r32,r32
+		Gt9000|rj|jb				r32,i8
+		Gt6000|rg|rh				r32,r32
+
+strb	Gt7000|rg|rh|jj				r32,r32,i8
+		Gt5400|rg|rh|ri				r32,r32,r32
+strh	Gt8000|rg|rh|jj				r32,r32,i8
+		Gt5200|rg|rh|ri				r32,r32,r32
+
+
+sub		Gt1E00|rg|rh|ji		r32,r32,i8
+		Gt3800|rj|jb		r32,i8
+		Gt1A00|rg|rh|ri		r32,r32,r32
+		GtB080|jc			ss,i8
+
+subs	Gt3800|rj|jb		r32,i8
+
+
+swi		GtBF00|jb			i8
+
+sxtb	GtB240|rg|rh				r32,r32
+sxth	GtB200|rg|rh				r32,r32
+
+tst		Gt4200|rg|rh				r32,r32
+
+uxtb	GtB2C0|rg|rh				r32,r32
+uxth	GtB280|rg|rh				r32,r32
+
+;note: register numbers are magic numbers
+.reg r0		32
+.reg r1		33
+.reg r2		34
+.reg r3		35
+.reg r4		36
+.reg r5		37
+.reg r6		38
+.reg r7		39
+.reg r8		40
+.reg r9		41
+.reg r10	42
+.reg r11	43
+.reg r12	44
+.reg r13	45
+.reg r14	46
+.reg r15	47
+
+.reg sp		45
+.reg lr		46
+.reg pc		47

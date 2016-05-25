@@ -30,16 +30,41 @@ int frgl_n_shutdown=0;
 
 
 FRGL_State *frgl_state_i=NULL;
+FILE *frgl_log=NULL;
+
+BTEIFGL_API int frgl_puts(char *str)
+{
+	Con_WriteString(str);
+	if(frgl_log)
+	{
+		fputs(str, frgl_log);
+		fflush(frgl_log);
+	}
+	fputs(str, stdout);
+
+	return(0);
+}
 
 BTEIFGL_API int frgl_printf(char *str, ...)
 {
 	char tb[4096];
 	va_list lst;
 	
+	if(!frgl_log)
+		{ frgl_log=fopen("frgl_log.txt", "wt"); }
+	
 	va_start(lst, str);
 	vsprintf(tb, str, lst);
-	Con_WriteString(tb);
 	va_end(lst);
+
+	Con_WriteString(tb);
+	if(frgl_log)
+	{
+		fputs(tb, frgl_log);
+		fflush(frgl_log);
+	}
+	fputs(tb, stdout);
+
 	return(0);
 }
 

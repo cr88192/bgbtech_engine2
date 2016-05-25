@@ -844,12 +844,12 @@ Instructions
 ** (NACHO).
 ** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
 
-* E1 6A Zn, PUSHN				//Push n Items (null/zero)
-* E1 6B Zn, POPN				//Pop n Items
-* E1 6C Zn, SWAPN				//Swap top-of-stack with Item n
-* E1 6D Zn, ROTLN				//Rotate Left 1 position over n items.
-* E1 6E Zn, ROTRN				//Rotate Right 1 position over n items.
-* E1 6F Zn, DUPN				//Duplicate Top n items.
+* / E1 6A Zn, PUSHN				//Push n Items (null/zero)
+* / E1 6B Zn, POPN				//Pop n Items
+* / E1 6C Zn, SWAPN				//Swap top-of-stack with Item n
+* / E1 6D Zn, ROTLN				//Rotate Left 1 position over n items.
+* / E1 6E Zn, ROTRN				//Rotate Right 1 position over n items.
+* / E1 6F Zn, DUPN				//Duplicate Top n items.
 ** (NACHO).
 ** Stack operations. May work on groups of items.
 ** The items are required to be of the base type given by Z.
@@ -931,6 +931,11 @@ More Array ops:
 * E1 9D Ax, JNENULL					//Jump If Not Null
 * E1 9E Ix Ax, JEQNULLL				//Jump If Null (Local)
 * E1 9F Ix Ax, JNENULLL				//Jump If Not Null (Local)
+
+* E1 A0, CVTF2HF					//Convert Float to Half-Float
+* E1 A1, CVTD2HF					//Convert Double to Half-Float
+* E1 A2, CVTHF2F					//Convert Half-Float to Float
+* E1 A3, CVTHF2D					//Convert Half-Float to Double
 
 
 === Vector Block (0x400) ===

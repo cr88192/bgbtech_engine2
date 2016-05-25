@@ -8,6 +8,8 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 	int i;
 	
 	op=BSVM2_Interp_AllocOpcode(cblk);
+	op->opn=opn;
+	
 	switch(opn)
 	{
 	case BSVM2_OP_ADDI:
@@ -372,6 +374,7 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		case BSVM2_OPZ_ADDRESS:
 			BSVM2_Interp_SetupOpPopBin(cblk, op,
 				BSVM2_Op_STOSA);
+			break;
 		case BS2CC_TYZ_INT128:
 		case BS2CC_TYZ_VEC4F:
 			BSVM2_Interp_SetupOpPopBin(cblk, op,

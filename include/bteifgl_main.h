@@ -1,3 +1,13 @@
+#define BTEIFGL_MAIN
+
+#ifndef MAIN_EXPORT
+#ifdef _MSC_VER
+#define MAIN_EXPORT __declspec(dllexport)
+#else
+#define MAIN_EXPORT
+#endif
+#endif
+
 #include <bteifgl.h>
 
 #ifdef _WIN32

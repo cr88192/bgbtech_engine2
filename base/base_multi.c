@@ -1,0 +1,32 @@
+#include "frgl_concmds.c"
+#include "frgl_console.c"
+#include "frgl_cvar.c"
+#include "frgl_draw.c"
+#include "frgl_drawarr.c"
+#include "frgl_drawstub.c"
+#include "frgl_fonts.c"
+#include "frgl_fonts_qi2.c"
+#include "frgl_input.c"
+#include "frgl_shader.c"
+#include "frgl_texture.c"
+#include "frgl_util.c"
+#include "frgl_texmat.c"
+
+#include "math_m3.c"
+#include "math_m4.c"
+
+#include "gpio_rdtsc.c"
+#include "gpio_dummy_w32.c"
+#include "net_btemsg.c"
+
+#include "deflate.c"
+#include "inflate.c"
+#include "bufpng.c"
+
+#include "w32_glw.c"
+#include "w32_mouse.c"
+#include "w32_sound.c"
+
+#include "w32_guid.c"
+#include "w32_net.c"
+#include "w32_udpip.c"

@@ -170,13 +170,15 @@ package bstest {
 
 			t0=clock();
 //			sorttst(1<<16);
-			sorttst(1<<13);
+//			sorttst(1<<13);
+			sorttst(1<<15);
 			t1=clock();
 			printf("Bs SortTst Dt %d\n", t1-t0);
 
 			t0=clock();
 //			sorttst(1<<16);
-			bsvm2_natsorttst(1<<13);
+//			bsvm2_natsorttst(1<<13);
+			bsvm2_natsorttst(1<<15);
 			t1=clock();
 			printf("Na SortTst Dt %d\n", t1-t0);
 

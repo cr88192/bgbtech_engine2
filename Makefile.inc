@@ -39,11 +39,13 @@ BTEIFGL_SRCS=\
 	mm/mm_objty.c \
 	mm/mm_tagarith.c \
 	mm/mm_tagarr.c \
+	mm/mm_tagparse.c \
 	mm/mm_tagprint.c \
 	mm/mm_tagstr.c \
 	mm/mm_thread.c \
 	mm/mm_typesig.c \
 	mm/mm_xi128.c \
+	mm/mm_xvec.c \
 	\
 	bsvm2c/bs2p_astnode.c \
 	bsvm2c/bs2p_decl.c \
@@ -63,6 +65,7 @@ BTEIFGL_SRCS=\
 	bsvm2c/bs2c_stmt.c \
 	bsvm2c/bs2c_topstmt.c \
 	bsvm2c/bs2c_type.c \
+	bsvm2c/bs2e_expr.c \
 	\
 	bsvm2i/bs2i_fcnblock.c \
 	bsvm2i/bs2i_interp.c \
@@ -80,6 +83,8 @@ BTEIFGL_SRCS=\
 	bsvm2i/bs2i_opvec3.c \
 	bsvm2i/bs2i_tailop.c \
 	bsvm2i/bs2i_topinit.c \
+	\
+	bsvm2i/bs2j_tr_x86.c \
 	\
 	entity/ent_tagval.c \
 	\
@@ -107,12 +112,48 @@ BTEIFGL_SRCS=\
 	btews/msp430i/mspi_oparith.c \
 	btews/msp430i/mspi_opcode.c \
 	btews/msp430i/mspi_opmisc.c \
-	
+
+BGBASM_SRCS = \
+	bgbasm3/front/basm_api.c \
+	bgbasm3/front/basm_rand.c \
+	bgbasm3/front/basm_callsig.c \
+	bgbasm3/front/basm_vfs.c \
+	bgbasm3/front/basm_preproc.c \
+	\
+	bgbasm3/asm/basm_core.c \
+	bgbasm3/asm/basm_parse.c \
+	bgbasm3/asm/basm_insns_x86.c \
+	bgbasm3/asm/basm_insns_arm.c \
+	bgbasm3/asm/basm_insns_thumb.c \
+	bgbasm3/asm/basm_disasm.c \
+	bgbasm3/asm/basm_coff.c \
+	\
+	bgbasm3/link/link_context.c \
+	bgbasm3/link/link_core.c \
+	bgbasm3/link/link_thunk.c \
+	bgbasm3/link/link_lnx.c \
+	bgbasm3/link/link_w32.c \
+	bgbasm3/link/link_vfs.c \
+	bgbasm3/link/bldr_coff.c \
+	bgbasm3/link/bldr_elf.c
+
+
+BTEIFGL_MULTISRCS=\
+	base/base_multi.c \
+	mm/mm_multi.c \
+	bsvm2c/bs2c_multi.c \
+	bsvm2i/bs2i_multi.c \
+	voxel/vox_multi.c \
+	btews/btws_multi.c \
+	bgbasm3/basm_multi.c \
+
 
 SRCS=$(BTEIFGL_SRCS)
+MSRCS=$(BTEIFGL_MULTISRCS)
 
 DEP_HDRS=\
-	include/bteifgl_auto.h
+	include/bteifgl_auto.h \
+	include/basm/bgbasm_auto.h
 
 all: libs apps
 
@@ -121,15 +162,20 @@ FORCE:
 libs: $(DLLPF)btewsim$(DLLSUF)
 
 apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) \
-	btewiresim0$(EXESUF) msptst0$(EXESUF)
+	btewiresim0$(EXESUF) msptst0$(EXESUF) \
+	isotest0$(EXESUF)
 
 includes: $(DEP_HDRS)
 
 include/bteifgl_auto.h: autohead$(BINSUF) $(SRCS)
 	./autohead$(BINSUF) -api BTEIFGL_API $(SRCS) > include/bteifgl_auto.h
 
-$(DLLPF)btewsim$(DLLSUF): $(DEP_HDRS) $(SRCS)
-	$(CC_OUTDLL)$(DLLPF)btewsim$(DLLSUF) $(SRCS) $(DLL_CFLAGS) $(DLL_LDFLAGS)
+include/basm/bgbasm_auto.h: autohead$(BINSUF) $(BGBASM_SRCS)
+	./autohead$(BINSUF) -api BASM_API $(BGBASM_SRCS) \
+		> include/basm/bgbasm_auto.h
+
+$(DLLPF)btewsim$(DLLSUF): $(DEP_HDRS) $(SRCS) $(MSRCS)
+	$(CC_OUTDLL)$(DLLPF)btewsim$(DLLSUF) $(MSRCS) $(DLL_CFLAGS) $(DLL_LDFLAGS)
 
 autohead$(BINSUF): autohead.c
 	$(CC_OUTTOOL)autohead$(BINSUF) autohead.c
@@ -145,6 +191,9 @@ btewiresim0$(EXESUF): btewiresim0.c $(DEP_HDRS) libs
 
 msptst0$(EXESUF): msptst0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)msptst0$(EXESUF) msptst0.c $(CFLAGS) $(LDFLAGS)
+
+isotest0$(EXESUF): isotest0.c $(DEP_HDRS) libs
+	$(CC_OUTEXE)isotest0$(EXESUF) isotest0.c $(CFLAGS) $(LDFLAGS)
 
 clean:
 clean2:

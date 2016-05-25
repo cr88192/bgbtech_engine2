@@ -635,6 +635,7 @@ int BS2I_ImageDecodeGlobalFunc(
 
 	if(gbl->cblk)
 	{
+		gbl->cblk->func=gbl;
 		gbl->cblk->largs=gbl->cblk->bargs+gbl->nargs;
 		gbl->cblk->szframe=gbl->cblk->stkdepth+gbl->cblk->largs;
 	}

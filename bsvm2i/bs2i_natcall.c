@@ -767,7 +767,7 @@ dtVal BSVM2_Sig_SetSigPtrDtVal(void *ptr, char *sig, dtVal v)
 	case 'i':
 		*(s32 *)ptr=dtvUnwrapInt(v); break;
 	case 'j':
-		*(u32 *)ptr=dtvUnwrapUInt(v); break;
+		*(u32 *)ptr=dtvUnwrapInt(v); break;
 	case 'l':	case 'm':
 		*(long *)ptr=dtvUnwrapLong(v); break;
 	case 'x':	case 'y':

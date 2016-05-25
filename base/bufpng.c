@@ -905,8 +905,8 @@ BTEIFGL_API byte *BGBBTJ_BufPNG_Decode(
 		}
 	}
 
-	*w=xs;
-	*h=ys;
+	if(w && h)
+		{ *w=xs; *h=ys; }
 	return(buf);
 }
 

@@ -92,6 +92,14 @@ void BSVM2_Interp_DecodeTopFx2(BSVM2_CodeBlock *cblk,
 	}
 }
 
+void BSVM2_Interp_DecodeTopIx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op)
+{
+	int i, j;
+
+	i=BSVM2_Interp_DecodeOpUCxI(cblk);
+	op->i0=i;
+}
+
 void BSVM2_Interp_DecodeTopJx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op)
 {
 	int i, j;
@@ -385,10 +393,13 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 	int i;
 	
 	tmp=BSVM2_Interp_AllocTailOpcode(cblk);
+	tmp->opn=opn;
+	
 	switch(opn)
 	{
 	case BSVM2_OP_CMPI:
 		opn2=BSVM2_Interp_ReadOpcodeNumber(cblk);
+		tmp->opn2=opn2;
 		switch(opn2)
 		{
 		case BSVM2_OP_JEQ:
@@ -414,6 +425,8 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 	case BSVM2_OP_CMPILL:
 		BSVM2_Interp_DecodeTopJx(cblk, tmp);
 		opn2=BSVM2_Interp_ReadOpcodeNumber(cblk);
+		tmp->opn2=opn2;
+
 		switch(opn2)
 		{
 		case BSVM2_OP_JEQ:
@@ -462,23 +475,38 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 		BSVM2_Interp_SetupTopPopUnJmp(cblk, tmp, BSVM2_TrOp_JMP);
 		break;
 
+	case BSVM2_OP_JEQNULL:
+		BSVM2_Interp_SetupTopPopUnJmp(cblk, tmp, BSVM2_TrOp_JEQNULL);
+		break;
+	case BSVM2_OP_JNENULL:
+		BSVM2_Interp_SetupTopPopUnJmp(cblk, tmp, BSVM2_TrOp_JNENULL);
+		break;
+	case BSVM2_OP_JEQNULLL:
+		BSVM2_Interp_DecodeTopIx(cblk, tmp);
+		BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JEQNULLL);
+		break;
+	case BSVM2_OP_JNENULLL:
+		BSVM2_Interp_DecodeTopIx(cblk, tmp);
+		BSVM2_Interp_SetupTopUatJmp(cblk, tmp, BSVM2_TrOp_JNENULLL);
+		break;
+
 	case BSVM2_OP_RETI:
-		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_JCMP_RETI);
+		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_RETI);
 		break;
 	case BSVM2_OP_RETL:
-		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_JCMP_RETL);
+		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_RETL);
 		break;
 	case BSVM2_OP_RETF:
-		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_JCMP_RETF);
+		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_RETF);
 		break;
 	case BSVM2_OP_RETD:
-		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_JCMP_RETD);
+		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_RETD);
 		break;
 	case BSVM2_OP_RETA:
-		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_JCMP_RETA);
+		BSVM2_Interp_SetupTopPopUn(cblk, tmp, BSVM2_TrOp_RETA);
 		break;
 	case BSVM2_OP_RETV:
-		BSVM2_Interp_SetupTopUat(cblk, tmp, BSVM2_TrOp_JCMP_RETV);
+		BSVM2_Interp_SetupTopUat(cblk, tmp, BSVM2_TrOp_RETV);
 		break;
 
 	case BSVM2_OP_RETC:
@@ -489,23 +517,23 @@ BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(
 		case BSVM2_OPZ_SBYTE:	case BSVM2_OPZ_UBYTE:
 		case BSVM2_OPZ_SHORT:	case BSVM2_OPZ_USHORT:
 			BSVM2_Interp_SetupTopUat(cblk, tmp,
-				BSVM2_TrOp_JCMP_RETIC);
+				BSVM2_TrOp_RETIC);
 			break;
 		case BSVM2_OPZ_LONG:	case BSVM2_OPZ_ULONG:
 			BSVM2_Interp_SetupTopUat(cblk, tmp,
-				BSVM2_TrOp_JCMP_RETLC);
+				BSVM2_TrOp_RETLC);
 			break;
 		case BSVM2_OPZ_FLOAT:
 			BSVM2_Interp_SetupTopUat(cblk, tmp,
-				BSVM2_TrOp_JCMP_RETFC);
+				BSVM2_TrOp_RETFC);
 			break;
 		case BSVM2_OPZ_DOUBLE:
 			BSVM2_Interp_SetupTopUat(cblk, tmp,
-				BSVM2_TrOp_JCMP_RETDC);
+				BSVM2_TrOp_RETDC);
 			break;
 		case BSVM2_OPZ_ADDRESS:
 			BSVM2_Interp_SetupTopUat(cblk, tmp,
-				BSVM2_TrOp_JCMP_RETAC);
+				BSVM2_TrOp_RETAC);
 			break;
 		default:
 			break;

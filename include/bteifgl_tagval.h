@@ -18,6 +18,7 @@ High 4 bits:
   1C000000-1DFFFFFF: 32-bit spaces
 
   10: RotLong
+  11: FComplex
 
 TagArray
   Low 32 bits: Array Object ID
@@ -53,6 +54,8 @@ These are stored at 30 bits each.
 #define BGBDT_HTAG_FIXREAL3	11
 
 #define BGBDT_HTAG_TAGARR	12
+
+#define BGBDT_TAG_FCOMPLEX	0x11000000
 
 #define BGBDT_TAG_INT32		0x1C000000
 #define BGBDT_TAG_FLOAT32	0x1C000001
@@ -156,6 +159,8 @@ BTEIFGL_API void *BGBDT_MM_GetDataPtrForObjId(int objid);
 
 BTEIFGL_API dtVal BGBDT_TagTy_EncodeRotLong(s64 value);
 BTEIFGL_API s64 BGBDT_TagTy_DecodeRotLong(dtVal val);
+
+BTEIFGL_API int BGBDT_MM_GetIndexObjTypeName(char *name);
 
 
 static_inline dtVal DTV_MagicConst(int id)
@@ -323,6 +328,20 @@ static_inline int dtvTrueP(dtVal val)
 	
 	return(1);
 //	return((val.hi>>16)==tag);
+}
+
+static_inline int dtvUndefinedP(dtVal val)
+{
+	if(val.hi==BGBDT_TAG_MCONST)
+	{
+		if(val.lo==1)
+			return(1);
+		return(0);
+	}
+	
+//	if(!val.vi)
+//		return(1);
+	return(0);
 }
 
 static_inline bool dtvIsBoolP(dtVal val)
@@ -960,3 +979,32 @@ static_inline vec2 dtvUnwrapVec2v(dtVal v)
 	fy=*(float *)(&iy);
 	return(vec2(fx, fy));
 }
+
+
+static_inline bool dtvIsCplxfP(dtVal val)
+	{ return((val.hi>>24)==0x11); }
+
+static_inline dtVal dtvWrapCplxf(float x, float y)
+{
+	dtVal c;
+	u32 ix, iy;
+	ix=*(u32 *)(&x);
+	iy=*(u32 *)(&y);
+	ix=(ix+7)>>4;
+	iy=(iy+7)>>4;
+	c.vi=ix|(((u64)iy)<<28)|0x1100000000000000ULL;
+	return(c);
+}
+
+static_inline dtVal dtvWrapCplxfv(float *fv)
+	{ return(dtvWrapCplxf(fv[0], fv[1])); }
+
+static_inline void dtvUnwrapCplxfv(dtVal v, float *fv)
+{
+	u32 ix, iy;
+	ix=v.lo<<4;
+	iy=v.vi>>24;
+	fv[0]=*(float *)(&ix);
+	fv[1]=*(float *)(&iy);
+}
+

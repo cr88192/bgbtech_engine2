@@ -8,12 +8,17 @@ resource/texcache.zip
 
 resource/mdlcache.zip
 
-**/*.dll
+# **/*.dll
+# **/*.exe
 
-**/*.exe
+bgbasm3/*.exe
+bgbasm3/*.dll
+resource/**/*.exe
+resource/**/*.dll
+resource_dev/**/*.*
 
 *.obj
-*.pdn
+# *.pdn
 *.suo
 *.pdb
 *.ilk

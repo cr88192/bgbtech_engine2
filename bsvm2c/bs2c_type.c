@@ -147,6 +147,140 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 	return(frgl_rstrdup(tb));
 }
 
+char *BS2C_GetTypeNameStr(BS2CC_CompileContext *ctx, int ty)
+{
+	char tb[256];
+	BS2CC_VarInfo *vi;
+	char *t;
+	int al, asz, bty;
+	int i, j, k;
+	
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		al =(ty>>BS2CC_TYI_SHR)&BS2CC_TYI_MASK2;
+		asz=(ty>>BS2CC_TYS_SHR)&BS2CC_TYS_MASK2;
+		bty=(ty>>BS2CC_TYE_SHR)&BS2CC_TYE_MASK2;
+	}else
+	{
+		return(NULL);
+	}
+	
+	t=tb;
+	
+	if((al>=1) && (al<=3))
+	{
+		i=al;
+		while(i--)
+			*t++='[]';
+		*t=0;
+	}else if((al>=5) && (al<=7))
+	{
+		i=al-4;
+		while(i--)
+			*t++='*';
+		*t=0;
+	}else if(al==4)
+	{
+		*t++='&';
+	}
+	
+	if(bty<256)
+	{
+		switch(bty)
+		{
+		case BS2CC_TYZ_INT:
+			strcpy(t, "int"); t+=strlen(t); break;
+		case BS2CC_TYZ_LONG:
+			strcpy(t, "long"); t+=strlen(t); break;
+		case BS2CC_TYZ_FLOAT:
+			strcpy(t, "float"); t+=strlen(t); break;
+		case BS2CC_TYZ_DOUBLE:
+			strcpy(t, "double"); t+=strlen(t); break;
+		case BS2CC_TYZ_ADDRESS:
+			strcpy(t, "address"); t+=strlen(t); break;
+		case BS2CC_TYZ_UINT:
+			strcpy(t, "uint"); t+=strlen(t); break;
+		case BS2CC_TYZ_UBYTE:
+			strcpy(t, "byte"); t+=strlen(t); break;
+		case BS2CC_TYZ_SHORT:
+			strcpy(t, "short"); t+=strlen(t); break;
+		case BS2CC_TYZ_SBYTE:
+			strcpy(t, "sbyte"); t+=strlen(t); break;
+		case BS2CC_TYZ_USHORT:
+			strcpy(t, "ushort"); t+=strlen(t); break;
+		case BS2CC_TYZ_ULONG:
+			strcpy(t, "ulong"); t+=strlen(t); break;
+		case BS2CC_TYZ_NLONG:
+			strcpy(t, "nlong"); t+=strlen(t); break;
+		case BS2CC_TYZ_UNLONG:
+			strcpy(t, "unlong"); t+=strlen(t); break;
+		case BS2CC_TYZ_VOID:
+			strcpy(t, "void"); t+=strlen(t); break;
+		case BS2CC_TYZ_VARIANT:
+			strcpy(t, "variant"); t+=strlen(t); break;
+		case BS2CC_TYZ_VARARG:
+			strcpy(t, "vararg"); t+=strlen(t); break;
+		case BS2CC_TYZ_CHAR:
+			strcpy(t, "char"); t+=strlen(t); break;
+		case BS2CC_TYZ_CHAR8:
+			strcpy(t, "char8"); t+=strlen(t); break;
+		case BS2CC_TYZ_STRING:
+			strcpy(t, "string"); t+=strlen(t); break;
+		case BS2CC_TYZ_CSTRING:
+			strcpy(t, "cstring"); t+=strlen(t); break;
+		case BS2CC_TYZ_BOOL:
+			strcpy(t, "bool"); t+=strlen(t); break;
+
+		case BS2CC_TYZ_VEC2F:
+			strcpy(t, "vec2f"); t+=strlen(t); break;
+		case BS2CC_TYZ_VEC3F:
+			strcpy(t, "vec3f"); t+=strlen(t); break;
+		case BS2CC_TYZ_VEC4F:
+			strcpy(t, "vec4f"); t+=strlen(t); break;
+		case BS2CC_TYZ_VEC2D:
+			strcpy(t, "vec2d"); t+=strlen(t); break;
+		case BS2CC_TYZ_QUATF:
+			strcpy(t, "quatf"); t+=strlen(t); break;
+		case BS2CC_TYZ_FCPLX:
+			strcpy(t, "fcomplex"); t+=strlen(t); break;
+		case BS2CC_TYZ_DCPLX:
+			strcpy(t, "dcomplex"); t+=strlen(t); break;
+
+		default:
+			strcpy(t, "unknown"); t+=strlen(t); break;
+		}
+		*t=0;
+	}else
+	{
+		vi=ctx->globals[bty-256];
+		switch(vi->vitype)
+		{
+		case BS2CC_VITYPE_STRUCT:
+			sprintf(t, "X%d", bty-256);
+			t+=strlen(t);
+			break;
+		case BS2CC_VITYPE_CLASS:
+		case BS2CC_VITYPE_IFACE:
+			sprintf(t, "L%d", bty-256);
+			t+=strlen(t);
+			break;
+		default:
+			sprintf(t, "L%d", bty-256);
+			t+=strlen(t);
+			break;
+		}
+	}
+
+	if(asz)
+	{
+		sprintf(t, "[%d]", asz);
+		t+=strlen(t);
+	}
+
+	return(frgl_rstrdup(tb));
+}
+
+
 BS2CC_VarInfo *BS2C_GetTypeObject(BS2CC_CompileContext *ctx, int ty)
 {
 	BS2CC_TypeOverflow *ovf;
@@ -509,6 +643,15 @@ int BS2C_TypeSmallQuatfP(BS2CC_CompileContext *ctx, int ty)
 	return(0);
 }
 
+int BS2C_TypeNumberP(BS2CC_CompileContext *ctx, int ty)
+{
+	if(BS2C_TypeSmallDComplexP(ctx, ty))
+		return(1);
+	if(BS2C_TypeSmallQuatfP(ctx, ty))
+		return(1);
+	return(0);
+}
+
 int BS2C_TypeOpXvCplxP(BS2CC_CompileContext *ctx, int ty)
 {
 	return(
@@ -576,6 +719,170 @@ int BS2C_TypeXvGetElemCount(BS2CC_CompileContext *ctx, int ty)
 			return(4);
 	return(-1);
 }
+
+
+int BS2C_TypeConvIsNarrowingP(BS2CC_CompileContext *ctx,
+	int dty, int sty)
+{
+	/* Narrowing concept only applies to numeric types. */
+	if(!BS2C_TypeNumberP(ctx, dty) ||
+		!BS2C_TypeNumberP(ctx, sty))
+			return(0);
+
+	if(dty==sty)
+		return(0);
+
+	if(dty==BS2CC_TYZ_UBYTE)
+	{
+		if(sty==BS2CC_TYZ_BOOL)
+			return(0);
+		return(1);
+	}
+	if(dty==BS2CC_TYZ_SBYTE)
+	{
+		if(sty==BS2CC_TYZ_BOOL)
+			return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_USHORT)
+	{
+		if(sty==BS2CC_TYZ_UBYTE)
+			return(0);
+		if(sty==BS2CC_TYZ_CHAR8)
+			return(0);
+		if(sty==BS2CC_TYZ_CHAR)
+			return(0);
+		if(sty==BS2CC_TYZ_BOOL)
+			return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_SHORT)
+	{
+		if(sty==BS2CC_TYZ_UBYTE)
+			return(0);
+		if(sty==BS2CC_TYZ_SBYTE)
+			return(0);
+		if(sty==BS2CC_TYZ_CHAR8)
+			return(0);
+		if(sty==BS2CC_TYZ_BOOL)
+			return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_UINT)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_INT)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_SBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_SHORT) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_ULONG)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_UINT) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_LONG)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_SBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_SHORT) ||
+			(sty==BS2CC_TYZ_UINT) ||
+			(sty==BS2CC_TYZ_INT) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_UINT128)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_UINT) ||
+			(sty==BS2CC_TYZ_ULONG) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_INT128)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_SBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_SHORT) ||
+			(sty==BS2CC_TYZ_UINT) ||
+			(sty==BS2CC_TYZ_INT) ||
+			(sty==BS2CC_TYZ_ULONG) ||
+			(sty==BS2CC_TYZ_LONG) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_FLOAT)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_SBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_SHORT) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_DOUBLE)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_SBYTE) ||
+			(sty==BS2CC_TYZ_USHORT) ||
+			(sty==BS2CC_TYZ_SHORT) ||
+			(sty==BS2CC_TYZ_UINT) ||
+			(sty==BS2CC_TYZ_INT) ||
+			(sty==BS2CC_TYZ_CHAR8) ||
+			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	return(0);
+}
+
 
 int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)
 {
@@ -793,6 +1100,21 @@ int BS2C_TypeAssignSuperType(
 		{
 			return(lty);
 		}
+
+		if(BS2C_TypeAddressP(ctx, lty1) &&
+			BS2C_TypeAddressP(ctx, rty1))
+		{
+			return(lty);
+		}
+		
+		BS2C_CaseError(ctx);
+		return(lty);
+	}
+
+	if(BS2C_TypeSmallIntP(ctx, lty) &&
+		BS2C_TypeSmallIntP(ctx, rty))
+	{
+		return(lty);
 	}
 	
 	lty1=BS2C_InferSuperType(ctx, lty, rty);
@@ -816,6 +1138,11 @@ int BS2C_TypeBinarySuperType(
 		!strcmp(op, "&")))
 	{
 		return(lty);
+	}
+	
+	if(!strcmp(op, "&&") || !strcmp(op, "||"))
+	{
+		return(BS2CC_TYZ_INT);
 	}
 
 #if 0

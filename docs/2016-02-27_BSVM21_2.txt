@@ -987,6 +987,7 @@ X128 Unary Operators
 **   3, RSqrt (A=1/sqrt(A))
 **   4, Length (A.a=sqrt(dot(A, A)))
 **   5, Length^2 (A.a=dot(A, A))
+**   6, Normalize
 
 Va: Vector Type+Unary
 Vb: Vector Type+Binary

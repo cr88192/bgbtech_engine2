@@ -344,7 +344,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 	for(i=0; i<ntrsa; i++)
 	{
 #ifdef BS2I_USE_BASM
-		BS2J_CheckSetupJitTrace(trsa[i]);
+//		BS2J_CheckSetupJitTrace(trsa[i]);
 #endif
 
 		cblk->trace[i]=trsa[i];

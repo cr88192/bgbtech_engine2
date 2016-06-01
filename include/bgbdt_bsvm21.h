@@ -47,6 +47,14 @@
 // #define BSVM2_OPZ_VARIANT	4
 #define BSVM2_OPZ_VOID		11
 
+#define BSVM2_OPMU_SIN		0
+#define BSVM2_OPMU_COS		1
+#define BSVM2_OPMU_TAN		2
+#define BSVM2_OPMU_SQRT		3
+#define BSVM2_OPMU_RCP		4
+#define BSVM2_OPMU_ATAN		5
+#define BSVM2_OPMU_SQR		6
+#define BSVM2_OPMU_SSQRT	7
 
 #define BSVM2_OPRV_ADD		0
 #define BSVM2_OPRV_SUB		1
@@ -65,6 +73,7 @@
 #define BSVM2_OPUV_RSQRT	3
 #define BSVM2_OPUV_LEN		4
 #define BSVM2_OPUV_LEN2		5
+#define BSVM2_OPUV_NORM		6
 
 #define BSVM2_OPVZ_V4I		0
 #define BSVM2_OPVZ_V2L		1
@@ -561,6 +570,11 @@
 #define BSVM2_TRFL_OPSINESI		0x04000		//ops in ESI
 #define BSVM2_TRFL_STKINEBX		0x08000		//VM stack in EBX
 #define BSVM2_TRFL_LCLINESI		0x10000		//locals in ESI
+
+#define BSVM2_EXS_NONE			0x00000		//no error status
+#define BSVM2_EXS_NULLEX		0x00001		//NullPointerException
+#define BSVM2_EXS_BOUNDEX		0x00002		//BoundsCheckException
+#define BSVM2_EXS_RUNLIMIT		0x00003		//Interpreter Run-Limit
 
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef union BSVM2_ValX128_u BSVM2_ValX128;

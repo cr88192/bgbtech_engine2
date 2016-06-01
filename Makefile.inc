@@ -24,6 +24,10 @@ BTEIFGL_SRCS=\
 	base/inflate.c \
 	base/bufpng.c \
 	\
+	base/snd_adpcm.c \
+	base/snd_mixer.c \
+	base/snd_sample.c \
+	\
 	base/w32_glw.c \
 	base/w32_mouse.c \
 	base/w32_sound.c \

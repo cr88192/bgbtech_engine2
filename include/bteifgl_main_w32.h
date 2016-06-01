@@ -55,7 +55,8 @@ int main_i()
 		if(!(frgl_state->doshot&32) &&
 			(frgl_state->maxhz>0) && (dt<(1000/frgl_state->maxhz)))
 		{
-			j=1000/(2*frgl_state->maxhz);
+//			j=1000/(2*frgl_state->maxhz);
+			j=1000/(4*frgl_state->maxhz);
 			Sleep(j);
 			continue;
 		}

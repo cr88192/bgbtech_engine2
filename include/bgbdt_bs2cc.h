@@ -57,6 +57,8 @@
 #define BS2CC_ERRN_ERRSTACKUFLOW	(BS2CC_ERRN_ERROR|10)
 
 #define BS2CC_ERRN_CONSTRANGE		(BS2CC_ERRN_WARNING|1)
+#define BS2CC_ERRN_CONVIMPLICIT		(BS2CC_ERRN_WARNING|2)
+#define BS2CC_ERRN_CONVNARROW		(BS2CC_ERRN_WARNING|3)
 
 #define BS2CC_ERRN_FATALERRCNT		(BS2CC_ERRN_FATAL|1)
 #define BS2CC_ERRN_FATALNOFILE		(BS2CC_ERRN_FATAL|2)
@@ -371,8 +373,16 @@ int ncwarn;			//number of warnings
 int ncerr;			//number of errors
 int ncfatal;		//number of fatal errors
 
-char *srcfns[256];
+s16 cwarnpix[256];	//warning parameter index
+s16 cerrpix[256];	//error parameter intex
+
+char *srcfns[256];	//source file names (warning/error)
 int nsrcfns;
+char *srcnix[256];	//source name index (warning/error)
+int nsrcnixs;
+
+int cwparm[1024];	//warning/error parameters
+int ncwparm;
 
 char *srcfn;		//source file name
 int srcln;			//source line number

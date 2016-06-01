@@ -15,6 +15,7 @@ Instance Layout:
 typedef struct _dtcobject_s *dtcObject;		//opaque
 
 typedef struct BGBDTC_SlotInfo_s *dtcField;
+typedef struct BGBDTC_SlotInfo_s *dtcMethod;
 typedef struct BGBDTC_ClassInfo_s *dtcClass;
 
 typedef struct BGBDTC_SlotInfo_s BGBDTC_SlotInfo;
@@ -84,7 +85,6 @@ static_inline void dtcSetA(dtcObject obj, dtcField fi, dtVal v)
 static_inline void *dtcGetPtr(dtcObject obj, dtcField fi)
 	{ return(fi->GetPtr(obj, fi)); }
 
-
 static_inline s32 dtcVaGetI(dtVal obj, dtcField fi)
 	{ return(fi->GetI(dtvUnwrapPtr(obj), fi)); }
 static_inline s64 dtcVaGetL(dtVal obj, dtcField fi)
@@ -110,6 +110,101 @@ static_inline void dtcVaSetA(dtVal obj, dtcField fi, dtVal v)
 static_inline void *dtcVaGetPtr(dtVal obj, dtcField fi)
 	{ return(fi->GetPtr(dtvUnwrapPtr(obj), fi)); }
 
+
+BTEIFGL_API s32 BGBDTC_GetCacheNameI(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn);
+BTEIFGL_API s64 BGBDTC_GetCacheNameL(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn);
+BTEIFGL_API f32 BGBDTC_GetCacheNameF(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn);
+BTEIFGL_API f64 BGBDTC_GetCacheNameD(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn);
+BTEIFGL_API dtVal BGBDTC_GetCacheNameA(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn);
+BTEIFGL_API void *BGBDTC_GetCacheNamePtr(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn);
+
+BTEIFGL_API int BGBDTC_SetCacheNameI(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, s32 val);
+BTEIFGL_API int BGBDTC_SetCacheNameL(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, s64 val);
+BTEIFGL_API int BGBDTC_SetCacheNameF(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, f32 val);
+BTEIFGL_API int BGBDTC_SetCacheNameD(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, f64 val);
+BTEIFGL_API int BGBDTC_SetCacheNameA(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, dtVal val);
+
+
+static_inline s32 dtcGetCacheNameI(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameI(obj, rfi, qn, fn)); }
+static_inline s64 dtcGetCacheNameL(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameL(obj, rfi, qn, fn)); }
+static_inline f32 dtcGetCacheNameF(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameF(obj, rfi, qn, fn)); }
+static_inline f64 dtcGetCacheNameD(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameD(obj, rfi, qn, fn)); }
+static_inline dtVal dtcGetCacheNameA(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameA(obj, rfi, qn, fn)); }
+static_inline void *dtcGetCacheNamePtr(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNamePtr(obj, rfi, qn, fn)); }
+
+static_inline s32 dtcVaGetCacheNameI(dtVal obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameI(dtvUnwrapPtr(obj), rfi, qn, fn)); }
+static_inline s64 dtcVaGetCacheNameL(dtVal obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameL(dtvUnwrapPtr(obj), rfi, qn, fn)); }
+static_inline f32 dtcVaGetCacheNameF(dtVal obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameF(dtvUnwrapPtr(obj), rfi, qn, fn)); }
+static_inline f64 dtcVaGetCacheNameD(dtVal obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameD(dtvUnwrapPtr(obj), rfi, qn, fn)); }
+static_inline dtVal dtcVaGetCacheNameA(dtVal obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNameA(dtvUnwrapPtr(obj), rfi, qn, fn)); }
+static_inline void *dtcVaGetCacheNamePtr(dtVal obj,
+		dtcField *rfi, char *qn, char *fn)
+	{ return(BGBDTC_GetCacheNamePtr(dtvUnwrapPtr(obj), rfi, qn, fn)); }
+
+static_inline void dtcSetCacheNameI(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn, s32 v)
+	{ BGBDTC_SetCacheNameI(obj, rfi, qn, fn, v); }
+static_inline void dtcSetCacheNameL(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn, s64 v)
+	{ BGBDTC_SetCacheNameL(obj, rfi, qn, fn, v); }
+static_inline void dtcSetCacheNameF(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn, f32 v)
+	{ BGBDTC_SetCacheNameF(obj, rfi, qn, fn, v); }
+static_inline void dtcSetCacheNameD(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn, f64 v)
+	{ BGBDTC_SetCacheNameD(obj, rfi, qn, fn, v); }
+static_inline void dtcSetCacheNameA(dtcObject obj,
+		dtcField *rfi, char *qn, char *fn, dtVal v)
+	{ BGBDTC_SetCacheNameA(obj, rfi, qn, fn, v); }
+
+static_inline void dtcVaSetCacheNameI(dtVal obj,
+		dtcField *rfi, char *qn, char *fn, s32 v)
+	{ BGBDTC_SetCacheNameI(dtvUnwrapPtr(obj), rfi, qn, fn, v); }
+static_inline void dtcVaSetCacheNameL(dtVal obj,
+		dtcField *rfi, char *qn, char *fn, s64 v)
+	{ BGBDTC_SetCacheNameL(dtvUnwrapPtr(obj), rfi, qn, fn, v); }
+static_inline void dtcVaSetCacheNameF(dtVal obj,
+		dtcField *rfi, char *qn, char *fn, f32 v)
+	{ BGBDTC_SetCacheNameF(dtvUnwrapPtr(obj), rfi, qn, fn, v); }
+static_inline void dtcVaSetCacheNameD(dtVal obj,
+		dtcField *rfi, char *qn, char *fn, f64 v)
+	{ BGBDTC_SetCacheNameD(dtvUnwrapPtr(obj), rfi, qn, fn, v); }
+static_inline void dtcVaSetCacheNameA(dtVal obj,
+		dtcField *rfi, char *qn, char *fn, dtVal v)
+	{ BGBDTC_SetCacheNameA(dtvUnwrapPtr(obj), rfi, qn, fn, v); }
 
 typedef struct BGBDTC_X128_s BGBDTC_X128;
 

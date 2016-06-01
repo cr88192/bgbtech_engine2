@@ -189,6 +189,8 @@ BTEIFGL_API void *BGBDT_MM_AllocLLn(char *type, int size, char *fn, int ln)
 	tid=BGBDT_MM_GetIndexObjTypeName(type);
 	lid=BGBDT_MM_GetIndexObjLLn(fn, ln);
 	ptr=BGBDT_MM_AllocObject(tid, size, lid);
+	if(ptr)
+		memset(ptr, 0, size);
 	return(ptr);
 }
 
@@ -209,11 +211,12 @@ BTEIFGL_API void *BGBDT_MM_ReallocLLn(void *ptr, int size, char *fn, int ln)
 	objh=bptr;
 	tid=objh->ty&4095;
 	lid=BGBDT_MM_GetIndexObjLLn(fn, ln);
-	sz=objh->sz;
+	sz=objh->sz-sizeof(BGBDT_MM_ObjHead);
 	if(size<sz)sz=size;
 	
 	ptr1=(byte *)(objh+1);
 	ptr2=BGBDT_MM_AllocObject(tid, size, lid);
+	memset(ptr2, 0, size);
 	memcpy(ptr2, ptr1, sz);
 
 	BGBDT_MM_FreeObjectInner(bptr);
@@ -228,7 +231,7 @@ BTEIFGL_API int BGBDT_MM_GetSize(void *ptr)
 	bptr=BGBDT_MM_GetObjectPtrBase(ptr);
 	if(!bptr)return(0);
 	objh=bptr;
-	return(objh->sz);
+	return(objh->sz-sizeof(BGBDT_MM_ObjHead));
 }
 
 BTEIFGL_API int BGBDT_MM_GetTypeID(void *ptr)

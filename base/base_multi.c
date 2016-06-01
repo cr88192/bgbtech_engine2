@@ -23,6 +23,10 @@
 #include "inflate.c"
 #include "bufpng.c"
 
+#include "snd_adpcm.c"
+#include "snd_mixer.c"
+#include "snd_sample.c"
+
 #include "w32_glw.c"
 #include "w32_mouse.c"
 #include "w32_sound.c"

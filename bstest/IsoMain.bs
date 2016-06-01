@@ -1,21 +1,37 @@
 native int frgl_printf(cstring str, ...);
 native int clock();
 native int rand();
+native void IsoTest_GiveItem(int item);
+
+native int BGBDT_Sound_PlaySound(
+	cstring name, int vol, int att, int flag);
+native int BGBDT_Sound_ChanSetOriginF(
+	int id, float x, float y, float z);
+native int IsoTest_KillPlayer();
 
 public EntityBase2D[] world_entity;
 public int world_max_entity;
 
 public class misc_chest extends EntityBase2D {
 	int isOpen;
+	int hasItem;
 
 	public void spawn()
 	{
 		sprite_sz=#[32, 32];
 		radius=8;
-		if(rand()&1)
+//		if(rand()&1)
+		if(1)
 		{
 			isOpen=0;
 			sprite="sprites/isotest/chest_closed";
+
+//			if(!(rand()&3))
+			if(1)
+			{
+//				hasItem=1;
+				hasItem=(rand()&3)+((rand()&7)<<8);
+			}
 		}else
 		{
 			isOpen=1;
@@ -33,6 +49,12 @@ public class misc_chest extends EntityBase2D {
 
 	public void use(EntityBase2D other)
 	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound_dev/woodcreak", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+	
 //		isOpen=!isOpen;
 		if(isOpen)
 		{
@@ -43,6 +65,12 @@ public class misc_chest extends EntityBase2D {
 
 		sprite="sprites/isotest/chest_open";
 		isOpen=1;
+		
+		if(hasItem)
+		{
+			IsoTest_GiveItem(hasItem);
+			hasItem=0;
+		}
 	}
 }
 
@@ -68,7 +96,11 @@ public class player extends EntityBase2D {
 
 public class npc_elf extends EntityBase2D {
 	static NpcDialogBox diag0, diag1, diag2;
+	static NpcDialogBox diag3, diag4, diag5;
+	static NpcDialogBox diag6, diag7, diag8;
 	static bool isInit=false;
+	byte elfty;
+	byte pester;
 	
 	public static void init()
 	{
@@ -81,13 +113,17 @@ public class npc_elf extends EntityBase2D {
 		diag0=new NpcDialogBox;
 		diag1=new NpcDialogBox;
 		diag2=new NpcDialogBox;
+		diag3=new NpcDialogBox;
+		diag4=new NpcDialogBox;
+		diag5=new NpcDialogBox;
+		diag6=new NpcDialogBox;
 
 		diag0.face1="sprites/elf/elfface0_happy0";
 		diag0.face2="sprites/elf/elfface0_cheer0";
 		diag0.text=
 """
 Greetings! I am an Elf.
-Elves are a common resident here.
+We Elves are a common resident here.
 """;
 		diag0.options=[
 			"Ask about elves.",
@@ -99,11 +135,11 @@ Elves are a common resident here.
 		diag1.face2="sprites/elf/elfface0_cheer0";
 		diag1.text=
 """
-Elves are a common resident here.
+We Elves are a common resident here.
 Here, being, of course, the polar region.
-The polar region is a space 'inside' of what you think of as
-the North and South poles.
-In effect, an alternate Earth which occupies the same physical space.
+The polar region is a space 'inside' of what you may think of as
+the North and South poles. In effect, here is an alternate Earth
+which occupies the same physical space as your Earth.
 """;
 		diag1.options=["Return."];
 		diag1.optchain=[diag0, diag0, null, null, null];
@@ -114,9 +150,55 @@ In effect, an alternate Earth which occupies the same physical space.
 """
 Why do you ask about goats?
 We must never speak of goats!
+Though there is Santa, we may speak of Santa.
 """;
-		diag2.options=["Return."];
-		diag2.optchain=[diag0, diag0, null, null, null];
+		diag2.options=["Return.", "Santa?"];
+		diag2.optchain=[diag0, diag0, diag3, null, null];
+
+
+		diag3.face1="sprites/elf/elfface0_happy0";
+		diag3.face2="sprites/elf/elfface0_cheer0";
+		diag3.text=
+"""
+The person you know as Santa is the one who rules over this place.
+He is the one you must find if you hope to return to your own world.
+
+Unlike Elves and Humans, Santa knows many things, and he is the one
+who is able to travel between worlds. Though make no mistake, Santa is
+neither Elf nor Human.
+""";
+		diag3.options=["Return."];
+		diag3.optchain=[diag0, diag0, null, null, null];
+
+
+		diag4.face1="sprites/elf/elfface1_happy0";
+		diag4.face2="sprites/elf/elfface1_cheer0";
+		diag4.text=
+"""
+Hurry on your way!
+Find Santa, he has everything you need!
+""";
+		diag4.options=["Return."];
+		diag4.optchain=[null, null, null, null, null];
+
+
+		diag5.face1="sprites/elf/elfface0_rshappy0";
+		diag5.face2="sprites/elf/elfface0_rscheer0";
+		diag5.text=
+"""
+Flesh! Flesh! FLESH!
+You have flesh! Come here, let me have a taste!
+Come on, it will only hurt for a moment!
+""";
+		diag5.options=["Return!"];
+		diag5.optchain=[null, null, null, null, null];
+
+
+		diag6.face1="sprites/elf/elfface0_unhappy0";
+		diag6.face2="sprites/elf/elfface0_shock0";
+		diag6.text="Don't you have something better to be doing?";
+		diag6.options=["Talk Anyways."];
+		diag6.optchain=[null, diag0, null, null, null];
 	}
 
 	public void spawn()
@@ -126,6 +208,20 @@ We must never speak of goats!
 		sprite_sz=#[32, 64];
 		radius=8;
 		sprite="sprites/elf/elf0_1";
+		elfty=0;
+		
+		if(!(rand()&3))
+		{
+			sprite="sprites/elf/elf1_0";
+			elfty=1;
+
+			if(!(rand()&3))
+			{
+				sprite="sprites/elf/elf0_r0";
+				elfty=2;
+			}
+		}
+		
 	}
 
 	public void tick()
@@ -138,6 +234,35 @@ We must never speak of goats!
 
 	public void use(EntityBase2D other)
 	{
+		int i;
+		pester++;
+	
+		if(elfty==2)
+		{
+			if(pester>2)
+			{
+				i=BGBDT_Sound_PlaySound("sound_dev/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+				IsoTest_KillPlayer();
+				return;
+			}
+		
+			IsoTest_SetDialog(diag5);
+			return;
+		}
+
+		if(pester>2)
+		{
+			IsoTest_SetDialog(diag6);
+			return;
+		}
+
+		if(elfty==1)
+		{
+			IsoTest_SetDialog(diag4);
+			return;
+		}
+	
 		IsoTest_SetDialog(diag0);
 //		sprite="sprites/isotest/chest_open";
 //		isOpen=1;

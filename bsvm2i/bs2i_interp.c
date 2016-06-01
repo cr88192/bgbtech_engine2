@@ -66,6 +66,10 @@ BTEIFGL_API BSVM2_Context *BSVM2_Interp_AllocPoolContext(void)
 
 BTEIFGL_API void BSVM2_Interp_FreePoolContext(BSVM2_Context *ctx)
 {
+//	if(ctx->tstackref!=0)
+//		*(int *)-1=-1;
+
+	ctx->tstackref=0;
 	ctx->next=bsvm2_interp_freepoolctx;
 	bsvm2_interp_freepoolctx=ctx;
 }
@@ -177,6 +181,60 @@ BTEIFGL_API BSVM2_Trace *BSVM2_Interp_SetupMethodCallVM(
 	tr=BS2I_ImageGetFuncTrace(vi);
 	ctx->trace=tr;
 	return(tr);
+}
+
+BTEIFGL_API int BSVM2_Interp_SetupCacheMethodCallVM(
+	BSVM2_Context *ctx, dtVal self,
+	dtcMethod *rfi, BSVM2_Value *args,
+	char *qn, char *fn, char *sig)
+{
+	dtcClass cls;
+	dtcMethod fi;
+	dtVal sf;
+	void *sfp;
+
+	fi=*rfi;
+	if(!fi)
+	{
+		cls=BGBDTC_LookupClassQName(qn);
+		if(sig)
+			{ fi=BGBDTC_LookupClassSlotNameSig(cls, fn, sig); }
+		else
+			{ fi=BGBDTC_LookupClassSlotName(cls, fn); }
+		*rfi=fi;
+		
+		if(!fi)
+			return(-1);
+	}
+
+	sf=dtcVaGetA(self, fi);
+	sfp=dtvUnwrapPtr(sf);
+	if(!sfp)
+		{ return(-1); }
+	BSVM2_Interp_SetupMethodCallVM(ctx, sfp, self, args);
+	return(0);
+}
+
+BTEIFGL_API int BSVM2_Interp_CallCacheMethodVM(dtVal self,
+	dtcMethod *rfi, BSVM2_Value *args,
+	char *qn, char *fn, char *sig, int lim)
+{
+	BSVM2_Context *vctx;
+	int i;
+
+	vctx=BSVM2_Interp_AllocPoolContext();
+	i=BSVM2_Interp_SetupCacheMethodCallVM(vctx,
+		self, rfi, args, qn, fn, sig);
+
+	if(i<0)
+	{
+		BSVM2_Interp_FreePoolContext(vctx);
+		return(i);
+	}
+
+	i=BSVM2_Interp_RunContext(vctx, lim);
+	BSVM2_Interp_FreePoolContext(vctx);
+	return(i);
 }
 
 BTEIFGL_API BSVM2_Value *BSVM2_Interp_GetGlobalValue(BSVM2_ImageGlobal *vi)
@@ -310,5 +368,7 @@ BTEIFGL_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim)
 		{ tr=tr->Run(ctx->frame, tr); }
 	if(tr)
 		{ ctx->trace=tr; }
+	if((l<=0) && !ctx->status)
+		return(BSVM2_EXS_RUNLIMIT);
 	return(ctx->status);
 }

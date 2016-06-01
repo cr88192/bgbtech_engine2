@@ -308,8 +308,10 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bgbdt_bsvm21.h>
 
 #include <bteifgl_texmat.h>
+#include <bgbdt_sound.h>
 
 #include <bteifgl_chunk.h>
+
 
 #include <bteifgl_wire.h>
 #include <bteifgl_msp430.h>

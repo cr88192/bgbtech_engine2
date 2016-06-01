@@ -20,7 +20,28 @@ int BS2C_CompileErrorGetSourceLine(BS2CC_CompileContext *ctx)
 	return((fi<<20)|(ctx->srcln));
 }
 
-void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
+int BS2C_CompileErrorIndexName(
+	BS2CC_CompileContext *ctx, char *name)
+{
+	int fi;
+	int i;
+	
+	for(i=0; i<ctx->nsrcnixs; i++)
+	{
+		if(!strcmp(ctx->srcnix[i], name))
+			break;
+	}
+	if(i>=ctx->nsrcnixs)
+	{
+		i=ctx->nsrcnixs++;
+		ctx->srcnix[i]=BS2P_StrSym(ctx, name);
+	}
+	fi=i;
+	
+	return(fi);
+}
+
+int BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
 {
 	int i, j;
 	
@@ -34,9 +55,11 @@ void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
 			i=ctx->ncwarn++;
 			ctx->cwarn[i]=errn;
 			ctx->cwarnln[i]=j;
-			return;
+			ctx->cwarnpix[i]=ctx->ncwparm;
+
+			return(i);
 		}
-		return;
+		return(-1);
 	}
 	
 	if((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_ERROR)
@@ -46,15 +69,16 @@ void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
 			i=ctx->ncerr++;
 			ctx->cerr[i]=errn;
 			ctx->cerrln[i]=j;
-			return;
+			ctx->cerrpix[i]=ctx->ncwparm;
+			return(i);
 		}
 		
 		if(!ctx->ncfatal)
 		{
 			BS2C_CompileError(ctx, BS2CC_ERRN_FATALERRCNT);
-			return;
+			return(-1);
 		}
-		return;
+		return(-1);
 	}
 
 	if((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_FATAL)
@@ -64,9 +88,12 @@ void BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
 			i=ctx->ncfatal++;
 			ctx->cfatal[i]=errn;
 			ctx->cfatalln[i]=j;
-			return;
+			return(i);
 		}
+		return(-1);
 	}
+	
+	return(-1);
 }
 
 void BS2C_CaseError(BS2CC_CompileContext *ctx)
@@ -91,7 +118,10 @@ void BS2C_ErrDivZero(BS2CC_CompileContext *ctx)
 
 void BS2C_ErrNoDecl(BS2CC_CompileContext *ctx, char *name)
 {
-	BS2C_CompileError(ctx, BS2CC_ERRN_ERRNODECL);
+	int i, j, k;
+	i=BS2C_CompileError(ctx, BS2CC_ERRN_ERRNODECL);
+	j=BS2C_CompileErrorIndexName(ctx, name);
+	ctx->cwparm[ctx->ncwparm++]=j;
 }
 
 void BS2C_ErrTooFewArgs(BS2CC_CompileContext *ctx)
@@ -112,6 +142,20 @@ void BS2C_ErrStackMisalign(BS2CC_CompileContext *ctx)
 void BS2C_ErrStackUnderflow(BS2CC_CompileContext *ctx)
 {
 	BS2C_CompileError(ctx, BS2CC_ERRN_ERRSTACKUFLOW);
+}
+
+void BS2C_WarnImplicitConv(BS2CC_CompileContext *ctx, int dty, int sty)
+{
+	BS2C_CompileError(ctx, BS2CC_ERRN_CONVIMPLICIT);
+	ctx->cwparm[ctx->ncwparm++]=dty;
+	ctx->cwparm[ctx->ncwparm++]=sty;
+}
+
+void BS2C_WarnNarrowingConv(BS2CC_CompileContext *ctx, int dty, int sty)
+{
+	BS2C_CompileError(ctx, BS2CC_ERRN_CONVNARROW);
+	ctx->cwparm[ctx->ncwparm++]=dty;
+	ctx->cwparm[ctx->ncwparm++]=sty;
 }
 
 BS2CC_VarInfo *BS2C_AllocVarInfo(BS2CC_CompileContext *ctx)
@@ -531,37 +575,97 @@ BTEIFGL_API void BS2C_CompileFuncs(
 	}
 }
 
+BTEIFGL_API char *BS2C_ErrStringForMsg(
+	BS2CC_CompileContext *ctx, int ix, int cn, int pix)
+{
+	char tb[256];
+	char *s;
+
+	switch(cn)
+	{
+	case BS2CC_ERRN_CASEERROR:
+		s="(Internal) Unhandled Edge Case."; break;
+	case BS2CC_ERRN_STUBERROR:
+		s="(Internal) Stub Called."; break;
+	case BS2CC_ERRN_DIVZERROR:
+		s="Value divided by zero."; break;
+
+	case BS2CC_ERRN_ERRNODECL:
+		s="Undeclared Variable."; break;
+	case BS2CC_ERRN_ERRTOOFEWARGS:
+		s="Too few arguments for call."; break;
+	case BS2CC_ERRN_ERRTOOMANYARGS:
+		s="Too many arguments for call."; break;
+
+	case BS2CC_ERRN_ERRBADCONV:
+		s="Invalid Type Conversion."; break;
+	case BS2CC_ERRN_ERRCANTDEREF:
+		s="Type can't be dereferenced."; break;
+
+	case BS2CC_ERRN_ERRSTACKMISAL:
+		s="(Internal) Stack Misalignment Detected."; break;
+	case BS2CC_ERRN_ERRSTACKUFLOW:
+		s="(Internal) Stack Underflow Detected."; break;
+	
+	case BS2CC_ERRN_CONSTRANGE:
+		s="Constant out of range."; break;
+	case BS2CC_ERRN_CONVIMPLICIT:
+		sprintf(tb, "Implicit type conversion '%s'->'%s'.",
+			BS2C_GetTypeNameStr(ctx, ctx->cwparm[pix+1]),
+			BS2C_GetTypeNameStr(ctx, ctx->cwparm[pix+0]));
+		s=frgl_rstrdup(tb); break;
+	case BS2CC_ERRN_CONVNARROW:
+		sprintf(tb, "Implicit conversion '%s'->'%s' may result in loss.",
+			BS2C_GetTypeNameStr(ctx, ctx->cwparm[pix+1]),
+			BS2C_GetTypeNameStr(ctx, ctx->cwparm[pix+0]));
+		s=frgl_rstrdup(tb); break;
+
+	default:
+		s="(Internal) Unknown"; break;
+	}
+	return(s);
+}
+
 BTEIFGL_API void BS2C_DumpErrors(
 	BS2CC_CompileContext *ctx)
 {
 	int i, j, k;
 	
-	if(!ctx->ncerr && !ctx->ncfatal)
+	if(ctx->ncwarn && !ctx->ncerr && !ctx->ncfatal)
 	{
 		for(i=0; i<ctx->ncwarn; i++)
 		{
-			printf("%d:%d %04X\n",
+			printf("%d:%d %04X %s\n",
 				(ctx->cwarnln[i]>>20), ctx->cwarnln[i]&0xFFFFF,
-				ctx->cwarn[i]);
+				ctx->cwarn[i],
+				BS2C_ErrStringForMsg(ctx, i,
+					ctx->cwarn[i], ctx->cwarnpix[i]));
 		}
 		printf("%d warnings\n", ctx->ncwarn);
 	}
 	
-	for(i=0; i<ctx->ncerr; i++)
+	if(ctx->ncerr)
 	{
-		printf("%d:%d %04X\n",
-			(ctx->cerrln[i]>>20), ctx->cerrln[i]&0xFFFFF,
-			ctx->cerr[i]);
+		for(i=0; i<ctx->ncerr; i++)
+		{
+			printf("%d:%d %04X %s\n",
+				(ctx->cerrln[i]>>20), ctx->cerrln[i]&0xFFFFF,
+				ctx->cerr[i],
+				BS2C_ErrStringForMsg(ctx, i,
+					ctx->cerr[i], ctx->cerrpix[i]));
+		}
+		printf("%d errors\n", ctx->ncerr);
 	}
-	printf("%d errors\n", ctx->ncerr);
 
 	if(ctx->ncfatal)
 	{
 		for(i=0; i<ctx->ncfatal; i++)
 		{
-			printf("%d:%d %04X\n",
+			printf("%d:%d %04X %s\n",
 				(ctx->cfatalln[i]>>20), ctx->cfatalln[i]&0xFFFFF,
-				ctx->cfatal[i]);
+				ctx->cfatal[i],
+				BS2C_ErrStringForMsg(ctx, i,
+					ctx->cfatal[i], 0));
 		}
 		printf("%d fatal errors\n", ctx->ncfatal);
 	}
@@ -645,6 +749,9 @@ BTEIFGL_API int BS2C_CompileModuleList(
 	{
 		BS2C_DisAsmFuncs(ctx->dbgprn, ctx);
 	}
+
+	BS2C_DumpErrors(ctx);
+
 	return(0);
 }
 

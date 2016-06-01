@@ -267,6 +267,11 @@ Casting a value to a given type will sign or zero extend the value to be consist
 Integer operations may not promote to a floating-point type unless one or both operands are floating point. Mixing an integer and floating point type is to promote to double.
 
 
+Float and Double will have some builtin properties:
+* sin, cos, tan, rcp, sqrt, ssqrt, abs, log, exp, floor, ceil
+** These compute the associated mathematical function on the type.
+** The ssqrt operation returns a sign-folded sqrt (x>=0)?sqrt(x):-sqrt(-x).
+
 
 === String/Array/Pointer Operators ===
 
@@ -299,6 +304,12 @@ The '*' unary operator may access the first element of an array or string. In mo
 Literal strings will be constant and immutable.
 
 
+Many types will possess a built-in 'toString' property which will convert the type to a string-based serialization.
+
+The string will posess several built-in properties for parsing strings:
+* toInt, toUInt, toLong, toULong, toFloat, toDouble.
+
+
 === Object/Array Lifetime ===
 
 The lifetime for raw 'struct' variables will be bounded to that of the scope in which they are declared. Passing a struct will effectively copy its contents into a new struct instance. Passing a pointer or reference to a struct will have no effect on its lifetime.
@@ -317,6 +328,8 @@ Likewise:
 * type[] arr=const [X, Y, Z];
 ** Creates an array initialized to an immutable constant array.
 ** Attempts to modify the array's contents are to throw an exception.
+
+Objects may be allocated inside of "memory regions", at which point the lifetime of the object will be bound to that of the region it was allocated from. Once a region is destroyed, all objects existing within that region will be destroyed.
 
 
 === Tokens ===
@@ -421,29 +434,48 @@ ExpressionLiteral:
 ** Identifier
 * #:"identifier"
 ** Keyword
+
 * "chars"
 ** String Literal
+
 * 'char'
 ** Character Literal
+
 * ''integer'' ( ''typesuffix'' )
 * ''real'' ( ''typesuffix'' )
+** Number Literal
+
 * ''name''
+
 * """ ... """
 ** Large String
+
 * '''{''' ( ''name'' ''':''' ''value'' ( ''',''' ) )* '''}''' ( ''':''' ''type'' )
 ** Dynamic Object
+
 * '''[''' ''exprlist'' ''']''' ( ''':''' ''type'' )
+* '''[''' ''exprlist'' ''']''' ( ''suffix'' )
 ** Array
-* '''#{''' exprlist '''}'''
-** List
+
+* / '''#{''' exprlist '''}'''
+** List (Dropped)
+
 * '''(''' ''Expression'' ''')'''
+** Parenthesized Expression
+
 * '''#[''' ''exprlist'' ''']''' ( ''':''' ''type'' )
+* '''#[''' ''exprlist'' ''']''' ( ''suffix'' )
 ** Vector
 
-** Parenthesized Expression
 * '''function''' ( ''name'' ) '''(''' ''argslist '' ''')''' ( ''':''' ''type'' ) ''body''
 ** Closure
+
 * '''new''' ''typeexpression'' ( '''(''' ''argslist'' ''')''' )
+** Create new object instance or array (Main Heap).
+
+* ''regionexpr'' '''.new''' ''typeexpression'' ( '''(''' ''argslist'' ''')''' )
+** Create new object instance or array (Region Allocator).
+
 * '''delete''' ''exprlist''
 * '''sizeof''' ''expression''
 
@@ -539,9 +571,11 @@ Modifier:
 * '''abstract'''
 ** Class: May not be directly instantiated.
 ** Method: To be supplied by a derived class.
+
 * '''async'''
 ** Method: Calls will be non-blocking.
 ** Block/Statement: Will execute asynchronously.
+
 * '''const'''
 ** Variable:
 *** Value types will be constant and immutable.
@@ -549,51 +583,68 @@ Modifier:
 **** However, the variable itself may still be modifiable.
 ** Expression: Expression's value should be precomputed and immutable.
 *** Used with arrays/lists to indicate arrays with immutable contents.
+
 * '''delegate'''
 ** Variable: Contained bindings may be seen from the containing scope.
 ** Import: Contents of the imported package will also be visible to those who import the current package.
+
 * '''dynamic'''
 ** Class: Class layout may be extended at run-time.
 ** Variable: Use dynamic scoping.
+
 * '''extern'''
 ** Import: Indicates modules that should be loaded.
+
 * '''final'''
 ** Class: May not be inherited from.
 ** Method: May not be overriden.
 ** Variable: is immutable.
 *** Final instance variables may be modified in constructors.
+
+* '''inline'''
+** Function: Compiler or VM should inline this function.
+
 * '''native'''
 ** Package: Indicates contents to be exported to native code.
 ** Import: Indicates external libraries to be imported.
 ** Struct: Indicates struct may be shared with native code.
 ** Function: Indicates a function to be imported/exported.
+
 * '''private'''
 ** Declaration may only be used within the current scope.
+
 * '''protected'''
 ** Declaration may only be used within the current scope, or from derived scope.
+
 * '''public'''
 ** Declaration may be seen anywhere.
+
 * '''static'''
 ** Method: Is tied to the class, rather than an instance.
 ** Class Variable: Holds value with the class, shared between instances.
 ** Local Variable: Values remains between invocations.
+
 * '''synchronized'''
 ** Method: Object is locked for the execution of this method.
 ** Block: Will be a critical section.
+
 * '''typedef'''
 ** Variable: Declares an alias for a given type.
 ** Method: Declares an type representing the method's signature.
-* '''virtual'''
+
+* / '''virtual'''
 ** Method: VM is to allow this method to be overriden.
 *** A derived class may not override a method unless the original is virtual.
 *** Within a chain of overriden classes, the virtual may be implicit.
 *** '''final''' will override '''virtual'''
+** (Drop) This is implicit, use 'final' for non-overload case.
+
 * '''volatile'''
 ** Indicates that the variable may be modified asynchronously.
 ** This causes changes to a variable to be immediately visible between threads.
 ** Other variables may have their values cached temporarily.
 
-Special Number Modifiers
+Special Number Modifiers (Possible)
 * '''ltlendian'''
 ** Number is little endian.
 ** This modifier will only apply to struct members.
@@ -608,34 +659,44 @@ Special Number Modifiers
 *** Will add an implicit range clamp when values are stored, with clamps narrower than the range of the type.
 *** This will not have an effect on the results of intermediate calculations.
 
+
 TypeName:
 * ''qname''
 ** ''classname''
 ** ''structname''
+
 * '''int''' (32-bit, signed)
 ** '''uint''' (32-bit, unsigned)
+
 * '''long''' (64-bit, unsigned)
 ** '''ulong''' (64-bit, unsigned)
+
 * '''nlong''' (32/64-bit)
 ** '''unlong''' (32/64-bit, unsigned)
 ** Size of nlong and unlong will depend on the native C 'long' type for the target.
 ** This need not necessarily be the size of a pointer.
+
 * '''float''' (32-bit)
 * '''double''' (64-bit)
 * '''byte''' (8-bit)
 ** '''sbyte''' (8-bit, signed)
+
 * '''short''' (16-bit, signed)
 ** '''ushort''' (16-bit, unsigned)
+
 * '''char''' (16-bit, unsigned)
 ** '''char8''' (8-bit, unsigned)
 ** '''char16''' (16-bit, unsigned)
 ** '''char32''' (32-bit, signed)
+
 * '''void'''
 * '''variant'''
 ** Dynamically typed value.
+
 * 64-bit vector types
 ** '''vec2f'''
 ** '''fcomplex'''
+
 * 128-bit types
 ** '''int128'''
 ** '''uint128'''
@@ -649,10 +710,13 @@ TypeName:
 TypeExpression:
 * ''typename''
 ** QName identifying a class, struct, or typedef.
+
 * '''*''' ''typeexpression''
 ** Pointer to a type.
+
 * '''&''' ''typeexpression''
 ** Reference to a type.
+
 * ''typeexpression'' '[' ']'
 * ''typeexpression'' '[' ''size'' ']'
 * '''typeof''' ''expression''

@@ -950,10 +950,15 @@ void BIPRO_ProbeTst(byte *buf, int sz)
 
 void BIPRO_UpdateDllsOS(void *hmod)
 {
+	static int rec=0;
 	HMODULE hdl;
 	DWORD dwPid;
 	HANDLE hSnap;
 	MODULEENTRY32 me32;
+
+	if(rec)
+		return;
+	rec++;
 
 	hdl=(HMODULE)hmod;
 
@@ -968,9 +973,9 @@ void BIPRO_UpdateDllsOS(void *hmod)
 		{
 			while(1)
 			{
-				printf("(MOD) %s %p %d\n",
-					me32.szModule,
-					me32.modBaseAddr, me32.modBaseSize);
+//				printf("(MOD) %s %p %d\n",
+//					me32.szModule,
+//					me32.modBaseAddr, me32.modBaseSize);
 
 //				BIPRO_ProbeTst(me32.modBaseAddr, me32.modBaseSize);
 
@@ -988,6 +993,7 @@ void BIPRO_UpdateDllsOS(void *hmod)
 		}
 		CloseHandle(hSnap);
 	}
+	rec--;
 }
 
 int BIPRO_InitDllsOS()
@@ -1030,7 +1036,7 @@ int BIPRO_LoadDynamicOS(char *name)
 
 	if(hdl)
 	{
-		printf("BIPRO_LoadDynamicOS: Pass Load lib %s\n", name);
+//		printf("BIPRO_LoadDynamicOS: Pass Load lib %s\n", name);
 
 		i=bipro_numdll++;
 		bipro_hmodname[i]=bipro_strdup(name);

@@ -976,6 +976,16 @@ void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr)
 		return;
 	if(!strcmp(tag, "label"))
 		return;
+
+	if(!strcmp(tag, "postdec"))
+		return;
+	if(!strcmp(tag, "postinc"))
+		return;
+	if(!strcmp(tag, "predec"))
+		return;
+	if(!strcmp(tag, "preinc"))
+		return;
+
 	if(!strcmp(tag, "return"))
 		return;
 	if(!strcmp(tag, "throw"))

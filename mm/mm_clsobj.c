@@ -744,3 +744,68 @@ BTEIFGL_API dtcObject BGBDTC_AllocClassInstance(
 	*(void **)ptr=cls;
 	return(ptr);
 }
+
+#define DTC_CACHENAME_PFX(RV)							\
+	dtcClass cls; dtcField fi; fi=*rfi;					\
+	if(!fi)												\
+	{	cls=BGBDTC_LookupClassQName(qn);				\
+		fi=BGBDTC_LookupClassSlotName(cls, fn);			\
+		if(!fi)return(RV);								\
+		*rfi=fi;	}
+
+
+BTEIFGL_API s32 BGBDTC_GetCacheNameI(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn)
+{	DTC_CACHENAME_PFX(0)
+	return(fi->GetI(obj, fi));	}
+BTEIFGL_API s64 BGBDTC_GetCacheNameL(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn)
+{	DTC_CACHENAME_PFX(0)
+	return(fi->GetL(obj, fi));	}
+BTEIFGL_API f32 BGBDTC_GetCacheNameF(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn)
+{	DTC_CACHENAME_PFX(0.0)
+	return(fi->GetF(obj, fi));	}
+BTEIFGL_API f64 BGBDTC_GetCacheNameD(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn)
+{	DTC_CACHENAME_PFX(0.0)
+	return(fi->GetD(obj, fi));	}
+
+BTEIFGL_API dtVal BGBDTC_GetCacheNameA(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn)
+{	DTC_CACHENAME_PFX(DTV_UNDEFINED)
+	return(fi->GetA(obj, fi));	}
+
+BTEIFGL_API void *BGBDTC_GetCacheNamePtr(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn)
+{
+	DTC_CACHENAME_PFX(NULL)
+	return(fi->GetPtr(obj, fi));
+}
+
+
+BTEIFGL_API int BGBDTC_SetCacheNameI(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, s32 val)
+{	DTC_CACHENAME_PFX(-1)
+	fi->SetI(obj, fi, val);
+	return(0); }
+BTEIFGL_API int BGBDTC_SetCacheNameL(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, s64 val)
+{	DTC_CACHENAME_PFX(-1)
+	fi->SetL(obj, fi, val);
+	return(0); }
+BTEIFGL_API int BGBDTC_SetCacheNameF(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, f32 val)
+{	DTC_CACHENAME_PFX(-1)
+	fi->SetF(obj, fi, val);
+	return(0); }
+BTEIFGL_API int BGBDTC_SetCacheNameD(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, f64 val)
+{	DTC_CACHENAME_PFX(-1)
+	fi->SetD(obj, fi, val);
+	return(0); }
+BTEIFGL_API int BGBDTC_SetCacheNameA(dtcObject obj,
+	dtcField *rfi, char *qn, char *fn, dtVal val)
+{	DTC_CACHENAME_PFX(-1)
+	fi->SetA(obj, fi, val);
+	return(0); }

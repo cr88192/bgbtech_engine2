@@ -2,6 +2,9 @@ native int frgl_printf(cstring str, ...);
 native int clock();
 native int rand();
 native void IsoTest_GiveItem(int item);
+native int IsoTest_TakeItem(int item);
+native int IsoTest_CheckItem(int item);
+native int IsoTest_SetBgm(cstring bgm);
 
 native int BGBDT_Sound_PlaySound(
 	cstring name, int vol, int att, int flag);
@@ -11,6 +14,8 @@ native int IsoTest_KillPlayer();
 
 public EntityBase2D[] world_entity;
 public int world_max_entity;
+
+public bool world_isHostile=false;
 
 public class misc_chest extends EntityBase2D {
 	int isOpen;
@@ -30,7 +35,8 @@ public class misc_chest extends EntityBase2D {
 			if(1)
 			{
 //				hasItem=1;
-				hasItem=(rand()&3)+((rand()&7)<<8);
+//				hasItem=(rand()&3)+((rand()&7)<<8);
+				hasItem=(rand()%6)+((rand()&7)<<8);
 			}
 		}else
 		{
@@ -215,7 +221,15 @@ Come on, it will only hurt for a moment!
 			sprite="sprites/elf/elf1_0";
 			elfty=1;
 
-			if(!(rand()&3))
+//			if(!(rand()&3))
+//			if(!(rand()&3) &&
+//				((origin.x>(32*64)) || (origin.y>(32*64))))
+//			if(!(rand()&3) &&
+//				(origin.x<(32*64)) && (origin.y<(32*64)))
+//			if((origin.x<(48*64)) && (origin.y<(48*64)) &&
+//				!(rand()&3))
+			if(!(rand()&3) &&
+				((origin.x>(32*64))|(origin.y>(32*64))))
 			{
 				sprite="sprites/elf/elf0_r0";
 				elfty=2;
@@ -239,6 +253,14 @@ Come on, it will only hurt for a moment!
 	
 		if(elfty==2)
 		{
+			if(!(IsoTest_TakeItem(4)|IsoTest_TakeItem(517)))
+			{
+				i=BGBDT_Sound_PlaySound("sound_dev/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+				IsoTest_KillPlayer();
+				return;
+			}
+		
 			if(pester>2)
 			{
 				i=BGBDT_Sound_PlaySound("sound_dev/chop3", 256, 2, 0);
@@ -269,6 +291,202 @@ Come on, it will only hurt for a moment!
 	}
 }
 
+
+
+
+public class npc_santa extends EntityBase2D {
+	static NpcDialogBox diag0, diag1, diag2;
+	static NpcDialogBox diag3, diag4, diag5;
+	static NpcDialogBox diag6, diag7, diag8;
+	static bool isInit=false;
+	static bool realSantaSpawned=false;
+	byte elfty;
+	byte pester;
+	
+	public static void init()
+	{
+		if(isInit)
+			return;
+		isInit=true;
+		
+		frgl_printf("Santa Init\n");
+
+		diag0=new NpcDialogBox;
+		diag1=new NpcDialogBox;
+		diag2=new NpcDialogBox;
+		diag3=new NpcDialogBox;
+		diag4=new NpcDialogBox;
+		diag5=new NpcDialogBox;
+		diag6=new NpcDialogBox;
+
+		diag0.face1="sprites/santa/santaface0_open";
+		diag0.face2="sprites/santa/santaface0_close";
+		diag0.text=
+"""
+Greetings! I am Santa.
+Mmm, yes, yummie cookies.
+Now lets discuss your little problem here!
+""";
+//		diag0.options=[
+//			"Ask about elves.",
+//			"Ask about goats.",
+//			"Goodbye."];
+//		diag0.optchain=[null, diag1, diag2, null, null, null];
+
+/*
+		diag1.face1="sprites/santa/santaface0_open";
+		diag1.face2="sprites/santa/santaface0_close";
+		diag1.text=
+"""
+We Elves are a common resident here.
+Here, being, of course, the polar region.
+The polar region is a space 'inside' of what you may think of as
+the North and South poles. In effect, here is an alternate Earth
+which occupies the same physical space as your Earth.
+""";
+		diag1.options=["Return."];
+		diag1.optchain=[diag0, diag0, null, null, null];
+
+		diag2.face1="sprites/santa/santaface0_open";
+		diag2.face2="sprites/santa/santaface0_close";
+		diag2.text=
+"""
+Why do you ask about goats?
+We must never speak of goats!
+Though there is Santa, we may speak of Santa.
+""";
+		diag2.options=["Return.", "Santa?"];
+		diag2.optchain=[diag0, diag0, diag3, null, null];
+
+
+		diag3.face1="sprites/santa/santaface0_open";
+		diag3.face2="sprites/santa/santaface0_close";
+		diag3.text=
+"""
+The person you know as Santa is the one who rules over this place.
+He is the one you must find if you hope to return to your own world.
+
+Unlike Elves and Humans, Santa knows many things, and he is the one
+who is able to travel between worlds. Though make no mistake, Santa is
+neither Elf nor Human.
+""";
+		diag3.options=["Return."];
+		diag3.optchain=[diag0, diag0, null, null, null];
+*/
+
+
+		diag4.face1="sprites/santa/santaface0_open";
+		diag4.face2="sprites/santa/santaface0_close";
+		diag4.text=
+"""
+Bring me some milk and cookies, and we can discuss your problem.
+""";
+		diag4.options=["Return."];
+		diag4.optchain=[null, null, null, null, null];
+
+
+		diag5.face1="sprites/santa/santaface0_open";
+		diag5.face2="sprites/santa/santaface0_close";
+		diag5.text=
+"""
+Come here. Come sit on my lap.
+Oh, you smell good, let me have a taste of your milk and cookies!
+Come now, rest here for a moment, it will all be over soon!
+""";
+		diag5.options=["Return!"];
+		diag5.optchain=[null, null, null, null, null];
+
+		diag6.face1="sprites/santa/santaface0_open";
+		diag6.face2="sprites/santa/santaface0_close";
+		diag6.text="Don't you have anything better to be doing?";
+		diag6.options=["Talk Anyways."];
+		diag6.optchain=[null, diag4, null, null, null];
+	}
+
+	public void spawn()
+	{
+		init();
+	
+		sprite_sz=#[80, 80];
+		radius=12;
+		sprite="sprites/santa/SantaClown0_2";
+		elfty=0;
+		
+//		if(!realSantaSpawned && !(rand()&31))
+		if(!realSantaSpawned)
+		{
+			if(!(rand()&31))
+			{
+//				sprite="sprites/elf/elf1_0";
+				elfty=1;
+				realSantaSpawned=true;
+			}
+		}
+		
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+	}
+
+	public bool checkHasCookies(EntityBase2D other)
+	{
+		return(false);
+	}
+
+	public void use(EntityBase2D other)
+	{
+		int i;
+		pester++;
+	
+		if(elfty==0)
+		{
+			if(!(IsoTest_TakeItem(4)|IsoTest_TakeItem(517)))
+			{
+				i=BGBDT_Sound_PlaySound("sound_dev/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+				IsoTest_KillPlayer();
+				return;
+			}
+
+			if(pester>2)
+			{
+				i=BGBDT_Sound_PlaySound("sound_dev/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+				IsoTest_KillPlayer();
+				return;
+			}
+		
+			sprite="sprites/santa/SantaClown0_r2";
+			IsoTest_SetDialog(diag5);
+			return;
+		}
+
+		if(elfty==1)
+		{
+//			if(!checkHasCookies(other))
+			if(1)
+			{
+				if(pester>2)
+				{
+					IsoTest_SetDialog(diag6);
+					return;
+				}
+
+				IsoTest_SetDialog(diag4);
+				return;
+			}
+		
+			IsoTest_SetDialog(diag0);
+			return;
+		}
+	}
+}
+
 double accDt;
 
 public void update(double dt)
@@ -279,6 +497,17 @@ public void update(double dt)
 	if(accDt<0.04)
 		return;
 	accDt-=0.04;
+	
+	if(IsoTest_CheckItem((127<<8)|4) ||
+		IsoTest_CheckItem((127<<8)|5))
+	{
+//		IsoTest_SetBgm("sound_dev/pi0_amb1");
+		world_isHostile=true;
+	}else
+	{
+//		IsoTest_SetBgm("sound_dev/pi0_amb0");
+		world_isHostile=false;
+	}
 	
 	for(i=0; i<world_max_entity; i++)
 	{

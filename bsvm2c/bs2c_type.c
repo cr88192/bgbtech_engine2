@@ -21,6 +21,8 @@ int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty)
 		return(BSVM2_OPZ_ULONG);
 	if(ty==BS2CC_TYZ_BOOL)
 		return(BSVM2_OPZ_UBYTE);
+	if(ty==BS2CC_TYZ_HFLOAT)
+		return(BSVM2_OPZ_USHORT);
 
 //	if(ty==BS2CC_TYZ_VEC2F)
 //		return(BSVM2_OPZ_LONG);
@@ -31,19 +33,26 @@ int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty)
 int BS2C_GetTypeVecZ(BS2CC_CompileContext *ctx, int ty)
 {
 	if(ty==BS2CC_TYZ_VEC2F)
-		return(5);
+		return(BSVM2_OPVZ_V2F);
 	if(ty==BS2CC_TYZ_VEC3F)
-		return(7);
+		return(BSVM2_OPVZ_V3F);
 	if(ty==BS2CC_TYZ_VEC4F)
-		return(2);
+		return(BSVM2_OPVZ_V4F);
 	if(ty==BS2CC_TYZ_VEC2D)
-		return(3);
+		return(BSVM2_OPVZ_V2D);
 	if(ty==BS2CC_TYZ_QUATF)
-		return(2);
+		return(BSVM2_OPVZ_V4F);
 	if(ty==BS2CC_TYZ_FCPLX)
-		return(5);
+		return(BSVM2_OPVZ_V2F);
 	if(ty==BS2CC_TYZ_DCPLX)
-		return(3);
+		return(BSVM2_OPVZ_V2D);
+
+	if(ty==BS2CC_TYZ_INT128)
+		return(BSVM2_OPVZ_I128);
+	if(ty==BS2CC_TYZ_UINT128)
+		return(BSVM2_OPVZ_UI128);
+	if(ty==BS2CC_TYZ_FLOAT128)
+		return(BSVM2_OPVZ_F128);
 
 	return(-1);
 }
@@ -115,6 +124,7 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		case BS2CC_TYZ_STRING:	*t++='C'; *t++='s'; break;
 		case BS2CC_TYZ_CSTRING:	*t++='P'; *t++='c'; break;
 		case BS2CC_TYZ_BOOL:	*t++='b'; break;
+		case BS2CC_TYZ_HFLOAT:	*t++='k'; break;
 
 		case BS2CC_TYZ_VEC2F:	*t++='C'; *t++='a'; break;
 		case BS2CC_TYZ_VEC3F:	*t++='C'; *t++='b'; break;
@@ -171,7 +181,10 @@ char *BS2C_GetTypeNameStr(BS2CC_CompileContext *ctx, int ty)
 	{
 		i=al;
 		while(i--)
-			*t++='[]';
+		{
+			*t++='[';
+			*t++=']';
+		}
 		*t=0;
 	}else if((al>=5) && (al<=7))
 	{
@@ -230,6 +243,8 @@ char *BS2C_GetTypeNameStr(BS2CC_CompileContext *ctx, int ty)
 			strcpy(t, "cstring"); t+=strlen(t); break;
 		case BS2CC_TYZ_BOOL:
 			strcpy(t, "bool"); t+=strlen(t); break;
+		case BS2CC_TYZ_HFLOAT:
+			strcpy(t, "hfloat"); t+=strlen(t); break;
 
 		case BS2CC_TYZ_VEC2F:
 			strcpy(t, "vec2f"); t+=strlen(t); break;
@@ -362,6 +377,8 @@ int BS2C_TypeSmallFloatP(BS2CC_CompileContext *ctx, int ty)
 {
 	if(ty==BS2CC_TYZ_FLOAT)
 		return(1);
+	if(ty==BS2CC_TYZ_HFLOAT)
+		return(1);
 	if(BS2C_TypeSmallIntP(ctx, ty))
 		return(1);
 	return(0);
@@ -370,6 +387,8 @@ int BS2C_TypeSmallFloatP(BS2CC_CompileContext *ctx, int ty)
 int BS2C_TypeSmallDoubleP(BS2CC_CompileContext *ctx, int ty)
 {
 	if((ty==BS2CC_TYZ_FLOAT) || (ty==BS2CC_TYZ_DOUBLE))
+		return(1);
+	if(ty==BS2CC_TYZ_HFLOAT)
 		return(1);
 	if(BS2C_TypeSmallLongP(ctx, ty))
 		return(1);
@@ -548,6 +567,13 @@ int BS2C_TypeDoubleP(BS2CC_CompileContext *ctx, int ty)
 	return(0);
 }
 
+int BS2C_TypeHalfFloatP(BS2CC_CompileContext *ctx, int ty)
+{
+	if(ty==BS2CC_TYZ_HFLOAT)
+		return(1);
+	return(0);
+}
+
 // int BS2C_TypeArrayP(BS2CC_CompileContext *ctx, int ty)
 //{
 //	if(ty&BS2CC_TYS_MASK)
@@ -674,7 +700,18 @@ int BS2C_TypeX128P(BS2CC_CompileContext *ctx, int ty)
 		(ty==BS2CC_TYZ_VEC4F)||
 		(ty==BS2CC_TYZ_VEC2D)||
 		(ty==BS2CC_TYZ_QUATF)||
-		(ty==BS2CC_TYZ_DCPLX));
+		(ty==BS2CC_TYZ_DCPLX)||
+		(ty==BS2CC_TYZ_INT128)||
+		(ty==BS2CC_TYZ_UINT128)||
+		(ty==BS2CC_TYZ_FLOAT128));
+}
+
+int BS2C_TypeOpXNumP(BS2CC_CompileContext *ctx, int ty)
+{
+	return(
+		(ty==BS2CC_TYZ_INT128)||
+		(ty==BS2CC_TYZ_UINT128)||
+		(ty==BS2CC_TYZ_FLOAT128));
 }
 
 int BS2C_TypeOpXvP(BS2CC_CompileContext *ctx, int ty)
@@ -847,6 +884,15 @@ int BS2C_TypeConvIsNarrowingP(BS2CC_CompileContext *ctx,
 			(sty==BS2CC_TYZ_LONG) ||
 			(sty==BS2CC_TYZ_CHAR8) ||
 			(sty==BS2CC_TYZ_CHAR) ||
+			(sty==BS2CC_TYZ_BOOL))
+				return(0);
+		return(1);
+	}
+
+	if(dty==BS2CC_TYZ_HFLOAT)
+	{
+		if(	(sty==BS2CC_TYZ_UBYTE) ||
+			(sty==BS2CC_TYZ_SBYTE) ||
 			(sty==BS2CC_TYZ_BOOL))
 				return(0);
 		return(1);
@@ -1159,6 +1205,11 @@ int BS2C_TypeBinarySuperType(
 #endif
 	
 	lty1=BS2C_InferSuperType(ctx, lty, rty);
+	
+	/* Can't do arithmetic directly on half-floats */
+	if(BS2C_TypeHalfFloatP(ctx, lty1))
+		{ lty1=BS2CC_TYZ_FLOAT; }
+	
 	return(lty1);
 }
 
@@ -1316,6 +1367,8 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_CHAR8);
 		if(!strcmp(tyn, "bool"))
 			return(BS2CC_TYZ_BOOL);
+		if(!strcmp(tyn, "hfloat"))
+			return(BS2CC_TYZ_HFLOAT);
 
 		if(!strcmp(tyn, "int128"))
 			return(BS2CC_TYZ_INT128);
@@ -1581,6 +1634,8 @@ int BS2C_TypeRefinedType(
 			{ bt=BS2CC_TYZ_CHAR8; }
 		else if(!strcmp(tyn, "bool"))
 			{ bt=BS2CC_TYZ_BOOL; }
+		else if(!strcmp(tyn, "hfloat"))
+			{ bt=BS2CC_TYZ_HFLOAT; }
 		else if(!strcmp(tyn, "int128"))
 			{ bt=BS2CC_TYZ_INT128; }
 		else if(!strcmp(tyn, "uint128"))

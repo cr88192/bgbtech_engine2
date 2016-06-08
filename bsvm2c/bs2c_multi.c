@@ -5,6 +5,7 @@
 #include "bs2p_token.c"
 
 #include "bs2c_compile.c"
+#include "bs2c_conv.c"
 #include "bs2c_disasm.c"
 #include "bs2c_emit.c"
 #include "bs2c_expr.c"

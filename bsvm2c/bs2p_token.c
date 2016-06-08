@@ -500,7 +500,7 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 		cs0=cs;
 		cs=BS2P_ParseTokenBasic(cs, tb);
 		
-		if((ct+strlen(tb))>=elexbuf)
+		if((ct+strlen(tb)+64)>=elexbuf)
 		{
 			i=ct-lexbuf;
 			j=elexbuf-lexbuf;
@@ -510,7 +510,7 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 			ct=lexbuf+i;
 		}
 		
-		if((ntok+2)>=mtok)
+		if((ntok+3)>=mtok)
 		{
 			mtok=mtok+(mtok>>1);
 			lexarr=realloc(lexarr, mtok*sizeof(int));
@@ -522,6 +522,27 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 		lexarr[i]=ct-lexbuf;
 		strcpy(ct, tb);
 		ct+=strlen(tb)+1;
+
+#if 1
+		if(!strcmp(tb, "X\"\"\""))
+		{
+			i=ntok++;
+			srcofs[i]=cs-ibuf;
+			lexarr[i]=ct-lexbuf;
+			*ct++=0;
+
+			while(*cs && (cs<cse))
+			{
+				if((cs[0]=='\"') && (cs[1]=='\"') && (cs[2]=='\"'))
+				{
+					cs+=3;
+					break;
+				}
+				cs++;
+			}
+			continue;
+		}
+#endif
 	}
 
 	i=ntok;

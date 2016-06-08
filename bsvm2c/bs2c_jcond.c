@@ -146,12 +146,55 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 	dtVal cc, int tt, int tf)
 {
-	BS2C_CompileTempJmpThen(ctx, cc, tt);
+	dtVal ln, rn, cn;
+	int t0, t1, t2, t3;
+	int lt, rt, cty;
+	char *tag;
+	char *op;
+	int z, o;
+	int i;
+
+	i=BS2C_CompileGetCondBool(ctx, cc);
+	if(i==1)
+	{
+		BS2C_EmitTempJump(ctx, tt);
+		return;
+	}else if(i==0)
+	{
+		BS2C_EmitTempJump(ctx, tf);
+		return;
+	}
+
+	tag=BS2P_GetAstNodeTag(cc);
+	if(tag)
+	{
+		if(!strcmp(tag, "unary"))
+		{
+			ln=BS2P_GetAstNodeAttr(cc, "value");
+			op=BS2P_GetAstNodeAttrS(cc, "op");
+
+			if(!strcmp(op, "!"))
+			{
+				ln=BS2C_ReduceExpr(ctx, ln);
+				BS2C_CompileTempJmpIfElse(ctx, ln, tf, tt);
+				return;
+			}
+		}
+	}
+
+//	BS2C_CompileTempJmpThen(ctx, cc, tt);
+	BS2C_CompileTempJmpThen2(ctx, cc, tt, tf);
 	BS2C_EmitTempJump(ctx, tf);
 }
 
 void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 	dtVal cc, int tt)
+{
+	BS2C_CompileTempJmpThen2(ctx, cc, tt, 0);
+}
+
+void BS2C_CompileTempJmpThen2(BS2CC_CompileContext *ctx,
+	dtVal cc, int tt, int tfa)
 {
 	dtVal ln, rn, cn;
 	s64 li;
@@ -346,7 +389,8 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			if(!strcmp(op, "!"))
 			{
 				ln=BS2C_ReduceExpr(ctx, ln);
-				BS2C_CompileTempJmpElse(ctx, ln, tt);
+//				BS2C_CompileTempJmpElse(ctx, ln, tt);
+				BS2C_CompileTempJmpElse2(ctx, ln, tt, tfa);
 				return;
 			}
 		}
@@ -357,33 +401,31 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 			rn=BS2P_GetAstNodeAttr(cc, "rhs");
 			op=BS2P_GetAstNodeAttrS(cc, "op");
 
-	//		ln=BS2C_ReduceExpr(ctx, ln);
-	//		rn=BS2C_ReduceExpr(ctx, rn);
-
-	//		lt=BS2C_InferExpr(ctx, ln);
-	//		rt=BS2C_InferExpr(ctx, rn);
-			
 			if(!strcmp(op, "&&"))
 			{
-				t0=BS2C_GenTempLabel(ctx);
 				ln=BS2C_ReduceExpr(ctx, ln);
 				rn=BS2C_ReduceExpr(ctx, rn);
+
+				if(tfa>0)
+				{
+					BS2C_CompileTempJmpElse(ctx, ln, tfa);
+					BS2C_CompileTempJmpThen2(ctx, rn, tt, tfa);
+					return;
+				}
+			
+				t0=BS2C_GenTempLabel(ctx);
 				BS2C_CompileTempJmpElse(ctx, ln, t0);
-				BS2C_CompileTempJmpElse(ctx, rn, t0);
-				BS2C_EmitTempJump(ctx, tt);
+				BS2C_CompileTempJmpThen2(ctx, rn, tt, t0);
 				BS2C_EmitTempLabelB(ctx, t0);
 				return;
 			}
 
 			if(!strcmp(op, "||"))
 			{
-	//			t0=BS2C_GenTempLabel(ctx);
 				ln=BS2C_ReduceExpr(ctx, ln);
 				rn=BS2C_ReduceExpr(ctx, rn);
 				BS2C_CompileTempJmpThen(ctx, ln, tt);
-				BS2C_CompileTempJmpThen(ctx, rn, tt);
-	//			BS2C_EmitTempJump(ctx, tf);
-	//			BS2C_EmitTempLabelB(ctx, t0);
+				BS2C_CompileTempJmpThen2(ctx, rn, tt, tfa);
 				return;
 			}
 		}
@@ -423,6 +465,12 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,
 void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 	dtVal cc, int tf)
 {
+	BS2C_CompileTempJmpElse2(ctx, cc, tf, 0);
+}
+
+void BS2C_CompileTempJmpElse2(BS2CC_CompileContext *ctx,
+	dtVal cc, int tf, int tta)
+{
 	dtVal ln, rn, cn;
 	s64 li;
 	int t0, t1, t2, t3;
@@ -444,12 +492,7 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 	}
 
 	tag=BS2P_GetAstNodeTag(cc);
-	
-//	if(!tag)
-//	{
-//		return;
-//	}
-	
+		
 	if(tag)
 	{
 		if(!strcmp(tag, "bincmp"))
@@ -615,7 +658,8 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 			if(!strcmp(op, "!"))
 			{
 				ln=BS2C_ReduceExpr(ctx, ln);
-				BS2C_CompileTempJmpThen(ctx, ln, tf);
+//				BS2C_CompileTempJmpThen(ctx, ln, tf);
+				BS2C_CompileTempJmpThen2(ctx, ln, tf, tta);
 				return;
 			}
 		}
@@ -637,18 +681,25 @@ void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,
 				ln=BS2C_ReduceExpr(ctx, ln);
 				rn=BS2C_ReduceExpr(ctx, rn);
 				BS2C_CompileTempJmpElse(ctx, ln, tf);
-				BS2C_CompileTempJmpElse(ctx, rn, tf);
+				BS2C_CompileTempJmpElse2(ctx, rn, tf, tta);
 				return;
 			}
 
 			if(!strcmp(op, "||"))
 			{
-				t0=BS2C_GenTempLabel(ctx);
 				ln=BS2C_ReduceExpr(ctx, ln);
 				rn=BS2C_ReduceExpr(ctx, rn);
+
+				if(tta>0)
+				{
+					BS2C_CompileTempJmpThen(ctx, ln, tta);
+					BS2C_CompileTempJmpElse2(ctx, rn, tf, tta);
+					return;
+				}
+			
+				t0=BS2C_GenTempLabel(ctx);
 				BS2C_CompileTempJmpThen(ctx, ln, t0);
-				BS2C_CompileTempJmpThen(ctx, rn, t0);
-				BS2C_EmitTempJump(ctx, tf);
+				BS2C_CompileTempJmpElse2(ctx, rn, tf, t0);
 				BS2C_EmitTempLabelB(ctx, t0);
 				return;
 			}

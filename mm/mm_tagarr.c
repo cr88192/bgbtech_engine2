@@ -17,6 +17,11 @@ int BGBDT_TagArr_BaseTypeSize(int bty)
 	case BGBDT_BASETY_SBYTE:	sz=1; break;
 	case BGBDT_BASETY_USHORT:	sz=2; break;
 	case BGBDT_BASETY_ULONG:	sz=8; break;
+
+	case BGBDT_BASETY_NLONG:	sz=sizeof(long); break;
+	case BGBDT_BASETY_UNLONG:	sz=sizeof(long); break;
+	case BGBDT_BASETY_X128:		sz=16; break;
+
 	default: sz=8; break;
 	}
 	return(sz);

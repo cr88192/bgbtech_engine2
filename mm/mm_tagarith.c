@@ -26,6 +26,10 @@ dtVal BGBDT_TagAri_Add(dtVal a, dtVal b)
 	if(!dtvUndefinedP(c))
 		return(c);
 	
+	c=BGBDT_XI128_Add(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+	
 	return(DTV_UNDEFINED);
 }
 
@@ -52,6 +56,10 @@ dtVal BGBDT_TagAri_Sub(dtVal a, dtVal b)
 	}
 	
 	c=BGBDT_XV128_Sub(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+
+	c=BGBDT_XI128_Sub(a, b);
 	if(!dtvUndefinedP(c))
 		return(c);
 	
@@ -83,7 +91,11 @@ dtVal BGBDT_TagAri_Mul(dtVal a, dtVal b)
 	c=BGBDT_XV128_Mul(a, b);
 	if(!dtvUndefinedP(c))
 		return(c);
-	
+
+	c=BGBDT_XI128_Mul(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -114,6 +126,10 @@ dtVal BGBDT_TagAri_Div(dtVal a, dtVal b)
 	c=BGBDT_XV128_Div(a, b);
 	if(!dtvUndefinedP(c))
 		return(c);
+
+	c=BGBDT_XI128_Div(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
 	
 	return(DTV_UNDEFINED);
 }
@@ -133,6 +149,10 @@ dtVal BGBDT_TagAri_Mod(dtVal a, dtVal b)
 		return(c);
 	}
 
+	c=BGBDT_XI128_Mod(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -149,6 +169,10 @@ dtVal BGBDT_TagAri_And(dtVal a, dtVal b)
 		c=dtvWrapLong(li&lj);
 		return(c);
 	}
+
+	c=BGBDT_XI128_And(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
 
 	return(DTV_UNDEFINED);
 }
@@ -167,6 +191,10 @@ dtVal BGBDT_TagAri_Or(dtVal a, dtVal b)
 		return(c);
 	}
 
+	c=BGBDT_XI128_Or(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -183,6 +211,10 @@ dtVal BGBDT_TagAri_Xor(dtVal a, dtVal b)
 		c=dtvWrapLong(li^lj);
 		return(c);
 	}
+
+	c=BGBDT_XI128_Xor(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
 
 	return(DTV_UNDEFINED);
 }
@@ -201,6 +233,10 @@ dtVal BGBDT_TagAri_Shl(dtVal a, dtVal b)
 		return(c);
 	}
 
+	c=BGBDT_XI128_Shl(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -218,6 +254,10 @@ dtVal BGBDT_TagAri_Shr(dtVal a, dtVal b)
 		return(c);
 	}
 
+	c=BGBDT_XI128_Shr(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -234,6 +274,10 @@ dtVal BGBDT_TagAri_Sar(dtVal a, dtVal b)
 		c=dtvWrapLong(li>>lj);
 		return(c);
 	}
+
+	c=BGBDT_XI128_Sar(a, b);
+	if(!dtvUndefinedP(c))
+		return(c);
 
 	return(DTV_UNDEFINED);
 }
@@ -258,6 +302,10 @@ dtVal BGBDT_TagAri_Neg(dtVal a)
 		return(c);
 	}
 
+	c=BGBDT_XI128_Neg(a);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -273,6 +321,10 @@ dtVal BGBDT_TagAri_Not(dtVal a)
 		c=dtvWrapLong(~li);
 		return(c);
 	}
+
+	c=BGBDT_XI128_Not(a);
+	if(!dtvUndefinedP(c))
+		return(c);
 
 	return(DTV_UNDEFINED);
 }
@@ -297,6 +349,10 @@ dtVal BGBDT_TagAri_LNot(dtVal a)
 		return(c);
 	}
 
+	c=BGBDT_XI128_LNot(a);
+	if(!dtvUndefinedP(c))
+		return(c);
+
 	return(DTV_UNDEFINED);
 }
 
@@ -320,5 +376,11 @@ int BGBDT_TagAri_Compare(dtVal a, dtVal b)
 		return((f>g)|(0-(f<g)));
 	}
 	
+	if(BGBDT_XI128_IsSmallInt128P(a) &&
+		BGBDT_XI128_IsSmallInt128P(b))
+	{
+		return(BGBDT_XI128_CompareB(a, b));
+	}
+
 	return(-1);
 }

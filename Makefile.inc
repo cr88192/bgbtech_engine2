@@ -58,6 +58,7 @@ BTEIFGL_SRCS=\
 	bsvm2c/bs2p_token.c \
 	\
 	bsvm2c/bs2c_compile.c \
+	bsvm2c/bs2c_conv.c \
 	bsvm2c/bs2c_disasm.c \
 	bsvm2c/bs2c_emit.c \
 	bsvm2c/bs2c_expr.c \
@@ -167,7 +168,7 @@ libs: $(DLLPF)btewsim$(DLLSUF)
 
 apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) \
 	btewiresim0$(EXESUF) msptst0$(EXESUF) \
-	isotest0$(EXESUF)
+	isotest0$(EXESUF) btactst0$(EXESUF)
 
 includes: $(DEP_HDRS)
 
@@ -198,6 +199,9 @@ msptst0$(EXESUF): msptst0.c $(DEP_HDRS) libs
 
 isotest0$(EXESUF): isotest0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)isotest0$(EXESUF) isotest0.c $(CFLAGS) $(LDFLAGS)
+
+btactst0$(EXESUF): btactst0.c $(DEP_HDRS) libs
+	$(CC_OUTEXE)btactst0$(EXESUF) btactst0.c $(CFLAGS) $(LDFLAGS)
 
 clean:
 clean2:

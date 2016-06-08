@@ -7,6 +7,7 @@
 
 #define BGBDT_SNDTY_PCM			0x0001
 #define BGBDT_SNDTY_IMAADPCM	0x0011
+#define BGBDT_SNDTY_BTAC1C		0x7B1C
 
 #define BGBDT_SNDATT_NONE		0x0000
 #define BGBDT_SNDATT_LINEAR		0x0001	//(1/x)
@@ -25,6 +26,7 @@ BGBDT_SndSampler *next;			//next sample
 char *name;						//sample pathname
 byte *data;						//raw audio data
 int szdata;						//size of audio data
+int sampid;
 
 u16 wf_type;
 u16 wf_chan;
@@ -34,17 +36,24 @@ u16 wf_blkalign;
 u16 wf_bits;
 
 u32 nhash;						//name hash
-u32 rcpsbsz;
+u32 rcpsbsz;					//reciprocal of block size
+u32 rcplen;						//reciprocal of length
 int len;						//length of sampler (samples)
 int sblksz;						//sample block size (samples)
-int cblg2;						//cache block log2
+int cblg2;						//cache block log2 (log2 of samples)
+int cblg2b;						//cache block log2 (log2 of storage)
 int sbrate;						//logical block sample rate
+
+int tmp_lb;
+s16 *tmp_sb;
 
 /** Get mono sample value at a specific point
   * pos: Sample number at the based frequency of the sampler.
   */
 int (*GetSampleMono)(BGBDT_SndSampler *samp, int pos);
 int (*GetSampleMonoMod)(BGBDT_SndSampler *samp, int pos);
+int (*GetSampleMonoRaw)(BGBDT_SndSampler *samp, int pos);
+int (*GetSampleMultiMod)(BGBDT_SndSampler *samp, int pos, int ch);
 
 /** Get sample at a point relative to a target frequency
   * Clz: Clamp endpoints to Zero

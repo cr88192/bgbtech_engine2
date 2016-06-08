@@ -171,7 +171,20 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 
 	if(!strcmp(tag, "bincmp"))
 	{
-		return(BS2CC_TYZ_INT);
+		return(BS2CC_TYZ_BOOL);
+	}
+
+	if(!strcmp(tag, "unary"))
+	{
+		ln=BS2P_GetAstNodeAttr(expr, "value");
+		op=BS2P_GetAstNodeAttrS(expr, "op");
+		lt=BS2C_InferExpr(ctx, ln);
+		
+		if(!strcmp(op, "!"))
+			return(BS2CC_TYZ_BOOL);
+		
+		ty=lt;
+		return(ty);
 	}
 
 	if(!strcmp(tag, "assign"))
@@ -210,7 +223,7 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 
 	if(!strcmp(tag, "instanceof"))
 	{
-		return(BS2CC_TYZ_INT);
+		return(BS2CC_TYZ_BOOL);
 	}
 
 	if(!strcmp(tag, "cast") || !strcmp(tag, "cast_strict") ||
@@ -291,6 +304,118 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 				
 				return(vi2->bty);
 			}
+
+			BS2C_CaseError(ctx);
+			return(-1);
+		}
+
+		if(BS2C_TypeSmallDoubleP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+//			z=BS2C_GetTypeBaseZ(ctx, lt);
+
+			if(!strcmp(fn, "toString"))
+				return(BS2CC_TYZ_STRING);
+
+			i=-1;
+			if(!strcmp(fn, "sin"))
+				i=BSVM2_OPMU_SIN;
+			if(!strcmp(fn, "cos"))
+				i=BSVM2_OPMU_COS;
+			if(!strcmp(fn, "tan"))
+				i=BSVM2_OPMU_TAN;
+			if(!strcmp(fn, "sqrt"))
+				i=BSVM2_OPUV_SQRT;
+			if(!strcmp(fn, "rcp"))
+				i=BSVM2_OPMU_RCP;
+			if(!strcmp(fn, "atan"))
+				i=BSVM2_OPMU_ATAN;
+			if(!strcmp(fn, "sqr"))
+				i=BSVM2_OPMU_SQR;
+			if(!strcmp(fn, "ssqr"))
+				i=BSVM2_OPMU_SSQRT;
+				
+			if(i>=0)
+				return(lt);
+
+			BS2C_CaseError(ctx);
+			return(-1);
+		}
+
+		if(BS2C_TypeStringP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+
+			rt=-1;
+			if(!strcmp(fn, "toInt"))
+				rt=BS2CC_TYZ_INT;
+			if(!strcmp(fn, "toUInt"))
+				rt=BS2CC_TYZ_UINT;
+			if(!strcmp(fn, "toLong"))
+				rt=BS2CC_TYZ_LONG;
+			if(!strcmp(fn, "toULong"))
+				rt=BS2CC_TYZ_ULONG;
+			if(!strcmp(fn, "toFloat"))
+				rt=BS2CC_TYZ_FLOAT;
+			if(!strcmp(fn, "toDouble"))
+				rt=BS2CC_TYZ_DOUBLE;
+				
+			if(rt>=0)
+				return(rt);
+
+			BS2C_CaseError(ctx);
+			return(-1);
+		}
+
+		if(BS2C_TypeOpXvP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+			rt=BS2C_TypeXvGetElemType(ctx, lt);
+//			z=BS2C_GetTypeVecZ(ctx, lt);
+
+			j=BS2C_TypeXvGetElemCount(ctx, lt);
+
+			i=-1;
+			if(!strcmp(fn, "x"))i=0;
+			if(!strcmp(fn, "y"))i=1;
+			if(!strcmp(fn, "a"))i=0;
+			if(!strcmp(fn, "b"))i=1;
+			if(j>=3)
+			{
+				if(!strcmp(fn, "z"))i=2;
+				if(!strcmp(fn, "c"))i=2;
+			}
+			if(j>=4)
+			{
+				if(!strcmp(fn, "w"))i=3;
+				if(!strcmp(fn, "d"))i=3;
+			}
+			
+			if(i>=0)
+				{ return(rt); }
+
+			ty=-1;
+			if(!strcmp(fn, "neg"))
+				ty=lt;
+			if(!strcmp(fn, "rcp"))
+				ty=lt;
+			if(!strcmp(fn, "sqrt"))
+				ty=lt;
+			if(!strcmp(fn, "rsqrt"))
+				ty=lt;
+			if(!strcmp(fn, "norm"))
+				ty=lt;
+
+			if(!strcmp(fn, "len"))
+				ty=rt;
+			if(!strcmp(fn, "len2"))
+				ty=rt;
+
+			if(ty>=0)
+				return(ty);
+
+			BS2C_CaseError(ctx);
+			return(-1);
 		}
 
 		BS2C_CaseError(ctx);

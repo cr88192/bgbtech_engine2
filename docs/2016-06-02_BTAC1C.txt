@@ -1,0 +1,75 @@
+BTAC1C will be a hacked superset of IMA ADPCM.
+
+If used, it will reuse the RIFF WAVE format:
+* If encoded without extensions, it may use the IMA ADPCM tag (wFormatTag=0x0011).
+** In this mode, only power-of-2 fudging is used.
+** The audio data will be approx 2% shorter if decoded as normal ADPCM.
+* With extensions, it will use a different tag (wFormatTag=0x7B1C).
+
+
+Simple Case:
+* Block coded as IMA ADPCM (Mono)
+** init:WORD    //Initial Predictor
+** step:BYTE    //Initial Step
+** resv:BYTE    //0
+** data:BYTE[]  //4 bits/sample
+* Block coded as IMA ADPCM (Stereo)
+** init_l:WORD  //Left Initial Predictor
+** step_l:BYTE  //Left Initial Step
+** resv_l:BYTE  //0
+** init_r:WORD  //Right Initial Predictor
+** step_r:BYTE  //Right Initial Step
+** resv_r:BYTE  //0
+** data:BYTE[]  //4 bits sample, interleaved left/right
+* Or, As extended Joint-Stereo (BTAC1C Stereo Only)
+** init_c:WORD  //Center Initial Predictor
+** step_c:BYTE  //Center Initial Step
+** resv_c:BYTE  //Reserved, 0
+** init_s:WORD  //Side Initial Predictor (or Offset)
+** step_s:BYTE  //Side Initial Step (128..216)
+** resv_s:BYTE  //Reserved, 0
+** data:BYTE[]  //3 or 4 bits/sample
+
+Step (Right/Side):
+* 0..88: Normal ADPCM Block (Split Stereo)
+** Samples encoded at 4 bit each.
+** Split stereo will have a separate left and right channel, with both in this range.
+** Split stereo will have 1/2 the effective sample rate as Mono or J-S encoding.
+* 89: Mono Channel (Stereo Ext)
+** Only left-channel predictor state is used.
+** Audio data encodes a mono channel, which is duplicated to both.
+** Right channel initial predictor interpreted as an L/R offset.
+* 90..127: Reserved
+* 128..216: Joint Stereo (Stereo Ext)
+** 16 bit sample blocks, 4x 3-bit center, 4 bit side.
+*** 0..2=Center0, 3..5=Center1, 6..8=Center2, 9..11=Center3, 12..15=Side
+** Side channel will be stored at 1/4 the sample rate of the center channel.
+** The 3 bit samples will behave the same as a 4 bit sample with the LSB padded with a 0.
+* 217..255: Reserved
+
+In mono samples, BTAC1C will use the same base format as IMA ADPCM.
+* Stereo blocks or extensions may not be used in Mono mode.
+
+
+BTAC1C will impose a constraint over IMA ADPCM that both the storage block and logical sample block are to be power of 2 sizes.
+The storage block will be a power-of-2 size, but will only encode 2^N-8 samples. Every 2^(N-3) samples, there will be a missing sample. During decoding, these missing samples are to be filled in with the average of the 2 adjacent samples (or a duplicate of the prior sample for the last sample).
+
+The result will be that the recording will be slightly shorter if decoded as normal ADPCM than as BTAC1C.
+
+Example, a block will be 512 bytes, and will encode 1016 samples. A filler sample will be inserted every 128 samples for this block size.
+
+For split stereo blocks (in extended mode), similarly samples will be either doubled or averaged to make up for the 2x difference in effective sample rate. In extended stereo mode, the block will encode 2^N-16 samples (rather than 2^N-8), as a result 16 pad samples are inserted per block.
+
+For split stereo blocks (in IMA ADPCM mode), then the stereo data is at the normal sample rate (and 8 samples are inserted).
+
+
+=== Joint Stereo ===
+
+Definitions:
+* Audio data consists of a series of 16-bit sample words
+** Each sample word is little endian.
+** 16 bit sample blocks, 4x 3-bit center, 4 bit side.
+*** 0..2=Center0, 3..5=Center1, 6..8=Center2, 9..11=Center3, 12..15=Side
+* Center=(Left+Right)/2
+* Side=Left-Center
+* Otherwise it is functionally similar to other ADPCM blocks.

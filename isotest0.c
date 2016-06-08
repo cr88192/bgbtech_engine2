@@ -41,6 +41,8 @@ int isotest_diag_pchars;
 int isotest_diag_lpchars;
 int isotest_diag_sndid;
 
+int isotest_snd_bgmid;
+
 double isotest_diag_ptime;
 
 int isotest_invopen;
@@ -113,6 +115,132 @@ MAIN_EXPORT void IsoTest_GiveItem(int item)
 		return;
 
 	/* drop item */
+}
+
+
+MAIN_EXPORT int IsoTest_TakeItem(int item)
+{
+	int i0, i1, i2, i3;
+	int i, j, k;
+
+	if(!(item&255))
+		return(0);
+
+	for(i=0; i<6*16; i++)
+	{
+		if((isotest_invslot[i]&255)==(item&255))
+		{
+			i0=((isotest_invslot[i]>>8)&255)+1;
+			i1=((item>>8)&255)+1;
+			i2=i0-i1;
+			if(i2<0)
+			{
+				i1=i1-i0;
+				i0=0;
+//				i1=i2-256;
+			}else
+			{
+				i0=i2;
+				i1=0;
+			}
+			
+			if(i0>0)
+			{
+				j=isotest_invslot[i];
+				j=j&(~(0xFF00));
+				j=j|((i0-1)<<8);
+				isotest_invslot[i]=j;
+			}else
+			{
+				isotest_invslot[i]=0;
+			}
+			
+			if(!i1)
+			{
+				item=0;
+				break;
+			}
+			j=item;
+			j=j&(~(0xFF00));
+			j=j|((i1-1)<<8);
+			item=j;
+			continue;
+		}
+	}
+	
+	if(!item)
+		return(1);
+	return(0);
+}
+
+MAIN_EXPORT int IsoTest_CheckItem(int item)
+{
+	int i0, i1, i2, i3;
+	int i, j, k;
+
+	if(!(item&255))
+		return(0);
+
+	for(i=0; i<6*16; i++)
+	{
+		if((isotest_invslot[i]&255)==(item&255))
+		{
+			i0=((isotest_invslot[i]>>8)&255)+1;
+			i1=((item>>8)&255)+1;
+			i2=i0-i1;
+			if(i2<0)
+			{
+				i1=i1-i0;
+				i0=0;
+//				i1=i2-256;
+			}else
+			{
+				i0=i2;
+				i1=0;
+			}
+			
+			if(i0>0)
+			{
+				j=isotest_invslot[i];
+				j=j&(~(0xFF00));
+				j=j|((i0-1)<<8);
+//				isotest_invslot[i]=j;
+			}else
+			{
+//				isotest_invslot[i]=0;
+			}
+			
+			if(!i1)
+			{
+				item=0;
+				break;
+			}
+			j=item;
+			j=j&(~(0xFF00));
+			j=j|((i1-1)<<8);
+			item=j;
+			continue;
+		}
+	}
+	
+	if(!item)
+		return(1);
+	return(0);
+}
+
+MAIN_EXPORT int IsoTest_SetBgm(char *bgm)
+{
+	BGBDT_SndMixChan *chn;
+
+	chn=BGBDT_Sound_LookupMixChan(isotest_snd_bgmid);
+	if(chn && !strcmp(chn->samp->name, bgm))
+		return(0);
+	//bgm="sound_dev/pi0_amb0";
+
+	BGBDT_Sound_DeleteMixChan(isotest_snd_bgmid);
+	isotest_snd_bgmid=BGBDT_Sound_PlaySound(bgm,
+		64, BGBDT_SNDATT_NONE, BGBDT_SNDFL_LOOP);
+	return(1);
 }
 
 vec2 IsoTest_EntGetOrigin(dtVal obj)
@@ -1122,6 +1250,23 @@ int isotest_drawplayer()
 		break;
 	}
 
+	if(isotest_isdead)
+	{
+		V3F_COPY(isotest_org, org);
+		org[2]=0;
+
+		V3F_ADDSCALE(org, isotest_rot+0, -24, v0);
+		V3F_ADDSCALE(org, isotest_rot+0,  24, v1);
+		V3F_COPY(v0, v2);
+		V3F_COPY(v1, v3);
+		v2[2]+=32;
+		v3[2]+=32;
+
+		str="sprites/yazil/yazil_dead0";
+		flip=0;
+	}
+
+
 	tex=Tex_LoadFile(str, NULL, NULL);
 
 	frglEnableTexture2D();
@@ -1479,7 +1624,8 @@ int main_startup(int argc, char *argv[])
 		tile->x=j;
 		tile->y=i;
 
-		if(!(rand()&15))
+//		if(!(rand()&15))
+		if(!(rand()&15) && ((i>48) || (j>48)))
 			tile->tex_floor="textures/rrock14_rspat";
 		
 		if(k==16)tile->tex_floor="textures_dev/synrust0_hex0";
@@ -1502,7 +1648,8 @@ int main_startup(int argc, char *argv[])
 //			continue;
 
 		s0="textures/rrock14";
-		if(!(rand()&15))
+//		if(!(rand()&15))
+		if(!(rand()&15) && ((i>48) || (j>48)))
 			s0="textures/rrock14_rspat";
 		if(k4==1)s0="textures/rrock14_rspat";
 
@@ -1569,18 +1716,35 @@ int main_startup(int argc, char *argv[])
 		if(!k)
 			continue;
 
+		k4=isotile_blfclr_idx(iso_wbuf, xs, ys, j, i);
+		if(k4)
+			continue;
+
+		s0=NULL;
+
 		if(k==16)
 		{
-			IsoTile_SpawnEntityBasic("npc_elf",
-				vec2(j*64+32, i*64+32));
+			s0="npc_elf";
+			if(!(rand()&15) && ((i>64) || (j>64)))
+			{
+				s0="npc_santa";
+			}
+		
+//			IsoTile_SpawnEntityBasic("npc_elf",
+//				vec2(j*64+32, i*64+32));
 		}
 
 		if(k==1)
 		{
-			IsoTile_SpawnEntityBasic("misc_chest",
-				vec2(j*64+32, i*64+32));
+			s0="misc_chest";
+//			IsoTile_SpawnEntityBasic("misc_chest",
+//				vec2(j*64+32, i*64+32));
 		}
 
+		if(!s0)continue;
+
+		IsoTile_SpawnEntityBasic(s0,
+			vec2(j*64+32, i*64+32));
 	}
 
 //	clz=BGBDTC_LookupClassQName("player");
@@ -1595,7 +1759,7 @@ int main_startup(int argc, char *argv[])
 	mixl->rate=44100;
 	mixr->rate=44100;
 	
-	BGBDT_Sound_PlaySound("sound_dev/pi0_amb0",
+	isotest_snd_bgmid=BGBDT_Sound_PlaySound("sound_dev/pi0_amb0",
 		64, BGBDT_SNDATT_NONE, BGBDT_SNDFL_LOOP);
 	
 	return(0);
@@ -1900,6 +2064,13 @@ int main_body()
 	if(!dtvNullP(isotest_diagbox))
 	{
 		IsoTile_DrawDialog(isotest_diagbox);
+	}else
+	{
+		if(isotest_diag_sndid>0)
+		{
+			BGBDT_Sound_DeleteMixChan(isotest_diag_sndid);
+			isotest_diag_sndid=0;
+		}
 	}
 
 	if(isotest_invopen)
@@ -1952,8 +2123,9 @@ int main_body()
 	}
 	g=g/256.0;
 
-	sprintf(tb, "Cur=%.2fHz, Avg=%.2f, Min=%.2f, Max=%.2f",
-		1.0/frgl_state->dt_f, 1.0/g, 1.0/x1, 1.0/x0);
+	sprintf(tb, "Cur=%.2fHz, Avg=%.2f, Min=%.2f, Max=%.2f Txy=%d,%d",
+		1.0/frgl_state->dt_f, 1.0/g, 1.0/x1, 1.0/x0,
+		(int)(isotest_org[0]/64), (int)(isotest_org[1]/64));
 	GfxFont_DrawString(tb, -320, 384-16, 8, 8, 0, 255, 0, 255);
 
 	frglEnableTexture2D();

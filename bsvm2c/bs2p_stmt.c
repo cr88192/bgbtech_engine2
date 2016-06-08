@@ -407,6 +407,7 @@ BTEIFGL_API BS2CC_CompileContext *BS2CC_AllocCompileContext()
 	
 	ctx=dtmAlloc("bs2cc_compilecontext_t",
 		sizeof(BS2CC_CompileContext));
+	ctx->gsseq=1;
 	return(ctx);
 }
 

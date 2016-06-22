@@ -15,7 +15,7 @@ bgbasm3/*.exe
 bgbasm3/*.dll
 resource/**/*.exe
 resource/**/*.dll
-resource_dev/**/*.*
+resource_dev2/**/*.*
 
 *.obj
 # *.pdn

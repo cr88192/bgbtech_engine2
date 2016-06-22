@@ -482,6 +482,14 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 	int *lexarr;
 	int ntok, mtok;
 	int i, j, k;
+
+//	ctx->srcbuf=strdup(ibuf);
+//	ctx->srcofs=srcofs;
+
+	ctx->srcbuf=malloc(szbuf+16);
+	memset(ctx->srcbuf, 0, szbuf+16);
+	memcpy(ctx->srcbuf, ibuf, szbuf);
+//	ctx->srcofs=srcofs;
 	
 	lexbuf=malloc(262144);
 	elexbuf=lexbuf+262144;
@@ -494,7 +502,8 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 	*ct++=0;
 	*ct++=0;
 	
-	cs=ibuf; cse=ibuf+szbuf;
+//	cs=ibuf; cse=ibuf+szbuf;
+	cs=ctx->srcbuf; cse=cs+szbuf;
 	while(*cs && (cs<cse))
 	{
 		cs0=cs;
@@ -518,7 +527,8 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 		}
 		
 		i=ntok++;
-		srcofs[i]=cs0-ibuf;
+//		srcofs[i]=cs0-ibuf;
+		srcofs[i]=cs0-ctx->srcbuf;
 		lexarr[i]=ct-lexbuf;
 		strcpy(ct, tb);
 		ct+=strlen(tb)+1;
@@ -527,7 +537,8 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 		if(!strcmp(tb, "X\"\"\""))
 		{
 			i=ntok++;
-			srcofs[i]=cs-ibuf;
+//			srcofs[i]=cs-ibuf;
+			srcofs[i]=cs-ctx->srcbuf;
 			lexarr[i]=ct-lexbuf;
 			*ct++=0;
 
@@ -549,7 +560,7 @@ int BS2P_LexBuffer(BS2CC_CompileContext *ctx, char *ibuf, int szbuf)
 	srcofs[i]=0;
 	lexarr[i]=0;
 
-	ctx->srcbuf=strdup(ibuf);
+//	ctx->srcbuf=strdup(ibuf);
 	ctx->srcofs=srcofs;
 
 	ctx->tokbuf=lexbuf;

@@ -23,6 +23,9 @@ typedef struct FRGL_ConEdit_s FRGL_ConEdit;
 
 typedef struct FRGL_ConsoleInfo_s FRGL_ConsoleInfo;
 
+typedef struct FRGL_MenuItem_s FRGL_MenuItem;
+typedef struct FRGL_MenuInfo_s FRGL_MenuInfo;
+
 struct FRGL_Cvar_s {
 FRGL_Cvar *next;
 char *name;
@@ -98,4 +101,21 @@ int (*OldHandleKey)(FRGL_ConsoleInfo *con, int num, int down);
 
 int (*CmdHandler)(FRGL_ConsoleInfo *con, char *s);
 char *(*CmdComplete)(FRGL_ConsoleInfo *con, char *s);
+};
+
+
+struct FRGL_MenuItem_s {
+char *name;
+char *title;
+char *opt_str;
+void (*Action)(FRGL_MenuInfo *menu, FRGL_MenuItem *mitm);
+};
+
+struct FRGL_MenuInfo_s {
+FRGL_MenuInfo *next;
+char *name;
+char *title;
+char *back;
+FRGL_MenuItem *item[64];
+int n_item;
 };

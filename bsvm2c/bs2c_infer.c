@@ -44,7 +44,8 @@ int BS2C_InferName(BS2CC_CompileContext *ctx, char *name)
 	}
 
 	BS2C_ErrNoDecl(ctx, name);
-	return(-1);
+	return(0);
+//	return(-1);
 }
 
 int BS2C_InferRetTypeName(BS2CC_CompileContext *ctx, char *name)

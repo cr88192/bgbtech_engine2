@@ -30,7 +30,10 @@ void BS2C_CompileSetupVarInfo(
 
 	if(!strcmp(tag, "vararg"))
 	{
-		vi->name=NULL;
+		name=BS2P_GetAstNodeAttrS(expr, "name");
+
+//		vi->name=NULL;
+		vi->name=BS2P_StrSym(ctx, name);
 		vi->bty=BS2CC_TYZ_VARARG;
 		vi->bmfl=0;
 //		vi->typeExp=nt;

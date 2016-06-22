@@ -473,6 +473,56 @@ int BS2C_TypeAddressP(BS2CC_CompileContext *ctx, int ty)
 	return(0);
 }
 
+int BS2C_TypeNullableP(BS2CC_CompileContext *ctx, int ty)
+{
+	BS2CC_TypeOverflow *ovf;
+	int i;
+	
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		if(ty&BS2CC_TYF_NAB)
+		{
+			if(BS2C_TypeAddressP(ctx, ty))
+				return(0);
+			return(1);
+		}
+		return(0);
+	}
+
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_OVF)
+	{
+		ovf=ctx->tyovf[ty&BS2CC_TYO_MASK];
+		return(ovf->nab==1);
+	}
+	
+	return(0);
+}
+
+int BS2C_TypeNonnullP(BS2CC_CompileContext *ctx, int ty)
+{
+	BS2CC_TypeOverflow *ovf;
+	int i;
+	
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_BASIC)
+	{
+		if(ty&BS2CC_TYF_NAB)
+		{
+			if(BS2C_TypeAddressP(ctx, ty))
+				return(1);
+			return(0);
+		}
+		return(0);
+	}
+
+	if((ty&BS2CC_TYT_MASK)==BS2CC_TYT_OVF)
+	{
+		ovf=ctx->tyovf[ty&BS2CC_TYO_MASK];
+		return(ovf->nab==1);
+	}
+	
+	return(0);
+}
+
 int BS2C_TypeArrayP(BS2CC_CompileContext *ctx, int ty)
 {
 	BS2CC_TypeOverflow *ovf;
@@ -1163,6 +1213,9 @@ int BS2C_TypeAssignSuperType(
 		return(lty);
 	}
 	
+	if(BS2C_TypeCompatibleP(ctx, lty, rty))
+		return(lty);
+	
 	lty1=BS2C_InferSuperType(ctx, lty, rty);
 	return(lty1);
 }
@@ -1203,7 +1256,40 @@ int BS2C_TypeBinarySuperType(
 		}
 	}
 #endif
+
+	if(BS2C_TypeOpXvP(ctx, lty) &&
+		BS2C_TypeSmallDoubleP(ctx, rty) &&
+		(!strcmp(op, "*") || !strcmp(op, "/")))
+	{
+		return(lty);
+	}
+
+	if(	BS2C_TypeSmallDoubleP(ctx, lty) &&
+		BS2C_TypeOpXvP(ctx, rty) &&
+		(!strcmp(op, "*") || !strcmp(op, "/")))
+	{
+		return(rty);
+	}
+
+	lty1=BS2C_InferSuperType(ctx, lty, rty);
 	
+	/* Can't do arithmetic directly on half-floats */
+	if(BS2C_TypeHalfFloatP(ctx, lty1))
+		{ lty1=BS2CC_TYZ_FLOAT; }
+	
+	return(lty1);
+}
+
+int BS2C_TypeCompareSuperType(
+	BS2CC_CompileContext *ctx, int lty, int rty)
+{
+	int lty1, rty1;
+
+	if(BS2C_TypeCompatibleP(ctx, lty, rty))
+		{ return(lty); }
+	if(BS2C_TypeCompatibleP(ctx, rty, lty))
+		{ return(rty); }
+
 	lty1=BS2C_InferSuperType(ctx, lty, rty);
 	
 	/* Can't do arithmetic directly on half-floats */
@@ -1217,7 +1303,7 @@ int BS2C_TypeCompatibleP(
 	BS2CC_CompileContext *ctx, int dty, int sty)
 {
 	BS2CC_TypeOverflow *ovf;
-	BS2CC_VarInfo *lvi, *rvi;
+	BS2CC_VarInfo *lvi, *rvi, *rvi2;
 	int lbt, rbt, lal, ral, lsz, rsz;
 	int i, j, k, l;
 
@@ -1291,6 +1377,44 @@ int BS2C_TypeCompatibleP(
 			}
 			return(1);
 		}
+
+		if((lvi->vitype==BS2CC_VITYPE_CLASS) &&
+			(rvi->vitype==BS2CC_VITYPE_CLASS))
+		{
+			rvi2=rvi;
+			while(rvi2)
+			{
+				if(rvi2==lvi)
+					break;
+				rvi2=rvi2->super;
+			}
+			if(rvi2)
+				return(1);
+
+			return(0);
+		}
+
+		if((lvi->vitype==BS2CC_VITYPE_IFACE) &&
+			(rvi->vitype==BS2CC_VITYPE_CLASS))
+		{
+			rvi2=rvi;
+			while(rvi2)
+			{
+				if(rvi2==lvi)
+					break;
+				for(i=0; i<rvi2->niface; i++)
+					if(rvi2->iface[i]==lvi)
+						break;
+				if(i<rvi2->niface)
+					break;
+				rvi2=rvi2->super;
+			}
+			if(rvi2)
+				return(1);
+
+			return(0);
+		}
+
 		return(0);
 	}
 
@@ -1451,13 +1575,14 @@ int BS2C_TypeGetTypeOverflow(
 int BS2C_TypeFromTypeOverflow(
 	BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *ovf)
 {
-	int ty, bt, al, al2, asz;
+	int ty, bt, al, al2, asz, nab;
 	int i;
 
 	bt=ovf->base;
 	asz=ovf->asz[0];
 
 	al2=ovf->al;
+	nab=ovf->nab;
 
 	if(ovf->an)
 	{
@@ -1481,11 +1606,14 @@ int BS2C_TypeFromTypeOverflow(
 			{ al2=-1; }
 	}
 
-	if((bt>=0x0000) && (bt<=0xFFFF) && (al2>=0) && (al2<=7) &&
-		(asz>=0) && (asz<=0x1FFF))
+	if((bt>=0x0000) && (bt<=BS2CC_TYE_MASK2) &&
+		(al2>=0) && (al2<=7) &&
+		(asz>=0) && (asz<=BS2CC_TYS_MASK2))
 	{
 		ty=(bt<<BS2CC_TYE_SHR)|(al2<<BS2CC_TYI_SHR)|
 			(asz<<BS2CC_TYS_SHR);
+		if(nab)
+			ty|=BS2CC_TYF_NAB;
 		return(ty);
 	}
 
@@ -1511,7 +1639,7 @@ int BS2C_TypeRefinedType(
 	dtVal n0, n1;
 	char *tyn;
 	char *tag;
-	int al, an, al2, pl, rl, asz, bt, ty;
+	int al, an, al2, pl, rl, asz, bt, ty, nab;
 	int i, j, k, l;
 
 	arrs=BS2P_GetAstNodeAttr(expr, "arrays");
@@ -1569,6 +1697,8 @@ int BS2C_TypeRefinedType(
 	rl=BS2P_GetAstNodeAttrI(expr, "reflvl");
 //	if(pl)
 //		return(BS2CC_TYZ_ADDRESS);
+
+	nab=BS2P_GetAstNodeAttrI(expr, "nullable");
 
 	al2=al;
 	if(an>=2)al2=-1;
@@ -1671,35 +1801,16 @@ int BS2C_TypeRefinedType(
 		bt=BS2CC_TYZ_VARIANT;
 	}
 	
-#if 0
-	if((bt>=0x0000) && (bt<=0xFFFF) && (al2>=0) && (al2<=7) &&
-		(asz>=0) && (asz<=0x1FFF))
-	{
-		ty=(bt<<BS2CC_TYE_SHR)|(al2<<BS2CC_TYI_SHR)|
-			(asz<<BS2CC_TYS_SHR);
-		return(ty);
-	}
-#endif
-
 	memset(&tovf, 0, sizeof(BS2CC_TypeOverflow));
 	tovf.base=bt;
 	tovf.al=al;
 	tovf.pl=pl;
 	tovf.rf=rl;
 	tovf.an=an;
+	tovf.nab=nab;
 	for(i=0; i<an; i++)
 		tovf.asz[i]=asza[i];
 
 	ty=BS2C_TypeFromTypeOverflow(ctx, &tovf);
 	return(ty);
-
-//	i=BS2C_TypeGetTypeOverflow(ctx, &tovf);
-//	if(i>=0)
-//	{
-//		ty=BS2CC_TYT_OVF|i;
-//		return(ty);
-//	}
-
-//	BS2C_CaseError(ctx);
-//	return(BS2CC_TYZ_VARIANT);
 }

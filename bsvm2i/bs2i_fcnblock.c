@@ -215,7 +215,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		if((cblk->stkpos<0) || (cblk->stkpos>cblk->stkdepth))
 		{
 			k=-1;
-			*(int *)-1=-1;
+			BSVM2_DBGTRAP
 		}
 	
 		opn=BSVM2_Interp_ReadOpcodeNumber(cblk);
@@ -303,7 +303,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		
 		if(1)
 		{
-			*(int *)-1=-1;
+			BSVM2_DBGTRAP
 		}
 	}
 	trsa[ntrsa]=NULL;

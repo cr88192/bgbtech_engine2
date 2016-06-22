@@ -7,6 +7,7 @@
 #include "frgl_fonts.c"
 #include "frgl_fonts_qi2.c"
 #include "frgl_input.c"
+#include "frgl_menu.c"
 #include "frgl_shader.c"
 #include "frgl_texture.c"
 #include "frgl_util.c"
@@ -23,9 +24,15 @@
 #include "inflate.c"
 #include "bufpng.c"
 
+#include "btpk_image.c"
+
 #include "snd_adpcm.c"
 #include "snd_mixer.c"
 #include "snd_sample.c"
+
+#include "vf31_btpk.c"
+#include "vf31_osdir.c"
+#include "vf31_vfile.c"
 
 #include "w32_glw.c"
 #include "w32_mouse.c"

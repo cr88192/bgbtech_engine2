@@ -8,13 +8,6 @@
 #include <commctrl.h>
 #endif
 
-
-//#include <GL/gl.h>
-//#ifdef _WIN32
-//#include <GL_2/glext.h>
-//#include <GL_2/wglext.h>
-//#endif
-
 char *frgl_shader_name[1024];
 int frgl_shader_hdl[1024];
 int frgl_shader_cnt;
@@ -83,25 +76,6 @@ BTEIFGL_API int FRGL_InitShader()
 	init=1;
 
 	printf("FRGL_InitShader\n");
-
-//	ccLoadLibrary("opengl32.dll");
-//	ccLoadLibrary("opengl32");
-
-//	pglAttachShader=ccGetAddr("glAttachShader");
-//	pglBindAttribLocation=ccGetAddr("glBindAttribLocation");
-//	pglCompileShader=ccGetAddr("glCompileShader");
-//	pglCreateProgram=ccGetAddr("glCreateProgram");
-//	pglCreateShader=ccGetAddr("glCreateShader");
-//	pglDeleteProgram=ccGetAddr("glDeleteProgram");
-//	pglDeleteShader=ccGetAddr("glDeleteShader");
-//	pglDetachShader=ccGetAddr("glDetachShader");
-
-//	pglGetShaderiv=ccGetAddr("glGetShaderiv");
-
-//	pglLinkProgram=ccGetAddr("glLinkProgram");
-//	pglShaderSource=ccGetAddr("glShaderSource");
-//	pglUseProgram=ccGetAddr("glUseProgram");
-
 
 	pglAttachShader=frglGetProcAddress("glAttachShader");
 	pglBindAttribLocation=frglGetProcAddress("glBindAttribLocation");

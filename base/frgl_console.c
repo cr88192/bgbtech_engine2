@@ -788,11 +788,34 @@ void con_memcpy(short *dst, short *src, int cnt)
 		dst[i]=src[i];
 }
 
+void con_memcpy2(short *dst, short *src, int cnt)
+{
+	int i, j;
+	for(i=0; i<cnt; i++)
+	{
+		j=src[i];
+		if(!j && !dst[i])
+			break;
+		dst[i]=j;
+	}
+}
+
 void con_memset(short *dst, int val, int cnt)
 {
 	int i;
 	for(i=0; i<cnt; i++)
 		dst[i]=val;
+}
+
+void con_memset2(short *dst, int val, int cnt)
+{
+	int i;
+	for(i=0; i<cnt; i++)
+	{
+		if(!dst[i])
+			break;
+		dst[i]=val;
+	}
 }
 
 void con_strcpy(short *dst, short *src)
@@ -859,13 +882,19 @@ void Con_ScrollUpInfo(FRGL_ConsoleInfo *con)
 	{
 //		con_memcpy(&con->conbuf[i][0], &con->conbuf[i+1][0], 100);
 //		con_memcpy(&con->conclr[i][0], &con->conclr[i+1][0], 100);
-		con_memcpy(&con->conbuf[i][0], &con->conbuf[i+1][0], con->xs);
-		con_memcpy(&con->conclr[i][0], &con->conclr[i+1][0], con->xs);
+//		con_memcpy(&con->conbuf[i][0], &con->conbuf[i+1][0], con->xs);
+//		con_memcpy(&con->conclr[i][0], &con->conclr[i+1][0], con->xs);
+
+		con_memcpy2(&con->conbuf[i][0], &con->conbuf[i+1][0], con->xs);
+		con_memcpy2(&con->conclr[i][0], &con->conclr[i+1][0], con->xs);
 	}
 //	con_memset(&con->conbuf[74][0], 0, 100);
 //	con_memset(&con->conclr[74][0], 0, 100);
-	con_memset(&con->conbuf[con->ys-1][0], 0, con->xs);
-	con_memset(&con->conclr[con->ys-1][0], 0, con->xs);
+//	con_memset(&con->conbuf[con->ys-1][0], 0, con->xs);
+//	con_memset(&con->conclr[con->ys-1][0], 0, con->xs);
+
+	con_memset2(&con->conbuf[con->ys-1][0], 0, con->xs);
+	con_memset2(&con->conclr[con->ys-1][0], 0, con->xs);
 }
 
 void Con_HandleAnsi(char **rstr)

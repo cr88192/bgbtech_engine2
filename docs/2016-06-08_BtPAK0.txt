@@ -1,0 +1,121 @@
+Motivations:
+* PAK doesn't allow data compression.
+** Simple format, few features.
+* ZIP will tend to involve a lot of extra "busywork"
+** Its design will tend to result in redundant copies of a file in RAM.
+*** In certain use cases, such as doing virtual mmap type uses.
+** Its central directory is expensive to process into an efficient form.
+*** Need a full pass to decode directory.
+*** Linear searching doesn't scale well.
+*** So, may need to rebuild a directory tree in RAM.
+
+
+Possible Thoughts:
+* Header and Central Directory.
+* Files may be stored together in shared chunks.
+** Contents within chunks is typically loaded together.
+** Compression will be applied per-chunk, not per-file.
+** Files within chunks will follow a 64 byte alignment.
+** This is intended mostly for small files.
+* Chunks and other image-level structures will be aligned to 512 bytes.
+* Large files will be split into multiple chunks.
+** Chunk size will be variable.
+** 4 MB seems like a reasonable default size limit.
+* Will primarily assume read-only images.
+** Read/Write could be done by optionally storing cell bitmaps.
+
+General:
+* Multibyte values will be little endian.
+* All fields should be properly aligned.
+** If a field is misaligned, it is likely a spec or design error.
+** Likewise if a structure is not the indicated size.
+
+
+ struct BtPak0_Header_s {
+ EIGHTCC magic;		//"BT2PACK0"
+ u32 dirChkId;		//Directory Chunk Id
+ u32 nDirEnts;		//Number of directory entries.
+ u64 ofsChkInfo;	//Offset of chunk info table.
+ u32 nChunks;		//Number of chunks in image.
+ u32 blkmChkId;		//Block map chunk id (0 if unused)
+ };
+
+The directory will claim any chunks it uses to itself.
+Similarly, allocation bitmaps will exist within their own chunks.
+
+The chunk table starts at 1, with the first entry in the table corresponding to index 1. Similar also applies to the central directory. This is so that 0 can be used as a 'null' value.
+
+Note that nChunks refers to the size of the chunks table, which may be larger than the total number of allocated chunks in the image.
+
+
+ struct BtPak0_ChunkInfo_s {
+ u64 ofsChk;		//offset of chunk within image
+ u32 szChk;			//size of chunk (logical)
+ u32 cszChk;		//compressed size of chunk
+ u32 nextChk;		//next chunk (multi-chunk files)
+ byte cm;			//Compression Method
+ byte cfl;			//Chunk Flags
+ byte shOsz;		//Shift for offset+size
+ byte shCell;		//Shift for cells
+ byte resv[8];		//
+ };					//32 bytes
+
+Feilds:
+* ofsChk and szChk may not be zero in an allocated chunk.
+** If these fields are zero, then the chunk index is assumed to be free.
+* cm: 0=Store, 8=Deflate, 9=Deflate64, 10=BTLZH
+** Store: cszChk may be smaller or larger than szChk.
+*** If larger, cszChk gives the total reserved space.
+*** If smaller, the remaining logical space is assumed to be zeroed.
+* cfl|1: Chunk contains multiple logical files.
+* cfl|2: Chunk is an allocation bitmap.
+* nextChk: For multi-chunk files, gives the next chunk in the file.
+** For chunks with multiple files, may give the chunk holding the cell bitmap.
+
+
+ struct BtPak0_DirEnt_s {
+ byte name[40];		//name (excludes path, UTF-8)
+ u64 oszFile;		//offset + size of file (within chunk)
+ u32 chkId;			//chunk containing file data
+ u32 deNext;		//next DirEnt in current directory
+ byte deTy;			//DirEnt type
+ byte deFl;			//DirEnt flags
+ byte resv[6];		//
+ };					//64 bytes
+ deTy: 0=unused, 1=normal file, 2=directory
+
+For multi-file chunks the oszFile feild will be decoded as:
+* size=oszFile&gt;&gt;chunk.shOsz;
+* offset=(ofzFile&((1&lt;&lt;chunk.shOsz)-1))&lt;&lt;chunk.shCell;
+* For other chunks, it gives the logical file size.
+
+Names:
+* Names that fit within 40 bytes will be encoded directly.
+* Otherwise, the name field will start with 0xFF, 0xFF, 0xFF, 0x00
+** Name+8=u64 oszName;
+** Name+4=u32 chkIdName;
+* If the first byte of name is 0, the entry is assumed to be free.
+** A free entry may not be linked into a directory.
+** Free entries may be linked into a free entry list.
+
+Note that a file contained within a multi-file chunk may not span between chunks.
+
+Directory entries will use chkId instead to hold the index of the first entry within the child directory.
+
+
+Optional Cell Bitmaps (ommitted for read-only images):
+* Will exist for image-scope blocks, each of which is 512 bits.
+* May be stored for chunks containing multiple files.
+* Each cell or block will have 2 bits:
+** 0=Unused
+** 1=Start of chunk or file
+** 2=Data for chunk or file
+** 3=Reserved
+
+
+File Clustering:
+* Small files will be clustered by path and by file type.
+** Type will take precedence, followed by path.
+** Type clustering will likely assume file extension.
+*** Extended heuristics may be used (ex: lumping textual formats, ...).
+*** Heuristics may indicate file types which should no be compressed.

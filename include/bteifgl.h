@@ -180,7 +180,7 @@
 #define BGBBTJ_ZFL_ISBTLZH		16
 #define BGBBTJ_ZFL_ARITH		32
 
-
+#if 0
 #define VFILE		FILE
 // #define vffopen		fopen
 #define vffopen		frgl_fopen
@@ -191,6 +191,21 @@
 #define vfputc		fputc
 #define vftell		ftell
 #define vfseek		fseek
+#endif
+
+#if 1
+#define VFILE		VF31
+// #define vffopen		fopen
+#define vffopen		VfOpen
+#define vfclose		VfClose
+#define vfread		VfRead
+#define vfwrite		VfWrite
+#define vfgetc		VfGetc
+#define vfputc		VfPutc
+#define vftell		VfTell
+#define vfseek		VfSeek
+#endif
+
 
 typedef struct FRGL_State_s FRGL_State;
 
@@ -304,11 +319,15 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bgbdt_tagclass.h>
 #include <bteifgl_entobj.h>
 
+#include <bgbdt_vfile31.h>
+
 #include <bgbdt_bs2cc.h>
 #include <bgbdt_bsvm21.h>
 
 #include <bteifgl_texmat.h>
 #include <bgbdt_sound.h>
+
+#include <bgbdt_fastbcn.h>
 
 #include <bteifgl_chunk.h>
 
@@ -317,6 +336,8 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bteifgl_msp430.h>
 
 #include <bgbdt_isotest.h>
+
+#include <bgbdt_btpak0.h>
 
 struct BGBDT_MM_ParsePrintInfo_s {
 BGBDT_MM_ParsePrintInfo *next;

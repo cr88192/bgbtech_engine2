@@ -576,6 +576,14 @@
 #define BSVM2_EXS_BOUNDEX		0x00002		//BoundsCheckException
 #define BSVM2_EXS_RUNLIMIT		0x00003		//Interpreter Run-Limit
 
+#ifndef BSVM2_DBGTRAP
+#if defined(_M_IX86) && defined(_MSC_VER)
+#define BSVM2_DBGTRAP	__asm { int 3 }
+#else
+#define BSVM2_DBGTRAP	*(int *)-1=-1;
+#endif
+#endif
+
 typedef union BSVM2_Value_u BSVM2_Value;
 typedef union BSVM2_ValX128_u BSVM2_ValX128;
 typedef struct BSVM2_Opcode_s BSVM2_Opcode;

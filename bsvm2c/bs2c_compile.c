@@ -64,6 +64,8 @@ int BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
 	
 	if((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_ERROR)
 	{
+		BSVM2_DBGTRAP
+	
 		if(ctx->ncerr<256)
 		{
 			i=ctx->ncerr++;
@@ -83,6 +85,8 @@ int BS2C_CompileError(BS2CC_CompileContext *ctx, int errn)
 
 	if((errn&BS2CC_ERRN_TMASK)==BS2CC_ERRN_FATAL)
 	{
+		BSVM2_DBGTRAP
+
 		if(ctx->ncfatal<16)
 		{
 			i=ctx->ncfatal++;
@@ -417,6 +421,8 @@ void BS2C_CompileRebuildVarType(
 			ctx, vari, vari->typeExp);
 	}
 	s=BS2C_GetTypeSig(ctx, vari->bty);
+	if((vari->bty==BS2CC_TYZ_VARARG) && vari->name)
+		{ s="Cz"; }
 	vari->sig=BS2P_StrSym(ctx, s);
 }
 
@@ -619,6 +625,8 @@ BTEIFGL_API char *BS2C_ErrStringForMsg(
 			BS2C_GetTypeNameStr(ctx, ctx->cwparm[pix+1]),
 			BS2C_GetTypeNameStr(ctx, ctx->cwparm[pix+0]));
 		s=frgl_rstrdup(tb); break;
+	case BS2CC_ERRN_NOSEMICOLON:
+		s="Missing Expected Semicolon."; break;
 
 	default:
 		s="(Internal) Unknown"; break;

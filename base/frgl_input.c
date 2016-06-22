@@ -96,7 +96,7 @@ BTEIFGL_API void *frgl_realloc(void *ptr, int sz)
 	return(realloc(ptr, sz));
 }
 
-
+#if 0
 VFILE *frgl_fopen(char *name, char *mode)
 {
 	char tb[512];
@@ -113,6 +113,7 @@ VFILE *frgl_fopen(char *name, char *mode)
 	
 	return(NULL);
 }
+#endif
 
 // #define vfclose		fclose
 // #define vfread		fread
@@ -157,6 +158,7 @@ BTEIFGL_API void *vf_bufferin(VFILE *fd)
 	return(vf_bufferin_sz(fd, NULL));
 }
 
+#if 0
 BTEIFGL_API void *vf_loadfile(char *name, int *rsz)
 {
 	VFILE *fd;
@@ -179,6 +181,19 @@ BTEIFGL_API void vf_storefile(char *name, void *buf, int sz)
 //	buf=vf_bufferin_sz(fd, rsz);
 	vfclose(fd);
 }
+#endif
+
+#if 1
+BTEIFGL_API void *vf_loadfile(char *name, int *rsz)
+{
+	return(VfLoadFile2(name, rsz));
+}
+
+BTEIFGL_API void vf_storefile(char *name, void *buf, int sz)
+{
+	VfStoreFile(name, buf, sz);
+}
+#endif
 
 BTEIFGL_API void vf_freefdbuf(void *buf)
 {

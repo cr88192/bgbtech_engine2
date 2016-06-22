@@ -1,0 +1,13 @@
+public class EntityBase2D {
+	public vec2f origin;
+	public float angle;
+	public float radius;
+	public string sprite;
+	public vec2f sprite_sz;
+	
+	/** called after entity creation */
+	public abstract void spawn();
+	public abstract void tick();
+	public abstract void touch(EntityBase2D other);
+	public abstract void use(EntityBase2D other);
+}

@@ -82,9 +82,10 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSampler(char *name)
 BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 {
 	BGBDT_SndSampler *cur;
-	byte *buf, *cs, *cs2, *cse;
+	byte *buf, *cs, *cs2, *cse, *css;
 	u32 fcc1, fcc2, tsz;
 	int szb;
+	int i, j;
 
 	cur=BGBDT_Snd_LookupSampler(name);
 	if(cur)
@@ -97,6 +98,7 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 		return(NULL);
 	}
 	
+	css=buf;
 	cs=buf;
 	cs=BGBDT_Snd_RiffReadFcc(cs, &fcc1);
 	cs=BGBDT_Snd_RiffReadU32(cs, &tsz);
@@ -114,12 +116,19 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 	cur=BGBDT_Snd_GetSampler(name);
 	cur->tmp_lb=-9999;
 
-	cse=cs+((tsz+1)&(~1));
+	cse=(cs-4)+((tsz+1)&(~1));
+//	cse=cs+((tsz+1)&(~1));
 	while(cs<cse)
 	{
 		cs=BGBDT_Snd_RiffReadFcc(cs, &fcc1);
+		if(fcc1==0)break;
 		cs=BGBDT_Snd_RiffReadU32(cs, &tsz);
 		cs2=cs+((tsz+1)&(~1));
+		if((cs2>cse) || (cs2<css))
+		{
+			__asm { int 3 }
+			break;
+		}
 		
 		if(fcc1==BGBDT_SNDFCC_fmt)
 		{
@@ -130,10 +139,17 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 			cur->wf_blkalign=cs[12]+(cs[13]<<8);
 			cur->wf_bits=cs[14];
 
-			printf("BGBDT_Snd_GetLoadSampler: %s:\n"
-				"\tTy=%d Ch=%d Rt=%d Bits=%d, B/s=%d Bsz=%d\n", name,
+			printf("BGBDT_Snd_GetLoadSampler: %s (SzFmt=%d):\n"
+				"\tTy=%d Ch=%d Rt=%d Bits=%d, B/s=%d Bsz=%d\n", name, tsz,
 				cur->wf_type, cur->wf_chan, cur->wf_rate, cur->wf_bits,
 				cur->wf_bytesec, cur->wf_blkalign);
+
+			if(tsz>16)
+			{
+				for(i=16; i<tsz; i++)
+					printf("%02X ", cs[i]);
+				printf("\n");
+			}
 
 			cs=cs2;
 			continue;
@@ -291,6 +307,8 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 			cur->rcplen=(u32)(4294967296LL/cur->len);
 		}
 	}
+	
+	frgl_free(buf);
 	
 	return(cur);
 }

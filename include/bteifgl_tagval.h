@@ -728,14 +728,19 @@ static_inline dtVal dtvNewArray(int sz, int bty)
 static_inline int dtvIsArrayP(dtVal arv)
 {
 	static int objty_arrhead=-1;
+	if((arv.hi>>28)==12)
+		return(1);
 	if(objty_arrhead<0)
 	{
 		objty_arrhead=BGBDT_MM_GetIndexObjTypeName(
 			"bgbdt_tagarrhead_t");
 	}
-	if((arv.hi>>28)==12)
-		return(1);
 	return(dtvCheckPtrTagP(arv, objty_arrhead));
+}
+
+static_inline int dtvIsArrayFP(dtVal arv)
+{
+	return((arv.hi>>28)==12);
 }
 
 static_inline int dtvArrayGetBaseType(dtVal arv)
@@ -785,6 +790,62 @@ static_inline dtVal dtvArrayAdjustOffset(dtVal arv, int idx)
 	arv2.lo=arv.lo;
 	arv2.hi=(0xC0000000UL)|bx1;
 	return(arv2);
+}
+
+
+static_inline void *dtvArrayGetIndexAddrB1(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+idx;
+	if((bx<0) || (bx>=arr->scsz))
+		{ return(NULL); }
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB2(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<1);
+	if((bx<0) || (bx>=arr->scsz))
+		{ return(NULL); }
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB4(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<2);
+	if((bx<0) || (bx>=arr->scsz))
+		{ return(NULL); }
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB8(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<3);
+	if((bx<0) || (bx>=arr->scsz))
+		{ return(NULL); }
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB16(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<4);
+	if((bx<0) || (bx>=arr->scsz))
+		{ return(NULL); }
+	return(arr->data+bx);
 }
 
 static_inline int dtvArrayGetSize(dtVal arv)

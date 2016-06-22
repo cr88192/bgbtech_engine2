@@ -59,6 +59,7 @@
 #define BS2CC_ERRN_CONSTRANGE		(BS2CC_ERRN_WARNING|1)
 #define BS2CC_ERRN_CONVIMPLICIT		(BS2CC_ERRN_WARNING|2)
 #define BS2CC_ERRN_CONVNARROW		(BS2CC_ERRN_WARNING|3)
+#define BS2CC_ERRN_NOSEMICOLON		(BS2CC_ERRN_WARNING|4)
 
 #define BS2CC_ERRN_FATALERRCNT		(BS2CC_ERRN_FATAL|1)
 #define BS2CC_ERRN_FATALNOFILE		(BS2CC_ERRN_FATAL|2)
@@ -82,7 +83,8 @@
 
 
 #define BS2CC_TYZ_MASK		0x0000000F		//Core (Major) Type
-#define BS2CC_TYE_MASK		0x0000FFFF		//Exteded Type (Fptr/Obj)
+#define BS2CC_TYE_MASK		0x00003FFF		//Exteded Type (Fptr/Obj)
+#define BS2CC_TYF_MASK		0x0000C000		//Exteded Type (Fptr/Obj)
 #define BS2CC_TYI_MASK		0x00070000		//Indirection Levels
 #define BS2CC_TYS_MASK		0x3FF80000		//Array Size
 #define BS2CC_TYT_MASK		0xC0000000		//Type Type
@@ -96,7 +98,7 @@
 #define BS2CC_TYT_SHR		30				//Type Type
 
 #define BS2CC_TYZ_MASK2		0x000F			//Core (Major) Type
-#define BS2CC_TYE_MASK2		0xFFFF			//Exteded Type (Fptr/Obj)
+#define BS2CC_TYE_MASK2		0x3FFF			//Exteded Type (Fptr/Obj)
 #define BS2CC_TYI_MASK2		0x0007			//Indirection Levels
 #define BS2CC_TYS_MASK2		0x07FF			//Array Size
 #define BS2CC_TYT_MASK2		0x0003			//Type Type
@@ -110,6 +112,8 @@
 #define BS2CC_TYI_P1		0x00050000		//*T
 #define BS2CC_TYI_P2		0x00060000		//**T
 #define BS2CC_TYI_P3		0x00070000		//***T
+
+#define BS2CC_TYF_NAB		0x00008000		//T? or T!
 
 #define BS2CC_TYT_BASIC		0x00000000		//Basic Type
 #define BS2CC_TYT_OVF		0x40000000		//Overflow
@@ -152,6 +156,8 @@
 #define BS2CC_TYZ_FCPLX		0x0029
 #define BS2CC_TYZ_DCPLX		0x002A
 
+
+#define BS2CC_TYZ_VARIANT_ARR	(BS2CC_TYI_A1|BS2CC_TYZ_VARIANT)
 
 //#define BS2CC_IMG_TWOCC(a, b)			(((b)<<8)|(a))
 //#define BS2CC_IMG_FOURCC(a, b, c, d)	(((d)<<24)|((c)<<16)|((b)<<8)|(a))
@@ -264,6 +270,7 @@ byte al;		//array level
 byte pl;		//pointer level
 byte rf;		//reference
 byte an;		//fixed array levels
+byte nab;		//nullable / nonnull
 int asz[16];	//fixed array sizes
 };
 

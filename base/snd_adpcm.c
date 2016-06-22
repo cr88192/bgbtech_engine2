@@ -121,22 +121,11 @@ BTEIFGL_API void BGBDT_MsImaAdpcm_EncodeBlockMono(
 			uni=(sni>7)?15:(8|sni);
 		}
 
-//		lsbt=(lsbt<<1)|(uni&1);
-//		lsbit=lsbtab[(lsbt>>0)&15];
-
 #if 1
 		uni1=uni+1;
 		uni2=uni-1;
-
-#if 0
-		if(lsbit)
-		{
-			uni|=1; uni1|=1; uni2|=1;
-		}else
-		{
-			uni&=~1; uni1&=~1; uni2&=~1;
-		}
-#endif
+		if((uni^uni1)&(~7))uni1=uni;
+		if((uni^uni2)&(~7))uni2=uni;
 
 		diff=((2*(uni&7)+1)*step)/8;
 		if(uni&8)diff=-diff;
@@ -153,9 +142,6 @@ BTEIFGL_API void BGBDT_MsImaAdpcm_EncodeBlockMono(
 		if(d1<d0)uni=uni1;
 		if(d2<d0)uni=uni2;
 #endif
-
-//		uni|=1;
-//		uni&=~1;
 	
 		index=index+bgbmid_ima_index_table[uni];
 		index=(index<0)?0:((index>88)?88:index);
@@ -447,6 +433,14 @@ BTEIFGL_API int BGBDT_SndBTAC1C_EncodeQuantUni3(
 	uni1=uni+1;
 	uni2=uni-1;
 
+	if((uni^uni1)&(~7))uni1=uni;
+	if((uni^uni2)&(~7))uni2=uni;
+
+//	uni1=(uni+1)&15;
+//	uni2=(uni-1)&15;
+//	if((uni^uni1)&8)uni1=uni;
+//	if((uni^uni2)&8)uni2=uni;
+
 	if(lsbit)
 	{
 		if(lsbit&1)
@@ -481,9 +475,9 @@ BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockStereoJS(
 		1, 2, 2, 3, 2, 3, 3, 4,
 		1, 2, 2, 3,	2, 3, 3, 4,
 		2, 3, 3, 4, 3, 4, 4, 5};
-	int p0, p1, p2, d0, d1, d2, uni1, uni2;
+	int p0, p1, p2, p3, p4, p5, d0, d1, d2, uni1, uni2;
 	int lsbt, lsbit;
-	int cv, sv, len2;
+	int cv, sv, cv1, cv2, sv1, len2;
 	int cpred, spred, cindex, sindex, cstep, sstep, usblk;
 	int tpred, tindex, tstep;
 	int diff, uni, sni;
@@ -498,8 +492,19 @@ BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockStereoJS(
 	p1=(ibuf[(0*4+0)*2+1]+ibuf[(0*4+1)*2+1]+
 		ibuf[(0*4+2)*2+1]+ibuf[(0*4+3)*2+1])>>2;
 
+	p2=(ibuf[(1*4+0)*2+0]+ibuf[(1*4+1)*2+0]+
+		ibuf[(1*4+2)*2+0]+ibuf[(1*4+3)*2+0])>>2;
+	p3=(ibuf[(1*4+0)*2+1]+ibuf[(1*4+1)*2+1]+
+		ibuf[(1*4+2)*2+1]+ibuf[(1*4+3)*2+1])>>2;
+
 	cpred=(p0+p1)>>1;
 	spred=p0-cpred;
+
+	p4=(p0+p2)>>1;
+	p5=(p1+p3)>>1;
+	cv1=(p4+p5)>>1;
+	sv1=p4-cv1;
+//	spred=sv1;
 
 //	cindex=ridx?(*ridx):0;
 //	sindex=cindex;
@@ -536,8 +541,22 @@ BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockStereoJS(
 		{
 			p0=ibuf[(i*4+j)*2+0];
 			p1=ibuf[(i*4+j)*2+1];
+#if 0
+			if((i+1)<len2)
+//			if(0)
+			{
+				p2=ibuf[(i*4+j)*2+2];
+				p3=ibuf[(i*4+j)*2+3];
+			}else
+			{
+				p2=p0;
+				p3=p1;
+			}
+#endif
 
 			cv=(p0+p1)>>1;
+//			cv1=(p2+p3)>>1;
+//			cv2=(15*cv+cv1)>>4;
 			k=cv-cpred;
 
 			if(k>=0)
@@ -565,14 +584,28 @@ BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockStereoJS(
 
 		if(1)
 		{
-			p0=(ibuf[(i*4+0)*2+0]+ibuf[(i*4+1)*2+0]+
-				ibuf[(i*4+2)*2+0]+ibuf[(i*4+3)*2+0])>>2;
-			p1=(ibuf[(i*4+0)*2+1]+ibuf[(i*4+1)*2+1]+
-				ibuf[(i*4+2)*2+1]+ibuf[(i*4+3)*2+1])>>2;
+//			p0=(ibuf[(i*4+0)*2+0]+ibuf[(i*4+1)*2+0]+
+//				ibuf[(i*4+2)*2+0]+ibuf[(i*4+3)*2+0])>>2;
+//			p1=(ibuf[(i*4+0)*2+1]+ibuf[(i*4+1)*2+1]+
+//				ibuf[(i*4+2)*2+1]+ibuf[(i*4+3)*2+1])>>2;
 
-			cv=(p0+p1)>>1;
-			sv=p0-cv;
+			p0=(ibuf[(i*4+0)*2+0]+ibuf[(i*4+1)*2+0])>>1;
+			p1=(ibuf[(i*4+0)*2+1]+ibuf[(i*4+1)*2+1])>>1;
+			p2=(ibuf[(i*4+2)*2+0]+ibuf[(i*4+3)*2+0])>>1;
+			p3=(ibuf[(i*4+2)*2+1]+ibuf[(i*4+3)*2+1])>>1;
+			p4=(p0+p2)>>1;
+			p5=(p1+p3)>>1;
+
+//			cv=(p0+p1)>>1;
+//			sv=p0-cv;
+			cv=(p4+p5)>>1;
+			sv=p4-cv;
+//			cv=(p2+p3)>>1;
+//			sv=p2-cv;
 			k=sv-spred;
+
+//			cv1=(p2+p3)>>1;
+//			sv1=p2-cv1;
 
 			if(k>=0)
 			{

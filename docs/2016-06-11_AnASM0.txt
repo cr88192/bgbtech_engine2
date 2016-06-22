@@ -1,0 +1,45 @@
+Animation Assembly
+
+ASM Like notation mostly for Vector Graphics and animation.
+Graphics will be expressed in a manner similar to OpenGL 1.x
+
+Registers:
+* V0-V15: Vector (4x float)
+** VnX, VnY, VnZ, VnW: Component
+* F0-F15: Floating Point (Scalar)
+** Floats may also be expressed as immediates.
+
+* DBT: Draw Begin Triangles
+* DBQ: Draw Begin Quads
+* DE: Draw End
+* DTX: Draw Bind Texture
+
+* DCF r, g, b, a
+** Draw Color Vector
+* DNF x, y, z
+** Draw Normal Vector
+* DTF s, t
+** Draw Text Coord
+* DVF x, y, z
+** Draw Vertex V
+
+* DCV vr
+** Draw Color Vector
+* DNV vr
+** Draw Normal Vector
+* DTV vr
+** Draw Text Coord
+* DVV vr
+** Draw Vertex Vector
+
+* ADD d, s, t
+* SUB d, s, t
+* MUL d, s, t
+* DIV d, s, t
+** Math operator (scalar)
+
+* ADDV d, s, t
+* SUBV d, s, t
+* MULV d, s, t
+* DIVV d, s, t
+** Math operator (vector)

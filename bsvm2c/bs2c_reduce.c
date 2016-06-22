@@ -172,7 +172,8 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 
 		lt=BS2C_InferExpr(ctx, ln);
 		rt=BS2C_InferExpr(ctx, rn);
-		cty=BS2C_InferSuperType(ctx, lt, rt);
+//		cty=BS2C_InferSuperType(ctx, lt, rt);
+		cty=BS2C_TypeCompareSuperType(ctx, lt, rt);
 
 		if(BS2C_TypeSmallLongP(ctx, cty) &&
 			dtvIsSmallLongP(ln) && dtvIsSmallLongP(rn))

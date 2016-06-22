@@ -1028,6 +1028,9 @@ BTEIFGL_API BSVM2_ImageGlobal *BS2I_ImageLookupGlobalVar(
 	BSVM2_ImageGlobal *gbl;
 	int i;
 
+	if(!img)
+		return(NULL);
+
 	for(i=1; i<img->ngbls; i++)
 	{
 		gbl=img->gbls[i];

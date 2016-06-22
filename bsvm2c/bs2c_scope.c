@@ -317,6 +317,9 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 		vari=ctx->frm->locals[i];
 		bty=vari->bty;
 
+		if(bty==BS2CC_TYZ_VARARG)
+			bty=BS2CC_TYZ_VARIANT_ARR;
+
 		z=BS2C_GetTypeBaseZ(ctx, bty);
 
 		if(BS2C_TypeVarRefP(ctx, bty))
@@ -433,7 +436,9 @@ int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name)
 
 		return(0);
 	}
-	
+
+	BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHA);
+	BS2C_CompileExprPushType(ctx, BS2CC_TYZ_ADDRESS);
 	BS2C_ErrNoDecl(ctx, name);
 	return(-1);
 }
@@ -570,6 +575,8 @@ int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name)
 		return(0);
 	}
 
+	BS2C_EmitOpcode(ctx, BSVM2_OP_POPA);
+	BS2C_CompileExprPopType1(ctx);
 	BS2C_ErrNoDecl(ctx, name);
 	return(-1);
 }

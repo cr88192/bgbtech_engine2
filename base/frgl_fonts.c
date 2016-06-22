@@ -1046,6 +1046,9 @@ BTEIFGL_API int GfxFont_LoadFontBase(char *name, char *fname, int base)
 		cur->next=font_root;
 		font_root=cur;
 	}
+	
+	vfclose(fd);
+	
 	return(0);
 }
 

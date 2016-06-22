@@ -59,7 +59,8 @@ void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,
 
 		lt=BS2C_InferExpr(ctx, ln);
 		rt=BS2C_InferExpr(ctx, rn);
-		cty=BS2C_InferSuperType(ctx, lt, rt);
+//		cty=BS2C_InferSuperType(ctx, lt, rt);
+		cty=BS2C_TypeCompareSuperType(ctx, lt, rt);
 
 		BS2C_CompileExpr(ctx, ln, cty);
 		BS2C_CompileExpr(ctx, rn, cty);
@@ -237,7 +238,8 @@ void BS2C_CompileTempJmpThen2(BS2CC_CompileContext *ctx,
 
 			lt=BS2C_InferExpr(ctx, ln);
 			rt=BS2C_InferExpr(ctx, rn);
-			cty=BS2C_InferSuperType(ctx, lt, rt);
+//			cty=BS2C_InferSuperType(ctx, lt, rt);
+			cty=BS2C_TypeCompareSuperType(ctx, lt, rt);
 
 			o=-1;
 			if(!strcmp(op, "=="))
@@ -506,7 +508,8 @@ void BS2C_CompileTempJmpElse2(BS2CC_CompileContext *ctx,
 
 			lt=BS2C_InferExpr(ctx, ln);
 			rt=BS2C_InferExpr(ctx, rn);
-			cty=BS2C_InferSuperType(ctx, lt, rt);
+//			cty=BS2C_InferSuperType(ctx, lt, rt);
+			cty=BS2C_TypeCompareSuperType(ctx, lt, rt);
 
 			o=-1;
 			if(!strcmp(op, "=="))

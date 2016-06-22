@@ -1,5 +1,25 @@
 #include <bteifgl.h>
 
+int BS2P_ParseError(BS2CC_CompileContext *ctx, int errn)
+{
+	char *lfn;
+	int lln;
+	int i;
+
+	BS2P_GetCurSourceLine(ctx, &lfn, &lln);
+	ctx->srcfn=lfn;
+	ctx->srcln=lln;
+	
+	i=BS2C_CompileError(ctx, errn);
+	return(i);
+}
+
+void BS2P_WarnExpectSemi(BS2CC_CompileContext *ctx)
+{
+	BS2P_ParseError(ctx, BS2CC_ERRN_NOSEMICOLON);
+}
+
+
 dtVal BS2P_ParseInnerStatement(BS2CC_CompileContext *ctx)
 {
 	dtVal n0, n1, n2;
@@ -151,6 +171,11 @@ dtVal BS2P_ParseBlockStatementTail(BS2CC_CompileContext *ctx)
 	return(BS2P_ParseBlockStatementI(ctx, 1));
 }
 
+dtVal BS2P_ParseBlockStatementTail2(BS2CC_CompileContext *ctx)
+{
+	return(BS2P_ParseBlockStatementI(ctx, 3));
+}
+
 dtVal BS2P_ParseBlockStatementI(BS2CC_CompileContext *ctx, int flag)
 {
 	dtVal n0, n1, n2, n3;
@@ -163,7 +188,7 @@ dtVal BS2P_ParseBlockStatementI(BS2CC_CompileContext *ctx, int flag)
 	if(t0 && !strcmp(t0, "X{"))
 	{
 		BS2P_NextToken(ctx);
-		n0=BS2P_ParseStatementBlock(ctx, flag);
+		n0=BS2P_ParseStatementBlock(ctx, flag&(~2));
 		BS2P_ParseExpectToken(ctx, "X}");
 		return(n0);
 	}
@@ -277,6 +302,43 @@ dtVal BS2P_ParseBlockStatementI(BS2CC_CompileContext *ctx, int flag)
 		}
 	}
 
+	if(flag&2)
+	{
+		i=BS2P_GetCurPosition(ctx);
+	
+		n0=BS2P_ParseInnerStatement(ctx);
+		if(dtvTrueP(n0))
+		{
+			BS2P_ParseExpectToken(ctx, "X;");
+			return(n0);
+		}
+
+		n0=BS2P_ParseExpr(ctx);
+		if(dtvTrueP(n0))
+		{
+			if(BS2P_ParseExpectOptToken(ctx, "X;"))
+			{
+				if((flag&1) &&
+					!BS2P_CheckAstNodeTag(n0, "assign") &&
+					!BS2P_CheckAstNodeTag(n0, "assignop"))
+				{
+					n0=BS2P_ParseWrapSimpleTagVal(ctx, "tail", n0);
+				}
+			}else
+			{
+				BS2P_WarnExpectSemi(ctx);
+				BS2P_SetCurPosition(ctx, i);
+				return(DTV_NULL);
+			}
+		}else
+		{
+			n0=DTV_NULL;
+			if(!BS2P_ParseExpectOptToken(ctx, "X;"))
+				BS2P_WarnExpectSemi(ctx);
+		}
+		return(n0);
+	}
+
 	n0=BS2P_TryParseDecl(ctx);
 	if(dtvTrueP(n0))
 		return(n0);
@@ -284,7 +346,8 @@ dtVal BS2P_ParseBlockStatementI(BS2CC_CompileContext *ctx, int flag)
 	n0=BS2P_ParseInnerStatement(ctx);
 	if(dtvTrueP(n0))
 	{
-		BS2P_ParseExpectToken(ctx, "X;");
+		if(!BS2P_ParseExpectOptToken(ctx, "X;"))
+			BS2P_WarnExpectSemi(ctx);
 		return(n0);
 	}
 	
@@ -305,7 +368,9 @@ dtVal BS2P_ParseBlockStatementI(BS2CC_CompileContext *ctx, int flag)
 		}
 	}else
 	{
-		BS2P_ParseExpectOptToken(ctx, "X;");
+//		BS2P_ParseExpectOptToken(ctx, "X;");
+		if(!BS2P_ParseExpectOptToken(ctx, "X;"))
+			BS2P_WarnExpectSemi(ctx);
 	}
 
 	return(n0);
@@ -367,6 +432,12 @@ dtVal BS2P_ParsePackageStatementBlock(BS2CC_CompileContext *ctx)
 		{
 			BS2P_SetAstNodeAttrStr(n0, "fn", lfn);
 			BS2P_SetAstNodeAttrI(n0, "ln", lln);
+		}
+		
+		if(nstmt>=4096)
+		{
+			BSVM2_DBGTRAP
+			return(DTV_NULL);
 		}
 		
 		stmt[nstmt++]=n0;

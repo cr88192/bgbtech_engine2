@@ -1,3 +1,9 @@
+/*
+IsoTest is a simplistic "test game" for the engine core.
+
+As-is, it is "actually pretty bad" in many regards (ex: the way it currently does rendering is terrible/barely works, but was less effort than doing it properly).
+*/
+
 #include <bteifgl.h>
 #include <bteifgl_main.h>
 
@@ -6,6 +12,7 @@
 
 BSVM2_CodeImage *isotest_img;
 BSVM2_ImageGlobal *isotest_vi_update;
+BSVM2_ImageGlobal *isotest_vi_spawnworld;
 
 dtcClass isotest_eb2d_cls;
 dtcField isotest_eb2d_fi_origin;
@@ -34,6 +41,9 @@ float isotest_rot[9];
 byte isotest_pldir;
 byte isotest_iswalk;
 byte isotest_isdead;
+byte isotest_player_noclip;
+byte isotest_player_undying;
+int isotest_wrlflag;
 
 dtVal isotest_player;
 dtVal isotest_diagbox;
@@ -44,6 +54,7 @@ int isotest_diag_sndid;
 int isotest_snd_bgmid;
 
 double isotest_diag_ptime;
+double isotest_worldtime;
 
 int isotest_invopen;
 int isotest_invslot[8*16];
@@ -54,6 +65,16 @@ MAIN_EXPORT void IsoTest_SetDialog(dtVal dbox)
 	isotest_diagbox=dbox;
 	isotest_diag_pchars=0;
 	isotest_diag_ptime=frgl_state->time_f;
+}
+
+MAIN_EXPORT void IsoTest_SetApplyWorldFlags(int flag)
+{
+	isotest_wrlflag|=flag;
+}
+
+MAIN_EXPORT void IsoTest_SetClearWorldFlags(int flag)
+{
+	isotest_wrlflag&=~flag;
 }
 
 MAIN_EXPORT void IsoTest_GiveItem(int item)
@@ -230,12 +251,18 @@ MAIN_EXPORT int IsoTest_CheckItem(int item)
 
 MAIN_EXPORT int IsoTest_SetBgm(char *bgm)
 {
+	char tb[256];
 	BGBDT_SndMixChan *chn;
 
 	chn=BGBDT_Sound_LookupMixChan(isotest_snd_bgmid);
 	if(chn && !strcmp(chn->samp->name, bgm))
 		return(0);
-	//bgm="sound_dev/pi0_amb0";
+
+	sprintf(tb, "%s.wav", bgm);
+	if(chn && !strcmp(chn->samp->name, tb))
+		return(0);
+
+	//bgm="sound/pi0_amb0";
 
 	BGBDT_Sound_DeleteMixChan(isotest_snd_bgmid);
 	isotest_snd_bgmid=BGBDT_Sound_PlaySound(bgm,
@@ -246,6 +273,13 @@ MAIN_EXPORT int IsoTest_SetBgm(char *bgm)
 vec2 IsoTest_EntGetOrigin(dtVal obj)
 {
 	void *p;
+	if(!isotest_eb2d_fi_origin)
+	{
+		isotest_eb2d_fi_origin=BGBDTC_LookupClassSlotName(
+			isotest_eb2d_cls, "origin");
+		if(!isotest_eb2d_fi_origin)
+			return(vec2(0,0));
+	}
 	p=dtcVaGetPtr(obj, isotest_eb2d_fi_origin);
 	return(*(vec2 *)p);
 }
@@ -253,12 +287,26 @@ vec2 IsoTest_EntGetOrigin(dtVal obj)
 void IsoTest_EntSetOrigin(dtVal obj, vec2 org)
 {
 	void *p;
+	if(!isotest_eb2d_fi_origin)
+	{
+		isotest_eb2d_fi_origin=BGBDTC_LookupClassSlotName(
+			isotest_eb2d_cls, "origin");
+		if(!isotest_eb2d_fi_origin)
+			return;
+	}
 	p=dtcVaGetPtr(obj, isotest_eb2d_fi_origin);
 	(*(vec2 *)p)=org;
 }
 
 float IsoTest_EntGetAngle(dtVal obj)
 {
+	if(!isotest_eb2d_fi_angle)
+	{
+		isotest_eb2d_fi_angle=BGBDTC_LookupClassSlotName(
+			isotest_eb2d_cls, "angle");
+		if(!isotest_eb2d_fi_angle)
+			return(0);
+	}
 	return(dtcVaGetF(obj, isotest_eb2d_fi_angle));
 }
 
@@ -372,10 +420,19 @@ dtVal IsoTest_DiagGetOptions(dtVal obj)
 
 int main_prestart(int argc, char *argv[])
 {
+	char tb[256];
+	int i, j, k;
+
 	GfxDrv_SetDefaults("BTDT IsoTest", 1024, 768);
 	FRGL_CvarSetDefault("hide_os_cursor", "1");
 
 	Con_ExecCmdBuf("config.cfg");
+	
+	for(i=0; i<10; i++)
+	{
+		sprintf(tb, "resource/base%d.bpk", i);
+		VfMount(tb, "/", "btpack", "");
+	}
 
 	return(0);
 }
@@ -476,6 +533,11 @@ int main_loadscript(char *def)
 
 	BS2C_CompileModuleList(ctx, NULL, mods);
 
+	if(ctx->ncerr || ctx->ncfatal)
+	{
+		return(-1);
+	}
+
 //	printf("%s\n", tb);
 
 	tbuf=frgl_malloc(1<<20);
@@ -495,6 +557,8 @@ int main_loadscript(char *def)
 
 	isotest_vi_update=BS2I_ImageLookupFunc(
 		isotest_img, "update");
+	isotest_vi_spawnworld=BS2I_ImageLookupFunc(
+		isotest_img, "spawn_world");
 
 	return(0);
 }
@@ -521,6 +585,28 @@ int main_scriptupdate(double dt)
 	return(0);
 }
 
+int main_spawnworld()
+{
+	BSVM2_Value targs[4];
+	BSVM2_Context *vctx;
+	BSVM2_Value *args;
+
+	if(!isotest_vi_spawnworld)
+		return(-1);
+
+	args=targs;
+//	args[0].d=dt;
+
+	IsoTile_SetGlobalA("world_entity", isotest_map->entarr);
+	IsoTile_SetGlobalI("world_max_entity", isotest_map->nents);
+
+	vctx=BSVM2_Interp_AllocPoolContext();
+	BSVM2_Interp_SetupCallVM(vctx, isotest_vi_spawnworld, args);
+	BSVM2_Interp_RunContext(vctx, 999999999);
+	BSVM2_Interp_FreePoolContext(vctx);
+	return(0);
+}
+
 dtVal IsoTile_SpawnEntityBasic(char *cname, vec2 org)
 {
 	BSVM2_Value targs[4];
@@ -531,6 +617,11 @@ dtVal IsoTile_SpawnEntityBasic(char *cname, vec2 org)
 	dtVal obj, sf;
 	void *sfp;
 	int i, n;
+
+	if(!isotest_img)
+	{
+		return(DTV_NULL);
+	}
 
 //	isotest_eb2d_cls=BGBDTC_LookupClassQName("EntityBase2D");
 //	isotest_eb2d_fi_origin=BGBDTC_LookupClassSlotName(
@@ -607,100 +698,6 @@ int IsoTile_CallEntityUse(dtVal self, dtVal other)
 }
 #endif
 
-#if 0
-int IsoTile_CallEntityTouch(dtVal self, dtVal other)
-{
-	BSVM2_Value targs[4];
-	BSVM2_Context *vctx;
-	BSVM2_Value *args;
-
-	dtVal sf;
-	void *sfp;
-
-	if(!isotest_eb2d_fi_touch)
-	{
-		isotest_eb2d_fi_touch=BGBDTC_LookupClassSlotName(
-			isotest_eb2d_cls, "touch");
-	}
-
-	sf=dtcVaGetA(self, isotest_eb2d_fi_touch);
-	sfp=dtvUnwrapPtr(sf);
-	if(!sfp)
-		{ return(-1); }
-
-	args=targs;
-	args[0].a=other;
-
-	vctx=BSVM2_Interp_AllocPoolContext();
-	BSVM2_Interp_SetupMethodCallVM(vctx, sfp, self, args);
-	BSVM2_Interp_RunContext(vctx, 999999999);
-	BSVM2_Interp_FreePoolContext(vctx);
-	return(0);
-}
-
-int IsoTile_CallEntityUse(dtVal self, dtVal other)
-{
-	BSVM2_Value targs[4];
-	BSVM2_Context *vctx;
-	BSVM2_Value *args;
-
-	dtVal sf;
-	void *sfp;
-
-	if(!isotest_eb2d_fi_use)
-	{
-		isotest_eb2d_fi_use=BGBDTC_LookupClassSlotName(
-			isotest_eb2d_cls, "use");
-	}
-
-	sf=dtcVaGetA(self, isotest_eb2d_fi_use);
-	sfp=dtvUnwrapPtr(sf);
-	if(!sfp)
-		{ return(-1); }
-
-	args=targs;
-	args[0].a=other;
-
-	vctx=BSVM2_Interp_AllocPoolContext();
-	BSVM2_Interp_SetupMethodCallVM(vctx, sfp, self, args);
-	BSVM2_Interp_RunContext(vctx, 999999999);
-	BSVM2_Interp_FreePoolContext(vctx);
-	return(0);
-}
-#endif
-
-#if 0
-int IsoTile_CallDiagImpulse(dtVal self, int imp)
-{
-	BSVM2_Value targs[4];
-	BSVM2_Context *vctx;
-	BSVM2_Value *args;
-
-	dtVal sf;
-	void *sfp;
-
-	if(!isotest_npcdiag_fi_impulse)
-	{
-		isotest_npcdiag_fi_impulse=BGBDTC_LookupClassSlotName(
-			isotest_npcdiag_cls, "impulse");
-	}
-
-	sf=dtcVaGetA(self, isotest_npcdiag_fi_impulse);
-	sfp=dtvUnwrapPtr(sf);
-	if(!sfp)
-		{ return(-1); }
-
-	args=targs;
-	args[0].i=imp;
-
-	vctx=BSVM2_Interp_AllocPoolContext();
-	BSVM2_Interp_SetupMethodCallVM(vctx, sfp, self, args);
-	BSVM2_Interp_RunContext(vctx, 999999999);
-	BSVM2_Interp_FreePoolContext(vctx);
-	return(0);
-}
-#endif
-
 int IsoTile_CallDiagImpulse(dtVal self, int imp)
 {
 	static dtcMethod fi=NULL;
@@ -720,6 +717,7 @@ int IsoTile_SetGlobalA(char *cname, dtVal v)
 
 	vi=BS2I_ImageLookupGlobalVar(
 		isotest_img, cname);
+	if(!vi)return(-1);
 	BSVM2_Interp_SetGlobalA(vi, v);
 }
 
@@ -729,6 +727,7 @@ int IsoTile_SetGlobalI(char *cname, int v)
 
 	vi=BS2I_ImageLookupGlobalVar(
 		isotest_img, cname);
+	if(!vi)return(-1);
 	BSVM2_Interp_SetGlobalI(vi, v);
 }
 
@@ -737,37 +736,52 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 {
 	float x0, y0, x1, y1;
 	float x2, y2, x3, y3;
+	float x2a, x2b, y2a, y2b;
 	float z0, z1;
+	char *s;
 	int tex;
 
 	x0=tile->x*64; x1=x0+64; x2=x0+32;
 	y0=tile->y*64; y1=y0+64; y2=y0+32;
 	z0=0; z1=64;
+	
+	x2a=x2-4;	x2b=x2+4;
+	y2a=y2-4;	y2b=y2+4;
 
-	tex=Tex_LoadFile(tile->tex_floor, NULL, NULL);
+	s=tile->tex_floor;
+	if(isotest_wrlflag&1)
+		s=tile->tex_floor_alt;
+	tex=Tex_LoadFile(s, NULL, NULL);
 
 	frglEnableTexture2D();
 	frglBindTexture2D(tex);
 	frglBegin(GL_QUADS);
-	frglTexCoord2f(0, 0);
-	frglVertex3f(x0, y0, z0);
-	frglTexCoord2f(1, 0);
-	frglVertex3f(x1, y0, z0);
-	frglTexCoord2f(1, 1);
-	frglVertex3f(x1, y1, z0);
-	frglTexCoord2f(0, 1);
-	frglVertex3f(x0, y1, z0);
+//	frglTexCoord2f(0, 0);	frglVertex3f(x0, y0, z0);
+//	frglTexCoord2f(1, 0);	frglVertex3f(x1, y0, z0);
+//	frglTexCoord2f(1, 1);	frglVertex3f(x1, y1, z0);
+//	frglTexCoord2f(0, 1);	frglVertex3f(x0, y1, z0);
+
+	frglTexCoord2f(0, 1);	frglVertex3f(x0, y1, z0);
+	frglTexCoord2f(1, 1);	frglVertex3f(x1, y1, z0);
+	frglTexCoord2f(1, 0);	frglVertex3f(x1, y0, z0);
+	frglTexCoord2f(0, 0);	frglVertex3f(x0, y0, z0);
 	frglEnd();
 	
 	if(tile->tex_wall_xz)
 	{
-		tex=Tex_LoadFile(tile->tex_wall_xz, NULL, NULL);
+		s=tile->tex_wall_xz;
+		if(isotest_wrlflag&1)
+			s=tile->tex_wall_xz_alt;
+
+		tex=Tex_LoadFile(s, NULL, NULL);
 
 		if((tile->fl&BGBDT_ISOTFL_PNX)==BGBDT_ISOTFL_PNX)
 		{
 			frglEnableTexture2D();
 			frglBindTexture2D(tex);
 			frglBegin(GL_QUADS);
+
+#if 0
 			frglTexCoord2f(0, 0);
 			frglVertex3f(x0, y2, z0);
 			frglTexCoord2f(1, 0);
@@ -776,12 +790,43 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 			frglVertex3f(x1, y2, z1);
 			frglTexCoord2f(0, 1);
 			frglVertex3f(x0, y2, z1);
+#endif
+
+#if 1
+//			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2a, z0);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2a, z0);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2a, z1);
+//			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2a, z1);
+
+			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2a, z1);
+			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2a, z1);
+			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2a, z0);
+			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2a, z0);
+
+			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2b, z0);
+			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2b, z0);
+			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2b, z1);
+			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2b, z1);
+
+//			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2b, z1);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2b, z1);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2b, z0);
+//			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2b, z0);
+
+			frglTexCoord2f(0, 0.44);	frglVertex3f(x0, y2b, z1);
+			frglTexCoord2f(1, 0.44);	frglVertex3f(x1, y2b, z1);
+			frglTexCoord2f(1, 0.56);	frglVertex3f(x1, y2a, z1);
+			frglTexCoord2f(0, 0.56);	frglVertex3f(x0, y2a, z1);
+#endif
+
 			frglEnd();
 		}else if(tile->fl&BGBDT_ISOTFL_NX)
 		{
 			frglEnableTexture2D();
 			frglBindTexture2D(tex);
 			frglBegin(GL_QUADS);
+
+#if 0
 			frglTexCoord2f(0, 0);
 			frglVertex3f(x0, y2, z0);
 			frglTexCoord2f(1, 0);
@@ -790,12 +835,51 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 			frglVertex3f(x2, y2, z1);
 			frglTexCoord2f(0, 1);
 			frglVertex3f(x0, y2, z1);
+#endif
+
+#if 1
+//			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2a, z0);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y2a, z0);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y2a, z1);
+//			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2a, z1);
+
+			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2a, z1);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y2a, z1);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y2a, z0);
+			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2a, z0);
+
+			frglTexCoord2f(0, 0);	frglVertex3f(x0, y2b, z0);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y2b, z0);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y2b, z1);
+			frglTexCoord2f(0, 1);	frglVertex3f(x0, y2b, z1);
+
+			frglTexCoord2f(0, 0.44);	frglVertex3f(x0, y2b, z1);
+			frglTexCoord2f(1, 0.44);	frglVertex3f(x2b, y2b, z1);
+			frglTexCoord2f(1, 0.56);	frglVertex3f(x2b, y2a, z1);
+			frglTexCoord2f(0, 0.56);	frglVertex3f(x0, y2a, z1);
+			
+			if(!(tile->fl&BGBDT_ISOTFL_PNY))
+			{
+//				frglTexCoord2f(0.44, 0);	frglVertex3f(x2b, y2a, z0);
+//				frglTexCoord2f(0.56, 0);	frglVertex3f(x2b, y2b, z0);
+//				frglTexCoord2f(0.56, 1);	frglVertex3f(x2b, y2b, z1);
+//				frglTexCoord2f(0.44, 1);	frglVertex3f(x2b, y2a, z1);
+
+				frglTexCoord2f(0.44, 1);	frglVertex3f(x2b, y2a, z1);
+				frglTexCoord2f(0.56, 1);	frglVertex3f(x2b, y2b, z1);
+				frglTexCoord2f(0.56, 0);	frglVertex3f(x2b, y2b, z0);
+				frglTexCoord2f(0.44, 0);	frglVertex3f(x2b, y2a, z0);
+			}
+#endif
+
 			frglEnd();
 		}else if(tile->fl&BGBDT_ISOTFL_PX)
 		{
 			frglEnableTexture2D();
 			frglBindTexture2D(tex);
 			frglBegin(GL_QUADS);
+
+#if 0
 			frglTexCoord2f(0, 0);
 			frglVertex3f(x2, y2, z0);
 			frglTexCoord2f(1, 0);
@@ -804,19 +888,56 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 			frglVertex3f(x1, y2, z1);
 			frglTexCoord2f(0, 1);
 			frglVertex3f(x2, y2, z1);
+#endif
+
+#if 1
+//			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y2a, z0);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2a, z0);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2a, z1);
+//			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y2a, z1);
+
+			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y2a, z1);
+			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2a, z1);
+			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2a, z0);
+			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y2a, z0);
+
+			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y2b, z0);
+			frglTexCoord2f(1, 0);	frglVertex3f(x1, y2b, z0);
+			frglTexCoord2f(1, 1);	frglVertex3f(x1, y2b, z1);
+			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y2b, z1);
+
+			frglTexCoord2f(0, 0.44);	frglVertex3f(x2a, y2b, z1);
+			frglTexCoord2f(1, 0.44);	frglVertex3f(x1, y2b, z1);
+			frglTexCoord2f(1, 0.56);	frglVertex3f(x1, y2a, z1);
+			frglTexCoord2f(0, 0.56);	frglVertex3f(x2a, y2a, z1);
+
+			if(!(tile->fl&BGBDT_ISOTFL_PNY))
+			{
+				frglTexCoord2f(0.44, 0);	frglVertex3f(x2a, y2a, z0);
+				frglTexCoord2f(0.56, 0);	frglVertex3f(x2a, y2b, z0);
+				frglTexCoord2f(0.56, 1);	frglVertex3f(x2a, y2b, z1);
+				frglTexCoord2f(0.44, 1);	frglVertex3f(x2a, y2a, z1);
+			}
+#endif
+
 			frglEnd();
 		}
 	}
 
 	if(tile->tex_wall_yz)
 	{
-		tex=Tex_LoadFile(tile->tex_wall_yz, NULL, NULL);
+		s=tile->tex_wall_yz;
+		if(isotest_wrlflag&1)
+			s=tile->tex_wall_yz_alt;
+
+		tex=Tex_LoadFile(s, NULL, NULL);
 
 		if((tile->fl&BGBDT_ISOTFL_PNY)==BGBDT_ISOTFL_PNY)
 		{
 			frglEnableTexture2D();
 			frglBindTexture2D(tex);
 			frglBegin(GL_QUADS);
+#if 0
 			frglTexCoord2f(0, 0);
 			frglVertex3f(x2, y0, z0);
 			frglTexCoord2f(1, 0);
@@ -825,12 +946,43 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 			frglVertex3f(x2, y1, z1);
 			frglTexCoord2f(0, 1);
 			frglVertex3f(x2, y0, z1);
+#endif
+
+#if 1
+			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y0, z0);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2a, y1, z0);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2a, y1, z1);
+			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y0, z1);
+
+//			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y0, z1);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x2a, y1, z1);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x2a, y1, z0);
+//			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y0, z0);
+
+//			frglTexCoord2f(0, 0);	frglVertex3f(x2b, y0, z0);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y1, z0);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y1, z1);
+//			frglTexCoord2f(0, 1);	frglVertex3f(x2b, y0, z1);
+
+			frglTexCoord2f(0, 1);	frglVertex3f(x2b, y0, z1);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y1, z1);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y1, z0);
+			frglTexCoord2f(0, 0);	frglVertex3f(x2b, y0, z0);
+
+			frglTexCoord2f(0, 0.44);	frglVertex3f(x2a, y0, z1);
+			frglTexCoord2f(1, 0.44);	frglVertex3f(x2a, y1, z1);
+			frglTexCoord2f(1, 0.56);	frglVertex3f(x2b, y1, z1);
+			frglTexCoord2f(0, 0.56);	frglVertex3f(x2b, y0, z1);
+#endif
+
 			frglEnd();
 		}else if(tile->fl&BGBDT_ISOTFL_NY)
 		{
 			frglEnableTexture2D();
 			frglBindTexture2D(tex);
 			frglBegin(GL_QUADS);
+
+#if 0
 			frglTexCoord2f(0, 0);
 			frglVertex3f(x2, y0, z0);
 			frglTexCoord2f(1, 0);
@@ -839,12 +991,46 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 			frglVertex3f(x2, y2, z1);
 			frglTexCoord2f(0, 1);
 			frglVertex3f(x2, y0, z1);
+#endif
+
+#if 1
+			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y0, z0);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2a, y2b, z0);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2a, y2b, z1);
+			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y0, z1);
+
+//			frglTexCoord2f(0, 0);	frglVertex3f(x2b, y0, z0);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y2b, z0);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y2b, z1);
+//			frglTexCoord2f(0, 1);	frglVertex3f(x2b, y0, z1);
+
+			frglTexCoord2f(0, 1);	frglVertex3f(x2b, y0, z1);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y2b, z1);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y2b, z0);
+			frglTexCoord2f(0, 0);	frglVertex3f(x2b, y0, z0);
+
+			frglTexCoord2f(0, 0.44);	frglVertex3f(x2a, y0, z1);
+			frglTexCoord2f(1, 0.44);	frglVertex3f(x2a, y2b, z1);
+			frglTexCoord2f(1, 0.56);	frglVertex3f(x2b, y2b, z1);
+			frglTexCoord2f(0, 0.56);	frglVertex3f(x2b, y0, z1);
+
+			if(!(tile->fl&BGBDT_ISOTFL_PNX))
+			{
+				frglTexCoord2f(0.44, 0);	frglVertex3f(x2a, y2b, z0);
+				frglTexCoord2f(0.56, 0);	frglVertex3f(x2b, y2b, z0);
+				frglTexCoord2f(0.56, 1);	frglVertex3f(x2b, y2b, z1);
+				frglTexCoord2f(0.44, 1);	frglVertex3f(x2a, y2b, z1);
+			}
+#endif
+
 			frglEnd();
 		}else if(tile->fl&BGBDT_ISOTFL_PY)
 		{
 			frglEnableTexture2D();
 			frglBindTexture2D(tex);
 			frglBegin(GL_QUADS);
+
+#if 0
 			frglTexCoord2f(0, 0);
 			frglVertex3f(x2, y2, z0);
 			frglTexCoord2f(1, 0);
@@ -853,6 +1039,43 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 			frglVertex3f(x2, y1, z1);
 			frglTexCoord2f(0, 1);
 			frglVertex3f(x2, y2, z1);
+#endif
+
+#if 1
+			frglTexCoord2f(0, 0);	frglVertex3f(x2a, y2a, z0);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2a, y1, z0);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2a, y1, z1);
+			frglTexCoord2f(0, 1);	frglVertex3f(x2a, y2a, z1);
+
+//			frglTexCoord2f(0, 0);	frglVertex3f(x2b, y2a, z0);
+//			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y1, z0);
+//			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y1, z1);
+//			frglTexCoord2f(0, 1);	frglVertex3f(x2b, y2a, z1);
+
+			frglTexCoord2f(0, 1);	frglVertex3f(x2b, y2a, z1);
+			frglTexCoord2f(1, 1);	frglVertex3f(x2b, y1, z1);
+			frglTexCoord2f(1, 0);	frglVertex3f(x2b, y1, z0);
+			frglTexCoord2f(0, 0);	frglVertex3f(x2b, y2a, z0);
+
+			frglTexCoord2f(0, 0.44);	frglVertex3f(x2a, y2a, z1);
+			frglTexCoord2f(1, 0.44);	frglVertex3f(x2a, y1, z1);
+			frglTexCoord2f(1, 0.56);	frglVertex3f(x2b, y1, z1);
+			frglTexCoord2f(0, 0.56);	frglVertex3f(x2b, y2a, z1);
+
+			if(!(tile->fl&BGBDT_ISOTFL_PNX))
+			{
+//				frglTexCoord2f(0.44, 0);	frglVertex3f(x2a, y2a, z0);
+//				frglTexCoord2f(0.56, 0);	frglVertex3f(x2b, y2a, z0);
+//				frglTexCoord2f(0.56, 1);	frglVertex3f(x2b, y2a, z1);
+//				frglTexCoord2f(0.44, 1);	frglVertex3f(x2a, y2a, z1);
+
+				frglTexCoord2f(0.44, 1);	frglVertex3f(x2a, y2a, z1);
+				frglTexCoord2f(0.56, 1);	frglVertex3f(x2b, y2a, z1);
+				frglTexCoord2f(0.56, 0);	frglVertex3f(x2b, y2a, z0);
+				frglTexCoord2f(0.44, 0);	frglVertex3f(x2a, y2a, z0);
+			}
+#endif
+
 			frglEnd();
 		}
 	}
@@ -861,6 +1084,7 @@ int IsoTile_DrawTile(BGBDT_IsoMap *map,
 int IsoTest_DrawSprite(char *spr, vec2 vorg, float xs, float ys)
 {
 	float org[4], v0[4], v1[4], v2[4], v3[4];
+	float fw[4];
 	int tex, flip;
 	int i;
 
@@ -877,11 +1101,15 @@ int IsoTest_DrawSprite(char *spr, vec2 vorg, float xs, float ys)
 	v2[2]+=ys;
 	v3[2]+=ys;
 
+	V3F_COPY(isotest_rot+3, fw);
+	fw[2]=0;
+
 	tex=Tex_LoadFile(spr, NULL, NULL);
 
 	frglEnableTexture2D();
 	frglBindTexture2D(tex);
 	frglBegin(GL_QUADS);
+
 	frglTexCoord2f(flip?1:0, 0);
 	frglVertex3fv(v0);
 	frglTexCoord2f(flip?0:1, 0);
@@ -890,6 +1118,21 @@ int IsoTest_DrawSprite(char *spr, vec2 vorg, float xs, float ys)
 	frglVertex3fv(v3);
 	frglTexCoord2f(flip?1:0, 1);
 	frglVertex3fv(v2);
+
+#if 0
+	for(i=0; i<4; i++)
+	{
+		frglTexCoord2f(flip?1:0, 0);
+		frglVertex3f(v0[0]+fw[0]*i*3, v0[1]+fw[1]*i*3, v0[2]+fw[2]*i*3);
+		frglTexCoord2f(flip?0:1, 0);
+		frglVertex3f(v1[0]+fw[0]*i*3, v1[1]+fw[1]*i*3, v1[2]+fw[2]*i*3);
+		frglTexCoord2f(flip?0:1, 1);
+		frglVertex3f(v3[0]+fw[0]*i*3, v3[1]+fw[1]*i*3, v3[2]+fw[2]*i*3);
+		frglTexCoord2f(flip?1:0, 1);
+		frglVertex3f(v2[0]+fw[0]*i*3, v2[1]+fw[1]*i*3, v2[2]+fw[2]*i*3);
+	}
+#endif
+
 	frglEnd();
 }
 
@@ -913,8 +1156,11 @@ int IsoTile_DrawEntity(BGBDT_IsoMap *map,
 	if(!spr)
 		return(0);
 	
-	if(xs<=0)xs=32;
-	if(ys<=0)ys=32;
+//	if(xs<=0)xs=32;
+//	if(ys<=0)ys=32;
+
+	if(xs==0)xs=32;
+	if(ys==0)ys=32;
 	
 	IsoTest_DrawSprite(spr, org, xs, ys);
 	return(1);
@@ -926,6 +1172,8 @@ int isotile_drawmap(BGBDT_IsoMap *map)
 	dtVal ent;
 	int x, y, mx, my, nx, ny;
 	int i, j, k, l;
+
+	frglEnable(GL_CULL_FACE);
 
 	frglEnable(GL_ALPHA_TEST);
 
@@ -959,6 +1207,8 @@ int isotile_drawmap(BGBDT_IsoMap *map)
 	}
 	
 //	frglPopMatrix();
+
+	frglDisable(GL_CULL_FACE);
 
 	l=map->nents;
 	for(i=0; i<l; i++)
@@ -1172,6 +1422,28 @@ dtVal IsoTile_QueryCollideMove(BGBDT_IsoMap *map,
 	return(DTV_NULL);
 }
 
+MAIN_EXPORT int IsoTile_CheckEntMoveCollidePos(dtVal self)
+{
+	BGBDT_IsoTile *ti;
+	vec2 org;
+	dtVal other;
+	float rad;
+	
+	org=IsoTest_EntGetOrigin(self);
+	rad=IsoTest_EntGetRadius(self);
+
+	other=IsoTile_QueryCollideMove(isotest_map, self, org, rad);
+	if(!dtvNullP(other))
+		return(1);
+	
+	ti=IsoTile_CheckTileCollide(isotest_map,
+		v2x(org), v2y(org), rad);
+	if(ti)
+		return(1);
+	
+	return(0);
+}
+
 int isotest_drawplayer()
 {
 	float org[4], v0[4], v1[4], v2[4], v3[4];
@@ -1322,7 +1594,7 @@ int IsoTile_DrawDialog(dtVal dbox)
 			if(isotest_diag_sndid<=0)
 			{
 				isotest_diag_sndid=BGBDT_Sound_PlaySound(
-					"sound_dev/box_aa1", 32, 0, BGBDT_SNDFL_LOOP);
+					"sound/box_aa1", 32, 0, BGBDT_SNDFL_LOOP);
 			}
 		}else
 		{
@@ -1339,7 +1611,7 @@ int IsoTile_DrawDialog(dtVal dbox)
 		(isotest_diag_pchars!=isotest_diag_lpchars))
 	{
 //		isotest_diag_sndid=BGBDT_Sound_PlaySound(
-//			"sound_dev/box_aa2", 32, 0, 0);
+//			"sound/box_aa2", 32, 0, 0);
 	}
 
 	tex=Tex_LoadFile("images/ui/dialog0_1", NULL, NULL);
@@ -1561,101 +1833,119 @@ int isotile_blfclr_idx(byte *buf, int xs, int ys,
 	return(ix);
 }
 
-int main_startup(int argc, char *argv[])
+void isotest_menopt_toggle_act(FRGL_MenuInfo *menu, FRGL_MenuItem *mitm)
+{
+	if(!strcmp(mitm->name, "noclip"))
+	{
+		isotest_player_noclip=!isotest_player_noclip;
+		mitm->opt_str=isotest_player_noclip?"True":"False";
+		return;
+	}
+
+	if(!strcmp(mitm->name, "undying"))
+	{
+		isotest_player_undying=!isotest_player_undying;
+		mitm->opt_str=isotest_player_undying?"True":"False";
+		return;
+	}
+
+	if(!strcmp(mitm->name, "all_cookies"))
+	{
+		IsoTest_GiveItem((64<<8)|4);
+		IsoTest_GiveItem((64<<8)|5);
+	}
+}
+
+byte *iso_fbuf;
+byte *iso_wbuf;
+byte *iso_ebuf;
+int iso_xs, iso_ys;
+
+void isotest_newgame_init()
 {
 	BGBDT_IsoTile *tile;
-	BGBDT_SndListen *mixl, *mixr;
-	BGBDT_SndMixChan *mixchn;
-	BGBDT_SndSampler *mixsmp;
-
 	char *s0, *s1;
-	byte *iso_fbuf;
-	byte *iso_wbuf;
-	byte *iso_ebuf;
-	dtcClass clz;
-	float f, g;
-	int xs, ys;
-	int k0, k1, k2, k3, k4;
-	int i, j, k;
+	int k0, k1, k2, k3, k4, k5, k6, k7;
+	int i, j, k, l;
 
-	Tex_Init2();
-	GfxFont_Init();
-	Con_Init();
-//	ConCmds_Init();
-
-	SoundDev_Init();
-
-//	NET_InitLow();
-//	BTEIFGL_NET_Init();
-
-	main_loadscript("isotest.cfg");
-	
-	frgl_state->maxhz=60;
-
-	isotest_eb2d_cls=BGBDTC_LookupClassQName("EntityBase2D");
-	isotest_eb2d_fi_origin=BGBDTC_LookupClassSlotName(
-		isotest_eb2d_cls, "origin");
-	isotest_eb2d_fi_angle=BGBDTC_LookupClassSlotName(
-		isotest_eb2d_cls, "angle");
-
-	isotest_npcdiag_cls=BGBDTC_LookupClassQName("NpcDialogBox");
-
-	iso_fbuf=Tex_LoadFileRaw("isomap/map_floor.png", &xs, &ys);
-	iso_wbuf=Tex_LoadFileRaw("isomap/map_wall.png", NULL, NULL);
-	iso_ebuf=Tex_LoadFileRaw("isomap/map_spawn.png", NULL, NULL);
-
-	isotest_map=dtmAlloc("bgbdt_isomap_t", sizeof(BGBDT_IsoMap));
-	isotest_map->tile=dtmAlloc("bgbdt_isomaptiles_t",
-		xs*ys*sizeof(BGBDT_IsoTile *));
-	isotest_map->xs=xs;
-	isotest_map->ys=ys;
-
-	for(i=0; i<ys; i++)
-		for(j=0; j<xs; j++)
+	if(!iso_fbuf)
 	{
-		k=isotile_blfclr_idx(iso_fbuf, xs, ys, j, i);
+		iso_fbuf=Tex_LoadFileRaw("isomap/map_floor.png", &iso_xs, &iso_ys);
+		iso_wbuf=Tex_LoadFileRaw("isomap/map_wall.png", NULL, NULL);
+		iso_ebuf=Tex_LoadFileRaw("isomap/map_spawn.png", NULL, NULL);
+
+		isotest_map=dtmAlloc("bgbdt_isomap_t", sizeof(BGBDT_IsoMap));
+		isotest_map->tile=dtmAlloc("bgbdt_isomaptiles_t",
+			iso_xs*iso_ys*sizeof(BGBDT_IsoTile *));
+		isotest_map->xs=iso_xs;
+		isotest_map->ys=iso_ys;
+	}
+
+	for(i=0; i<iso_ys; i++)
+		for(j=0; j<iso_xs; j++)
+	{
+		k=isotile_blfclr_idx(iso_fbuf, iso_xs, iso_ys, j, i);
 		if(!k)
 			continue;
 
-		tile=dtmAlloc("bgbdt_isotile_t", sizeof(BGBDT_IsoTile));
-		isotest_map->tile[i*xs+j]=tile;
+		tile=isotest_map->tile[i*iso_xs+j];
+		if(!tile)
+			tile=dtmAlloc("bgbdt_isotile_t", sizeof(BGBDT_IsoTile));
+		isotest_map->tile[i*iso_xs+j]=tile;
 		
 		tile->tex_floor="textures/rrock14";
+		tile->tex_floor_alt="textures/rrock14_a";
 		tile->x=j;
 		tile->y=i;
 
 //		if(!(rand()&15))
 		if(!(rand()&15) && ((i>48) || (j>48)))
+		{
 			tile->tex_floor="textures/rrock14_rspat";
+			tile->tex_floor_alt="textures/rrock14_rspat_a";
+		}
 		
 		if(k==16)tile->tex_floor="textures_dev/synrust0_hex0";
 		if(k==32)tile->tex_floor="textures/lava4_1";
 		if(k==48)tile->tex_floor="textures/redbrick0";
-		if(k==1)tile->tex_floor="textures/rrock14_rspat";
+		if(k==1)
+		{
+			tile->tex_floor="textures/rrock14_rspat";
+			tile->tex_floor_alt="textures/rrock14_rspat_a";
+		}
 		
 //		if(!(rand()&63))
 //			tile->tex_wall_xz="textures/rrock14";
 //		if(!(rand()&63))
 //			tile->tex_wall_yz="textures/rrock14";
 
-		k4=isotile_blfclr_idx(iso_wbuf, xs, ys, j, i);
-		k0=isotile_blfclr_idx(iso_wbuf, xs, ys, j-1, i  );
-		k1=isotile_blfclr_idx(iso_wbuf, xs, ys, j+1, i  );
-		k2=isotile_blfclr_idx(iso_wbuf, xs, ys, j  , i-1);
-		k3=isotile_blfclr_idx(iso_wbuf, xs, ys, j  , i+1);
+		k4=isotile_blfclr_idx(iso_wbuf, iso_xs, iso_ys, j, i);
+		k0=isotile_blfclr_idx(iso_wbuf, iso_xs, iso_ys, j-1, i  );
+		k1=isotile_blfclr_idx(iso_wbuf, iso_xs, iso_ys, j+1, i  );
+		k2=isotile_blfclr_idx(iso_wbuf, iso_xs, iso_ys, j  , i-1);
+		k3=isotile_blfclr_idx(iso_wbuf, iso_xs, iso_ys, j  , i+1);
 	
 //		if((k4==1) || (k4==16))
 //			continue;
 
 		s0="textures/rrock14";
+		s1="textures/rrock14_a";
 //		if(!(rand()&15))
 		if(!(rand()&15) && ((i>48) || (j>48)))
+		{
 			s0="textures/rrock14_rspat";
-		if(k4==1)s0="textures/rrock14_rspat";
+			s1="textures/rrock14_rspat_a";
+		}
+		if(k4==1)
+		{
+			s0="textures/rrock14_rspat";
+			s1="textures/rrock14_rspat_a";
+		}
 
 		if(k4==16)
 		{
 			s0="textures_dev/gate0";
+			s1=s0;
 			tile->fl|=BGBDT_ISOTFL_NONSOLID;
 		}
 
@@ -1666,6 +1956,7 @@ int main_startup(int argc, char *argv[])
 				if(k0)tile->fl|=BGBDT_ISOTFL_NX;
 				if(k1)tile->fl|=BGBDT_ISOTFL_PX;
 				tile->tex_wall_xz=s0;
+				tile->tex_wall_xz_alt=s1;
 			}
 
 			if(k2 || k3)
@@ -1673,9 +1964,9 @@ int main_startup(int argc, char *argv[])
 				if(k2)tile->fl|=BGBDT_ISOTFL_NY;
 				if(k3)tile->fl|=BGBDT_ISOTFL_PY;
 				tile->tex_wall_yz=s0;
+				tile->tex_wall_yz_alt=s1;
 			}
 		}
-	
 	}
 
 	isotest_map->entarr=dtvNewArray(4096, BGBDT_BASETY_ADDRESS);
@@ -1683,8 +1974,8 @@ int main_startup(int argc, char *argv[])
 
 	IsoTile_SetGlobalA("world_entity", isotest_map->entarr);
 
-	isotest_org[0]=0;
-	isotest_org[1]=0;
+	isotest_org[0]=128;
+	isotest_org[1]=128;
 	isotest_org[2]=128;
 	
 //	isotest_ang[0]=-45;
@@ -1693,30 +1984,14 @@ int main_startup(int argc, char *argv[])
 	isotest_ang[1]=-45;
 	isotest_ang[2]=0;
 
-#if 0
-	for(i=0; i<16; i++)
+	for(i=0; i<iso_ys; i++)
+		for(j=0; j<iso_xs; j++)
 	{
-		f=((u16)rand())/65536.0;
-		g=((u16)rand())/65536.0;
-		IsoTile_SpawnEntityBasic("misc_chest", vec2(f*32*64, g*32*64));
-	}
-
-	for(i=0; i<8; i++)
-	{
-		f=((u16)rand())/65536.0;
-		g=((u16)rand())/65536.0;
-		IsoTile_SpawnEntityBasic("npc_elf", vec2(f*48*64, g*48*64));
-	}
-#endif
-
-	for(i=0; i<ys; i++)
-		for(j=0; j<xs; j++)
-	{
-		k=isotile_blfclr_idx(iso_ebuf, xs, ys, j, i);
+		k=isotile_blfclr_idx(iso_ebuf, iso_xs, iso_ys, j, i);
 		if(!k)
 			continue;
 
-		k4=isotile_blfclr_idx(iso_wbuf, xs, ys, j, i);
+		k4=isotile_blfclr_idx(iso_wbuf, iso_xs, iso_ys, j, i);
 		if(k4)
 			continue;
 
@@ -1747,20 +2022,106 @@ int main_startup(int argc, char *argv[])
 			vec2(j*64+32, i*64+32));
 	}
 
-//	clz=BGBDTC_LookupClassQName("player");
-//	isotest_player=dtvWrapPtr(BGBDTC_AllocClassInstance(clz));
-//	i=isotest_map->nents++;
-//	dtvArraySetIndexDtVal(isotest_map->entarr, i, isotest_player);
+	isotest_player=IsoTile_SpawnEntityBasic("player", vec2(128,128));
+	isotest_worldtime=0;
 	
-	isotest_player=IsoTile_SpawnEntityBasic("player", vec2(0,0));
+	for(i=0; i<8*16; i++)
+		isotest_invslot[i]=0;
+	isotest_isdead=0;
+
+	main_spawnworld();
+
+	IsoTest_SetBgm("sound/pi0_amb0");
+//	isotest_snd_bgmid=BGBDT_Sound_PlaySound("sound/pi0_amb0",
+//		64, BGBDT_SNDATT_NONE, BGBDT_SNDFL_LOOP);
+}
+
+void isotest_menopt_newgame(FRGL_MenuInfo *menu, FRGL_MenuItem *mitm)
+{
+	isotest_newgame_init();
+}
+
+int main_startup(int argc, char *argv[])
+{
+	BGBDT_IsoTile *tile;
+	BGBDT_SndListen *mixl, *mixr;
+	BGBDT_SndMixChan *mixchn;
+	BGBDT_SndSampler *mixsmp;
+	FRGL_MenuInfo *menu;
+	FRGL_MenuItem *mitm;
+
+	char *s0, *s1;
+	dtcClass clz;
+	float f, g;
+	int xs, ys;
+	int k0, k1, k2, k3, k4;
+	int i, j, k;
+
+	Tex_Init2();
+	GfxFont_Init();
+	Con_Init();
+//	ConCmds_Init();
+
+	SoundDev_Init();
+
+//	NET_InitLow();
+//	BTEIFGL_NET_Init();
+
+	main_loadscript("isotest.cfg");
 	
+	frgl_state->maxhz=60;
+
+	menu=FRGL_GetMenu("main");
+	menu->title=frgl_strdup("Main Menu");
+
+	mitm=FRGL_GetMenuItem(menu, 0, "newgame");
+	mitm->title=frgl_strdup("New Game");
+	mitm->Action=isotest_menopt_newgame;
+
+	mitm=FRGL_GetMenuItem(menu, 1, "ldgame");
+	mitm->title=frgl_strdup("Load Game");
+
+	mitm=FRGL_GetMenuItem(menu, 2, "svgame");
+	mitm->title=frgl_strdup("Save Game");
+
+	mitm=FRGL_GetMenuItem(menu, 3, "options");
+	mitm->title=frgl_strdup("Options");
+
+	menu=FRGL_GetMenu("options");
+	menu->title=frgl_strdup("Options");
+	menu->back=frgl_strdup("main");
+
+	mitm=FRGL_GetMenuItem(menu, 0, "noclip");
+	mitm->title=frgl_strdup("No Clip");
+	mitm->Action=isotest_menopt_toggle_act;
+
+	mitm=FRGL_GetMenuItem(menu, 1, "undying");
+	mitm->title=frgl_strdup("Undying");
+	mitm->Action=isotest_menopt_toggle_act;
+
+	mitm=FRGL_GetMenuItem(menu, 2, "all_cookies");
+	mitm->title=frgl_strdup("All Cookies");
+	mitm->Action=isotest_menopt_toggle_act;
+
+//	mitm=FRGL_GetMenuItem(menu, 1, "ldgame");
+//	mitm->title=frgl_strdup("Load Game");
+//	mitm=FRGL_GetMenuItem(menu, 2, "svgame");
+//	mitm->title=frgl_strdup("Save Game");
+
+	isotest_eb2d_cls=BGBDTC_LookupClassQName("EntityBase2D");
+	isotest_eb2d_fi_origin=BGBDTC_LookupClassSlotName(
+		isotest_eb2d_cls, "origin");
+	isotest_eb2d_fi_angle=BGBDTC_LookupClassSlotName(
+		isotest_eb2d_cls, "angle");
+
+	isotest_npcdiag_cls=BGBDTC_LookupClassQName("NpcDialogBox");
+
 	mixl=BGBDT_Sound_GetListener(0);
 	mixr=BGBDT_Sound_GetListener(1);
 	mixl->rate=44100;
 	mixr->rate=44100;
-	
-	isotest_snd_bgmid=BGBDT_Sound_PlaySound("sound_dev/pi0_amb0",
-		64, BGBDT_SNDATT_NONE, BGBDT_SNDFL_LOOP);
+
+	isotest_newgame_init();
 	
 	return(0);
 }
@@ -1785,6 +2146,12 @@ int main_handle_input()
 //		return(0);
 //	UI_Camera_Update();
 
+	if(FRGL_MenuActiveP())
+	{
+		kcur=frgl_state->keys;
+		FRGL_MenuHandleKeys(kcur);
+		return(0);
+	}
 
 	if(!dtvNullP(isotest_diagbox))
 	{
@@ -1825,6 +2192,13 @@ int main_handle_input()
 	{
 		hituse=0;
 		kcur=frgl_state->keys;
+
+		if(isotest_isdead && isotest_player_undying)
+		{
+			if(kcur && *kcur)
+				isotest_isdead=0;
+		}
+
 		while(*kcur)
 		{
 			switch(*kcur)
@@ -1858,6 +2232,10 @@ int main_handle_input()
 	{
 		switch(*kcur)
 		{
+		case K_ESC:
+			FRGL_SetMenuActive("main");
+			break;
+
 		case K_DEL:
 //			BTEWS_DeleteNode(btews_grid,
 //				btews_grid->mgx, btews_grid->mgy);
@@ -1959,12 +2337,29 @@ int main_handle_input()
 		isotest_ang[1]-=100*frgl_state->dt_f;
 	}
 
-	if(IsoTile_CheckCollideMove(isotest_map, isotest_player,
-		vec2(isotest_org[0], isotest_org[1]),
-		IsoTest_EntGetRadius(isotest_player)))
+	if(!isotest_player_noclip)
 	{
-		V3F_COPY(pt, isotest_org);
-		isotest_iswalk=0;
+		if(IsoTile_CheckCollideMove(isotest_map, isotest_player,
+			vec2(isotest_org[0], isotest_org[1]),
+			IsoTest_EntGetRadius(isotest_player)))
+		{
+			if(!IsoTile_CheckCollideMove(isotest_map, isotest_player,
+				vec2(pt[0], isotest_org[1]),
+				IsoTest_EntGetRadius(isotest_player)))
+			{
+				isotest_org[0]=pt[0];
+			}else if(!IsoTile_CheckCollideMove(
+				isotest_map, isotest_player,
+				vec2(isotest_org[0], pt[1]),
+				IsoTest_EntGetRadius(isotest_player)))
+			{
+				isotest_org[1]=pt[1];
+			}else
+			{
+				V3F_COPY(pt, isotest_org);
+				isotest_iswalk=0;
+			}
+		}
 	}
 
 	IsoTest_EntSetOrigin(isotest_player,
@@ -2010,6 +2405,7 @@ int main_body()
 	main_handle_input();
 //	BTEIFGL_NET_Update(frgl_state->dt_f);
 	main_scriptupdate(frgl_state->dt_f);
+	isotest_worldtime+=frgl_state->dt_f;
 
 	IsoTile_UpdateMap(isotest_map);
 
@@ -2083,32 +2479,7 @@ int main_body()
 		IsoTile_DrawDeadScreen();
 	}
 
-//	isotile_drawmap(isotest_map);
-
-//	f=-(btews_grid->xs*0.5)*32;
-//	g=-(btews_grid->ys*0.5)*32;
-//	BTEWS_DrawGrid(btews_grid, f, g, 32, 32);
-
-#if 0
-//	ncur=BTEWS_GetAllocNode(btews_grid, mgx, mgy);
-	ncur=BTEWS_GetNode(btews_grid, mgx, mgy);
-	if(ncur)
-	{
-		if(ncur->Describe)
-		{
-			s=ncur->Describe(ncur);
-			if(!s)s="<N/A>";
-			GfxFont_DrawString(s, -320, 384-16, 16, 16, 0, 255, 0, 255);
-		}else
-		{
-			f=(ncur->vnx+ncur->vpx+ncur->vny+ncur->vpy)*0.25;
-			sprintf(tb, "%d,%d: V=%2.2f A=%2.2f W=%2.2f ~%2.2fC Pw=%5.2f",
-				ncur->widx, ncur->widy,
-				f, ncur->icc, ncur->watt, ncur->temp, ncur->pwatt);
-			GfxFont_DrawString(tb, -320, 384-16, 16, 16, 0, 255, 0, 255);
-		}
-	}
-#endif
+	FRGL_DrawMenu();
 
 	f=frgl_state->dt_f;
 	frm_dtf[frm_rov++]=f;
@@ -2123,9 +2494,12 @@ int main_body()
 	}
 	g=g/256.0;
 
-	sprintf(tb, "Cur=%.2fHz, Avg=%.2f, Min=%.2f, Max=%.2f Txy=%d,%d",
+	sprintf(tb, "Cur=%.2fHz, Avg=%.2f, Min=%.2f, Max=%.2f "
+			"Txy=%d,%d T=%d:%02d",
 		1.0/frgl_state->dt_f, 1.0/g, 1.0/x1, 1.0/x0,
-		(int)(isotest_org[0]/64), (int)(isotest_org[1]/64));
+		(int)(isotest_org[0]/64), (int)(isotest_org[1]/64),
+		(((int)isotest_worldtime)/60),
+		(((int)isotest_worldtime)%60));
 	GfxFont_DrawString(tb, -320, 384-16, 8, 8, 0, 255, 0, 255);
 
 	frglEnableTexture2D();

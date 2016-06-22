@@ -262,6 +262,23 @@ dtVal BS2P_ParseTypeExpr(BS2CC_CompileContext *ctx)
 			t0=BS2P_PeekToken(ctx, 0);
 			continue;
 		}
+
+		if(!strcmp(t0, "X?"))
+		{
+			BS2P_SetAstNodeAttrI(n0, "nullable", 1);
+			BS2P_NextToken(ctx);
+			t0=BS2P_PeekToken(ctx, 0);
+			continue;
+		}
+
+		if(!strcmp(t0, "X!"))
+		{
+			BS2P_SetAstNodeAttrI(n0, "nullable", 2);
+			BS2P_NextToken(ctx);
+			t0=BS2P_PeekToken(ctx, 0);
+			continue;
+		}
+
 		break;
 	}
 	
@@ -323,7 +340,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 			t0=BS2P_PeekToken(ctx, 0);
 		}
 
-		n2=BS2P_ParseBlockStatementTail(ctx);
+		n2=BS2P_ParseBlockStatementTail2(ctx);
 
 		n0=BS2P_NewAstNode(ctx, "func");
 		BS2P_SetAstNodeAttrS(n0, "name", tn);
@@ -364,7 +381,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 			t0=BS2P_PeekToken(ctx, 0);
 		}
 
-		n2=BS2P_ParseBlockStatementTail(ctx);
+		n2=BS2P_ParseBlockStatementTail2(ctx);
 
 		n0=BS2P_NewAstNode(ctx, "func");
 		BS2P_SetAstNodeAttrS(n0, "name", tn);
@@ -455,7 +472,7 @@ dtVal BS2P_TryParseDeclList(BS2CC_CompileContext *ctx,
 				t0=BS2P_PeekToken(ctx, 0);
 			}
 
-			n2=BS2P_ParseBlockStatementTail(ctx);
+			n2=BS2P_ParseBlockStatementTail2(ctx);
 
 			n0=BS2P_NewAstNode(ctx, "func");
 			BS2P_SetAstNodeAttrS(n0, "name", tn);
@@ -807,6 +824,14 @@ dtVal BS2P_ParseFunVars(BS2CC_CompileContext *ctx)
 
 			BS2P_NextToken(ctx);
 			t0=BS2P_PeekToken(ctx, 0);
+			
+			if(*t0=='I')
+			{
+				BS2P_SetAstNodeAttrS(n1, "name", t0+1);
+				BS2P_NextToken(ctx);
+				t0=BS2P_PeekToken(ctx, 0);
+			}
+			
 			continue;
 		}
 

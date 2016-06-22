@@ -1,0 +1,230 @@
+native void printf(cstring str, ...);
+native int clock();
+native int rand();
+native int bsvm2_natfib(int x);
+native void bsvm2_natsorttst(int n);
+
+package bstest {
+	public struct Foo {
+		int x, y;
+		double z;
+	}
+
+	public class Foo2 {
+		public int x, y;
+		public double z;
+		
+		public Foo2(int a)
+		{
+			printf("Foo2 Ctor %d\n", 4);
+		}
+		
+		public double method0()
+		{
+			return(x+y+z);
+		}
+	}
+
+	private int i, j;
+	private int[] arr;
+	private byte[256] arr2;
+
+	public int fib(int x)
+	{
+		if(x<2)return(1);
+		return(fib(x-1)+fib(x-2));
+	}
+
+	public int selsort(int[] arr, int n)
+	{
+		int i, j, k;
+		
+		for(i=0; i<n; i++)
+			for(j=i+1; j<n; j++)
+		{
+			if(arr[j]<arr[i])
+			{
+				k=arr[i];
+				arr[i]=arr[j];
+				arr[j]=k;
+			}
+		}
+	}
+
+	public void sorttst(int n)
+	{
+		int[] arr;
+		int i;
+
+		arr=new int[n];
+//		arr=new int[256];
+		for(i=0; i<n; i++)
+			arr[i]=rand();
+		selsort(arr, n);
+	}
+
+/*
+	public interface IFoo {
+		public void doSomething();
+	}
+	
+	public class Fib2 extends Fib implements IFoo {
+		public Fib2()
+		{
+			int[16] ta;
+			int[] tb;
+			variant vo;
+			char c;
+			int i;
+
+			i=(int)(3.9*4.1);
+
+			super(2, 3);
+			foo.z=4;
+			foo.z=3.14159;
+			tst_switch(5);
+			c='A';
+			
+			tb=[1,2,3,4,5]i;
+			
+			vo={x: 2, y: 3};
+		}
+
+//		public void doSomething()
+//			{ }
+	}
+*/
+
+//	public int tst_ref(&int i, &int j)
+//	{
+//		i=i+j;
+//		return(j);
+//	}
+	
+	public class Fib {
+		Foo foo;
+	
+		public Fib(int x, int y)
+		{
+			foo.x=x;
+			foo.y=y;
+			foo.z=foo.x+foo.y;
+		}
+
+/*
+		public int tst_switch(int i)
+		{
+			int j;
+			switch(i)
+			{
+			case 0:		j=  1; break;
+			case 1:		j=  4; break;
+			case 2:		j=  9; break;
+			case 3:		j= 16; break;
+			case 4:		j= 25; break;
+			case 5:		j= 36; break;
+			case 6:		j= 49; break;
+			case 7:		j= 64; break;
+			case 8:		j= 81; break;
+			case 9:		j=100; break;
+			case 10:	j=121; break;
+			case 11:	j=144; break;
+
+			default:	j=-1; break;
+			}
+			return(j);
+		}
+
+		public static int tst_ref(&int i, &int j)
+		{
+			i=i+j;
+			return(j);
+		}
+*/
+	
+		public static void main(string[] argv)
+		{
+			Foo fstr;
+			Fib tfib;
+			Foo2 fobj;
+			vec2f v0, v1, v2;
+			vec3f w0, w1, w2;
+			int[] a1, a2;
+			int i, j;
+			int t0, t1, t2;
+
+			printf("%f\n", 3.14159);
+
+			t0=clock();
+//			printf("BS Fib %d\n", fib(32));
+			printf("BS Fib %d\n", fib(38));
+			t1=clock();
+			printf("BS Dt %d\n", t1-t0);
+
+			t0=clock();
+//			printf("Na Fib %d\n", bsvm2_natfib(32));
+			printf("Na Fib %d\n", bsvm2_natfib(38));
+			t1=clock();
+			printf("Na Dt %d\n", t1-t0);
+
+
+			t0=clock();
+//			sorttst(1<<16);
+//			sorttst(1<<13);
+			sorttst(1<<15);
+			t1=clock();
+			printf("Bs SortTst Dt %d\n", t1-t0);
+
+			t0=clock();
+//			sorttst(1<<16);
+//			bsvm2_natsorttst(1<<13);
+			bsvm2_natsorttst(1<<15);
+			t1=clock();
+			printf("Na SortTst Dt %d\n", t1-t0);
+
+
+//			fobj=new Foo2;
+			fobj=new Foo2(1);
+			fobj.x=3;
+			fobj.y=4;
+			fobj.z=5;
+			
+			printf("FObj ");
+			printf("%d ", fobj.x);
+			printf("%d ", fobj.y);
+			printf("%f\n", fobj.z);
+
+			printf("FObj Method %f\n", fobj.method0());
+
+			delete fobj;
+
+			v0=#[2, 3];
+			v1=#[4, 5];
+			v2=v0+v1;
+
+			w0=#[1, 0, 0];
+			w1=#[0, 1, 0];
+			w2=w0%w1;
+			
+			printf("w2=(%f %f %f)\n", w2.x, w2.y, w2.z);
+			
+			if(i && j)
+			{
+				printf("T\n");
+			}
+			
+//			printf("w2.x=%f\n", w2.x);
+
+//			a1=new int[64];
+//			a2=a1+32;
+
+//			arr=new int[64];
+//			for(i=0; i<32; i++)
+//				arr[i]=fib(i);
+			
+//			tfib=new Fib(2, 3);
+
+//			tst_ref(i, j);
+		}
+	}
+}

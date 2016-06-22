@@ -8,6 +8,7 @@ BTEIFGL_SRCS=\
 	base/frgl_fonts.c \
 	base/frgl_fonts_qi2.c \
 	base/frgl_input.c \
+	base/frgl_menu.c \
 	base/frgl_shader.c \
 	base/frgl_texture.c \
 	base/frgl_util.c \
@@ -24,9 +25,15 @@ BTEIFGL_SRCS=\
 	base/inflate.c \
 	base/bufpng.c \
 	\
+	base/btpk_image.c \
+	\
 	base/snd_adpcm.c \
 	base/snd_mixer.c \
 	base/snd_sample.c \
+	\
+	base/vf31_btpk.c \
+	base/vf31_osdir.c \
+	base/vf31_vfile.c \
 	\
 	base/w32_glw.c \
 	base/w32_mouse.c \
@@ -117,6 +124,23 @@ BTEIFGL_SRCS=\
 	btews/msp430i/mspi_oparith.c \
 	btews/msp430i/mspi_opcode.c \
 	btews/msp430i/mspi_opmisc.c \
+	\
+	fastbcn/bcn_bitstream.c \
+	fastbcn/bc7_common.c \
+	fastbcn/bc7_blkdec.c \
+	fastbcn/bc7_filter_cmy.c \
+	fastbcn/bc7_filter_yuv.c \
+	fastbcn/bc7_blkenc.c \
+	fastbcn/bc7_blkenc_p2.c \
+	fastbcn/bcn_s2blkenc.c \
+	fastbcn/bcn_s2blkdec.c \
+	fastbcn/bcn_decjpg.c \
+	fastbcn/bcn_encjpg.c \
+	fastbcn/bcn_bt1h_common.c \
+	fastbcn/bcn_bt1h_decrice.c \
+	fastbcn/bcn_bt1h_blkdec_pyuv.c \
+	fastbcn/bcn_bt1h_decode.c \
+
 
 BGBASM_SRCS = \
 	bgbasm3/front/basm_api.c \
@@ -151,6 +175,7 @@ BTEIFGL_MULTISRCS=\
 	voxel/vox_multi.c \
 	btews/btws_multi.c \
 	bgbasm3/basm_multi.c \
+	fastbcn/bcn_multi.c \
 
 
 SRCS=$(BTEIFGL_SRCS)

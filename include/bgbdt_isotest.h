@@ -18,6 +18,11 @@ struct BGBDT_IsoTile_s {
 char *tex_floor;
 char *tex_wall_xz;
 char *tex_wall_yz;
+
+char *tex_floor_alt;
+char *tex_wall_xz_alt;
+char *tex_wall_yz_alt;
+
 int x, y;
 int fl;
 };

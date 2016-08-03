@@ -314,8 +314,9 @@ void BS2C_CompileFuncBodyCleanupVar(
 		i=BS2C_IndexFrameGlobal(ctx, vi2->gid);
 
 		BS2C_EmitOpcode(ctx, BSVM2_OP_DFXOBJ);
-		BS2C_EmitOpcodeUCx(ctx, ix);
-		BS2C_EmitOpcodeUCx(ctx, i);
+//		BS2C_EmitOpcodeUCx(ctx, ix);
+//		BS2C_EmitOpcodeUCx(ctx, i);
+		BS2C_EmitOpcodeJx(ctx, ix, i);
 		return;
 	}
 

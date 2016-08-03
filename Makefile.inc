@@ -90,6 +90,7 @@ BTEIFGL_SRCS=\
 	bsvm2i/bs2i_opdtvar.c \
 	bsvm2i/bs2i_opinit.c \
 	bsvm2i/bs2i_opobj.c \
+	bsvm2i/bs2i_opptr.c \
 	bsvm2i/bs2i_opvars.c \
 	bsvm2i/bs2i_opvec2.c \
 	bsvm2i/bs2i_opvec3.c \
@@ -140,6 +141,16 @@ BTEIFGL_SRCS=\
 	fastbcn/bcn_bt1h_decrice.c \
 	fastbcn/bcn_bt1h_blkdec_pyuv.c \
 	fastbcn/bcn_bt1h_decode.c \
+	\
+	btic4b/bt4b_bitread.c \
+	btic4b/bt4b_bitwrite.c \
+	btic4b/bt4b_blkdec.c \
+	btic4b/bt4b_blkenc.c \
+	btic4b/bt4b_decode.c \
+	btic4b/bt4b_encode.c \
+	btic4b/bt4b_shim_bc7.c \
+	btic4b/bt4b_shim_s2tc.c \
+	btic4b/bt4b_dump_hdr.c \
 
 
 BGBASM_SRCS = \
@@ -176,6 +187,7 @@ BTEIFGL_MULTISRCS=\
 	btews/btws_multi.c \
 	bgbasm3/basm_multi.c \
 	fastbcn/bcn_multi.c \
+	btic4b/bt4b_multi.c \
 
 
 SRCS=$(BTEIFGL_SRCS)
@@ -193,7 +205,8 @@ libs: $(DLLPF)btewsim$(DLLSUF)
 
 apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) \
 	btewiresim0$(EXESUF) msptst0$(EXESUF) \
-	isotest0$(EXESUF) btactst0$(EXESUF)
+	isotest0$(EXESUF) btactst0$(EXESUF) \
+	plattest0$(EXESUF)
 
 includes: $(DEP_HDRS)
 
@@ -227,6 +240,9 @@ isotest0$(EXESUF): isotest0.c $(DEP_HDRS) libs
 
 btactst0$(EXESUF): btactst0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)btactst0$(EXESUF) btactst0.c $(CFLAGS) $(LDFLAGS)
+
+plattest0$(EXESUF): plattest0.c $(DEP_HDRS) libs
+	$(CC_OUTEXE)plattest0$(EXESUF) plattest0.c $(CFLAGS) $(LDFLAGS)
 
 clean:
 clean2:

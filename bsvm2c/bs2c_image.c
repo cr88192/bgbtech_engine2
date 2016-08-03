@@ -775,6 +775,9 @@ byte *BS2C_Image_FlattenGixArray(
 	return(ct);
 }
 
+BS2CC_VarInfo *bs2c_touchreach_stack[4096];
+int bs2c_touchreach_stackpos=0;
+
 BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(
 	BS2CC_CompileContext *ctx,
 	BS2CC_VarInfo *vari)
@@ -783,6 +786,16 @@ BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(
 	BS2CC_VarInfo *vi;
 	int i, j, k;
 
+//	if(vari->bmfl&BS2CC_TYFL_REACHDONE)
+//		return;
+
+	for(i=0; i<bs2c_touchreach_stackpos; i++)
+		if(bs2c_touchreach_stack[i]==vari)
+			return;
+	i=bs2c_touchreach_stackpos++;
+	bs2c_touchreach_stack[i]=vari;
+
+#if 0
 	if(vari->bmfl&BS2CC_TYFL_CANREACH)
 	{
 		if((vari->bmfl&BS2CC_TYFL_PUBLIC) &&
@@ -793,6 +806,7 @@ BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(
 
 		return;
 	}
+#endif
 
 	if(vari->vitype==BS2CC_VITYPE_GBLFUNC)
 	{
@@ -851,6 +865,9 @@ BTEIFGL_API void BS2C_TouchReachable_TouchReachDef(
 				ctx->globals[j>>2]);
 		}
 	}
+
+	vari->bmfl|=BS2CC_TYFL_REACHDONE;
+	bs2c_touchreach_stackpos--;
 }
 
 BTEIFGL_API void BS2C_TouchReachable_TouchPublicDef(

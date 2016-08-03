@@ -226,7 +226,7 @@ Tagged Constant (tag=low 4 bits):
 * 0/4/8/C: Global Index (Low 2 bits=00)
 * 1=STRS (UTF-8)
 * 2=STRS (UTF-16)
-* 3=STRS (ASCII)
+* 3=STRS (ASCII / 8859-1)
 * 4 (Above)
 * 5=Int (Variant)
 * 6=Long (Variant)
@@ -234,6 +234,11 @@ Tagged Constant (tag=low 4 bits):
 * 8 (Above)
 * 9=Float (Variant)
 * A=Double (Variant)
+* B (Resv)
+* C (Above)
+* D=STRS (Symbol)
+* E=STRS (Keyword)
+* F Trap (4 more bits, Resv)
 
 
 Names:

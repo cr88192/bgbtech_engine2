@@ -31,6 +31,12 @@ struct BGBDT_IsoMap_s {
 int xs, ys;
 BGBDT_IsoTile **tile;
 
+byte *tile_dtidx;	//tile draw index
+byte *tile_phidx;	//tile physics index
+byte *tile_spidx;	//tile spawn index
+
+char *sky;
+
 dtVal entarr;
 int nents;
 };

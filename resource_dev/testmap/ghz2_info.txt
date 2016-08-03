@@ -1,0 +1,24 @@
+entdef #0026FF info_player_start
+entdef #FF00DC misc_ring
+entdef #FF0000 npc_motob
+entdef #00137F npc_wasp
+entdef #FFD800 npc_fish
+entdef #FF6A00 npc_crap
+entdef #00FFFF npc_gecko
+
+physdef #FFFFFF solid
+physdef #0094FF solid_mvup
+physdef #808080 solid_front
+physdef #404040 solid_back
+physdef #FFD800 solid_roll
+
+physdef #FF0000 set_front
+physdef #7F0000 set_back
+
+physdef #FF00DC next_map
+
+tilemap testmap/Ghz2_M0_Tile.png
+physmap testmap/Ghz2_M0_Solid.png
+spawnmap testmap/Ghz2_M0_Spawn.png
+
+nextmap testmap/ghz2_info.txt

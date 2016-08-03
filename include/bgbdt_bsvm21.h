@@ -47,14 +47,27 @@
 // #define BSVM2_OPZ_VARIANT	4
 #define BSVM2_OPZ_VOID		11
 
-#define BSVM2_OPMU_SIN		0
-#define BSVM2_OPMU_COS		1
-#define BSVM2_OPMU_TAN		2
-#define BSVM2_OPMU_SQRT		3
-#define BSVM2_OPMU_RCP		4
-#define BSVM2_OPMU_ATAN		5
-#define BSVM2_OPMU_SQR		6
-#define BSVM2_OPMU_SSQRT	7
+#define BSVM2_OPZ_CI_FLOAT	12
+#define BSVM2_OPZ_CI_DOUBLE	13
+
+#define BSVM2_OPMU_SIN		0	//sin(x)
+#define BSVM2_OPMU_COS		1	//cos(x)
+#define BSVM2_OPMU_SQRT		2	//sqrt(x)
+#define BSVM2_OPMU_RCP		3	//(1.0/x)
+#define BSVM2_OPMU_ABS		4	//fabs(x)
+#define BSVM2_OPMU_SQR		5	//(x*x)
+#define BSVM2_OPMU_SSQRT	6	//(x>=0)?sqrt(x):-sqrt(-x)
+#define BSVM2_OPMU_LOG		7	//ln(x)
+#define BSVM2_OPMU_TAN		8
+#define BSVM2_OPMU_ATAN		9
+#define BSVM2_OPMU_FLOOR	10	//floor(x)
+#define BSVM2_OPMU_CEIL		11	//ceil(x)
+#define BSVM2_OPMU_EXP		12	//(e^x)
+#define BSVM2_OPMU_LOG10	13	//ln(x)
+#define BSVM2_OPMU_LOG2		14	//log2(x)
+
+#define BSVM2_OPAG_ALEN		0	//Array Length
+#define BSVM2_OPAG_AOFS		1	//Array Offset
 
 #define BSVM2_OPRV_ADD		0
 #define BSVM2_OPRV_SUB		1
@@ -97,10 +110,11 @@
 #define BSVM2_OPZY_UINT		7
 #define BSVM2_OPZY_FLOAT	9
 #define BSVM2_OPZY_DOUBLE	10
+#define BSVM2_OPZY_RESV0	11
 
-#define BSVM2_OPZY_UBYTE	6
-#define BSVM2_OPZY_SHORT	7
-#define BSVM2_OPZY_SBYTE	8
+#define BSVM2_OPZY_STRSYM	13
+#define BSVM2_OPZY_STRKEY	14
+#define BSVM2_OPZY_RESV1	15
 
 #define BSVM2_OP_ADDI		0x00	//Add Int (A+B)
 #define BSVM2_OP_SUBI		0x01	//Sub Int (A-B)
@@ -156,7 +170,8 @@
 #define BSVM2_OP_JGT		0x33	//Jump Greater Than ( (A>0) => )
 #define BSVM2_OP_JLE		0x34	//Jump Less Equal ( (A<=0) => )
 #define BSVM2_OP_JGE		0x35	//Jump Greater Equal ( (A>=0) => )
-#define BSVM2_OP_JCMP		0x36	//Jump-Compare ( (A op B) =>)
+// #define BSVM2_OP_JCMP		0x36	//Jump-Compare ( (A op B) =>)
+#define BSVM2_OP_HBC		0x36	//Hint Bounds Check
 #define BSVM2_OP_JMP		0x37	//Jump
 #define BSVM2_OP_CMPI		0x38	//Compare Int
 #define BSVM2_OP_CMPL		0x39	//Compare Long
@@ -244,10 +259,13 @@
 #define BSVM2_OP_NEWARR		0x89	//Create array instance.
 #define BSVM2_OP_DELETE		0x8A	//Delete object/array instance.
 #define BSVM2_OP_DELNGBL	0x8B	//Delete instance if not global.
-#define BSVM2_OP_MOVOBJ		0x8C	//Copy object contents ( A B => )
-#define BSVM2_OP_MOVARR		0x8D	//Copy array contents ( A B => )
-#define BSVM2_OP_INCREF		0x8E	//Increment object reference count
-#define BSVM2_OP_DECREF		0x8F	//Decrement object reference count
+
+#define BSVM2_OP_HPTR		0x8C	//Hint Pointer
+
+// #define BSVM2_OP_MOVOBJ		0x8C	//Copy object contents ( A B => )
+// #define BSVM2_OP_MOVARR		0x8D	//Copy array contents ( A B => )
+// #define BSVM2_OP_INCREF		0x8E	//Increment object reference count
+// #define BSVM2_OP_DECREF		0x8F	//Decrement object reference count
 #define BSVM2_OP_CVTI2L		0x90	//Convert Int->Long
 #define BSVM2_OP_CVTI2F		0x91	//Convert Int->Float
 #define BSVM2_OP_CVTI2D		0x92	//Convert Int->Double
@@ -274,7 +292,8 @@
 #define BSVM2_OP_DUPD		0xA7	//Duplicate Double
 #define BSVM2_OP_POPA		0xA8	//Pop Address
 #define BSVM2_OP_DUPA		0xA9	//Dup Address
-#define BSVM2_OP_SWAPA		0xAA	//Swap Address
+// #define BSVM2_OP_SWAPA		0xAA	//Swap Address
+#define BSVM2_OP_HTNULL		0xAA	//Swap Address
 #define BSVM2_OP_PUSHA		0xAB	//Push Address null
 #define BSVM2_OP_PUSHI		0xAC	//Push Int 0
 #define BSVM2_OP_PUSHL		0xAD	//Push Long 0
@@ -372,12 +391,7 @@
 #define BSVM2_OP_SBOS		0x0148
 #define BSVM2_OP_DSBOS		0x0149
 #define BSVM2_OP_DSTOS		0x014A
-
-// #define BSVM2_OP_LDDRVIL	0x014C
-// #define BSVM2_OP_LDDRVAL	0x014D
-// #define BSVM2_OP_STDRVIL	0x014E
-// #define BSVM2_OP_STDRVAL	0x014F
-
+#define BSVM2_OP_IFXOBJA	0x014B
 #define BSVM2_OP_LDDRAL		0x014C
 #define BSVM2_OP_LDDRVL		0x014D
 #define BSVM2_OP_STDRAL		0x014E
@@ -398,23 +412,20 @@
 #define BSVM2_OP_STDRA		0x015D
 #define BSVM2_OP_STDRB		0x015E
 #define BSVM2_OP_STDRS		0x015F
-
-// #define BSVM2_OP_BINOP		0x0160	//Binary Operator
-// #define BSVM2_OP_CMPOP		0x0161	//Compare Operator
-// #define BSVM2_OP_BINOPL		0x0162	//Binary Operator (A op I)
-// #define BSVM2_OP_CMPOPL		0x0163	//Compare Operator (A op I)
-// #define BSVM2_OP_BINOPLL	0x0164	//Binary Operator (I op J)
-// #define BSVM2_OP_CMPOPLL	0x0165	//Compare Operator (I op J)
-// #define BSVM2_OP_BINOPC		0x0166	//Binary Operator (A op C)
-// #define BSVM2_OP_BINOPLC	0x0167	//Binary Operator (I op C)
-// #define BSVM2_OP_CMPOPC		0x0168	//Compare Operator (A op C)
-// #define BSVM2_OP_CMPOPLC	0x0169	//Compare Operator (I op C)
-// #define BSVM2_OP_PUSHN		0x016A	//Push n Items (null/zero)
-// #define BSVM2_OP_POPN		0x016B	//Pop n Items
-// #define BSVM2_OP_SWAPN		0x016C	//Swap top-of-stack with Item n
-// #define BSVM2_OP_ROTLN		0x016D	//Rotate Left 1 position over n items.
-// #define BSVM2_OP_ROTRN		0x016E	//Rotate Right 1 position over n items.
-// #define BSVM2_OP_DUPN		0x016F	//Duplicate Top n items.
+#define BSVM2_OP_DUPAA		0x0160
+#define BSVM2_OP_DROPAA		0x0161
+#define BSVM2_OP_DTRAPNULL	0x0162
+#define BSVM2_OP_LTRAPNULL	0x0163
+#define BSVM2_OP_LDIXAA		0x0164	//Load Index Variant
+#define BSVM2_OP_STIXAA		0x0165	//Store Index Variant
+#define BSVM2_OP_LDIXAI		0x0166	//Load Index Variant[Int]
+#define BSVM2_OP_STIXAI		0x0167	//Store Index Variant[Int]
+#define BSVM2_OP_ISTYPE		0x0168	//Check if address is type
+#define BSVM2_OP_DTNISTYPE	0x0169	//Trap if address not type
+#define BSVM2_OP_DZNISTYPE	0x016A	//Null if address not type
+#define BSVM2_OP_AGETI		0x016B	//Check if address is type
+#define BSVM2_OP_LDOSL		0x016C	//Check if address is type
+#define BSVM2_OP_STOSL		0x016D	//Check if address is type
 
 #define BSVM2_OP_DIVI		0x0170	//
 #define BSVM2_OP_DIVL		0x0171	//
@@ -424,17 +435,14 @@
 #define BSVM2_OP_SHRL		0x0175	//
 #define BSVM2_OP_UDIVI		0x0176	//
 #define BSVM2_OP_UDIVL		0x0177	//
-
 #define BSVM2_OP_CMIEQ		0x0178	//
 #define BSVM2_OP_CMINE		0x0179	//
 #define BSVM2_OP_CMILT		0x017A	//
 #define BSVM2_OP_CMIGT		0x017B	//
 #define BSVM2_OP_CMILE		0x017C	//
 #define BSVM2_OP_CMIGE		0x017D	//
-
 #define BSVM2_OP_LDIXZLL	0x017E	//Load Index Z-LL ( A, I; => V )
 #define BSVM2_OP_LDIXZLC	0x017F	//Load Index Z-LC ( A, C; => V )
-
 #define BSVM2_OP_RSTIXI		0x0180	//Store Index Int ( V A I => )
 #define BSVM2_OP_RSTIXL		0x0181	//Store Index Long ( V A I => )
 #define BSVM2_OP_RSTIXF		0x0182	//Store Index Float ( V A I => )
@@ -443,7 +451,6 @@
 #define BSVM2_OP_RSTIXB		0x0185	//Store Index Byte ( V A I => )
 #define BSVM2_OP_RSTIXS		0x0186	//Store Index Short ( V A I => )
 #define BSVM2_OP_STIXZLL	0x0187	//Store Index Z-LL ( A, I; V => )
-
 #define BSVM2_OP_RSTIXIC	0x0188	//Store Index Int ( I; V A => )
 #define BSVM2_OP_RSTIXLC	0x0189	//Store Index Long ( I; V A => )
 #define BSVM2_OP_RSTIXFC	0x018A	//Store Index Float ( I; V A => )
@@ -452,7 +459,6 @@
 #define BSVM2_OP_RSTIXBC	0x018D	//Store Index Byte ( I; V A => )
 #define BSVM2_OP_RSTIXSC	0x018E	//Store Index Short ( I; V A => )
 #define BSVM2_OP_STIXZLC	0x018F	//Store Index Z-LC ( A, C; V => )
-
 #define BSVM2_OP_CVTAA2ST	0x0190	//
 #define BSVM2_OP_CVTST2AA	0x0191	//
 #define BSVM2_OP_CATST		0x0192	//
@@ -461,22 +467,33 @@
 #define BSVM2_OP_CMPUST		0x0195	//
 #define BSVM2_OP_MATHUFN	0x0196	//
 #define BSVM2_OP_MATHBFN	0x0197	//
-
 #define BSVM2_OP_STFXOBJC	0x0198	//Store Fixed Object (Copy)
 #define BSVM2_OP_STFXOBJD	0x0199	//Store Fixed Object (Destroy)
-
 #define BSVM2_OP_STIXZAC	0x019A	//
 #define BSVM2_OP_DSTIXZAC	0x019B	//
-
 #define BSVM2_OP_JEQNULL	0x019C	//
 #define BSVM2_OP_JNENULL	0x019D	//
 #define BSVM2_OP_JEQNULLL	0x019E	//
 #define BSVM2_OP_JNENULLL	0x019F	//
-
 #define BSVM2_OP_CVTF2HF	0x01A0	//
 #define BSVM2_OP_CVTD2HF	0x01A1	//
 #define BSVM2_OP_CVTHF2F	0x01A2	//
 #define BSVM2_OP_CVTHF2D	0x01A3	//
+#define BSVM2_OP_SWAPI		0x01A4	//Swap Int
+#define BSVM2_OP_SWAPL		0x01A5	//Swap Long
+#define BSVM2_OP_SWAPF		0x01A6	//Swap Float
+#define BSVM2_OP_SWAPD		0x01A7	//Swap Double
+#define BSVM2_OP_DSTIXIC	0x01A8	//
+#define BSVM2_OP_DSTIXLC	0x01A9	//
+#define BSVM2_OP_DSTIXFC	0x01AA	//
+#define BSVM2_OP_DSTIXDC	0x01AB	//
+#define BSVM2_OP_DSTIXAC	0x01AC	//
+#define BSVM2_OP_DSTIXBC	0x01AD	//
+#define BSVM2_OP_DSTIXSC	0x01AE	//
+#define BSVM2_OP_SWAPA		0x01AF	//Swap Address
+
+#define BSVM2_OP_CVTA2PTR	0x01B0	//Address to Pointer
+#define BSVM2_OP_CVTPTR2A	0x01B1	//Pointer to Address
 
 
 
@@ -575,6 +592,7 @@
 #define BSVM2_EXS_NULLEX		0x00001		//NullPointerException
 #define BSVM2_EXS_BOUNDEX		0x00002		//BoundsCheckException
 #define BSVM2_EXS_RUNLIMIT		0x00003		//Interpreter Run-Limit
+#define BSVM2_EXS_CASTEX		0x00004		//CastException
 
 #ifndef BSVM2_DBGTRAP
 #if defined(_M_IX86) && defined(_MSC_VER)
@@ -624,7 +642,7 @@ struct BSVM2_Opcode_s {
 void (*Run)(BSVM2_Frame *frm, BSVM2_Opcode *op);
 int i0, i1, i2;
 int t0, t1, t2;
-short opn;
+short opn, opn2;
 int opfl;
 BSVM2_Value v;
 };

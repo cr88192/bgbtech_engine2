@@ -58,7 +58,128 @@ char *name;
 {"33Ax",      "JGT"},
 {"34Ax",      "JLE"},
 {"35Ax",      "JGE"},
-{"36ZoAx",    "JCMP"},
+
+// {"36ZoAx",    "JCMP"},
+
+{"3640",        "LDIXI.B"},
+{"3641",        "LDIXL.B"},
+{"3642",        "LDIXF.B"},
+{"3643",        "LDIXD.B"},
+{"3644",        "STIXI.B"},
+{"3645",        "STIXL.B"},
+{"3646",        "STIXF.B"},
+{"3647",        "STIXD.B"},
+{"3648",        "LDIXSB.B"},
+{"3649",        "LDIXUB.B"},
+{"364A",        "LDIXSS.B"},
+{"364B",        "LDIXUS.B"},
+{"364C",        "LDIXA.B"},
+{"364D",        "STIXA.B"},
+{"364E",        "STIXB.B"},
+{"364F",        "STIXS.B"},
+{"3650Ci",      "LDIXIC.B"},
+{"3651Ci",      "LDIXLC.B"},
+{"3652Ci",      "LDIXFC.B"},
+{"3653Ci",      "LDIXDC.B"},
+{"3654Ci",      "STIXIC.B"},
+{"3655Ci",      "STIXLC.B"},
+{"3656Ci",      "STIXFC.B"},
+{"3657Ci",      "STIXDC.B"},
+{"3658Ci",      "LDIXSBC.B"},
+{"3659Ci",      "LDIXUBC.B"},
+{"365ACi",      "LDIXSSC.B"},
+{"365BCi",      "LDIXUSC.B"},
+{"365CCi",      "LDIXAC.B"},
+{"365DCi",      "STIXAC.B"},
+{"365ECi",      "STIXBC.B"},
+{"365FCi",      "STIXSC.B"},
+
+{"8C40",        "LDIXI.P"},
+{"8C41",        "LDIXL.P"},
+{"8C42",        "LDIXF.P"},
+{"8C43",        "LDIXD.P"},
+{"8C44",        "STIXI.P"},
+{"8C45",        "STIXL.P"},
+{"8C46",        "STIXF.P"},
+{"8C47",        "STIXD.P"},
+{"8C48",        "LDIXSB.P"},
+{"8C49",        "LDIXUB.P"},
+{"8C4A",        "LDIXSS.P"},
+{"8C4B",        "LDIXUS.P"},
+{"8C4C",        "LDIXA.P"},
+{"8C4D",        "STIXA.P"},
+{"8C4E",        "STIXB.P"},
+{"8C4F",        "STIXS.P"},
+{"8C50Ci",      "LDIXIC.P"},
+{"8C51Ci",      "LDIXLC.P"},
+{"8C52Ci",      "LDIXFC.P"},
+{"8C53Ci",      "LDIXDC.P"},
+{"8C54Ci",      "STIXIC.P"},
+{"8C55Ci",      "STIXLC.P"},
+{"8C56Ci",      "STIXFC.P"},
+{"8C57Ci",      "STIXDC.P"},
+{"8C58Ci",      "LDIXSBC.P"},
+{"8C59Ci",      "LDIXUBC.P"},
+{"8C5ACi",      "LDIXSSC.P"},
+{"8C5BCi",      "LDIXUSC.P"},
+{"8C5CCi",      "LDIXAC.P"},
+{"8C5DCi",      "STIXAC.P"},
+{"8C5ECi",      "STIXBC.P"},
+{"8C5FCi",      "STIXSC.P"},
+
+{"8CE130",      "LEARI.P"},
+{"8CE131",      "LEARL.P"},
+{"8CE132",      "LEARF.P"},
+{"8CE133",      "LEARD.P"},
+{"8CE134",      "LEARA.P"},
+{"8CE135",      "LEARB.P"},
+{"8CE136",      "LEARS.P"},
+{"8CE138Ci",    "LEARIC.P"},
+{"8CE139Ci",    "LEARLC.P"},
+{"8CE13ACi",    "LEARFC.P"},
+{"8CE13BCi",    "LEARDC.P"},
+{"8CE13CCi",    "LEARAC.P"},
+{"8CE13DCi",    "LEARBC.P"},
+{"8CE13ECi",    "LEARSC.P"},
+
+{"8CE150",      "LDDRI.P"},
+{"8CE151",      "LDDRL.P"},
+{"8CE152",      "LDDRF.P"},
+{"8CE153",      "LDDRD.P"},
+{"8CE154",      "STDRI.P"},
+{"8CE155",      "STDRL.P"},
+{"8CE156",      "STDRF.P"},
+{"8CE157",      "STDRD.P"},
+{"8CE158",      "LDDRSB.P"},
+{"8CE159",      "LDDRUB.P"},
+{"8CE15A",      "LDDRSS.P"},
+{"8CE15B",      "LDDRUS.P"},
+{"8CE15C",      "LDDRA.P"},
+{"8CE15D",      "STDRA.P"},
+{"8CE15E",      "STDRB.P"},
+{"8CE15F",      "STDRS.P"},
+
+{"AA7CGx",      "LDOS.TN"},
+{"AA7DGx",      "STOS.TN"},
+{"AA50Ci",      "LDIXIC.TN"},
+{"AA51Ci",      "LDIXLC.TN"},
+{"AA52Ci",      "LDIXFC.TN"},
+{"AA53Ci",      "LDIXDC.TN"},
+{"AA54Ci",      "STIXIC.TN"},
+{"AA55Ci",      "STIXLC.TN"},
+{"AA56Ci",      "STIXFC.TN"},
+{"AA57Ci",      "STIXDC.TN"},
+{"AA58Ci",      "LDIXSBC.TN"},
+{"AA59Ci",      "LDIXUBC.TN"},
+{"AA5ACi",      "LDIXSSC.TN"},
+{"AA5BCi",      "LDIXUSC.TN"},
+{"AA5CCi",      "LDIXAC.TN"},
+{"AA5DCi",      "STIXAC.TN"},
+{"AA5ECi",      "STIXBC.TN"},
+{"AA5FCi",      "STIXSC.TN"},
+
+{"36",          "HBC"},
+
 {"37Ax",      "JMP"},
 {"38",        "CMPI"},
 {"39",        "CMPL"},
@@ -111,7 +232,7 @@ char *name;
 {"61A7",        "NX.DUPD"},
 {"61A8",        "NX.POPA"},
 {"61A9",        "NX.DUPA"},
-{"61AA",        "NX.SWAPA"},
+// {"61AA",        "NX.SWAPA"},
 {"61AB",        "NX.PUSHA"},
 {"61AC",        "NX.PUSHI"},
 {"61AD",        "NX.PUSHL"},
@@ -162,10 +283,13 @@ char *name;
 {"89Zn",      "NEWARR"},
 {"8A",        "DELOBJ"},
 {"8B",        "DELARR"},
-{"8C",        "MOVOBJ"},
-{"8D",        "MOVARR"},
-{"8E",        "INCREF"},
-{"8F",        "DECREF"},
+
+{"8C",        "HPTR"},
+
+// {"8C",        "MOVOBJ"},
+// {"8D",        "MOVARR"},
+// {"8E",        "INCREF"},
+// {"8F",        "DECREF"},
 {"90",        "CVTI2L"},
 {"91",        "CVTI2F"},
 {"92",        "CVTI2D"},
@@ -192,7 +316,8 @@ char *name;
 {"A7",        "DUPD"},
 {"A8",        "POPA"},
 {"A9",        "DUPA"},
-{"AA",        "SWAPA"},
+// {"AA",        "SWAPA"},
+{"AA",        "HTNULL"},
 {"AB",        "PUSHA"},
 {"AC",        "PUSHI"},
 {"AD",        "PUSHL"},
@@ -231,6 +356,7 @@ char *name;
 {"E10D",      "LNTAA"},
 {"E10E",      "CMPAA"},
 {"E10FZy",    "LDCA"},
+
 {"E110",      "CVTI2AA"},
 {"E111",      "CVTL2AA"},
 {"E112",      "CVTF2AA"},
@@ -247,6 +373,7 @@ char *name;
 {"E11DKx",    "MVLC"},
 {"E11EKx",    "MVFC"},
 {"E11FKx",    "MVDC"},
+
 {"E120Gx",    "LDTHIS"},
 {"E121Gx",    "STTHIS"},
 {"E122Gx",    "CALLTH"},
@@ -257,6 +384,12 @@ char *name;
 {"E127CiAx",  "DCJGTIC"},
 {"E128CiAx",  "DCJLEIC"},
 {"E129CiAx",  "DCJGEIC"},
+{"E12ACiAx",  "CJEQIC"},
+{"E12BCiAx",  "CJEQIC"},
+{"E12CCiAx",  "CJLTIC"},
+{"E12DCiAx",  "CJGTIC"},
+{"E12ECiAx",  "CJLEIC"},
+{"E12FCiAx",  "CJGEIC"},
 
 {"E130",      "LEARI"},
 {"E131",      "LEARL"},
@@ -274,9 +407,10 @@ char *name;
 {"E13DCi",    "LEARBC"},
 {"E13ECi",    "LEARSC"},
 {"E13FCi",    "LEASTC"},
-{"E140IxGx",  "IFXOBJ"},
+
+{"E140Gj",    "IFXOBJ"},
 {"E141IxZn",  "IFXARR"},
-{"E142IxGx",  "DFXOBJ"},
+{"E142Gj",    "DFXOBJ"},
 {"E143IxZn",  "DFXARR"},
 {"E144",      "LBLCLNP"},
 {"E145ZnCx",  "STIXNC"},
@@ -285,7 +419,7 @@ char *name;
 {"E148Gx",    "SBOS"},
 {"E149Gx",    "DSBOS"},
 {"E14AGx",    "DSTOS"},
-
+{"E14BGj",    "IFXOBJA"},
 {"E14CZi",    "LDDRAL"},
 {"E14DZi",    "LDDRVL"},
 {"E14EZi",    "STDRAL"},
@@ -307,6 +441,21 @@ char *name;
 {"E15D",      "STDRA"},
 {"E15E",      "STDRB"},
 {"E15F",      "STDRS"},
+
+{"E160",      "DUPAA"},
+{"E161",      "DROPAA"},
+{"E162",      "DTRAPNULL"},
+{"E163Ix",    "LTRAPNULL"},
+{"E164",      "LDIXAA"},
+{"E165",      "STIXAA"},
+{"E166",      "LDIXAI"},
+{"E167",      "STIXAI"},
+{"E168Gx",    "ISTYPE"},
+{"E169Gx",    "DTNISTYPE"},
+{"E16AGx",    "DZNISTYPE"},
+{"E16BZn",    "AGETI"},
+{"E16CGj",    "LDOSL"},
+{"E16DGj",    "STOSL"},
 
 // {"E160Zo",      "BINOP"},
 // {"E161Zo",      "CMPOP"},
@@ -339,7 +488,6 @@ char *name;
 {"E17B",      "CMIGT"},
 {"E17C",      "CMILE"},
 {"E17D",      "CMIGE"},
-
 {"E17EZiIx",  "LDIXZLL"},
 {"E17FZiCi",  "LDIXZLC"},
 
@@ -368,19 +516,34 @@ char *name;
 {"E195",      "CMPUST"},
 {"E196Zn",    "MATHUFN"},
 {"E197Zn",    "MATHBFN"},
-{"E198IxGx",  "STFXOBJC"},
-{"E199IxGx",  "STFXOBJD"},
+{"E198Gj",    "STFXOBJC"},
+{"E199Gj",    "STFXOBJD"},
 {"E19AZn",    "STIXZAC"},
 {"E19BZn",    "DSTIXZAC"},
 {"E19CAx",    "JEQNULL"},
 {"E19DAx",    "JNENULL"},
-{"E19CIxAx",  "JEQNULLL"},
-{"E19DIxAx",  "JNENULLL"},
+{"E19EIxAx",  "JEQNULLL"},
+{"E19FIxAx",  "JNENULLL"},
 
 {"E1A0",      "CVTF2HF"},
 {"E1A1",      "CVTD2HF"},
 {"E1A2",      "CVTHF2F"},
 {"E1A3",      "CVTHF2D"},
+{"E1A4",      "SWAPI"},
+{"E1A5",      "SWAPL"},
+{"E1A6",      "SWAPF"},
+{"E1A7",      "SWAPD"},
+{"E1A8Ci",    "DSTIXIC"},
+{"E1A9Ci",    "DSTIXLC"},
+{"E1AACi",    "DSTIXFC"},
+{"E1ABCi",    "DSTIXDC"},
+{"E1ACCi",    "DSTIXAC"},
+{"E1ADCi",    "DSTIXBC"},
+{"E1AECi",    "DSTIXSC"},
+{"E1AF",      "SWAPA"},
+
+{"E1B0",      "CVTA2PTR"},
+{"E1B1",      "CVTPTR2A"},
 
 /* Vector Block (0x400) */
 {"E400",      "MKX4I"},
@@ -429,17 +592,14 @@ char *name;
 {"E42D",      "CVTX2D2V2F"},
 {"E42E",      "CVTV2F2X4F"},
 {"E42F",      "CVTX4F2V2F"},
-
 {"E430",      "MKV2I"},
 {"E431",      "MKV2F"},
-
 {"E432",      "SWEV2I"},
 {"E433",      "SWEV2F"},
 {"E434",      "SWEX2L"},
 {"E435",      "SWEX2D"},
 {"E436Xx",    "SHUFX4I"},
 {"E437Xx",    "SHUFX4F"},
-
 {"E440",      "LDV2IA"},
 {"E441",      "LDV2IB"},
 {"E442",      "LDV2FA"},
@@ -921,6 +1081,7 @@ int bs2c_disasm_matchItem(
 	if(!strncmp(ps, "Ix", 2) ||
 		!strncmp(ps, "Jx", 2) ||
 		!strncmp(ps, "Gx", 2) ||
+		!strncmp(ps, "Gj", 2) ||
 		!strncmp(ps, "Ci", 2) ||
 		!strncmp(ps, "Cj", 2))
 	{
@@ -1005,7 +1166,7 @@ int bs2c_disasm_PrintItem(
 	byte *cs, char *pat,
 	byte **rcs1, char **rpa1)
 {
-	char *pat_zz="ilfdaubsctmv....";
+	char *pat_zz="ilfdaubsctmvfdx.";
 	char *pat_zo[]={
 		"+","-","*","&","|","^","<<",">>",
 		">>>","/","%","*.", "*^", "/.", "?", "?"};
@@ -1056,9 +1217,60 @@ int bs2c_disasm_PrintItem(
 		{
 			BGBDT_MM_PrintPutPrintf(prn, "G%d(%s)", i,
 				frm->ctx->globals[j>>2]->qname);
+		}else if(((j&15)==BSVM2_OPZY_STRASC) ||
+			((j&15)==BSVM2_OPZY_STRU8))
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "Str:%X=", (j>>4));
+			BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(j>>4));
+		}else if((j&15)==BSVM2_OPZY_STRSYM)
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "Sym:%X=", (j>>4));
+			BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(j>>4));
+		}else if((j&15)==BSVM2_OPZY_STRKEY)
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "Skw:%X=", (j>>4));
+			BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(j>>4));
 		}else
 		{
 			BGBDT_MM_PrintPutPrintf(prn, "G%d=%08X", i, j);
+		}
+		
+		if(*ps)
+			BGBDT_MM_PrintPutPrintf(prn, ", ");
+
+		*rcs1=cs;
+		*rpa1=ps;
+		return(1);
+	}
+
+	if(!strncmp(ps, "Gj", 2))
+	{
+		ps+=2;
+		cs=bs2c_disasm_ReadSplitVLI(cs, &i, &j);
+
+		BGBDT_MM_PrintPutPrintf(prn, "L%d, ", i);
+
+		k=frm->gbltab[j];
+		if(!(k&3))
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "G%d(%s)", j,
+				frm->ctx->globals[k>>2]->qname);
+		}else if(((k&15)==BSVM2_OPZY_STRASC) ||
+			((k&15)==BSVM2_OPZY_STRU8))
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "Str:%X=", (k>>4));
+			BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
+		}else if((k&15)==BSVM2_OPZY_STRSYM)
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "Sym:%X=", (k>>4));
+			BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
+		}else if((k&15)==BSVM2_OPZY_STRKEY)
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "Skw:%X=", (k>>4));
+			BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
+		}else
+		{
+			BGBDT_MM_PrintPutPrintf(prn, "G%d=%08X", j, k);
 		}
 		
 		if(*ps)
@@ -1326,7 +1538,7 @@ int bs2c_disasm_PrintItem(
 			if((i==BSVM2_OPZ_SBYTE) ||
 				(i==BSVM2_OPZ_UBYTE))
 			{
-				BGBDT_MM_PrintPutPrintf(prn, "S%d:", j);
+				BGBDT_MM_PrintPutPrintf(prn, "Str:%X=", j);
 				BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+j);
 				if(*ps)
 					BGBDT_MM_PrintPutPrintf(prn, ", ");
@@ -1348,7 +1560,15 @@ int bs2c_disasm_PrintItem(
 			}else if(((k&15)==BSVM2_OPZY_STRASC) ||
 				((k&15)==BSVM2_OPZY_STRU8))
 			{
-				BGBDT_MM_PrintPutPrintf(prn, "S%d:", (k>>4));
+				BGBDT_MM_PrintPutPrintf(prn, "Str:%X=", (k>>4));
+				BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
+			}else if((k&15)==BSVM2_OPZY_STRSYM)
+			{
+				BGBDT_MM_PrintPutPrintf(prn, "Sym:%X=", (k>>4));
+				BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
+			}else if((k&15)==BSVM2_OPZY_STRKEY)
+			{
+				BGBDT_MM_PrintPutPrintf(prn, "Skw:%X=", (k>>4));
 				BGBDT_MM_PrintPutString(prn, frm->ctx->strtab+(k>>4));
 			}else
 			{
@@ -1390,6 +1610,8 @@ int bs2c_disasm_PrintItem(
 		case BSVM2_OPZ_LONG:
 		case BSVM2_OPZ_SHORT:
 		case BSVM2_OPZ_SBYTE:
+		case BSVM2_OPZ_CI_FLOAT:
+		case BSVM2_OPZ_CI_DOUBLE:
 			j=(j>>1)^((j<<31)>>31);
 			break;
 		default:
@@ -1465,8 +1687,13 @@ int BS2C_DisAsmOp(
 	
 	if(pn<0)
 	{
-		BGBDT_MM_PrintPutPrintf(prn, "%04X:%04X <Error>\n",
-			frm->func->gid, (cs0-frm->cts));
+//		BGBDT_MM_PrintPutPrintf(prn, "%04X:%04X <Error>\n",
+//			frm->func->gid, (cs0-frm->cts));
+
+		BGBDT_MM_PrintPutPrintf(prn, "%04X:%04X "
+				"%02X%02X%02X%02X <Error>\n",
+			frm->func->gid, (cs0-frm->cts),
+			cs0[0], cs0[1], cs0[2], cs0[3]);
 		return(-1);
 	}
 	

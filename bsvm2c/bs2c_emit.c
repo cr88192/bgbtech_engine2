@@ -578,6 +578,24 @@ void BS2C_EmitOpcodeZyStr(BS2CC_CompileContext *ctx, char *str)
 //		BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_UBYTE, i);
 }
 
+void BS2C_EmitOpcodeZySymbol(BS2CC_CompileContext *ctx, char *str)
+{
+	int i, j;
+
+	i=BS2C_ImgGetString(ctx, str);
+	j=BS2C_IndexFrameLiteral(ctx, (i<<4)|BSVM2_OPZY_STRSYM);
+	BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_ADDR, j);
+}
+
+void BS2C_EmitOpcodeZyKeyword(BS2CC_CompileContext *ctx, char *str)
+{
+	int i, j;
+
+	i=BS2C_ImgGetString(ctx, str);
+	j=BS2C_IndexFrameLiteral(ctx, (i<<4)|BSVM2_OPZY_STRKEY);
+	BS2C_EmitOpcodeUZy(ctx, BSVM2_OPZ_ADDR, j);
+}
+
 void BS2C_EmitOpcodeZxF(BS2CC_CompileContext *ctx, double f)
 {
 	BS2C_EmitOpcodeZxFI(ctx, f, BSVM2_OPZ_FLOAT);
@@ -587,8 +605,20 @@ void BS2C_EmitOpcodeZxFI(BS2CC_CompileContext *ctx, double f, int z)
 {
 	float fc;
 	u32 ix;
-	int m;
+	int m, z2;
 	int e;
+	int i;
+
+	i=((int)f);
+	i=(i<<4)>>4;
+	if(f==i)
+	{
+		z2=BSVM2_OPZ_CI_FLOAT;
+		if(z==BSVM2_OPZ_DOUBLE)
+			z2=BSVM2_OPZ_CI_DOUBLE;
+		BS2C_EmitOpcodeSZx(ctx, z2, i);
+		return;
+	}
 
 	if(f==0)
 	{

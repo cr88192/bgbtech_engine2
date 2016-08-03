@@ -62,6 +62,34 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 		return;
 	}
 
+	if(BS2C_TypeAddressP(ctx, dty) && (sty==BS2CC_TYZ_VARIANT))
+	{
+		if(flag&1)
+			BS2C_WarnImplicitConv(ctx, dty, sty);
+		ctx->frm->stack_bty[i]=dty;
+		return;
+	}
+
+	if(BS2C_TypePointerP(ctx, dty) &&
+		BS2C_TypeAddressP(ctx, sty))
+	{
+		if(flag&1)
+			BS2C_WarnImplicitConv(ctx, dty, sty);
+		ctx->frm->stack_bty[i]=dty;
+		BS2C_EmitOpcode(ctx, BSVM2_OP_CVTA2PTR);
+		return;
+	}
+
+	if(BS2C_TypeAddressP(ctx, dty) &&
+		BS2C_TypePointerP(ctx, sty))
+	{
+		if(flag&1)
+			BS2C_WarnImplicitConv(ctx, dty, sty);
+		ctx->frm->stack_bty[i]=dty;
+		BS2C_EmitOpcode(ctx, BSVM2_OP_CVTPTR2A);
+		return;
+	}
+
 	if(BS2C_TypeSmallDoubleP(ctx, dty) && (sty==BS2CC_TYZ_STRING))
 	{
 		if(flag&1)

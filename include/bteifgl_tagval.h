@@ -20,6 +20,10 @@ High 4 bits:
   10: RotLong
   11: FComplex
 
+Object Pointer:
+  Low 48 bits: Address
+  Bits 48-59: Type ID
+
 TagArray
   Low 32 bits: Array Object ID
   Bits 32-59: Base Offset
@@ -38,6 +42,20 @@ Vec2f
 Consists of a pair of floating-point values (X and Y).
 These are stored at 30 bits each.
 
+
+TT Pointer:
+  Low 48 bits: Base Address
+  Bits 48-59: Type Tag
+
+The TT Pointer will represent a raw "C style" pointer.
+
+Type Tag 0 will be special, and refer to an untagged "void *" pointer.
+	Other type-tags will identify types.
+	Part of the range will be for fixed/primitive types.
+	The rest will be for registered types.
+
+The type-tag for a TT Pointer will primarily serve as a hint for cases where a pointer is cast to variant. A raw pointer which has not neen cast to variant will not necessarily be required to have a valid type-tag.
+
 */
 
 #define BGBDT_HTAG_PTR		 0
@@ -54,6 +72,9 @@ These are stored at 30 bits each.
 #define BGBDT_HTAG_FIXREAL3	11
 
 #define BGBDT_HTAG_TAGARR	12
+#define BGBDT_HTAG_VEC2F	13
+#define BGBDT_HTAG_TTPTR	14
+#define BGBDT_HTAG_PTR60	15
 
 #define BGBDT_TAG_FCOMPLEX	0x11000000
 
@@ -217,6 +238,17 @@ static_inline dtVal dtvWrapTagPtrF(void *ptr, int tag)
 	val.hi=(tag&4095)<<16;
 	return(val);
 }
+
+static_inline dtVal dtvWrapTyTagPtrF(void *ptr, int tag)
+{
+	dtVal val;
+	val.lo=(u32)ptr;
+	val.hi=(0xE000|(tag&4095))<<16;
+	return(val);
+}
+
+static_inline void *dtvUnwrapPtr60F(dtVal val)
+	{ return((void *)val.lo); }
 #endif
 
 #if defined(X86_64) || defined(ARM64)
@@ -257,6 +289,22 @@ static_inline dtVal dtvWrapTagPtrF(void *ptr, int tag)
 //	val.lo=(u32)pi;
 //	val.hi=(pi>>32)&0xFFFF;
 	return(val);
+}
+
+static_inline dtVal dtvWrapTyTagPtrF(void *ptr, int tag)
+{
+	dtVal val;
+	u64 pi;
+	pi=(u64)ptr;
+	pi=(pi<<16)>>16;
+	pi|=((u64)(0xE000|(tag&4095)))<<48;
+	val.vi=pi;
+	return(val);
+}
+
+static_inline void *dtvUnwrapPtr60F(dtVal val)
+{
+	return((void *)((((s64)val.vi)<<4)>>4));
 }
 #endif
 
@@ -848,6 +896,53 @@ static_inline void *dtvArrayGetIndexAddrB16(dtVal arv, int idx)
 	return(arr->data+bx);
 }
 
+#if 1
+static_inline void *dtvArrayGetIndexAddrB1F(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+idx;
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB2F(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<1);
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB4F(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<2);
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB8F(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<3);
+	return(arr->data+bx);
+}
+
+static_inline void *dtvArrayGetIndexAddrB16F(dtVal arv, int idx)
+{
+	BGBDT_TagArrHead *arr;
+	int bx;
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=(arv.hi&0x0FFFFFFF)+(idx<<4);
+	return(arr->data+bx);
+}
+#endif
+
 static_inline int dtvArrayGetSize(dtVal arv)
 {
 	BGBDT_TagArrHead *arr;
@@ -990,12 +1085,28 @@ static_inline dtVal dtvArrayAdjustOffsetB8(dtVal arv, int idx)
 }
 
 
+static_inline void *dtvTagPtrGetIndexAddrB1F(dtVal arv, int idx)
+	{ return(((byte *)dtvUnwrapPtrF(arv))+idx); }
+static_inline void *dtvTagPtrGetIndexAddrB2F(dtVal arv, int idx)
+	{ return(((byte *)dtvUnwrapPtrF(arv))+(idx<<1)); }
+static_inline void *dtvTagPtrGetIndexAddrB4F(dtVal arv, int idx)
+	{ return(((byte *)dtvUnwrapPtrF(arv))+(idx<<2)); }
+static_inline void *dtvTagPtrGetIndexAddrB8F(dtVal arv, int idx)
+	{ return(((byte *)dtvUnwrapPtrF(arv))+(idx<<3)); }
+static_inline void *dtvTagPtrGetIndexAddrB16F(dtVal arv, int idx)
+	{ return(((byte *)dtvUnwrapPtrF(arv))+(idx<<4)); }
+
+
 static_inline void *dtvUnwrapPtr(dtVal val)
 {
 	if((val.hi>>28)==0)
 		return(dtvUnwrapPtrF(val));
 	if((val.hi>>28)==BGBDT_HTAG_TAGARR)
 		return(dtvArrayGetIndexAddr(val, 0));
+	if((val.hi>>28)==BGBDT_HTAG_TTPTR)
+		return(dtvUnwrapPtrF(val));
+	if((val.hi>>28)==BGBDT_HTAG_PTR60)
+		return(dtvUnwrapPtr60F(val));
 	return(NULL);
 }
 

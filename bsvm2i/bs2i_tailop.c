@@ -906,6 +906,74 @@ BSVM2_Trace *BSVM2_TrOp_RETAC(
 	return(frmb->rtrace);
 }
 
+BSVM2_Trace *BSVM2_TrOp_RETIL(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+
+	ctx=frm->ctx;
+	frmb=frm->rnext;
+
+	frmb->stack[frmb->rcsrv].i=frm->local[op->i0].i;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_RETLL(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].l=frm->local[op->i0].l;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_RETFL(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].f=frm->local[op->i0].f;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_RETDL(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].d=frm->local[op->i0].d;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
+BSVM2_Trace *BSVM2_TrOp_RETAL(
+	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_Context *ctx;
+	BSVM2_Frame *frmb;
+	ctx=frm->ctx;	frmb=frm->rnext;
+	frmb->stack[frmb->rcsrv].a=frm->local[op->i0].a;
+	frm->rnext=ctx->freeframe;	ctx->freeframe=frm;
+	ctx->frame=frmb;
+	ctx->tstackref=frmb->tstkpos;
+	return(frmb->rtrace);
+}
+
 BSVM2_Trace *BSVM2_TrOp_CALLG(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
@@ -1027,3 +1095,28 @@ BSVM2_Trace *BSVM2_TrOp_CALLTH(
 	tr=BS2I_ImageGetFuncTrace(fvi);
 	return(tr);
 }
+
+#if 0
+void BSVM2_TrOp_DTNISTYPE(BSVM2_Frame *frm, BSVM2_TailOpcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	void *p;
+	int i;
+
+	vi=op->v.p;
+	if((vi->tag==BS2CC_ITCC_CL) ||
+		(vi->tag==BS2CC_ITCC_IF))
+	{
+		i=BGBDTC_CheckObjvInstanceof(
+			frm->stack[op->t0].a, vi->objinf);
+		if(!i)
+		{
+		}
+//			frm->stack[op->t0].a=DTV_NULL;
+		return(tr->jnext);
+	}
+
+//	frm->stack[op->t0].a=DTV_NULL;
+	return(tr->jnext);
+}
+#endif

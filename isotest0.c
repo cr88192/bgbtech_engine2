@@ -1660,6 +1660,9 @@ int IsoTile_DrawDialog(dtVal dbox)
 		}
 	}
 	
+	if(!text)
+		return(-1);
+	
 	l=strlen(text);
 	if(isotest_diag_pchars<l)
 	{
@@ -2197,14 +2200,27 @@ int main_handle_input()
 		{
 			if(kcur && *kcur)
 				isotest_isdead=0;
+			if(FRGL_KeyDown(K_LEFTARROW) ||
+				FRGL_KeyDown(K_RIGHTARROW) ||
+				FRGL_KeyDown(K_UPARROW) ||
+				FRGL_KeyDown(K_DOWNARROW))
+					isotest_isdead=0;
 		}
 
 		while(*kcur)
 		{
 			switch(*kcur)
 			{
-			case K_DEL:
 			case K_ESC:
+				if(isotest_invopen)
+				{
+					isotest_invopen=0;
+					break;
+				}
+				FRGL_SetMenuActive("main");
+				break;
+			case K_DEL:
+//			case K_ESC:
 			case K_TAB:
 				isotest_invopen=0;
 				break;		

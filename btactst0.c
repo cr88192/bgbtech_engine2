@@ -193,12 +193,13 @@ int BGBMID_FlattenWAV_BTAC1C(byte *obuf, void *ibuf,
 	return(ct-obuf);
 }
 
-int BtPk_ImageAddSound(BtPak0_Image *img, char *src)
+int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 {
 	char tb[1024], tb2[1024];
 	BGBDT_SndSampler *samp;
 	s16 *sbuf, *sbuf2, *sbuf3;
 	byte *bbuf, *obuf;
+	double f, g;
 	char *s, *t;
 	int len, len2, bsz, blen, blen2, blg2, blks, idx, insz;
 	int ch, sz;
@@ -207,7 +208,7 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src)
 	sprintf(tb, "%s.wav", src);
 
 	s=tb; t=tb2;
-	strcpy(t, "resource_dev/dump/", t); t+=strlen(t);
+	strcpy(t, "resource_dev/dump/"); t+=strlen(t);
 	while(*s)
 	{
 		if(*s=='/')
@@ -222,15 +223,28 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src)
 	len=samp->len;
 	ch=samp->wf_chan;
 
+	if(rate<=0)
+		rate=22050;
+		
+	len=len*(((double)rate)/samp->wf_rate);
+
 	sbuf=frgl_malloc((len+1024)*2*sizeof(s16));
 //	sbuf2=frgl_malloc((len+1024)*2*sizeof(s16));
 //	sbuf3=frgl_malloc((len+1024)*2*sizeof(s16));
 
 	if(ch==1)
 	{
-		for(i=0; i<len; i++)
+		if(rate==samp->wf_rate)
 		{
-			sbuf[i]=BGBDT_Snd_GetSampleMono(samp, i);
+			for(i=0; i<len; i++)
+				{ sbuf[i]=BGBDT_Snd_GetSampleMono(samp, i); }
+		}else
+		{
+			for(i=0; i<len; i++)
+			{
+				sbuf[i]=samp->GetSampleMonoFqClz(samp,
+					rate*16, i*16);
+			}
 		}
 
 		bsz=512; blen=(bsz-4)*2; blen2=bsz*2;
@@ -248,14 +262,27 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src)
 		}
 
 		sz=BGBMID_FlattenWAV_BTAC1C(obuf,
-			bbuf, 1, samp->wf_rate, bsz, len);
+			bbuf, 1, rate, bsz, len);
 		BtPak_ImageStoreFile(img, tb, obuf, sz);	
 	}else
 	{
-		for(i=0; i<len; i++)
+		if(rate==samp->wf_rate)
 		{
-			sbuf[i*2+0]=samp->GetSampleMultiMod(samp, i, 0);
-			sbuf[i*2+1]=samp->GetSampleMultiMod(samp, i, 1);
+			for(i=0; i<len; i++)
+			{
+				sbuf[i*2+0]=samp->GetSampleMultiMod(samp, i, 0);
+				sbuf[i*2+1]=samp->GetSampleMultiMod(samp, i, 1);
+			}
+		}else
+		{
+			f=(((double)rate)/samp->wf_rate);
+			f=1.0/f;
+			for(i=0; i<len; i++)
+			{
+				j=i*f+0.5;
+				sbuf[i*2+0]=samp->GetSampleMultiMod(samp, j, 0);
+				sbuf[i*2+1]=samp->GetSampleMultiMod(samp, j, 1);
+			}
 		}
 
 		bsz=512; blen=(bsz-4)*2; blen2=bsz*2;
@@ -273,27 +300,36 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src)
 		}
 
 		sz=BGBMID_FlattenWAV_BTAC1C(obuf,
-			bbuf, 2, samp->wf_rate, bsz, len);
+			bbuf, 2, rate, bsz, len);
 		BtPak_ImageStoreFile(img, tb, obuf, sz);
 	}
+
+	printf("added sound: %-48s %dk\n", src, (sz+511)/1024);
 
 	vf_storefile(tb2, obuf, sz);
 
 	return(0);
 }
 
-int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src)
+int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
+	int oxs, int oys, int qfl)
 {
 	char tb[1024], tb2[1024];
 	byte *ibuf, *ibuf2, *obuf;
 	char *s, *t;
-	int xs, ys, txs, tys, sz;
+	int xs, ys, xs1, ys1, txs, tys, sz, clrs, jclrs;
 	int i, j, k;
 
-	sprintf(tb, "%s.jpg", src);
+	if(qfl&(1<<28))
+	{
+		sprintf(tb, "%s.jpg", src);
+	}else
+	{
+		sprintf(tb, "%s.bmp", src);
+	}
 	
 	s=tb; t=tb2;
-	strcpy(t, "resource_dev/dump/", t); t+=strlen(t);
+	strcpy(t, "resource_dev/dump/"); t+=strlen(t);
 	while(*s)
 	{
 		if(*s=='/')
@@ -310,9 +346,20 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src)
 		return(-1);
 	}
 
+	xs1=xs;
+	ys1=ys;
+
+	if((oxs>0) && (oys>0))
+		{ xs1=oxs; ys1=oys; }
+	if((oxs>0) && (oys==-1))
+	{
+		xs1=xs*(oxs/10000.0);
+		ys1=ys*(oxs/10000.0);
+	}
+
 	txs=1;	tys=1;
-	while(txs<xs)txs<<=1;
-	while(tys<ys)tys<<=1;
+	while(txs<xs1)txs<<=1;
+	while(tys<ys1)tys<<=1;
 
 	if(txs>2048)txs=2048;
 	if(tys>2048)tys=2048;
@@ -329,9 +376,28 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src)
 
 	obuf=frgl_malloc(1<<24);
 
-	sz=PDJPG_EncodeRgba(ibuf, obuf, xs, ys, 85);
+	clrs=BTIC4B_CLRS_RGBA;
+	jclrs=BTIC1H_PXF_RGBA;
+	if(BTIC4B_Img_CheckRGBeP(ibuf, xs, ys))
+	{
+		clrs=BTIC4B_CLRS_RGB8E8;
+		jclrs=BTIC1H_PXF_RGB8E8;
+	}
 
-	printf("added teximg: %s\n", src);
+	if(qfl&(1<<28))
+	{
+//		sz=PDJPG_EncodeRgba(ibuf, obuf, xs, ys, qfl);
+		sz=PDJPG_EncodeClrs(ibuf, obuf, xs, ys, qfl, jclrs);
+	}else
+	{
+		sz=BTIC4B_EncodeImgBmpBuffer(obuf, 1<<24,
+			ibuf, xs, ys, qfl, clrs);
+	}
+
+//	printf("added teximg: %s\n", src);
+	printf("added teximg: %-48s %s %dk %1.1fbpp\n",
+		src, (clrs!=BTIC4B_CLRS_RGBA)?"HDR":"LDR",
+		(sz+511)/1024, sz*8.0/(xs*ys));
 	BtPak_ImageStoreFile(img, tb, obuf, sz);
 	vf_storefile(tb2, obuf, sz);
 
@@ -353,7 +419,8 @@ int BtPk_ImageAddFile(BtPak0_Image *img, char *src)
 		return(-1);
 	}
 
-	printf("added file: %s\n", src);
+//	printf("added file: %s\n", src);
+	printf("added file: %-48s %dk\n", src, (isz+511)/1024);
 	BtPak_ImageStoreFile(img, src, ibuf, isz);
 	return(0);
 }
@@ -370,6 +437,7 @@ int main()
 	double e;
 	int t0, t1, t2, ts, te, dt;
 	int len, bsz, blen, blen2, blg2, blks, idx, insz;
+	int xs, ys, qf, fl;
 	int i, j, k, r;
 
 	VfMount("resource_dev", "/", "dir", "");
@@ -399,13 +467,39 @@ int main()
 		
 		if(!strcmp(a[0], "addsound"))
 		{
-			BtPk_ImageAddSound(img, a[1]);
+			xs=0; fl=0;
+			for(i=2; a[i]; i++)
+			{
+				if(!strncmp(a[i], "rt=", 3))
+					{ xs=atoi(a[i]+3); continue; }
+//				if(!strncmp(a[i], "qf=", 3))
+//					{ qf=atoi(a[i]+3); continue; }
+			}
+		
+			BtPk_ImageAddSound(img, a[1], xs);
 			continue;
 		}
 
 		if(!strcmp(a[0], "addteximg"))
 		{
-			BtPk_ImageAddTexImg(img, a[1]);
+			xs=0; ys=0; qf=80; fl=0;
+			for(i=2; a[i]; i++)
+			{
+				if(!strncmp(a[i], "xs=", 3))
+					{ xs=atoi(a[i]+3); continue; }
+				if(!strncmp(a[i], "ys=", 3))
+					{ ys=atoi(a[i]+3); continue; }
+				if(!strncmp(a[i], "qf=", 3))
+					{ qf=atoi(a[i]+3); continue; }
+
+				if(!strncmp(a[i], "sc=", 3))
+					{ xs=atof(a[i]+3)*10000+0.5; ys=-1; continue; }
+
+				if(!strcmp(a[i], "jpg"))
+					{ fl|=(1<<28); continue; }
+			}
+		
+			BtPk_ImageAddTexImg(img, a[1], xs, ys, qf|fl);
 			continue;
 		}
 

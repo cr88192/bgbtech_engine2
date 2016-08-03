@@ -290,6 +290,36 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 		return(BS2P_ParseWrapString(ctx, t0+1));
 	}
 
+	if((*t0=='X') && !strcmp(t0, "X#"))
+	{
+		if(t1 && (*t1=='I'))
+		{
+			BS2P_NextTokenN(ctx, 2);
+			return(BS2P_ParseWrapSimpleTagStr(ctx, "symbol", t1+1));
+		}
+
+		if(t1 && (*t1=='S'))
+		{
+			BS2P_NextTokenN(ctx, 2);
+			return(BS2P_ParseWrapSimpleTagStr(ctx, "symbol", t1+1));
+		}
+	}
+
+	if((*t0=='X') && !strcmp(t0, "X#:"))
+	{
+		if(t1 && (*t1=='I'))
+		{
+			BS2P_NextTokenN(ctx, 2);
+			return(BS2P_ParseWrapSimpleTagStr(ctx, "keyword", t1+1));
+		}
+
+		if(t1 && (*t1=='S'))
+		{
+			BS2P_NextTokenN(ctx, 2);
+			return(BS2P_ParseWrapSimpleTagStr(ctx, "keyword", t1+1));
+		}
+	}
+
 	if((*t0=='X') && !strcmp(t0, "X\"\"\""))
 	{
 		BS2P_NextToken(ctx);

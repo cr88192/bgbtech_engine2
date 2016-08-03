@@ -1,5 +1,6 @@
 public class EntityBase2D {
 	public vec2f origin;
+	public vec2f velocity;
 	public float angle;
 	public float radius;
 	public string sprite;

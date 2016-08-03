@@ -5,6 +5,7 @@ void BS2C_CompileLoadNameAsType(BS2CC_CompileContext *ctx,
 {
 	BS2C_CompileLoadName(ctx, name);
 	BS2C_CompileConvType(ctx, ty);
+	BS2C_CompileConvType(ctx, ty);
 }
 
 void BS2C_CompileExprPushType(BS2CC_CompileContext *ctx, int dty)
@@ -92,6 +93,24 @@ void BS2C_CompilePop(BS2CC_CompileContext *ctx)
 	
 	i=ctx->frm->stackpos-1;
 	ty=ctx->frm->stack_bty[i];
+
+	if(BS2C_TypeVariantP(ctx, ty))
+	{
+		BS2C_EmitOpcode(ctx, BSVM2_OP_DROPAA);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	BS2C_CompileBasePop(ctx);
+}
+
+void BS2C_CompileBasePop(BS2CC_CompileContext *ctx)
+{
+	int ty;
+	int i;
+	
+	i=ctx->frm->stackpos-1;
+	ty=ctx->frm->stack_bty[i];
 	
 	if(BS2C_TypeSmallIntP(ctx, ty) ||
 		BS2C_TypeHalfFloatP(ctx, ty))
@@ -119,6 +138,7 @@ void BS2C_CompilePop(BS2CC_CompileContext *ctx)
 		BS2C_CompileExprPopType1(ctx);
 		return;
 	}
+
 	if(BS2C_TypeAddressP(ctx, ty))
 	{
 		BS2C_EmitOpcode(ctx, BSVM2_OP_POPA);
@@ -146,24 +166,24 @@ void BS2C_CompilePop(BS2CC_CompileContext *ctx)
 void BS2C_CompileNoexPop(BS2CC_CompileContext *ctx)
 {
 	BS2C_EmitOpcode(ctx, BSVM2_OP_HNOEX1);
-	BS2C_CompilePop(ctx);
+	BS2C_CompileBasePop(ctx);
 	ctx->frm->newtrace=1;
 }
 
 void BS2C_CompileNoexPop2(BS2CC_CompileContext *ctx)
 {
 	BS2C_EmitOpcode(ctx, BSVM2_OP_HNOEX2);
-	BS2C_CompilePop(ctx);
-	BS2C_CompilePop(ctx);
+	BS2C_CompileBasePop(ctx);
+	BS2C_CompileBasePop(ctx);
 	ctx->frm->newtrace=1;
 }
 
 void BS2C_CompileNoexPop3(BS2CC_CompileContext *ctx)
 {
 	BS2C_EmitOpcode(ctx, BSVM2_OP_HNOEX3);
-	BS2C_CompilePop(ctx);
-	BS2C_CompilePop(ctx);
-	BS2C_CompilePop(ctx);
+	BS2C_CompileBasePop(ctx);
+	BS2C_CompileBasePop(ctx);
+	BS2C_CompileBasePop(ctx);
 	ctx->frm->newtrace=1;
 }
 
@@ -181,7 +201,7 @@ void BS2C_CompileNoexPopN(BS2CC_CompileContext *ctx, int n)
 	i=n;
 	BS2C_EmitOpcode(ctx, BSVM2_OP_HNOEX);
 	while((i--)>0)
-		BS2C_CompilePop(ctx);
+		BS2C_CompileBasePop(ctx);
 //	BS2C_EmitOpcode(ctx, BSVM2_OP_LABEL);
 //	ctx->frm->newtrace=1;
 }
@@ -366,6 +386,8 @@ void BS2C_CompileDup(BS2CC_CompileContext *ctx)
 		{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPF); }
 	else if(BS2C_TypeSmallDoubleP(ctx, ty))
 		{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPD); }
+	else if(BS2C_TypeVariantP(ctx, ty))
+		{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPAA); }
 	else if(BS2C_TypeAddressP(ctx, ty))
 		{ BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA); }
 	else if(BS2C_TypeX64P(ctx, ty))
@@ -818,13 +840,14 @@ void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty)
 
 				for(i=l2; i<l; i++)
 				{
-					BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
-					BS2C_CompileExprPushType(ctx, BS2CC_TYZ_ADDRESS);
+//					BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
+//					BS2C_CompileExprPushType(ctx, BS2CC_TYZ_ADDRESS);
 
 					n0=dtvArrayGetIndexDtVal(an, i);
 					BS2C_CompileExpr(ctx, n0, BS2CC_TYZ_VARIANT);
 //					BS2C_EmitOpcode(ctx, BSVM2_OP_STIXAC);
-					BS2C_EmitOpcode(ctx, BSVM2_OP_RSTIXAC);
+//					BS2C_EmitOpcode(ctx, BSVM2_OP_RSTIXAC);
+					BS2C_EmitOpcode(ctx, BSVM2_OP_DSTIXAC);
 					BS2C_EmitOpcodeSCx(ctx, i-l2);
 					BS2C_CompileExprPopType2(ctx);
 				}
@@ -1084,13 +1107,14 @@ void BS2C_CompileObjMethodCallB(BS2CC_CompileContext *ctx,
 
 				for(i=l2; i<l; i++)
 				{
-					BS2C_CompileExprPushType(ctx, BS2CC_TYZ_ADDRESS);
-					BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
+//					BS2C_CompileExprPushType(ctx, BS2CC_TYZ_ADDRESS);
+//					BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
 
 					n0=dtvArrayGetIndexDtVal(an, i);
 					BS2C_CompileExpr(ctx, n0, BS2CC_TYZ_VARIANT);
 //					BS2C_EmitOpcode(ctx, BSVM2_OP_STIXAC);
-					BS2C_EmitOpcode(ctx, BSVM2_OP_RSTIXAC);
+//					BS2C_EmitOpcode(ctx, BSVM2_OP_RSTIXAC);
+					BS2C_EmitOpcode(ctx, BSVM2_OP_DSTIXAC);
 					BS2C_EmitOpcodeSCx(ctx, i-l2);
 					BS2C_CompileExprPopType2(ctx);
 				}
@@ -1383,6 +1407,26 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 
 		z=BS2C_GetTypeBaseZ(ctx, bty);
 		
+		if(BS2C_TypeVariantP(ctx, lt))
+		{
+			if(BS2C_TypeSmallIntP(ctx, rt))
+			{
+				BS2C_CompileConvType(ctx, BS2CC_TYZ_VARIANT);
+				BS2C_CompileExpr(ctx, ln, BS2CC_TYZ_VARIANT);
+				BS2C_CompileExpr(ctx, rn, BS2CC_TYZ_INT);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_STIXAI);
+				BS2C_CompileExprPopType3(ctx);
+				return;
+			}
+			
+			BS2C_CompileConvType(ctx, BS2CC_TYZ_VARIANT);
+			BS2C_CompileExpr(ctx, ln, BS2CC_TYZ_VARIANT);
+			BS2C_CompileExpr(ctx, rn, BS2CC_TYZ_VARIANT);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_STIXAA);
+			BS2C_CompileExprPopType3(ctx);
+			return;
+		}
+		
 		if(dtvIsFixIntP(rn) || dtvIsFixUIntP(rn))
 		{
 //			li=dtvUnwrapLong(expr);
@@ -1410,6 +1454,10 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 				if(o>=0)
 				{
 					BS2C_CompileExpr(ctx, ln, lt);
+
+					if(BS2C_TypePointerP(ctx, lt))
+						BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 					BS2C_EmitOpcode(ctx, o);
 					BS2C_CompileExprPopType2(ctx);
 					return;
@@ -1421,6 +1469,9 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			t0=BS2C_InferExprLocalIndex(ctx, ln);
 			if(t0>=0)
 			{
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 				BS2C_EmitOpcode(ctx, BSVM2_OP_STIXZLC);
 				BS2C_EmitOpcodeUZx(ctx, z, t0);
 				BS2C_EmitOpcodeSCx(ctx, li);
@@ -1468,6 +1519,10 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			if(o>=0)
 			{
 				BS2C_CompileExpr(ctx, ln, lt);
+
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_EmitOpcodeSCx(ctx, li);
 				BS2C_CompileExprPopType2(ctx);
@@ -1480,6 +1535,9 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		t1=BS2C_InferExprLocalIndex(ctx, rn);
 		if((t0>=0) && (t1>=0))
 		{
+			if(BS2C_TypePointerP(ctx, lt))
+				BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 			BS2C_EmitOpcode(ctx, BSVM2_OP_STIXZLL);
 			BS2C_EmitOpcodeUZx(ctx, z, t0);
 			BS2C_EmitOpcodeUCx(ctx, t1);
@@ -1528,6 +1586,9 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		{
 			BS2C_CompileExpr(ctx, ln, lt);
 			BS2C_CompileExpr(ctx, rn, rt);
+
+			if(BS2C_TypePointerP(ctx, lt))
+				BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_CompileExprPopType3(ctx);
 			return;
@@ -1564,6 +1625,25 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 
 				if(vi2->vitype==BS2CC_VITYPE_STRVAR)
 				{
+					t0=BS2C_InferExprLocalIndex(ctx, ln);
+					if(t0>=0)
+					{
+						BS2C_CompileExprPopType1(ctx);
+//						BS2C_CompileExprPushType(ctx, vi2->bty);
+						BS2C_EmitOpcode(ctx, BSVM2_OP_STOSL);
+						BS2C_EmitOpcodeJx(ctx, t0, i);
+//						BS2C_CompileConvType(ctx, dty);
+						return;
+					}
+
+					if(BGBDT_TagStr_SymbolIsP(ln, "this"))
+					{
+						BS2C_CompileExprPopType1(ctx);
+						BS2C_EmitOpcode(ctx, BSVM2_OP_STTHIS);
+						BS2C_EmitOpcodeUCx(ctx, i);
+						return;
+					}
+
 					BS2C_CompileExpr(ctx, ln, lt);
 
 					BS2C_CompileExprPopType2(ctx);
@@ -1584,6 +1664,27 @@ void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr)
 					return;
 				}
 			}
+		}
+
+		if(BS2C_TypeVariantP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+			i=BS2C_GetFrameSymbol(ctx, fn);
+
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			if(t0>=0)
+			{
+				BS2C_CompileExprPopType1(ctx);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_STOSL);
+				BS2C_EmitOpcodeJx(ctx, t0, i);
+				return;
+			}
+
+			BS2C_CompileExpr(ctx, ln, lt);
+			BS2C_CompileExprPopType2(ctx);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_STOS);
+			BS2C_EmitOpcodeUCx(ctx, i);
+			return;
 		}
 
 		BS2C_CaseError(ctx);
@@ -1708,6 +1809,10 @@ void BS2C_CompileExprBinary(BS2CC_CompileContext *ctx,
 			if(o>=0)
 			{
 				BS2C_CompileExpr(ctx, ln, lt);
+
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_EmitOpcodeSCx(ctx, li);
 				return;
@@ -1742,6 +1847,9 @@ void BS2C_CompileExprBinary(BS2CC_CompileContext *ctx,
 
 				if(!strcmp(op, "-"))
 					BS2C_EmitOpcode(ctx, BSVM2_OP_NEGI);
+
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
 
 				BS2C_EmitOpcode(ctx, o);
 //				BS2C_EmitOpcodeSCx(ctx, li);
@@ -2000,6 +2108,13 @@ void BS2C_CompileExprPushConstInt(
 	
 	if(dty==BSVM2_OPZ_INT)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_INT);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+			return;
+		}
+	
 		if(li>0)
 		{
 			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_INT);
@@ -2015,6 +2130,13 @@ void BS2C_CompileExprPushConstInt(
 	}
 	if(dty==BSVM2_OPZ_UINT)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_UINT);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+			return;
+		}
+	
 		lj=(s32)li;
 		if(lj<0)
 		{
@@ -2032,6 +2154,13 @@ void BS2C_CompileExprPushConstInt(
 
 	if(dty==BSVM2_OPZ_LONG)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_LONG);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHL);
+			return;
+		}
+	
 		if(li>=0)
 		{
 			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_LONG);
@@ -2046,6 +2175,13 @@ void BS2C_CompileExprPushConstInt(
 	}
 	if(dty==BSVM2_OPZ_ULONG)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_ULONG);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHL);
+			return;
+		}
+	
 		if(li<0)
 		{
 			BS2C_CompileExprPushType(ctx, BSVM2_OPZ_ULONG);
@@ -2061,6 +2197,13 @@ void BS2C_CompileExprPushConstInt(
 
 	if((dty==BSVM2_OPZ_UBYTE) || (dty==BS2CC_TYZ_BOOL))
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, dty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+			return;
+		}
+	
 		BS2C_CompileExprPushType(ctx, dty);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
 		BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_UBYTE, (byte)li);
@@ -2068,6 +2211,13 @@ void BS2C_CompileExprPushConstInt(
 	}
 	if(dty==BSVM2_OPZ_SBYTE)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, dty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+			return;
+		}
+	
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_SBYTE);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
 		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_SBYTE, (sbyte)li);
@@ -2075,6 +2225,13 @@ void BS2C_CompileExprPushConstInt(
 	}
 	if(dty==BSVM2_OPZ_USHORT)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, dty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+			return;
+		}
+	
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_USHORT);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
 		BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_USHORT, (u16)li);
@@ -2082,6 +2239,13 @@ void BS2C_CompileExprPushConstInt(
 	}
 	if(dty==BSVM2_OPZ_SHORT)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, dty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+			return;
+		}
+	
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_SHORT);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
 		BS2C_EmitOpcodeSZx(ctx, BSVM2_OPZ_SHORT, (s16)li);
@@ -2105,6 +2269,13 @@ void BS2C_CompileExprPushConstInt(
 
 	if(dty==BSVM2_OPZ_FLOAT)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, dty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHF);
+			return;
+		}
+	
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_FLOAT);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
 		BS2C_EmitOpcodeZxF(ctx, li);
@@ -2112,6 +2283,13 @@ void BS2C_CompileExprPushConstInt(
 	}
 	if(dty==BSVM2_OPZ_DOUBLE)
 	{
+		if(li==0)
+		{
+			BS2C_CompileExprPushType(ctx, dty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHD);
+			return;
+		}
+	
 		BS2C_CompileExprPushType(ctx, BSVM2_OPZ_DOUBLE);
 		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
 		BS2C_EmitOpcodeZxD(ctx, li);
@@ -2189,27 +2367,48 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 	{
 		if(dty==BS2CC_TYZ_FLOAT)
 		{
+			f=dtvUnwrapDouble(expr);
+			if(f==0)
+			{
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_FLOAT);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHF);
+				return;
+			}
+	
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_FLOAT);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
-			BS2C_EmitOpcodeZxF(ctx,
-				dtvUnwrapDouble(expr));
+			BS2C_EmitOpcodeZxF(ctx, f);
 			return;
 		}
 		if(dty==BS2CC_TYZ_DOUBLE)
 		{
+			f=dtvUnwrapDouble(expr);
+			if(f==0)
+			{
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_DOUBLE);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHD);
+				return;
+			}
+	
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_DOUBLE);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
-			BS2C_EmitOpcodeZxD(ctx,
-				dtvUnwrapDouble(expr));
+			BS2C_EmitOpcodeZxD(ctx, f);
 			return;
 		}
 
 		if(dty==BS2CC_TYZ_HFLOAT)
 		{
+			f=dtvUnwrapDouble(expr);
+			if(f==0)
+			{
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_HFLOAT);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_PUSHI);
+				return;
+			}
+	
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_HFLOAT);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
-			BS2C_EmitOpcodeZxF(ctx,
-				dtvUnwrapDouble(expr));
+			BS2C_EmitOpcodeZxF(ctx, f);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTF2HF);
 			return;
 		}
@@ -2338,6 +2537,24 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 	if(!tag)
 	{
 		BS2C_CaseError(ctx);
+		return;
+	}
+
+	if(!strcmp(tag, "symbol"))
+	{
+		op=BS2P_GetAstNodeAttrS(expr, "value");
+		BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+		BS2C_EmitOpcodeZySymbol(ctx, op);
+		return;
+	}
+	
+	if(!strcmp(tag, "keyword"))
+	{
+		op=BS2P_GetAstNodeAttrS(expr, "value");
+		BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDC);
+		BS2C_EmitOpcodeZyKeyword(ctx, op);
 		return;
 	}
 	
@@ -2573,6 +2790,9 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				BS2C_CompileExprPushType(ctx, bty);
 
 				BS2C_CompileExpr(ctx, ln, lt);
+
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_CompileConvType(ctx, dty);
 				return;
@@ -2605,6 +2825,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				BS2C_CompileExprPushType(ctx, bty);
 
 				BS2C_CompileExpr(ctx, ln, lt);
+
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_EmitOpcodeSCx(ctx, 0);
 				BS2C_CompileConvType(ctx, dty);
@@ -2824,6 +3048,32 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 		z=BS2C_GetTypeBaseZ(ctx, bty);
 		
+		if(BS2C_TypeVariantP(ctx, lt))
+		{
+			if(BS2C_TypeSmallIntP(ctx, rt))
+			{
+//				BS2C_CompileConvType(ctx, BS2CC_TYZ_VARIANT);
+				BS2C_CompileExpr(ctx, ln, BS2CC_TYZ_VARIANT);
+				BS2C_CompileExpr(ctx, rn, BS2CC_TYZ_INT);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_LDIXAI);
+				BS2C_CompileExprPopType2(ctx);
+
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+			
+//			BS2C_CompileConvType(ctx, BS2CC_TYZ_VARIANT);
+			BS2C_CompileExpr(ctx, ln, BS2CC_TYZ_VARIANT);
+			BS2C_CompileExpr(ctx, rn, BS2CC_TYZ_VARIANT);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDIXAA);
+			BS2C_CompileExprPopType2(ctx);
+
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
+			BS2C_CompileConvType(ctx, dty);
+			return;
+		}
+
 		if(dtvIsFixIntP(rn) || dtvIsFixUIntP(rn))
 		{
 //			li=dtvUnwrapLong(expr);
@@ -2855,6 +3105,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				if(o>=0)
 				{
 					BS2C_CompileExpr(ctx, ln, lt);
+
+					if(BS2C_TypePointerP(ctx, lt))
+						BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 					BS2C_EmitOpcode(ctx, o);
 //					BS2C_EmitOpcodeSCx(ctx, li);
 					BS2C_CompileExprPopType1(ctx);
@@ -2869,6 +3123,9 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			t0=BS2C_InferExprLocalIndex(ctx, ln);
 			if(t0>=0)
 			{
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 				BS2C_EmitOpcode(ctx, BSVM2_OP_LDIXZLC);
 				BS2C_EmitOpcodeUZx(ctx, z, t0);
 				BS2C_EmitOpcodeSCx(ctx, li);
@@ -2901,6 +3158,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			if(o>=0)
 			{
 				BS2C_CompileExpr(ctx, ln, lt);
+
+				if(BS2C_TypePointerP(ctx, lt))
+					BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 				BS2C_EmitOpcode(ctx, o);
 				BS2C_CompileExprPopType1(ctx);
 				BS2C_CompileExprPushType(ctx, bty);
@@ -2915,6 +3176,9 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		t1=BS2C_InferExprLocalIndex(ctx, rn);
 		if((t0>=0) && (t1>=0))
 		{
+			if(BS2C_TypePointerP(ctx, lt))
+				BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 			BS2C_EmitOpcode(ctx, BSVM2_OP_LDIXZLL);
 			BS2C_EmitOpcodeUZx(ctx, z, t0);
 			BS2C_EmitOpcodeUCx(ctx, t1);
@@ -2948,6 +3212,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		{
 			BS2C_CompileExpr(ctx, ln, lt);
 			BS2C_CompileExpr(ctx, rn, rt);
+
+			if(BS2C_TypePointerP(ctx, lt))
+				BS2C_EmitOpcode(ctx, BSVM2_OP_HPTR);
+
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_CompileExprPopType2(ctx);
 			BS2C_CompileExprPushType(ctx, bty);
@@ -3100,6 +3368,25 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 				if(vi2->vitype==BS2CC_VITYPE_STRVAR)
 				{
+					t0=BS2C_InferExprLocalIndex(ctx, ln);
+					if(t0>=0)
+					{
+						BS2C_CompileExprPushType(ctx, vi2->bty);
+						BS2C_EmitOpcode(ctx, BSVM2_OP_LDOSL);
+						BS2C_EmitOpcodeJx(ctx, t0, i);
+						BS2C_CompileConvType(ctx, dty);
+						return;
+					}
+					
+					if(BGBDT_TagStr_SymbolIsP(ln, "this"))
+					{
+						BS2C_CompileExprPushType(ctx, vi2->bty);
+						BS2C_EmitOpcode(ctx, BSVM2_OP_LDTHIS);
+						BS2C_EmitOpcodeUCx(ctx, i);
+						BS2C_CompileConvType(ctx, dty);
+						return;
+					}
+
 					BS2C_CompileExpr(ctx, ln, lt);
 
 					BS2C_CompileExprPopType1(ctx);
@@ -3151,8 +3438,10 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				i=BSVM2_OPMU_ATAN;
 			if(!strcmp(fn, "sqr"))
 				i=BSVM2_OPMU_SQR;
-			if(!strcmp(fn, "ssqr"))
+			if(!strcmp(fn, "ssqrt"))
 				i=BSVM2_OPMU_SSQRT;
+			if(!strcmp(fn, "abs"))
+				i=BSVM2_OPMU_ABS;
 
 			if((z>=0) && (i>=0))
 			{
@@ -3324,8 +3613,70 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				return;
 			}
 
+			BS2C_CaseError(ctx);
+			return;
+		}
+
+		if(BS2C_TypeArrayP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+
+			cty=BS2C_TypeDerefType(ctx, lt);
+			z=BS2C_GetTypeBaseZ(ctx, cty);
+
+			if(!strcmp(fn, "toString"))
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				BS2C_CompileConvType(ctx, BS2CC_TYZ_STRING);
+				return;
+			}
+
+			i=-1;
+			if(!strcmp(fn, "length"))
+				i=BSVM2_OPAG_ALEN;
+			if(!strcmp(fn, "offset"))
+				i=BSVM2_OPAG_AOFS;
+
+			if((z>=0) && (i>=0))
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_AGETI);
+				BS2C_EmitOpcodeUZx(ctx, z, i);
+
+				BS2C_CompileExprPopType1(ctx);
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_INT);
+
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
 
 			BS2C_CaseError(ctx);
+			return;
+		}
+
+		if(BS2C_TypeVariantP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+//			i=BS2C_GetFrameDynamicSlotName(ctx, fn);
+			i=BS2C_GetFrameSymbol(ctx, fn);
+
+			t0=BS2C_InferExprLocalIndex(ctx, ln);
+			if(t0>=0)
+			{
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_LDOSL);
+				BS2C_EmitOpcodeJx(ctx, t0, i);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+
+			BS2C_CompileExpr(ctx, ln, lt);
+
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_VARIANT);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_LDOS);
+			BS2C_EmitOpcodeUCx(ctx, i);
+			BS2C_CompileConvType(ctx, dty);
 			return;
 		}
 
@@ -3356,6 +3707,75 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 
 		BS2C_CompileExpr(ctx, ln, lt);
 		BS2C_CompileCastType(ctx, cty);
+		return;
+	}
+
+	if(!strcmp(tag, "instanceof"))
+	{
+		ln=BS2P_GetAstNodeAttr(expr, "lhs");
+		rn=BS2P_GetAstNodeAttr(expr, "rhs");
+		ln=BS2C_ReduceExpr(ctx, ln);
+
+		lt=BS2C_InferExpr(ctx, ln);
+		cty=BS2C_TypeExtType(ctx, rn);
+
+#if 0
+		if(dtvIsSmallDoubleP(ln))
+		{
+//			if(BS2C_TypeSmallLongP(ctx, cty))
+			if(BS2C_TypeSmallDoubleP(ctx, cty))
+			{
+				BS2C_CompileExpr(ctx, ln, cty);
+				return;
+			}
+		}
+#endif
+
+		if(!BS2C_TypeAddressP(ctx, lt))
+		{
+			if(BS2C_TypeSmallDoubleP(ctx, lt) &&
+				BS2C_TypeSmallDoubleP(ctx, cty))
+			{
+				BS2C_CompileExprPushConstInt(ctx, lt==cty, BS2CC_TYZ_BOOL);
+				return;
+			}
+
+			BS2C_CaseError(ctx);
+			return;
+		}
+
+		vi=BS2C_GetTypeObject(ctx, cty);
+		if(vi)
+		{
+			i=BS2C_IndexFrameGlobal(ctx, vi->gid);
+			BS2C_CompileExpr(ctx, ln, lt);
+
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_BOOL);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_ISTYPE);
+			BS2C_EmitOpcodeUCx(ctx, i);
+			BS2C_CompileConvType(ctx, dty);
+			return;
+		}
+
+		fn=BS2C_GetTypeSig(ctx, cty);
+		if(fn)
+		{
+			i=BS2C_ImgGetString(ctx, fn);
+			j=BS2C_IndexFrameLiteral(ctx, (i<<4)|BSVM2_OPZY_STRU8);
+
+			BS2C_CompileExpr(ctx, ln, lt);
+
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_BOOL);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_ISTYPE);
+			BS2C_EmitOpcodeUCx(ctx, j);
+			BS2C_CompileConvType(ctx, dty);
+			return;
+		}
+
+		BS2C_CaseError(ctx);
+
 		return;
 	}
 
@@ -3420,7 +3840,7 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		}
 #endif
 
-#if 1
+#if 0
 		switch(z)
 		{
 		case BS2CC_TYZ_INT:			o=BSVM2_OP_RSTIXIC; break;
@@ -3435,6 +3855,24 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		case BS2CC_TYZ_SHORT:		o=BSVM2_OP_RSTIXSC; break;
 		case BS2CC_TYZ_USHORT:		o=BSVM2_OP_RSTIXSC; break;
 		default:					o=BSVM2_OP_RSTIXAC; break;
+		}
+#endif
+
+#if 1
+		switch(z)
+		{
+		case BS2CC_TYZ_INT:			o=BSVM2_OP_DSTIXIC; break;
+		case BS2CC_TYZ_UINT:		o=BSVM2_OP_DSTIXIC; break;
+		case BS2CC_TYZ_LONG:		o=BSVM2_OP_DSTIXLC; break;
+		case BS2CC_TYZ_ULONG:		o=BSVM2_OP_DSTIXLC; break;
+		case BS2CC_TYZ_FLOAT:		o=BSVM2_OP_DSTIXFC; break;
+		case BS2CC_TYZ_DOUBLE:		o=BSVM2_OP_DSTIXDC; break;
+		case BS2CC_TYZ_ADDRESS:		o=BSVM2_OP_DSTIXAC; break;
+		case BS2CC_TYZ_SBYTE:		o=BSVM2_OP_DSTIXBC; break;
+		case BS2CC_TYZ_UBYTE:		o=BSVM2_OP_DSTIXBC; break;
+		case BS2CC_TYZ_SHORT:		o=BSVM2_OP_DSTIXSC; break;
+		case BS2CC_TYZ_USHORT:		o=BSVM2_OP_DSTIXSC; break;
+		default:					o=BSVM2_OP_DSTIXAC; break;
 		}
 #endif
 
@@ -3471,14 +3909,14 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				continue;
 			}
 
-			BS2C_CompileExprPushType(ctx, bty);
-			BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
+//			BS2C_CompileExprPushType(ctx, bty);
+//			BS2C_EmitOpcode(ctx, BSVM2_OP_DUPA);
 			BS2C_CompileExpr(ctx, n0, cty);
 //			BS2C_EmitOpcode(ctx, BSVM2_OP_STIXAC);
 			BS2C_EmitOpcode(ctx, o);
 			BS2C_EmitOpcodeSCx(ctx, i);
-//			BS2C_CompileExprPopType1(ctx);
-			BS2C_CompileExprPopType2(ctx);
+			BS2C_CompileExprPopType1(ctx);
+//			BS2C_CompileExprPopType2(ctx);
 		}
 		return;
 	}
@@ -3634,20 +4072,24 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		BS2C_EmitOpcode(ctx, BSVM2_OP_NEWDYO);
 //		BS2C_EmitOpcodeUZx(ctx, z, l);
 
-		l=dtvArrayGetSize(ln);
-		for(i=0; i<l; i++)
+		if(dtvTrueP(ln))
 		{
-			n0=dtvArrayGetIndexDtVal(ln, i);
-			n1=BS2P_GetAstNodeAttr(n0, "value");
-			fn=BS2P_GetAstNodeAttrS(n0, "name");
+			l=dtvArrayGetSize(ln);
+			for(i=0; i<l; i++)
+			{
+				n0=dtvArrayGetIndexDtVal(ln, i);
+				n1=BS2P_GetAstNodeAttr(n0, "value");
+				fn=BS2P_GetAstNodeAttrS(n0, "name");
 
-			BS2C_CompileExpr(ctx, n1, BS2CC_TYZ_VARIANT);
-			
-			j=BS2C_GetFrameDynamicSlotName(ctx, fn);
-			BS2C_EmitOpcode(ctx, BSVM2_OP_DSBOS);
-			BS2C_EmitOpcodeUCx(ctx, j);
+				BS2C_CompileExpr(ctx, n1, BS2CC_TYZ_VARIANT);
+				
+//				j=BS2C_GetFrameDynamicSlotName(ctx, fn);
+				j=BS2C_GetFrameSymbol(ctx, fn);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_DSBOS);
+				BS2C_EmitOpcodeUCx(ctx, j);
 
-			BS2C_CompileExprPopType1(ctx);
+				BS2C_CompileExprPopType1(ctx);
+			}
 		}
 
 		return;

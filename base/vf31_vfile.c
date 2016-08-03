@@ -226,6 +226,11 @@ BTEIFGL_API void *VfLoadFile2(char *path, int *rsz)
 	return(NULL);
 }
 
+BTEIFGL_API void *VfFreeLoadFileBuffer(void *buf)
+{
+	frgl_free(buf);
+}
+
 BTEIFGL_API int VfStoreFile(char *path, void *buf, int sz)
 {
 	char pbuf[1024];

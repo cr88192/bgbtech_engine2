@@ -745,6 +745,115 @@ BTEIFGL_API dtcObject BGBDTC_AllocClassInstance(
 	return(ptr);
 }
 
+int BGBDTC_CheckExpandClassIfaceIndex(
+	BGBDTC_ClassInfo *cls, int idx)
+{
+	int i;
+
+	if(!cls->iface)
+	{
+		if(idx>0)
+		{
+			i=idx;
+			if(i<4)i=4;
+		}else
+		{
+			i=16;
+//			while(i<=idx)
+//				i=i+(i>>2);
+		}
+		cls->iface=dtmAlloc("bgbdtc_classiface_t",
+			i*sizeof(BGBDTC_ClassInfo *));
+		cls->miface=i;
+		return(1);
+	}
+
+	if(idx>=cls->miface)
+	{
+		i=cls->miface;
+		while(i<=idx)
+			i=i+(i>>1);
+		cls->iface=dtmRealloc(cls->iface,
+			i*sizeof(BGBDTC_ClassInfo *));
+		cls->miface=i;
+		return(1);
+	}
+	
+	return(0);
+}
+
+BTEIFGL_API int BGBDTC_CheckClassExtends(
+	BGBDTC_ClassInfo *clsa, BGBDTC_ClassInfo *clsb)
+{
+	BGBDTC_ClassInfo *clsc;
+	
+	clsc=clsa;
+	while(clsc)
+	{
+		if(clsc==clsb)
+			return(1);
+		clsc=clsc->super;
+	}
+	return(0);
+}
+
+BTEIFGL_API int BGBDTC_CheckClassImplements(
+	BGBDTC_ClassInfo *clsa, BGBDTC_ClassInfo *clsb)
+{
+	BGBDTC_ClassInfo *clsc;
+	int i;
+	
+	clsc=clsa;
+	while(clsc)
+	{
+//		if(clsc==clsb)
+//			return(1);
+		for(i=0; i<clsc->niface; i++)
+			if(clsc->iface[i]==clsb)
+				return(1);
+		clsc=clsc->super;
+	}
+	return(0);
+}
+
+BTEIFGL_API int BGBDTC_CheckObjInstanceof(
+	dtcObject obj, BGBDTC_ClassInfo *cls)
+{
+	if(BGBDTC_CheckClassExtends(*(void **)obj, cls))
+		return(1);
+	if(BGBDTC_CheckClassImplements(*(void **)obj, cls))
+		return(1);
+	return(0);
+}
+
+BTEIFGL_API int BGBDTC_CheckObjvObjectP(dtVal obj)
+{
+	static int objty_clsobj=-1;
+	void *ptr;
+	
+	if(objty_clsobj<0)
+		{ objty_clsobj=BGBDT_MM_GetIndexObjTypeName("bgbdtc_object_t"); }
+	return(dtvCheckPtrTagP(obj, objty_clsobj));
+}
+
+BTEIFGL_API int BGBDTC_CheckObjvInstanceof(
+	dtVal obj, BGBDTC_ClassInfo *cls)
+{
+	static int objty_clsobj=-1;
+	void *ptr;
+	
+	if(objty_clsobj<0)
+		{ objty_clsobj=BGBDT_MM_GetIndexObjTypeName("bgbdtc_object_t"); }
+	if(!dtvCheckPtrTagP(obj, objty_clsobj))
+		return(0);
+
+	ptr=dtvUnwrapPtrF(obj);
+
+	if(BGBDTC_CheckObjInstanceof(ptr, cls))
+		return(1);
+	return(0);
+}
+
 #define DTC_CACHENAME_PFX(RV)							\
 	dtcClass cls; dtcField fi; fi=*rfi;					\
 	if(!fi)												\

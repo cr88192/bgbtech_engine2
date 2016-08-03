@@ -948,3 +948,28 @@ BTEIFGL_API dtVal BGBDT_TagParse_ParseValueFromStrBuf(
 	BGBDT_MM_FreeParsePrintInfo(inf);
 	return(val);
 }
+
+BTEIFGL_API dtVal BGBDT_TagParse_ParseValueFromLoadFile(char *name)
+{
+	char tb[4096];
+	dtVal v;
+	char *buf;
+	int sz, r;
+	
+//	buf=VfLoadFile2(name, &sz);
+
+	buf=tb; sz=4096;
+	r=VfLoadFile(name, &buf, &sz);
+	if(r<0)
+		{ return(DTV_UNDEFINED); }
+	if(!r)
+	{
+		buf=frgl_malloc(sz+16);
+		r=VfLoadFile(name, &buf, &sz);
+	}
+	v=BGBDT_TagParse_ParseValueFromStrBuf(buf, sz);
+//	VfFreeLoadFileBuffer(buf);
+	if(buf!=tb)
+		frgl_free(buf);
+	return(v);
+}

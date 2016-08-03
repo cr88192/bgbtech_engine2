@@ -141,6 +141,12 @@ dtVal BS2P_ParseStatementBlock(BS2CC_CompileContext *ctx, int flag)
 			BS2P_SetAstNodeAttrI(n0, "ln", lln);
 		}
 		
+		if(nstmt>=4095)
+		{
+			BSVM2_DBGTRAP
+			break;
+		}
+		
 		stmt[nstmt++]=n0;
 		t0=BS2P_PeekToken(ctx, 0);
 	}

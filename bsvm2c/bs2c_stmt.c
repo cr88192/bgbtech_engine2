@@ -64,8 +64,9 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 		i=BS2C_IndexFrameGlobal(ctx, vi2->gid);
 
 		BS2C_EmitOpcode(ctx, BSVM2_OP_IFXOBJ);
-		BS2C_EmitOpcodeUCx(ctx, ix);
-		BS2C_EmitOpcodeUCx(ctx, i);
+//		BS2C_EmitOpcodeUCx(ctx, ix);
+//		BS2C_EmitOpcodeUCx(ctx, i);
+		BS2C_EmitOpcodeJx(ctx, ix, i);
 
 		if(dtvTrueP(ni))
 		{
@@ -372,7 +373,7 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 	dtVal n0, n1, n2, n3;
 	dtVal cc, nt, nf, ni, ns, na;
 	s64 li, lj, lk;
-	int cty, ln;
+	int cty, ln, z;
 	char *tag, *fn;
 	int t0, t1, t2, t3;
 	int l0, l1, l2, l3;
@@ -770,6 +771,16 @@ void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr)
 			}
 		}
 #endif
+
+		t0=BS2C_InferExprLocalIndex(ctx, nt);
+		if(t0>=0)
+		{
+			z=BS2C_GetTypeBaseZ(ctx, cty);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_RET2);
+			BS2C_EmitOpcodeUZx(ctx, z, t0);
+			ctx->frm->newtrace=1;
+			return;
+		}
 
 		BS2C_CompileExpr(ctx, nt, cty);
 

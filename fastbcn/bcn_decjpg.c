@@ -46,6 +46,11 @@ APP11,"TagLayer":
 	Allows giving a layer name to a collection of component layers.
 	All images within a tag-layer will need to be the same resolution.
 	Different taglayers may have different resolutions.
+
+APP11,"AlExp":
+	Alpha-Exponent.
+	Encodes the exponent for HDR images.
+	The exponent is stored as (E*8+4)+128.
 */
 
 #define DCTSZ	8
@@ -1576,7 +1581,8 @@ void PDJPG_Free(byte *buf)
 }
 
 #if 1
-byte *PDJPG_DecodeScanForComponentLayer(byte *buf, int sz, char *name)
+BTEIFGL_API byte *PDJPG_DecodeScanForComponentLayer(
+	byte *buf, int sz, char *name)
 {
 	byte *cs, *cs2, *cse;
 	int i;
@@ -1633,7 +1639,7 @@ BTEIFGL_API int PDJPG_DecodeBasic(PDJPG_Context *ctx,
 	byte *obuf;
 	byte *otbuf;
 	byte *csl;
-	int i, n, sz1;
+	int i, j, n, sz1;
 	
 //	csl=NULL;
 	csl=PDJPG_DecodeScanForComponentLayer(buf, sz, "Alpha");
@@ -1649,9 +1655,28 @@ BTEIFGL_API int PDJPG_DecodeBasic(PDJPG_Context *ctx,
 		memcpy(ctx->jpg_sabuf, ctx->jpg_sibuf[0], n);
 	}else
 	{
-		n=ctx->xs*ctx->ys;
-		if(ctx->jpg_sabuf)
-			memset(ctx->jpg_sabuf, 255, n);
+		csl=PDJPG_DecodeScanForComponentLayer(buf, sz, "AlExp");
+		if(csl)
+		{
+			sz1=sz-(csl-buf);
+			PDJPG_DecodeLDatCtx(ctx, csl, sz1, rxs, rys);
+			
+			n=ctx->xs*ctx->ys;
+			if(!ctx->jpg_sabuf)
+				ctx->jpg_sabuf=malloc(n);
+//			memcpy(ctx->jpg_sabuf, ctx->jpg_sibuf[0], n);
+			for(i=0; i<n; i++)
+			{
+				j=ctx->jpg_sibuf[0][i];
+				j=((j-128)>>3)+128;
+				ctx->jpg_sabuf[i]=j;
+			}
+		}else
+		{
+			n=ctx->xs*ctx->ys;
+			if(ctx->jpg_sabuf)
+				memset(ctx->jpg_sabuf, 255, n);
+		}
 	}
 
 	i=PDJPG_DecodeCtxInner(ctx, buf, sz, rxs, rys);

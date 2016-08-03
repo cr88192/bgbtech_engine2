@@ -1020,10 +1020,13 @@ BTEIFGL_API int BtPak_ImageLoadFile(BtPak0_Image *img, char *path,
 	
 	buf=*rbuf; sz1=*rsz;
 	if(buf && (sz>sz1))
-		{ buf=NULL; }
+	{
+		*rsz=sz;
+		return(0);
+	}
 	
 	if(!buf)
-		{ buf=btpak_malloc(sz); }
+		{ buf=btpak_malloc(sz+64); }
 	
 	memcpy(buf, cs, sz);
 	*rbuf=buf;

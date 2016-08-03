@@ -85,6 +85,127 @@ int BGBDT_TagArr_IsArrayP(dtVal objv)
 	return(dtvCheckPtrTagP(objv, objty_arrhead));
 }
 
+int BGBDT_TagArr_IsArrayBtyP(dtVal objv, int bty)
+{
+	static int objty_arrhead=-1;
+	int bt;
+
+	if(objty_arrhead<0)
+	{
+		objty_arrhead=BGBDT_MM_GetIndexObjTypeName("bgbdt_tagarrhead_t");
+	}
+	if(!dtvCheckPtrTagP(objv, objty_arrhead))
+		return(0);
+
+	bt=dtvArrayGetBaseType(objv);
+	return(bt==bty);
+}
+
+dtVal BGBDT_TagArr_GetIndexVariant(dtVal arr, int idx)
+{
+	dtVal va;
+	double vf;
+	s64 vi;
+	int bt;
+
+	bt=dtvArrayGetBaseType(arr);
+
+	switch(bt)
+	{
+	case BGBDT_BASETY_INT:
+		vi=dtvArrayGetIndexInt(arr, idx);
+		va=dtvWrapInt(vi);
+		break;
+	case BGBDT_BASETY_LONG:
+		vi=dtvArrayGetIndexLong(arr, idx);
+		va=dtvWrapLong(vi);
+		break;
+	case BGBDT_BASETY_FLOAT:
+		vf=dtvArrayGetIndexFloat(arr, idx);
+		va=dtvWrapFloat(vf);
+		break;
+	case BGBDT_BASETY_DOUBLE:
+		vf=dtvArrayGetIndexDouble(arr, idx);
+		va=dtvWrapDouble(vf);
+		break;
+	case BGBDT_BASETY_ADDRESS:
+		va=dtvArrayGetIndexDtVal(arr, idx);
+		break;
+	case BGBDT_BASETY_UINT:
+		vi=(u32)dtvArrayGetIndexInt(arr, idx);
+		va=dtvWrapLong(vi);
+		break;
+	case BGBDT_BASETY_UBYTE:
+		vi=dtvArrayGetIndexByte(arr, idx);
+		va=dtvWrapInt(vi);
+		break;
+	case BGBDT_BASETY_SHORT:
+		vi=dtvArrayGetIndexShort(arr, idx);
+		va=dtvWrapInt(vi);
+		break;
+	case BGBDT_BASETY_SBYTE:
+		vi=dtvArrayGetIndexSByte(arr, idx);
+		va=dtvWrapInt(vi);
+		break;
+	case BGBDT_BASETY_USHORT:
+		vi=dtvArrayGetIndexUShort(arr, idx);
+		va=dtvWrapInt(vi);
+		break;
+	case BGBDT_BASETY_ULONG:
+		vi=dtvArrayGetIndexLong(arr, idx);
+		va=dtvWrapLong(vi);
+		break;
+	default:
+		va=DTV_UNDEFINED;
+		break;
+	}
+	return(va);
+}
+
+void BGBDT_TagArr_SetIndexVariant(dtVal arr, int idx, dtVal val)
+{
+	int bt;
+
+	bt=dtvArrayGetBaseType(arr);
+	switch(bt)
+	{
+	case BGBDT_BASETY_INT:
+		dtvArraySetIndexInt(arr, idx, dtvUnwrapInt(val));
+		break;
+	case BGBDT_BASETY_LONG:
+		dtvArraySetIndexLong(arr, idx, dtvUnwrapLong(val));
+		break;
+	case BGBDT_BASETY_FLOAT:
+		dtvArraySetIndexFloat(arr, idx, dtvUnwrapFloat(val));
+		break;
+	case BGBDT_BASETY_DOUBLE:
+		dtvArraySetIndexDouble(arr, idx, dtvUnwrapDouble(val));
+		break;
+	case BGBDT_BASETY_ADDRESS:
+		dtvArraySetIndexDtVal(arr, idx, val);
+		break;
+	case BGBDT_BASETY_UINT:
+		dtvArraySetIndexInt(arr, idx, dtvUnwrapInt(val));
+		break;
+	case BGBDT_BASETY_UBYTE:
+		dtvArraySetIndexByte(arr, idx, dtvUnwrapInt(val));
+		break;
+	case BGBDT_BASETY_SHORT:
+		dtvArraySetIndexShort(arr, idx, dtvUnwrapInt(val));
+		break;
+	case BGBDT_BASETY_SBYTE:
+		dtvArraySetIndexByte(arr, idx, dtvUnwrapInt(val));
+		break;
+	case BGBDT_BASETY_USHORT:
+		dtvArraySetIndexShort(arr, idx, dtvUnwrapInt(val));
+		break;
+	case BGBDT_BASETY_ULONG:
+		dtvArraySetIndexLong(arr, idx, dtvUnwrapLong(val));
+		break;
+	default:
+		break;
+	}
+}
 
 BTEIFGL_API dtVal BGBDT_TagTy_EncodeRotLong(s64 value)
 {

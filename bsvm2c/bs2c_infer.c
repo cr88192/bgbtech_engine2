@@ -335,6 +335,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 				i=BSVM2_OPMU_SQR;
 			if(!strcmp(fn, "ssqr"))
 				i=BSVM2_OPMU_SSQRT;
+			if(!strcmp(fn, "abs"))
+				i=BSVM2_OPMU_ABS;
 				
 			if(i>=0)
 				return(lt);
@@ -418,6 +420,26 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			BS2C_CaseError(ctx);
 			return(-1);
 		}
+
+		if(BS2C_TypeArrayP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
+		{
+			fn=BGBDT_TagStr_GetUtf8(rn);
+
+			i=-1;
+			if(!strcmp(fn, "length"))i=0;
+			if(!strcmp(fn, "offset"))i=1;
+
+			if(i>=0)
+			{
+				return(BS2CC_TYZ_INT);
+			}
+
+			BS2C_CaseError(ctx);
+			return(-1);
+		}
+
+		if(BS2C_TypeVariantP(ctx, lt))
+			return(BS2CC_TYZ_VARIANT);
 
 		BS2C_CaseError(ctx);
 		return(-1);

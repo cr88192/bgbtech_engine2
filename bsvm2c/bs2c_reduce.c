@@ -106,6 +106,18 @@ dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			else if(!strcmp(op, "&"))lk=li&lj;
 			else if(!strcmp(op, "|"))lk=li|lj;
 			else if(!strcmp(op, "^"))lk=li^lj;
+			else if(!strcmp(op, "<<"))
+				{ i=(u16)lj; lk=(i<64)?(li<<i):0; }
+			else if(!strcmp(op, ">>"))
+			{
+				i=(u16)lj;
+				if(BS2C_TypeUnsignedP(ctx, lt))
+					{ lk=(i<64)?(((u64)li)>>i):0; }
+				else
+					{ lk=(i<64)?(li>>i):(li>>63); }
+			}
+			else if(!strcmp(op, ">>>"))
+				{ i=(u16)lj; lk=(i<64)?(((u64)li)>>i):0; }
 			else if(!strcmp(op, "/") || !strcmp(op, "%"))
 			{
 				if(lj==0)

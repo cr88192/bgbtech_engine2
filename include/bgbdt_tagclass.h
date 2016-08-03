@@ -50,6 +50,9 @@ BGBDTC_ClassInfo *super;
 char *qname;				//qname, for public visible classes
 int sqid, gix;				//image and global ID
 
+BGBDTC_ClassInfo **iface;
+int niface, miface;
+
 BGBDTC_SlotInfo **slots;
 int nslots, mslots;
 int szdata, aldata;

@@ -139,6 +139,7 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 			cur->wf_blkalign=cs[12]+(cs[13]<<8);
 			cur->wf_bits=cs[14];
 
+#if 0
 			printf("BGBDT_Snd_GetLoadSampler: %s (SzFmt=%d):\n"
 				"\tTy=%d Ch=%d Rt=%d Bits=%d, B/s=%d Bsz=%d\n", name, tsz,
 				cur->wf_type, cur->wf_chan, cur->wf_rate, cur->wf_bits,
@@ -150,6 +151,7 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 					printf("%02X ", cs[i]);
 				printf("\n");
 			}
+#endif
 
 			cs=cs2;
 			continue;
@@ -226,7 +228,7 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 			cur->rcpsbsz=(u32)(4294967296LL/cur->sblksz);
 			cur->rcplen=(u32)(4294967296LL/cur->len);
 
-			printf("\tSamples/Block=%d, Len=%d\n", cur->sblksz, cur->len);
+//			printf("\tSamples/Block=%d, Len=%d\n", cur->sblksz, cur->len);
 			cur->GetSampleMono=BGBDT_Snd_GetSampleMono_MADPCM;
 			cur->GetSampleMonoRaw=cur->GetSampleMono;
 			
@@ -251,7 +253,7 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 			cur->rcpsbsz=(u32)(4294967296LL/cur->sblksz);
 			cur->rcplen=(u32)(4294967296LL/cur->len);
 
-			printf("\tSamples/Block=%d\n", cur->sblksz);
+//			printf("\tSamples/Block=%d\n", cur->sblksz);
 			cur->GetSampleMono=BGBDT_Snd_GetSampleMono_SADPCM;
 			cur->GetSampleMonoRaw=cur->GetSampleMono;
 

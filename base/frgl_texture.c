@@ -570,6 +570,113 @@ BTEIFGL_API int Tex_HalfSample2(byte *src, int w, int h)
 	return(0);
 }
 
+BTEIFGL_API int Tex_HalfSampleQ32(byte *src, int w, int h)
+{
+	int i, j, k, w2, h2, i2, j2;
+
+	w2=w>>1;
+	h2=h>>1;
+	for(i=0; i<h2; i++)
+		for(j=0; j<w2; j++)
+	{
+		i2=i<<1;	j2=j<<1;
+#ifdef X86
+		k=((u32 *)src)[i2*w+j2];	((u32 *)src)[i*w2+j]=k;
+#else
+		k=src[((i2*w+j2)<<2)+0];	src[((i*w2+j)<<2)+0]=k;
+		k=src[((i2*w+j2)<<2)+1];	src[((i*w2+j)<<2)+1]=k;
+		k=src[((i2*w+j2)<<2)+2];	src[((i*w2+j)<<2)+2]=k;
+		k=src[((i2*w+j2)<<2)+3];	src[((i*w2+j)<<2)+3]=k;
+#endif
+	}
+	return(0);
+}
+
+BTEIFGL_API int Tex_HalfSampleRGB9E5(byte *src, int w, int h)
+{
+	u32 px0, px1, px2, px3, px4;
+	int cr, cg, cb, ce;
+	int i, j, k, w2, h2, i2, j2;
+
+	w2=w>>1;
+	h2=h>>1;
+	for(i=0; i<h2; i++)
+		for(j=0; j<w2; j++)
+	{
+		i2=i<<1;	j2=j<<1;
+		px0=((u32 *)src)[(i2+0)*w+(j2+0)];
+		px1=((u32 *)src)[(i2+0)*w+(j2+1)];
+		px2=((u32 *)src)[(i2+1)*w+(j2+0)];
+		px3=((u32 *)src)[(i2+1)*w+(j2+1)];
+		
+		cr= (((px0    )&511)+((px1    )&511)+
+			 ((px2    )&511)+((px3    )&511))>>2;
+		cg= (((px0>> 9)&511)+((px1>> 9)&511)+
+			 ((px2>> 9)&511)+((px3>> 9)&511))>>2;
+		cb= (((px0>>18)&511)+((px1>>18)&511)+
+			 ((px2>>18)&511)+((px3>>18)&511))>>2;
+		ce= (((px0>>27)& 31)+((px1>>27)& 31)+
+			 ((px2>>27)& 31)+((px3>>27)& 31))>>2;
+		
+		px4=cr|(cg<<9)|(cb<<18)|(ce<<27);
+		((u32 *)src)[i*w2+j]=px4;
+	}
+	return(0);
+}
+
+BTEIFGL_API int Tex_HalfSampleRG11B10(byte *src, int w, int h)
+{
+	u32 px0, px1, px2, px3, px4;
+	int cr, cg, cb, ce;
+	int i, j, k, w2, h2, i2, j2;
+
+	w2=w>>1;
+	h2=h>>1;
+	for(i=0; i<h2; i++)
+		for(j=0; j<w2; j++)
+	{
+		i2=i<<1;	j2=j<<1;
+		px0=((u32 *)src)[(i2+0)*w+(j2+0)];
+		px1=((u32 *)src)[(i2+0)*w+(j2+1)];
+		px2=((u32 *)src)[(i2+1)*w+(j2+0)];
+		px3=((u32 *)src)[(i2+1)*w+(j2+1)];
+		cr= (((px0    )&2047)+((px1    )&2047)+
+			 ((px2    )&2047)+((px3    )&2047))>>2;
+		cg= (((px0>>11)&2047)+((px1>>11)&2047)+
+			 ((px2>>11)&2047)+((px3>>11)&2047))>>2;
+		cb= (((px0>>22)&1023)+((px1>>22)&1023)+
+			 ((px2>>22)&1023)+((px3>>22)&1023))>>2;
+		px4=cr|(cg<<11)|(cb<<22);
+		((u32 *)src)[i*w2+j]=px4;
+	}
+	return(0);
+}
+
+BTEIFGL_API int Tex_HalfSampleClrs(byte *src, int w, int h, int clrs)
+{
+	switch(clrs)
+	{
+	case BTIC1H_PXF_RGBA:
+	case BTIC1H_PXF_BGRA:
+	case BTIC1H_PXF_RGBX:
+	case BTIC1H_PXF_BGRX:
+	case BTIC1H_PXF_RGB8E8:
+		Tex_HalfSample(src, w, h);
+		break;
+	case BTIC1H_PXF_RGB9E5:
+		Tex_HalfSampleRGB9E5(src, w, h);
+		break;
+	case BTIC1H_PXF_RG11B10:
+		Tex_HalfSampleRG11B10(src, w, h);
+		break;
+	default:
+		Tex_HalfSampleQ32(src, w, h);
+		break;
+	}
+	return(0);
+}
+
+#if 0
 BTEIFGL_API double Tex_Sinc(double x)
 {
 	if(x==0)return(1);
@@ -661,6 +768,7 @@ BTEIFGL_API int Tex_ResampleSinc(byte *src, int iw, int ih,
 	}
 	return(0);
 }
+#endif
 
 BTEIFGL_API int Tex_SplinePolateRGBA8(byte *src, int w, int h,
 	float x, float y, float *rgba)
@@ -1045,7 +1153,8 @@ BTEIFGL_API int Tex_FilterHBlur(byte *src, byte *dst,
 	return(0);
 }
 
-BTEIFGL_API int Tex_FilterVBlur(byte *src, byte *dst, int w, int h, float bf)
+BTEIFGL_API int Tex_FilterVBlur(byte *src, byte *dst,
+	int w, int h, float bf)
 {
 	float tv[4], tw;
 	int i, j, k, l;
@@ -1126,7 +1235,8 @@ BTEIFGL_API int Tex_FilterBlurHV(byte *src, byte *dst,
 	return(0);
 }
 
-BTEIFGL_API int Tex_FilterBlur(byte *src, byte *dst, int w, int h, int rad)
+BTEIFGL_API int Tex_FilterBlur(byte *src, byte *dst,
+	int w, int h, int rad)
 {
 	byte *buf2;
 	float tv[4], tw;
@@ -1232,7 +1342,7 @@ BTEIFGL_API int Tex_GetLastColorFormat()
 	return(resamp_colorfmt);
 }
 
-#if 0
+#if 1
 BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 {
 	byte *resampbuf;
@@ -1283,44 +1393,49 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 	if(tex_use_colorfmt<0)
 	{
 //		BGBBTJ_BCn_EncodeImageDXT5(resampbuf_cmp, resampbuf, tw, th, 4);
-		BGBBTJ_BCn_EncodeImageAutoDXTn(
-			resampbuf_cmp, resampbuf, tw, th, 4, &fmt);
+//		BGBBTJ_BCn_EncodeImageAutoDXTn(
+//			resampbuf_cmp, resampbuf, tw, th, 4, &fmt);
+
+		fmt=BTIC1H_PXF_BC7;
 		resamp_colorfmt=fmt;
 	}else
 	{
 		fmt=tex_use_colorfmt;
 		resamp_colorfmt=fmt;
 
-		BGBBTJ_BCn_EncodeImageDXTn(
-			resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+//		BGBBTJ_BCn_EncodeImageDXTn(
+//			resampbuf_cmp, resampbuf, tw, th, 4, fmt);
 	}
+
+	BGBBTJ_BCn_EncodeImagePxfBCn(
+		resampbuf_cmp, fmt, resampbuf, tw, th, BCN_PFB_RGBA);
 
 	switch(fmt)
 	{
-	case BGBBTJ_JPG_BC1:
-	case BGBBTJ_JPG_BC1F:
+	case BTIC1H_PXF_BC1:
+	case BTIC1H_PXF_BC1F:
 		cmp=GL_COMPRESSED_RGB_S3TC_DXT1_EXT; blksz=8;
 		break;
-	case BGBBTJ_JPG_BC2:
+	case BTIC1H_PXF_BC2:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC3:
-	case BGBBTJ_JPG_BC3F:
+	case BTIC1H_PXF_BC3:
+	case BTIC1H_PXF_BC3F:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC3_UVAY:
+	case BTIC1H_PXF_BC3_UVAY:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC6H_SF16:
-		cmp=GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT; blksz=16;
-		break;
-	case BGBBTJ_JPG_BC6H_UF16:
+//	case BTIC1H_PXF_BC6H_SF16:
+//		cmp=GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT; blksz=16;
+//		break;
+	case BTIC1H_PXF_BC6:
 		cmp=GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC7:
+	case BTIC1H_PXF_BC7:
 		cmp=GL_COMPRESSED_RGBA_BPTC_UNORM; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC7_SRGB:
+	case BTIC1H_PXF_BC7_SRGB:
 		cmp=GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; blksz=16;
 		break;
 	default:
@@ -1337,10 +1452,10 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 	glBindTexture(GL_TEXTURE_2D, num);
 
 	sz=(tw/4)*(th/4)*blksz;
-	pdglCompressedTexImage2D(GL_TEXTURE_2D, 0, 
+	frglCompressedTexImage2D(GL_TEXTURE_2D, 0, 
 		cmp, tw, th, 0, sz, resampbuf_cmp);
 
-//	pdglCompressedTexImage2D(GL_TEXTURE_2D, 0, 
+//	frglCompressedTexImage2D(GL_TEXTURE_2D, 0, 
 //		GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
 //		tw, th, 0, sz, resampbuf_cmp);
 
@@ -1360,12 +1475,14 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 			tl++;
 
 #if 1
-			BGBBTJ_BCn_EncodeImageDXTn(
-				resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+//			BGBBTJ_BCn_EncodeImageDXTn(
+//				resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+			BGBBTJ_BCn_EncodeImagePxfBCn(
+				resampbuf_cmp, fmt, resampbuf, tw, th, BCN_PFB_RGBA);
 
 			sz=(tw/4)*(th/4)*blksz;
 			if(sz<blksz)sz=blksz;
-			pdglCompressedTexImage2D(GL_TEXTURE_2D, tl, 
+			frglCompressedTexImage2D(GL_TEXTURE_2D, tl, 
 				cmp, tw, th, 0, sz, resampbuf_cmp);
 #endif
 		}
@@ -1386,12 +1503,14 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 			tl++;
 
 #if 1
-			BGBBTJ_BCn_EncodeImageDXTn(
-				resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+//			BGBBTJ_BCn_EncodeImageDXTn(
+//				resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+			BGBBTJ_BCn_EncodeImagePxfBCn(
+				resampbuf_cmp, fmt, resampbuf, tw, th, BCN_PFB_RGBA);
 
 			sz=(tw/4)*(th/4)*blksz;
 			if(sz<blksz)sz=blksz;
-			pdglCompressedTexImage2D(GL_TEXTURE_2D, tl, 
+			frglCompressedTexImage2D(GL_TEXTURE_2D, tl, 
 				cmp, tw, th, 0, sz, resampbuf_cmp);
 #endif
 		}
@@ -1410,7 +1529,7 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 }
 #endif
 
-#if 1
+#if 0
 BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 {
 	byte *resampbuf;
@@ -1654,7 +1773,7 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 	return(num);
 }
 
-#if 0
+#if 1
 BTEIFGL_API int Tex_LoadTexture3A(int *wp, int *hp, byte *buf,
 	int num, int clrs)
 { return(Tex_LoadTexture3B(wp, hp, buf, num, clrs, 0)); }
@@ -1667,38 +1786,45 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 	int cmp, blksz, sz;
 	int min, mag;
 
-	if((clrs==BGBBTJ_JPG_RGB) || (clrs==BGBBTJ_JPG_RGBA))
+	if((clrs==BTIC1H_PXF_RGB) || (clrs==BTIC1H_PXF_RGBA))
 	{
 		return(Tex_LoadTexture3(wp, hp, buf, num));
+	}
+
+	if(	(clrs==BTIC1H_PXF_RGB8E8) ||
+		(clrs==BTIC1H_PXF_RGB9E5) ||
+		(clrs==BTIC1H_PXF_RG11B10))
+	{
+		return(Tex_LoadTexture3C(wp, hp, buf, num, clrs, mip));
 	}
 
 //	tex_lock();
 
 	switch(clrs)
 	{
-	case BGBBTJ_JPG_BC1:
-	case BGBBTJ_JPG_BC1F:
+	case BTIC1H_PXF_BC1:
+	case BTIC1H_PXF_BC1F:
 		cmp=GL_COMPRESSED_RGB_S3TC_DXT1_EXT; blksz=8;
 		break;
-	case BGBBTJ_JPG_BC2:
+	case BTIC1H_PXF_BC2:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC3:
-	case BGBBTJ_JPG_BC3F:
+	case BTIC1H_PXF_BC3:
+	case BTIC1H_PXF_BC3F:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
-	case BGBBTJ_JPG_BC3_UVAY:
+	case BTIC1H_PXF_BC3_UVAY:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC6:
+	case BTIC1H_PXF_BC6:
 		cmp=GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC6_UF16:
+	case BTIC1H_PXF_BC6_UF16:
 		cmp=GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC7:
+	case BTIC1H_PXF_BC7:
 		cmp=GL_COMPRESSED_RGBA_BPTC_UNORM; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC7_SRGB:
+	case BTIC1H_PXF_BC7_SRGB:
 		cmp=GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; blksz=16;
 		break;
 	default:
@@ -1708,7 +1834,8 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 
 	tw=*wp;
 	th=*hp;
-	if((tw&(tw-1)) || (th&(th-1)) || (tw!=th))
+//	if((tw&(tw-1)) || (th&(th-1)) || (tw!=th))
+	if((tw&(tw-1)) || (th&(th-1)))
 		return(num);
 
 	if(num<=0)
@@ -1725,7 +1852,7 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 	glBindTexture(GL_TEXTURE_2D, num);
 
 	sz=((tw+3)/4)*((th+3)/4)*blksz;
-	pdglCompressedTexImage2D(GL_TEXTURE_2D, 0, 
+	frglCompressedTexImage2D(GL_TEXTURE_2D, 0, 
 		cmp, tw, th, 0, sz, buf);
 
 	if(mip)
@@ -1739,7 +1866,7 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 			th=(th+1)>>1;
 			sz=((tw+3)/4)*((th+3)/4)*blksz;
 			if(!sz)sz=blksz;
-			pdglCompressedTexImage2D(GL_TEXTURE_2D, tl, 
+			frglCompressedTexImage2D(GL_TEXTURE_2D, tl, 
 				cmp, tw, th, 0, sz, cs);
 			tl++;
 			cs=cs+sz;
@@ -1838,6 +1965,136 @@ BTEIFGL_API int Tex_LoadTexture3(int *wp, int *hp, byte *buf, int num)
 	free(resampbuf);
 //	tex_unlock();
 	
+	return(num);
+}
+
+BTEIFGL_API int Tex_LoadTexture3C(
+	int *wp, int *hp, byte *buf,
+	int num, int clrs, int mip)
+{
+	byte *resampbuf;
+	int tw, th, tl, w, h;
+	int ipfmt, pfmt, pty;
+	int min, mag;
+
+//	tex_lock();
+
+//	if(!resampbuf)resampbuf=malloc(2048*2048*4);
+
+	switch(clrs)
+	{
+	case BTIC1H_PXF_RGBA:
+	case BTIC1H_PXF_RGBX:
+		ipfmt=4; pfmt=GL_RGBA; pty=GL_UNSIGNED_BYTE; break;
+	case BTIC1H_PXF_RGB9E5:
+	case BTIC1H_PXF_RGB8E8:
+		ipfmt=GL_RGB9_E5; pfmt=GL_RGB;
+		pty=GL_UNSIGNED_INT_5_9_9_9_REV; break;
+	case BTIC1H_PXF_RG11B10:
+		ipfmt=GL_R11F_G11F_B10F; pfmt=GL_RGB;
+		pty=GL_UNSIGNED_INT_10F_11F_11F_REV; break;
+	default:
+		ipfmt=4; pfmt=GL_RGBA; pty=GL_UNSIGNED_BYTE; break;
+	}
+
+	w=*wp;
+	h=*hp;
+
+	tw=1;
+	th=1;
+	while((tw<<1)<=w)tw<<=1;
+	while((th<<1)<=h)th<<=1;
+	if(tw<w && (tw<<1)>w)tw<<=1;
+	if(th<h && (th<<1)>h)th<<=1;
+
+	if(tw>1024)tw=1024;
+	if(th>1024)th=1024;
+
+	*wp=tw;
+	*hp=th;
+
+	resampbuf=malloc(tw*th*4);
+
+	if((w!=tw) || (h!=th))
+		Tex_ResampleQuick((int *)buf, w, h, (int *)resampbuf, tw, th);
+		else memcpy(resampbuf, buf, w*h*4);
+
+	if(clrs==BTIC1H_PXF_RGB8E8)
+	{
+		Img_ConvRGB8E8ToRGB9E5(resampbuf, resampbuf, tw, th);
+		clrs=BTIC1H_PXF_RGB9E5;
+//		*rtxc=BTIC1H_PXF_RGB8E8;
+	}
+
+	if(num<=0)num=Tex_AllocTexnum();
+
+	tex_width[num]=w;
+	tex_height[num]=h;
+
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, num);
+
+	if(!mip)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, ipfmt, tw, th, 0,
+			pfmt, pty, resampbuf);
+		Tex_GetModeinfo(&min, &mag);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+	}else if(mip==2)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, ipfmt, tw, th, 0,
+			pfmt, pty, resampbuf);
+
+		tl=0;
+		while(tw>1 && th>1)
+		{
+//			Tex_HalfSample2(resampbuf, tw, th);
+//			Tex_HalfSampleQ32(resampbuf, tw, th);
+			Tex_HalfSampleClrs(resampbuf, tw, th, clrs);
+			tw>>=1;	th>>=1;	tl++;
+			glTexImage2D(GL_TEXTURE_2D, tl, ipfmt, tw, th, 0,
+				pfmt, pty, resampbuf);
+		}
+
+		min=GL_NEAREST_MIPMAP_LINEAR;
+		mag=GL_NEAREST;
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+	}else
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, ipfmt, tw, th, 0,
+			pfmt, pty, resampbuf);
+
+//		printf("tex: mipmap\n");
+		tl=0;
+		while(tw>1 && th>1)
+		{
+//			Tex_HalfSampleQ32(resampbuf, tw, th);
+			Tex_HalfSampleClrs(resampbuf, tw, th, clrs);
+			tw>>=1;	th>>=1;	tl++;
+			glTexImage2D(GL_TEXTURE_2D, tl, ipfmt, tw, th, 0,
+				pfmt, pty, resampbuf);
+		}
+
+		Tex_GetModeinfo(&min, &mag);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+	}
+
+	free(resampbuf);
+//	tex_unlock();
+
 	return(num);
 }
 
@@ -2193,7 +2450,8 @@ unsigned int numcolors;
 unsigned int numimportant;
 }BMPHeader;
 
-BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h)
+#if 0
+BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h, int *rtxc)
 {
 	BMPHeader head;
 	int i, pixlin;
@@ -2274,6 +2532,61 @@ BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h)
 
 	return(buf);
 }
+#endif
+
+#if 1
+BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h, int *rtxc)
+{
+	byte *buf, *obuf;
+	int imgt, clrt, clrs;
+	int i, xs, ys, sz, xs1, ys1, ispot;
+	
+	vfseek(fd, 0, 2);
+	sz=vftell(fd);
+	vfseek(fd, 0, 0);
+	
+	buf=malloc(sz+16);
+	vfread(buf, 1, sz, fd);
+
+//	i=BTIC4B_DecodeImgBmpBuffer(buf, sz, NULL,
+//		&xs, &ys, BTIC4B_CLRS_RGBA);
+	i=BTIC4B_DecodeImgBmpBuffer2(buf, sz, NULL,
+		&xs, &ys, &imgt, &clrt);
+	if(i<0)
+	{
+		free(buf);
+		return(NULL);
+	}
+
+	clrs=BTIC4B_CLRS_RGBA;
+	if(rtxc && ((imgt==BTIC4B_IMGT_HDR16) || (imgt==BTIC4B_IMGT_HDR12)))
+	{
+		clrs=BTIC4B_CLRS_RGB11F;
+		if(rtxc)*rtxc=BTIC1H_PXF_RG11B10;
+	}
+
+	ispot=!(xs&(xs-1)) && !(ys&(ys-1));
+	if(rtxc && ispot && ((imgt==BTIC4B_IMGT_LDR8) ||
+		(imgt==BTIC4B_IMGT_LDR8A)))
+	{
+		clrs=BTIC4B_CLRS_BC7MIP;
+		*rtxc=BTIC1H_PXF_BC7;
+	}
+
+	xs1=(xs+7)&(~7);
+	ys1=(ys+7)&(~7);
+
+	obuf=frgl_malloc(xs1*ys1*4);
+
+	BTIC4B_DecodeImgBmpBuffer(buf, sz, obuf,
+		&xs, &ys, clrs);
+
+//	obuf=BGBBTJ_BufPNG_Decode(buf, sz, w, h);
+	*w=xs; *h=ys;
+	free(buf);
+	return(obuf);
+}
+#endif
 
 //flatten the bitmap
 BTEIFGL_API byte *Img_FlattenDIB(byte *img, int w, int h)
@@ -2362,13 +2675,14 @@ BTEIFGL_API byte *Img_UnFlattenDIB(byte *img, int *w, int *h)
 	return(buf);
 }
 
-#if 0
+#if 1
 //flatten the bitmap
 BTEIFGL_API byte *Img_FlattenBPX(byte *img, int w, int h, int clrs, int *rsz)
 {
-	BMPHeader *ihead;
+//	BMPHeader *ihead;
+	BMPInfoHeader *ihead;
 	byte *buf, *t;
-	int i, n;
+	int i, n, dofs, fsize;
 	static int init=0;
 
 	if(!init)
@@ -2379,12 +2693,22 @@ BTEIFGL_API byte *Img_FlattenBPX(byte *img, int w, int h, int clrs, int *rsz)
 
 	n=((w+3)/4)*((h+3)/4);
 	buf=frgl_talloc("img_bmp_t", (n*2*16)+sizeof(BMPHeader));
-	ihead=(BMPHeader *)buf;
-	t=buf+sizeof(BMPHeader);
+//	ihead=(BMPHeader *)buf;
+//	t=buf+sizeof(BMPHeader);
 
-	ihead->tag=0x4D42;
-	ihead->dataoffs=(sizeof(BMPHeader)+15)&(~15);
-	ihead->filesize=(n*2*16)+ihead->dataoffs;
+	t=buf+10+sizeof(BMPInfoHeader);
+	ihead=(BMPInfoHeader *)(buf+14);
+
+	dofs=(sizeof(BMPHeader)+15)&(~15);
+	fsize=(n*2*16)+dofs;
+	*(u16 *)(buf+ 0)=0x4D42;
+	*(u32 *)(buf+ 2)=fsize;
+	*(u32 *)(buf+ 6)=0;
+	*(u32 *)(buf+10)=dofs;
+
+//	ihead->tag=0x4D42;
+//	ihead->dataoffs=(sizeof(BMPHeader)+15)&(~15);
+//	ihead->filesize=(n*2*16)+ihead->dataoffs;
 
 	ihead->infosize=sizeof(BMPInfoHeader);
 	ihead->width=w;
@@ -2398,30 +2722,32 @@ BTEIFGL_API byte *Img_FlattenBPX(byte *img, int w, int h, int clrs, int *rsz)
 	ihead->numcolors=0;
 	ihead->numimportant=0;
 
-	if(clrs==BGBBTJ_JPG_BC7)
+	if(clrs==BTIC1H_PXF_BC7)
 	{
 		ihead->compression=RIFF_MAKETAG('B', 'C', '7', ' ');
-		ihead->filesize=(n*2*16)+ihead->dataoffs;
-		memcpy(buf+ihead->dataoffs, img, (n*2*16));
+		fsize=(n*2*16)+dofs;
+		memcpy(buf+dofs, img, (n*2*16));
 	}
 
-	if((clrs==BGBBTJ_JPG_BC3) || (clrs==BGBBTJ_JPG_BC3F))
+	if((clrs==BTIC1H_PXF_BC3) || (clrs==BTIC1H_PXF_BC3F))
 	{
 		ihead->compression=RIFF_MAKETAG('D', 'X', 'T', '5');
-		ihead->filesize=(n*2*16)+ihead->dataoffs;
-		memcpy(buf+ihead->dataoffs, img, (n*2*16));
+		fsize=(n*2*16)+dofs;
+		memcpy(buf+dofs, img, (n*2*16));
 	}
 
-	if((clrs==BGBBTJ_JPG_BC1) ||
-		(clrs==BGBBTJ_JPG_BC1F) ||
-		(clrs==BGBBTJ_JPG_BC1A))
+	if((clrs==BTIC1H_PXF_BC1) ||
+		(clrs==BTIC1H_PXF_BC1F) ||
+		(clrs==BTIC1H_PXF_BC1A))
 	{
 		ihead->compression=RIFF_MAKETAG('D', 'X', 'T', '1');
-		ihead->filesize=(n*2*8)+ihead->dataoffs;
-		memcpy(buf+ihead->dataoffs, img, (n*2*8));
+		fsize=(n*2*8)+dofs;
+		memcpy(buf+dofs, img, (n*2*8));
 	}
 
-	if(rsz)*rsz=ihead->filesize;
+	*(u32 *)(buf+ 2)=fsize;
+
+	if(rsz)*rsz=fsize;
 	return(buf);
 }
 
@@ -2437,8 +2763,8 @@ BTEIFGL_API byte *Img_LoadBPX(VFILE *fd, int *w, int *h, int *rtxc)
 	for(i=0; i<2; i++)
 		head.tag|=vfgetc(fd)<<(i*8);
 
-	for(i=0; i<2; i++)
-		vfgetc(fd);
+//	for(i=0; i<2; i++)
+//		vfgetc(fd);
 
 	for(i=0; i<4; i++)
 		head.filesize|=vfgetc(fd)<<(i*8);
@@ -2489,19 +2815,19 @@ BTEIFGL_API byte *Img_LoadBPX(VFILE *fd, int *w, int *h, int *rtxc)
 
 	if(head.compression==RIFF_MAKETAG('B', 'C', '7', ' '))
 	{
-		txc=BGBBTJ_JPG_BC7;
+		txc=BTIC1H_PXF_BC7;
 		bsz=16;
 	}
 
 	if(head.compression==RIFF_MAKETAG('D', 'X', 'T', '5'))
 	{
-		txc=BGBBTJ_JPG_BC3;
+		txc=BTIC1H_PXF_BC3;
 		bsz=16;
 	}
 
 	if(head.compression==RIFF_MAKETAG('D', 'X', 'T', '1'))
 	{
-		txc=BGBBTJ_JPG_BC1A;
+		txc=BTIC1H_PXF_BC1A;
 		bsz=8;
 	}
 
@@ -2515,21 +2841,6 @@ BTEIFGL_API byte *Img_LoadBPX(VFILE *fd, int *w, int *h, int *rtxc)
 
 	vfseek(fd, head.dataoffs, 0);
 	vfread(buf, bsz, bcnt, fd);
-
-#if 0
-	for(i=0; i<pixlin; i++)
-	{
-		b=vfgetc(fd);
-		g=vfgetc(fd);
-		r=vfgetc(fd);
-		a=255;
-
-		buf[(i*4)+0]=r;
-		buf[(i*4)+1]=g;
-		buf[(i*4)+2]=b;
-		buf[(i*4)+3]=a;
-	}
-#endif
 
 	if(rtxc)*rtxc=txc;
 	return(buf);
@@ -2632,45 +2943,53 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 	if(tex_use_colorfmt<0)
 	{
 //		BGBBTJ_BCn_EncodeImageDXT5(resampbuf_cmp, resampbuf, tw, th, 4);
-		BGBBTJ_BCn_EncodeImageAutoDXTn(
-			resampbuf_cmp, resampbuf, tw, th, 4, &fmt);
+//		BGBBTJ_BCn_EncodeImageAutoDXTn(
+//			resampbuf_cmp, resampbuf, tw, th, 4, &fmt);
+
+		fmt=BTIC1H_PXF_BC7;
+		BGBBTJ_BCn_EncodeImagePxfBCn(
+			resampbuf_cmp, fmt, resampbuf, tw, th, BCN_PFB_RGBA);
 		resamp_colorfmt=fmt;
 	}else
 	{
 		fmt=tex_use_colorfmt;
 		resamp_colorfmt=fmt;
 
-		BGBBTJ_BCn_EncodeImageDXTn(
-			resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+//		BGBBTJ_BCn_EncodeImageDXTn(
+//			resampbuf_cmp, resampbuf, tw, th, 4, fmt);
+
+		BGBBTJ_BCn_EncodeImagePxfBCn(
+			resampbuf_cmp, fmt, resampbuf, tw, th, BCN_PFB_RGBA);
+
 		ct=resampbuf_cmp+((tw+3)/4)*((th+3)/4)*16;
 	}
 
 	switch(fmt)
 	{
-	case BGBBTJ_JPG_BC1:
-	case BGBBTJ_JPG_BC1F:
+	case BTIC1H_PXF_BC1:
+	case BTIC1H_PXF_BC1F:
 		cmp=GL_COMPRESSED_RGB_S3TC_DXT1_EXT; blksz=8;
 		break;
-	case BGBBTJ_JPG_BC2:
+	case BTIC1H_PXF_BC2:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC3:
-	case BGBBTJ_JPG_BC3F:
+	case BTIC1H_PXF_BC3:
+	case BTIC1H_PXF_BC3F:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC3_UVAY:
+	case BTIC1H_PXF_BC3_UVAY:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC6H_SF16:
+	case BTIC1H_PXF_BC6:
 		cmp=GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC6H_UF16:
+	case BTIC1H_PXF_BC6_UF16:
 		cmp=GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC7:
+	case BTIC1H_PXF_BC7:
 		cmp=GL_COMPRESSED_RGBA_BPTC_UNORM; blksz=16;
 		break;
-	case BGBBTJ_JPG_BC7_SRGB:
+	case BTIC1H_PXF_BC7_SRGB:
 		cmp=GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; blksz=16;
 		break;
 	default:
@@ -2690,8 +3009,10 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 			Tex_HalfSample(resampbuf, tw, th);
 			tw=(tw+1)>>1; th=(th+1)>>1;
 			tl++;
-			BGBBTJ_BCn_EncodeImageDXTn(
-				ct, resampbuf, tw, th, 4, fmt);
+//			BGBBTJ_BCn_EncodeImageDXTn(
+//				ct, resampbuf, tw, th, 4, fmt);
+			BGBBTJ_BCn_EncodeImagePxfBCn(
+				ct, fmt, resampbuf, tw, th, BCN_PFB_RGBA);
 			sz=((tw+3)/4)*((th+3)/4)*blksz;
 			if(sz<blksz)sz=blksz;
 			ct+=sz;
@@ -2702,7 +3023,7 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 	vfwrite(obuf, 1, sz, ofd);
 	vfclose(ofd);
 
-	gcfree(obuf);
+	frgl_free(obuf);
 
 	free(resampbuf);
 	free(resampbuf_cmp);
@@ -2714,10 +3035,32 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 
 #endif
 
-BTEIFGL_API byte *Img_LoadPNG(VFILE *fd, int *w, int *h)
+BTEIFGL_API void Img_ConvRGB8E8ToRGB9E5(
+	byte *ibuf, byte *obuf, int xs, int ys)
+{
+	int cr, cg, cb, ce;
+	u32 px, px1;
+	int i, n;
+	
+	n=xs*ys;
+	for(i=0; i<n; i++)
+	{
+		px=((u32 *)ibuf)[i];
+		cr=(px    )&255; cg=(px>> 8)&255;
+		cb=(px>>16)&255; ce=(px>>24)&255;
+		ce=ce-(127-15);
+		if(ce<0)ce=0;
+		if(ce>30)ce=30;
+		px1=(cr<<1)|(cg<<10)|(cb<<19)|(ce<<27);
+		((u32 *)obuf)[i]=px1;
+	}
+}
+
+BTEIFGL_API byte *Img_LoadPNG(VFILE *fd, int *w, int *h, int *rtxc)
 {
 	byte *buf, *obuf;
-	int sz;
+	int sz, n;
+	int i;
 	
 	vfseek(fd, 0, 2);
 	sz=vftell(fd);
@@ -2727,16 +3070,25 @@ BTEIFGL_API byte *Img_LoadPNG(VFILE *fd, int *w, int *h)
 	vfread(buf, 1, sz, fd);
 
 	obuf=BGBBTJ_BufPNG_Decode(buf, sz, w, h);
+
+	if(obuf && rtxc && BTIC4B_Img_CheckRGBeP(obuf, *w, *h))
+	{
+//		Img_ConvRGB8E8ToRGB9E5(obuf, obuf, *w, *h);
+//		*rtxc=BTIC1H_PXF_RGB9E5;
+		*rtxc=BTIC1H_PXF_RGB8E8;
+	}
+
 	free(buf);
 	return(obuf);
 }
 
-BTEIFGL_API byte *Img_LoadJPG(VFILE *fd, int *w, int *h)
+BTEIFGL_API byte *Img_LoadJPG(VFILE *fd, int *w, int *h, int *rtxc)
 {
 	PDJPG_Context *ctx;
-	byte *buf, *obuf;
-	int xs, ys;
-	int sz;
+	byte *buf, *obuf, *csl;
+	int xs, ys, isrgbe;
+	int sz, n;
+	int i, j, k;
 	
 	vfseek(fd, 0, 2);
 	sz=vftell(fd);
@@ -2744,6 +3096,9 @@ BTEIFGL_API byte *Img_LoadJPG(VFILE *fd, int *w, int *h)
 	
 	buf=malloc(sz+16);
 	vfread(buf, 1, sz, fd);
+
+	csl=PDJPG_DecodeScanForComponentLayer(buf, sz, "AlExp");
+	isrgbe=csl?1:0;
 
 //	ctx=PDJPG_AllocPoolContext();
 	ctx=PDJPG_AllocContext();
@@ -2755,6 +3110,41 @@ BTEIFGL_API byte *Img_LoadJPG(VFILE *fd, int *w, int *h)
 	free(buf);
 	if(w)*w=xs;
 	if(h)*h=ys;
+	
+	if(isrgbe && rtxc)
+	{
+//		Img_ConvRGB8E8ToRGB9E5(obuf, obuf, *w, *h);
+//		*rtxc=BTIC1H_PXF_RGB9E5;
+		*rtxc=BTIC1H_PXF_RGB8E8;
+	}
+	
+	return(obuf);
+}
+
+BTEIFGL_API byte *Img_LoadHDR(VFILE *fd, int *w, int *h, int *rtxc)
+{
+	byte *buf, *obuf;
+	int sz, n;
+	int i;
+	
+	vfseek(fd, 0, 2);
+	sz=vftell(fd);
+	vfseek(fd, 0, 0);
+	
+	buf=malloc(sz+16);
+	vfread(buf, 1, sz, fd);
+
+	obuf=BTIC4B_Img_DecodeHDR_RGBE(buf, sz, w, h);
+
+//	if(obuf && rtxc && BTIC4B_Img_CheckRGBeP(obuf, *w, *h))
+	if(obuf && rtxc)
+	{
+//		Img_ConvRGB8E8ToRGB9E5(obuf, obuf, *w, *h);
+//		*rtxc=BTIC1H_PXF_RGB9E5;
+		*rtxc=BTIC1H_PXF_RGB8E8;
+	}
+
+	free(buf);
 	return(obuf);
 }
 
@@ -2915,6 +3305,10 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 //		i=Tex_LoadFile(t, w, h);
 		if(i>=0) { tex_hash2[hi]=i; return(i); }
 
+		sprintf(tb1, "%s.hdr", name);
+		i=Tex_LoadFile(tb1, w, h);
+		if(i>=0) { tex_hash2[hi]=i; return(i); }
+
 		return(-1);
 	}
 
@@ -2978,7 +3372,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	if(!stricmp(t, "bmp"))
 	{
 //		printf("load bmp %s\n", name);
-		buf=Img_LoadBMP(fd, w, h);
+		buf=Img_LoadBMP(fd, w, h, &txc);
 		vfclose(fd);
 		fd=NULL;
 	}
@@ -2998,7 +3392,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	{
 //		printf("load png %s\n", name);
 //		buf=PDPNG_LoadN(fd, w, h, name);
-		buf=Img_LoadPNG(fd, w, h);
+		buf=Img_LoadPNG(fd, w, h, &txc);
 		vfclose(fd);
 		fd=NULL;
 	}
@@ -3009,7 +3403,16 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	{
 //		printf("load jpeg %s\n", name);
 //		buf=PDJPG_Load(fd, w, h);
-		buf=Img_LoadJPG(fd, w, h);
+		buf=Img_LoadJPG(fd, w, h, &txc);
+		vfclose(fd);
+		fd=NULL;
+	}
+#endif
+
+#if 1
+	if(!stricmp(t, "hdr"))
+	{
+		buf=Img_LoadHDR(fd, w, h, &txc);
 		vfclose(fd);
 		fd=NULL;
 	}
@@ -3034,8 +3437,8 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 
 	if(txc)
 	{
-		n=Tex_LoadTexture(*w, *h, buf, 1);
-//		n=Tex_LoadTexture3B(w, h, buf, 0, txc, 1);
+//		n=Tex_LoadTexture(*w, *h, buf, 1);
+		n=Tex_LoadTexture3B(w, h, buf, 0, txc, 1);
 //		tex_buffer[n]=buf;
 		tex_buffer[n]=NULL;
 		tex_width[n]=*w;
@@ -3100,7 +3503,7 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 	if(!stricmp(t, "bmp"))
 	{
 //		printf("load bmp raw %s\n", name);
-		buf=Img_LoadBMP(fd, w, h);
+		buf=Img_LoadBMP(fd, w, h, NULL);
 		vfclose(fd);
 	}
 
@@ -3118,7 +3521,7 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 	{
 //		printf("load png %s\n", name);
 //		buf=PDPNG_Load(fd, w, h);
-		buf=Img_LoadPNG(fd, w, h);
+		buf=Img_LoadPNG(fd, w, h, NULL);
 		vfclose(fd);
 	}
 #endif
@@ -3128,7 +3531,15 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 	{
 //		printf("load jpeg %s\n", name);
 //		buf=PDJPG_Load(fd, w, h);
-		buf=Img_LoadJPG(fd, w, h);
+		buf=Img_LoadJPG(fd, w, h, NULL);
+		vfclose(fd);
+	}
+#endif
+
+#if 1
+	if(!stricmp(t, "hdr"))
+	{
+		buf=Img_LoadHDR(fd, w, h, NULL);
 		vfclose(fd);
 	}
 #endif
@@ -3158,6 +3569,10 @@ BTEIFGL_API byte *Tex_LoadFile2Raw(char *name, int *w, int *h)
 	if(buf)return(buf);
 
 	sprintf(tb, "%s.jpg", name);
+	buf=Tex_LoadFileRaw(tb, w, h);
+	if(buf)return(buf);
+
+	sprintf(tb, "%s.hdr", name);
 	buf=Tex_LoadFileRaw(tb, w, h);
 	if(buf)return(buf);
 	
@@ -3218,7 +3633,8 @@ BTEIFGL_API byte *Tex_LoadFileExtBaseSuffixRaw(
 BTEIFGL_API byte *Tex_LoadFileJpegAlphaRaw(char *name, int *w, int *h)
 	{ return(Tex_LoadFileExtAlphaRaw(name, "jpg", w, h)); }
 
-BTEIFGL_API int Tex_LoadFileExtAlpha(char *name, char *ext, int *w, int *h)
+BTEIFGL_API int Tex_LoadFileExtAlpha(
+	char *name, char *ext, int *w, int *h)
 {
 	byte *buf;
 	int i, n, xs, ys;
@@ -3359,7 +3775,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 	if(!stricmp(t, "bmp"))
 	{
 //		printf("load bmp raw %s\n", name);
-		buf=Img_LoadBMP(fd, w, h);
+		buf=Img_LoadBMP(fd, w, h, NULL);
 		vfclose(fd);
 	}
 #endif

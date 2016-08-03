@@ -439,6 +439,22 @@ BTEIFGL_API char *BGBDT_TagStr_GetChars(dtVal val)
 	return(BGBDT_TagStr_GetUtf8(val));
 }
 
+BTEIFGL_API int BGBDT_TagStr_SymbolIsP(dtVal val, char *name)
+{
+	char *str;
+	int tag;
+
+	tag=dtvGetPtrTagF(val);
+	if((tag==objty_tagsym))
+	{
+		str=dtvUnwrapPtrF(val);
+		if(!strcmp(str, name))
+			return(1);
+		return(0);
+	}
+	return(0);
+}
+
 
 BTEIFGL_API dtVal BGBDT_TagStr_StringAdjustOffset(dtVal val, int idx)
 {

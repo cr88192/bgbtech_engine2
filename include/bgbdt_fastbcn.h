@@ -163,6 +163,10 @@ typedef signed long long s64;
 #define	BTIC1H_PXF_RGBX_F16		62	//RGBx(32)
 #define	BTIC1H_PXF_BGRX_F16		63	//BGRx(32)
 
+#define	BTIC1H_PXF_RGB8E8		64	//RGBE
+#define	BTIC1H_PXF_RGB9E5		65	//RGBE
+#define	BTIC1H_PXF_RG11B10		66	//R11G11B10
+
 // #define	BTIC1H_QFL_IFRAME			1048576
 // #define	BTIC1H_QFL_PFRAME			2097152
 
@@ -569,6 +573,7 @@ byte *yb, *ub, *vb;
 s16 *ydb, *udb, *vdb;
 int jpg_qtfp[4][64];
 byte jpg_mono;
+int qfl;
 
 int dcs[256];
 int acs[256];

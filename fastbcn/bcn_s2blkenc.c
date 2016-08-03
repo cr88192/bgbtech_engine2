@@ -515,3 +515,27 @@ void BGBBTJ_BCn_EncodeImageBCn(byte *block, int bcf,
 	BGBBTJ_BCn_EncodeImageBCnI(block, bcf,
 		rgba, xs, ys, 4-((pfb>>4)&3), pfb);
 }
+
+int BGBBTJ_BCn_MapPxfToBcf(int pxf)
+{
+	int r;
+	switch(pxf)
+	{
+	case BTIC1H_PXF_BC1: r=BCN_BCF_BC1; break;
+	case BTIC1H_PXF_BC2: r=BCN_BCF_BC2; break;
+	case BTIC1H_PXF_BC3: r=BCN_BCF_BC3; break;
+	case BTIC1H_PXF_BC4: r=BCN_BCF_BC4; break;
+	case BTIC1H_PXF_BC5: r=BCN_BCF_BC5; break;
+	case BTIC1H_PXF_BC6: r=BCN_BCF_BC6; break;
+	case BTIC1H_PXF_BC7: r=BCN_BCF_BC7; break;
+	}
+	return(r);
+}
+
+void BGBBTJ_BCn_EncodeImagePxfBCn(byte *block, int pxf,
+	byte *rgba, int xs, int ys, int pfb)
+{
+	BGBBTJ_BCn_EncodeImageBCnI(block,
+		BGBBTJ_BCn_MapPxfToBcf(pxf),
+		rgba, xs, ys, 4-((pfb>>4)&3), pfb);
+}

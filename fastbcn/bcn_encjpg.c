@@ -241,8 +241,11 @@ void PDJPG_TransDCT(byte *iblk, short *oblk)
 	PDJPG_TransDCT_Vert(s+6, t+6);
 	PDJPG_TransDCT_Vert(s+7, t+7);
 
+//	for(i=0; i<64; i++)
+//		oblk[i]=t[i]>>16;
+
 	for(i=0; i<64; i++)
-		oblk[i]=t[i]>>16;
+		oblk[i]=(t[i]+32767)>>16;
 }
 
 #endif
@@ -268,6 +271,20 @@ void PDJHUFF_QuantBlock(
 	int q0, q1, q2, q, lq, qb;
 	int l0, l1;
 	int i, j;
+	
+	if((ctx->qfl&127)>=95)
+	{
+		if((ctx->qfl&127)>=100)
+		{
+			for(i=0; i<64; i++)
+				obuf[i]=ibuf[i];
+			return;
+		}
+
+		for(i=0; i<64; i++)
+			obuf[i]=(ibuf[i]*ctx->jpg_qtfp[qid][i]+2047)>>12;
+		return;
+	}
 	
 //	for(i=0; i<64; i++)
 //		obuf[i]=ibuf[i]/ctx->jpg_qt[qid][i];
@@ -307,18 +324,34 @@ void PDJHUFF_QuantBlock(
 				q=0;
 		}else
 		{
+//			if(i>0)
+//				qb=0;
+
 			if(i>0)
+				qb=2;
+			if(i>=16)
+				qb=3;
+			if(i>=32)
 				qb=0;
+
 		}
 		
 		lq=q;
 		obuf[i]=q;
 	}
 
-	if(qb)
+	if(qb==1)
 //	if(0)
 	{
 		for(i=1; i<64; i++)
+			{ obuf[i]=0; }
+	}else if(qb==2)
+	{
+		for(i=16; i<64; i++)
+			{ obuf[i]=0; }
+	}else if(qb==3)
+	{
+		for(i=32; i<64; i++)
 			{ obuf[i]=0; }
 	}
 #endif
@@ -1016,6 +1049,7 @@ int PDJPG_EncodeCtx(
 //	ctx->jpg_tabcacheframe=0;
 	ctx->xs=xs;
 	ctx->ys=ys;
+	ctx->qfl=qf;
 
 	if(pf==BTIC1H_PXF_YYYA)
 		ctx->jpg_mono=1;
@@ -1084,9 +1118,17 @@ int PDJPG_EncodeCtx(
 		cg=ibuf[(k*xs+j)*4+1];
 		cb=ibuf[(k*xs+j)*4+2];
 
-		cy=0.299*cr	+0.587*cg	+0.114*cb;
-		cu=-0.1687*cr	-0.3313*cg	+0.5*cb 	+128;
-		cv=0.5*cr	-0.4187*cg	-0.0813*cb	+128;
+		if(ctx->jpg_mono)
+		{
+			cy=(2*cg+cb+cr)>>2;
+//			cy=cg;
+			cu=128; cv=128;
+		}else
+		{
+			cy=0.299*cr	+0.587*cg	+0.114*cb;
+			cu=-0.1687*cr	-0.3313*cg	+0.5*cb 	+128;
+			cv=0.5*cr	-0.4187*cg	-0.0813*cb	+128;
+		}
 
 //		cu=128; cv=128;
 
@@ -1123,12 +1165,16 @@ int PDJPG_EncodeCtx(
 	PDJPG_FilterImageDCT(ctx->vb, ctx->vdb, xs3, ys3);
 
 	j=(xs2/8)*(ys2/8);
-	PDJPG_MakeQuantTabInputY(ctx->ydb, j, ctx->jpg_qt[0], qf/100.0);
+	PDJPG_MakeQuantTabInputY(ctx->ydb, j,
+		ctx->jpg_qt[0], (qf&127)/100.0);
 
 	j=(xs3/8)*(ys3/8);
-	PDJPG_MakeQuantTabInputUV(ctx->udb, j, ctx->jpg_qt[1], qf/100.0);
-	PDJPG_MakeQuantTabInputUV(ctx->vdb, j, ctx->jpg_qt[2], qf/100.0);
-	for(i=0; i<64; i++)ctx->jpg_qt[1][i]=(ctx->jpg_qt[1][i]+ctx->jpg_qt[2][i])/2;
+	PDJPG_MakeQuantTabInputUV(ctx->udb, j,
+		ctx->jpg_qt[1], (qf&127)/100.0);
+	PDJPG_MakeQuantTabInputUV(ctx->vdb, j,
+		ctx->jpg_qt[2], (qf&127)/100.0);
+	for(i=0; i<64; i++)
+		ctx->jpg_qt[1][i]=(ctx->jpg_qt[1][i]+ctx->jpg_qt[2][i])/2;
 
 	PDJPG_SetupQuantTabDivFP(ctx, 0);
 	PDJPG_SetupQuantTabDivFP(ctx, 1);
@@ -2101,36 +2147,75 @@ BTEIFGL_API int PDJPG_EncodeRgbaCtx(
 	PDJPG_Context *ctx,
 	byte *rgba, byte *obuf, int xs, int ys, int qf)
 {
+	return(PDJPG_EncodeClrsCtx(ctx, rgba,
+		obuf, xs, ys, qf, BTIC1H_PXF_RGBA));
+}
+
+BTEIFGL_API int PDJPG_EncodeClrsCtx(
+	PDJPG_Context *ctx,
+	byte *rgba, byte *obuf, int xs, int ys, int qf, int pf)
+{
 	byte *tbuf;
 	byte *ct;
-	int i, j, k, n;
+	int i, j, k, n, pf2;
 
 	if(!rgba)return(-1);
 
 	n=xs*ys;
 	tbuf=malloc(xs*ys*4);
 
+	pf2=pf;
+	if(pf==BTIC1H_PXF_RGB8E8)
+		pf2=BTIC1H_PXF_RGBA;
+
 	ct=obuf;
-	i=PDJPG_EncodeCtx(ctx, rgba, ct, xs, ys, qf, 0);
+	i=PDJPG_EncodeCtx(ctx, rgba, ct, xs, ys, qf, pf2);
 	if(i<0) { free(tbuf); return(i); }
 	ct+=i;
 
-	k=0;
-	for(i=0; i<n; i++)
+	if((pf==BTIC1H_PXF_RGBA) ||
+		(pf==BTIC1H_PXF_BGRA))
 	{
-		j=rgba[i*4+3];
-		if(j!=255)k=1;
-		tbuf[i*4+0]=j;
-		tbuf[i*4+1]=j;
-		tbuf[i*4+2]=j;
-		tbuf[i*4+3]=255;
+		k=0;
+		for(i=0; i<n; i++)
+		{
+			j=rgba[i*4+3];
+//			if(j!=255)k=1;
+			if(j<240)k=1;
+			tbuf[i*4+0]=j;
+			tbuf[i*4+1]=j;
+			tbuf[i*4+2]=j;
+			tbuf[i*4+3]=255;
+		}
+
+		if(k)
+		{
+			ct=PDJPG_EmitComponentLayer(ctx, ct, "Alpha");
+			i=PDJPG_EncodeLDatCtx(ctx,
+				tbuf, ct, xs, ys, qf, BTIC1H_PXF_YYYA);
+			if(i<0) { free(tbuf); return(i); }
+			ct+=i;
+		}
 	}
 
-	if(k)
+	if(pf==BTIC1H_PXF_RGB8E8)
 	{
-		ct=PDJPG_EmitComponentLayer(ctx, ct, "Alpha");
+		k=0;
+		for(i=0; i<n; i++)
+		{
+			j=rgba[i*4+3];
+			
+			j=((j-128)*8+4)+128;
+			
+			tbuf[i*4+0]=j;
+			tbuf[i*4+1]=j;
+			tbuf[i*4+2]=j;
+			tbuf[i*4+3]=255;
+		}
+
+		ct=PDJPG_EmitComponentLayer(ctx, ct, "AlExp");
 		i=PDJPG_EncodeLDatCtx(ctx,
-			tbuf, ct, xs, ys, qf, BTIC1H_PXF_YYYA);
+			tbuf, ct, xs, ys, 100, BTIC1H_PXF_YYYA);
 		if(i<0) { free(tbuf); return(i); }
 		ct+=i;
 	}
@@ -2148,6 +2233,19 @@ BTEIFGL_API int PDJPG_EncodeRgba(
 	ctx=PDJPG_AllocContext();
 	sz=PDJPG_EncodeRgbaCtx(ctx,
 		rgba, obuf, xs, ys, qf);
+	PDJPG_FreeContext(ctx);
+	return(sz);
+}
+
+BTEIFGL_API int PDJPG_EncodeClrs(
+	byte *rgba, byte *obuf, int xs, int ys, int qf, int pf)
+{
+	PDJPG_Context *ctx;
+	int sz;
+	
+	ctx=PDJPG_AllocContext();
+	sz=PDJPG_EncodeClrsCtx(ctx,
+		rgba, obuf, xs, ys, qf, pf);
 	PDJPG_FreeContext(ctx);
 	return(sz);
 }

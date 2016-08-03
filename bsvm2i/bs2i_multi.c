@@ -20,6 +20,7 @@
 #include "bs2i_opdtvar.c"
 #include "bs2i_opinit.c"
 #include "bs2i_opobj.c"
+#include "bs2i_opptr.c"
 #include "bs2i_opvars.c"
 #include "bs2i_opvec2.c"
 #include "bs2i_opvec3.c"

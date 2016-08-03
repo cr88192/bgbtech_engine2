@@ -222,6 +222,58 @@ void BSVM2_Op_LNTI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 void BSVM2_Op_LNTL(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].i=!frm->stack[op->t0].l; }
 
+void BSVM2_Op_RCPF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=1.0/frm->stack[op->t0].f; }
+void BSVM2_Op_RCPD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=1.0/frm->stack[op->t0].d; }
+
+void BSVM2_Op_SQRTF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=sqrt(frm->stack[op->t0].f); }
+void BSVM2_Op_SQRTD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=sqrt(frm->stack[op->t0].d); }
+
+void BSVM2_Op_RSQRTF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=1.0/sqrt(frm->stack[op->t0].f); }
+void BSVM2_Op_RSQRTD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=1.0/sqrt(frm->stack[op->t0].d); }
+
+
+void BSVM2_Op_SINF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=sin(frm->stack[op->t0].f); }
+void BSVM2_Op_SIND(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=sin(frm->stack[op->t0].d); }
+void BSVM2_Op_COSF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=cos(frm->stack[op->t0].f); }
+void BSVM2_Op_COSD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=cos(frm->stack[op->t0].d); }
+void BSVM2_Op_TANF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=tan(frm->stack[op->t0].f); }
+void BSVM2_Op_TAND(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=tan(frm->stack[op->t0].d); }
+void BSVM2_Op_ATANF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=atan(frm->stack[op->t0].f); }
+void BSVM2_Op_ATAND(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=atan(frm->stack[op->t0].d); }
+
+void BSVM2_Op_SQRF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=frm->stack[op->t0].f*frm->stack[op->t0].f; }
+void BSVM2_Op_SQRD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=frm->stack[op->t0].d*frm->stack[op->t0].d; }
+
+double bsvm2_ssqrt(double x)
+	{ return((x>0)?sqrt(x):(-sqrt(-x))); }
+void BSVM2_Op_SSQRTF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=bsvm2_ssqrt(frm->stack[op->t0].f); }
+void BSVM2_Op_SSQRTD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=bsvm2_ssqrt(frm->stack[op->t0].d); }
+
+double bsvm2_fabs(double x)
+	{ return((x>0)?x:(-x)); }
+void BSVM2_Op_ABSF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].f=bsvm2_fabs(frm->stack[op->t0].f); }
+void BSVM2_Op_ABSD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].d=bsvm2_fabs(frm->stack[op->t0].d); }
+
 
 void BSVM2_Op_CMPI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {

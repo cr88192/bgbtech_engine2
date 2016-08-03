@@ -26,14 +26,26 @@ void BSVM2_Op_PUSHD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 void BSVM2_Op_PUSHA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].a=DTV_NULL; }
 
+void BSVM2_Op_SWAPI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	s32 n0, n1;
+	n0=frm->stack[op->t0].i;	n1=frm->stack[op->t1].i;
+	frm->stack[op->t0].i=n1;	frm->stack[op->t1].i=n0;	}
+void BSVM2_Op_SWAPL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	s64 n0, n1;
+	n0=frm->stack[op->t0].l;	n1=frm->stack[op->t1].l;
+	frm->stack[op->t0].l=n1;	frm->stack[op->t1].l=n0;	}
+void BSVM2_Op_SWAPF(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	float n0, n1;
+	n0=frm->stack[op->t0].f;	n1=frm->stack[op->t1].f;
+	frm->stack[op->t0].f=n1;	frm->stack[op->t1].f=n0;	}
+void BSVM2_Op_SWAPD(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{	double n0, n1;
+	n0=frm->stack[op->t0].d;	n1=frm->stack[op->t1].d;
+	frm->stack[op->t0].d=n1;	frm->stack[op->t1].d=n0;	}
 void BSVM2_Op_SWAPA(BSVM2_Frame *frm, BSVM2_Opcode *op)
-{
-	dtVal n0, n1;
-	n0=frm->stack[op->t0].a;
-	n1=frm->stack[op->t1].a;
-	frm->stack[op->t0].a=n1;
-	frm->stack[op->t1].a=n0;
-}
+{	dtVal n0, n1;
+	n0=frm->stack[op->t0].a;	n1=frm->stack[op->t1].a;
+	frm->stack[op->t0].a=n1;	frm->stack[op->t1].a=n0;	}
 
 void BSVM2_Op_CVTI2L(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].l=frm->stack[op->t0].i; }

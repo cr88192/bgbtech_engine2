@@ -64,12 +64,11 @@ A raw pointer may then exist as a type of special Null-Array, which may extend o
 
 Normally, the address will need to track what type it is. Addresses in this VM will generally not be raw pointers.
 
-Logical comparison of an address values will depend on the type of objects involved. Strict comparisons will compare the bit patterns.
+Logical comparison of an address values will depend on the type of objects involved. Strict comparisons will compare the address bit patterns.
 
 Logical relative comparisions of array values will compare the relative base offset within a single array. Comparisons between different arrays are undefined. The behavior of strict relative comparisons is undefined for arrays.
 
-
-Operations on array and pointer types will be interchangable.
+Operations on array and pointer types will be (partially) interchangable.
 
 Variable References will exist as a disjoint type. In certain cases, a reference may be converted to a pointer, but pointer or array operations may not be used on references, nor reference operations on pointers or arrays.
 
@@ -78,7 +77,8 @@ Strings will be treated as immutable character arrays. Normal strings will be ei
 
 Both objects and arrays may have reference counts. If the reference count for an object becomes 0, it is freed implicitly. Objects and arrays may also be copied to implement pass-by-value semantics, however, this will be managed primarily by the language and not by the VM.
 
-The handling of reference counting will be explicit in the bytecode.
+(Old) The handling of reference counting will be explicit in the bytecode.
+(New) Reference counting is not used.
 
 Copying between arrays or objects will require both to be the same type and size.
 
@@ -88,6 +88,29 @@ Native Long will be a non-core type which will primarily effect its storage size
 In cases where an NLong is used as a long, and is 32-bit in storage, it will be implicitly sign or zero extended to long. A native long is also to be able to be coerced to an int ('native long int').
 
 Narrower types will implicitly widen to their parent core type, with the narrower type primarily effecting storage. As a result, intermediate arithmetic results may reflect the wider type.
+
+
+Operations which expect an object or array of a given type may not be given an object or array of a different type. Likewise, it is invalid to pass such an operation a 'null' or 'undefined' value. The VM's behavior in these cases is undefined.
+
+It is the responsibility of the compiler frontend to insert any relevant type-checks or null checks.
+
+A partial exception is that array types may be accessed as an array of a different type, provided the access falls within array bounds. In this case, the array will be accessed as "raw memory" of the given type.
+
+(Drop) Array index operations are to be bounds-checked by default.
+(New) Array operations are bounds-checked if the BC prefix is used.
+
+
+=== Pointers ===
+
+Pointer operations are to use the HPTR prefix.
+
+The HPTR prefix will be required for pointer operations, and is not used with arrays.
+
+HPTR may not be combined with HBC, as bounds-checks are not used with pointers.
+
+Being non-null is implied by the use of a pointer operation, if used with HTNULL, the HTNULL prefix will precede the HPTR prefix, and will behave as an null-trap.
+
+HPTR is used with LDOS/STOS if the type is a pointer to a struct, rather than a struct passed by value.
 
 
 === V64 and X128 ===
@@ -161,7 +184,7 @@ Signature Characters:
 *  m, native ulong
 *  n, int128
 *  o, uint128
-*  p, 
+*  p, generic address
 *  q, 
 *  r, variant
 *  s, short
@@ -179,8 +202,23 @@ Signature Characters:
 *  Ce, vec2d
 *  Cf, Complex Float (vec2f)
 *  Cg, Complex Float128 (N/A)
+*  Ch
+*  Ci, (IsType) SmallInt
+*  Cj, (IsType) SmallFloat
+*  Ck, Complex Float16 (vec2hf)
+*  Cl, (IsType) SmallLong
+*  Cm, (IsType) SmallDouble
+*  Cn, keyword
+*  Co, Object (Class/Instance)
+*  Cp, MapObj (Dynamic Object)
 *  Cq, Quaternion (vec4f)
+*  Cr
 *  Cs, string
+*  Ct, symbol
+*  Cv, (IsType) null
+*  Cy, Class
+*  Cz, named vararg array
+
 *  Pc, cstring
 
 *  R*, Reference
@@ -270,8 +308,9 @@ Operation Type (Z)
 *	9, UShort
 *	A, ULong
 *	B, Special Value, or Void
-*	C, NLong
-*	D, UNLong
+*	C, NLong	/ Const-Integer-Float (Zx)
+*	D, UNLong	/ Const-Integer-Double (Zx)
+** 		Constant NLong/UNLong loaded as Long/ULong
 *   E, X128
 *	F, Resv
 
@@ -334,6 +373,11 @@ Fx: Variable Length Packed Float
 ** The mantissa is represented as an integer which is scaled by 2^e.
 
 Gx: Global Index
+
+Gj: Global + Local Index
+* Same basic coding as Jx
+* High=Local, Low=Global
+
 
 Ax: Address
 * Encoded as a Signed VLI
@@ -453,6 +497,10 @@ Instructions
 ** Compare two stack items and jump according to the operator.
 ** (NACHO).
 
+* 36, HBC			//Hint Bounds-Check
+** For array LDIX/STIX ops, hint to use bounds checking.
+** For arrays, this also implies the use of null-checking.
+
 * 37 Ax, JMP		//Jump
 ** Performs an unconditional jump.
 
@@ -470,9 +518,9 @@ Instructions
 *** -1, A&lt;B
 ***  0, A==B
 ***  1, A&gt;B
-
 ** If directly followed by a conditional jump, they will be special, and may be implicitly processed as a combined compare-and-jump operation.
-
+** Strict compares by address value and ignores type.
+*** The meaning of relative comparisons between addresses is undefined.
 
 * 40, LDIXI				//Load Index Int ( A I => B )
 * 41, LDIXL				//Load Index Long ( A I => B )
@@ -482,10 +530,10 @@ Instructions
 * 45, STIXL				//Store Index Long ( V A I => )
 * 46, STIXF				//Store Index Float ( V A I => )
 * 47, STIXD				//Store Index Double ( V A I => )
-* 48, LDIXSB				//Load Index Signed Byte ( A I => B )
-* 49, LDIXUB				//Load Index Unsigned Byte ( A I => B )
-* 4A, LDIXSS				//Load Index Signed Short ( A I => B )
-* 4B, LDIXUS				//Load Index Unsigned Short ( A I => B )
+* 48, LDIXSB			//Load Index Signed Byte ( A I => B )
+* 49, LDIXUB			//Load Index Unsigned Byte ( A I => B )
+* 4A, LDIXSS			//Load Index Signed Short ( A I => B )
+* 4B, LDIXUS			//Load Index Unsigned Short ( A I => B )
 * 4C, LDIXA				//Load Index Address ( A I => B )
 * 4D, STIXA				//Store Index Address ( V A I => )
 * 4E, STIXB				//Store Index Byte ( V A I => )
@@ -501,10 +549,10 @@ Instructions
 * 55 Ci, STIXLC			//Store Index Long ( I; V A => )
 * 56 Ci, STIXFC			//Store Index Float ( I; V A => )
 * 57 Ci, STIXDC			//Store Index Double ( I; V A => )
-* 58 Ci, LDIXSBC			//Load Index Signed Byte ( I; A => B )
-* 59 Ci, LDIXUBC			//Load Index Unsigned Byte ( I; A => B )
-* 5A Ci, LDIXSSC			//Load Index Signed Short ( I; A => B )
-* 5B Ci, LDIXUSC			//Load Index Unsigned Short ( I; A => B )
+* 58 Ci, LDIXSBC		//Load Index Signed Byte ( I; A => B )
+* 59 Ci, LDIXUBC		//Load Index Unsigned Byte ( I; A => B )
+* 5A Ci, LDIXSSC		//Load Index Signed Short ( I; A => B )
+* 5B Ci, LDIXUSC		//Load Index Unsigned Short ( I; A => B )
 * 5C Ci, LDIXAC			//Load Index Address ( I; A => B )
 * 5D Ci, STIXAC			//Store Index Address ( I; V A => )
 * 5E Ci, STIXBC			//Store Index Byte ( I; V A => )
@@ -513,10 +561,10 @@ Instructions
 ** Load/Store Array Index using constant, given as a signed integer constant.
 ** Note that for many types of arrays, indices may be negative.
 
-* 60, HNOEX			//Non-Execute, Trace
-* 61, HNOEX1		//Non-Execute, 1 Op
-* 62, HNOEX2		//Non-Execute, 2 Ops
-* 63, HNOEX3		//Non-Execute, 3 Ops
+* 60, HNOEX				//Non-Execute, Trace
+* 61, HNOEX1			//Non-Execute, 1 Op
+* 62, HNOEX2			//Non-Execute, 2 Ops
+* 63, HNOEX3			//Non-Execute, 3 Ops
 ** These indicate that the following instructions are unreachable.
 ** It is invalid for any control-flow path to target a NOEX or its ops.
 ** HNOEX indicates a non-executable sequence terminated by a LABEL.
@@ -535,13 +583,12 @@ Instructions
 * 67, UCMPL				//Unsigned Compare Long
 * 68 Cx, CMPIC			//Compare Int Const
 * 69 Ix, CMPIL			//Compare Int Local
-* 6A Kx, CMPILC			//Compare Int Local Const
-* 6B Jx, CMPILL			//Compare Int Local Local
+* 6A Kx, CMPILC			//Compare Int Local/Const
+* 6B Jx, CMPILL			//Compare Int Local/Local
 * 6C, INCI				//Increment Integer ( A => A+1 )
 * 6D, DECI				//Decrement Integer ( A => A-1 )
 * 6E Ix, INCIL			//Increment Integer Local ( I++; )
 * 6F Ix, DECIL			//Decrement Integer Local ( I--; )
-
 
 * 70 Gx, CALLG			//Call Static/Global Function
 * 71 Gx, CALLA			//Call Function Reference (Pops Func)
@@ -607,8 +654,12 @@ Instructions
 * 8A, DELETE				//Delete object or array instance.
 * 8B, DELNGBL				//Delete if not global.
 
-* 8C, MOVOBJ				//Copy object contents ( A B => )
-* 8D, MOVARR				//Copy array contents ( A B => )
+* 8C, HPTR					//Hint Pointer Ops
+** Indicates that the following operation is a raw-pointer operation.
+** May not be used with bounds checking.
+
+* / 8C, MOVOBJ				//Copy object contents ( A B => )
+* / 8D, MOVARR				//Copy array contents ( A B => )
 
 * / 8E, INCREF				//Increment object reference count ( A => A )
 * / 8F, DECREF				//Decrement object reference count ( A => A )
@@ -646,7 +697,15 @@ Instructions
 * A7, DUPD				//Duplicate Double
 * A8, POPA				//Pop Address
 * A9, DUPA				//Dup Address
-* AA, SWAPA				//Swap Address
+* / AA, SWAPA				//Swap Address
+
+* AA, HTNULL			//(Hint) Trap Null
+** LDOS/STOS
+*** Should use forms which do null checks.
+*** Note: Only applies if object is at the top of the stack. 
+** Other operations:
+*** Behaves as if it were a standalone DTRAPNULL instruction.
+
 * AB, PUSHA				//Push Address null
 * AC, PUSHI				//Push Int 0
 * AD, PUSHL				//Push Long 0
@@ -725,7 +784,7 @@ Instructions
 
 * E1 1C Kx, MVIC		//MOV C to I
 * E1 1D Kx, MVLC		//MOV C to I
-* E1 1E Kx, LVFC		//MOV C to I
+* E1 1E Kx, MVFC		//MOV C to I
 * E1 1F Kx, MVDC		//MOV C to I
 ** Move a constant to a local variable.
 
@@ -776,9 +835,9 @@ Instructions
 ** Writes to the new array are reflected in the old array.
 ** Accesses are required to be within the bounds of the original array.
 
-* E1 40 Ix Gx, IFXOBJ		//Init Fixed Object (Struct)
+* E1 40 Gj, IFXOBJ			//Init Fixed Object (Struct)
 * E1 41 Ix Zn, IFXARR		//Init Fixed Array
-* E1 42 Ix Gx, DFXOBJ		//Deinit Fixed Object (Struct)
+* E1 42 Gj, DFXOBJ			//Deinit Fixed Object (Struct)
 * E1 43 Ix Zn, DFXARR		//Deinit Fixed Array
 ** Init and Deinit fixed objects.
 ** These are used for structs and fixed arrays stored in local variables.
@@ -795,11 +854,11 @@ Instructions
 * E1 45 Zn Cx, STIXNC			//Store Index Constant ( I, J; A => )
 * E1 46 Zn Cx, DSTIXNC			//Dup Store Index Constant ( I, J; A => A )
 * E1 47, NEWDYO					//New Dynamic Object
-* E1 48 Gx, SBOS				//Bind Object Slot ( O V => )
+* E1 48 Gx, SBOS				//Bind Object Slot ( V O => )
 * E1 49 Gx, DSBOS				//Dup Bind Object Slot ( O V => O )
 * E1 4A Gx, DSTOS				//Dup Store Object Slot ( O V => )
 
-* E1 4B Ix Gx, IFXOBJA			//Init Fixed Object Argument
+* E1 4B Gj, IFXOBJA				//Init Fixed Object Argument
 ** This is used to initialize incomming struct arguments.
 ** This is required prior to any mutable operations on the structure.
 ** This may be omitted if no mutable operations are performed.
@@ -830,29 +889,37 @@ Instructions
 ** These operations may also be used on VarRefs.
 ** However, LDIX/STIX may not be used on VarRefs.
 
+* E1 60, DUPAA					//Dup Variant
+* E1 61, DROPAA					//Drop Variant
+* E1 62, DTRAPNULL				//Dup Throw if Null
+* E1 63 Ix, LTRAPNULL			//Local Throw if Null
 
-* / E1 60 ZO, BINOP			//Binary Operator
-* / E1 61 ZO, CMPOP			//Compare Operator
-* / E1 62 ZO Ix, BINOPL		//Binary Operator (A op I)
-* / E1 63 ZO Ix, CMPOPL		//Compare Operator (A op I)
-* / E1 64 ZO Jx, BINOPLL	//Binary Operator (I op J)
-* / E1 65 ZO Jx, CMPOPLL	//Compare Operator (I op J)
-* / E1 66 ZO Cx, BINOPC		//Binary Operator (A op C)
-* / E1 67 ZO Kx, BINOPLC	//Binary Operator (I op C)
-* / E1 68 ZO Cx, CMPOPC		//Compare Operator (A op C)
-* / E1 69 ZO Kx, CMPOPLC	//Compare Operator (I op C)
-** (NACHO).
-** Compare operators will perform a comparison, returning a boolean value (0=false, 1=true).
+* E1 64, LDIXAA					//Load Index Variant (Index=Var)
+* E1 65, STIXAA					//Store Index Variant (Index=Var)
+* E1 66, LDIXAI					//Load Index Variant (Index=Int)
+* E1 67, STIXAI					//Store Index Variant (Index=Int)
+** Load/Store values from a Variant.
+** Both the object and value are Variant.
+** Index may be Variant or Int.
 
-* / E1 6A Zn, PUSHN				//Push n Items (null/zero)
-* / E1 6B Zn, POPN				//Pop n Items
-* / E1 6C Zn, SWAPN				//Swap top-of-stack with Item n
-* / E1 6D Zn, ROTLN				//Rotate Left 1 position over n items.
-* / E1 6E Zn, ROTRN				//Rotate Right 1 position over n items.
-* / E1 6F Zn, DUPN				//Duplicate Top n items.
-** (NACHO).
-** Stack operations. May work on groups of items.
-** The items are required to be of the base type given by Z.
+* E1 68 Gx, ISTYPE				//Check if address is a type ( A => B )
+** Gx gives either an object, or a signature string.
+** Primitive types will map to matching variant types.
+
+* E1 69 Gx, DTNISTYPE			//Trap if address is not type ( A => A )
+** Works similar to ISTYPE
+** However, this will throw if the type-check fails.
+
+* E1 6A Gx, DZNISTYPE			//Nullify if address is not type ( A => A )
+** Works similar to ISTYPE
+** This sets address to null if type-check fails.
+
+* E1 6B Zn, AGETI				//Address Get Property (Integer)
+** 0=Array Length, 1=Array Offset, ...
+** Gets a built-in integer property from an address-type value.
+
+* E1 6C Gj, LDOSL				//Load Instance Variable, ( O => A )
+* E1 6D Gj, STOSL				//Store Instance Variable ( V O => )
 
 * E1 70, DIVI				//Divide Int
 * E1 71, DIVL				//Divide Long
@@ -921,8 +988,8 @@ More Array ops:
 ** Math Binary Function
 ** 0=Atan2
 
-* E1 98 Ix Gx, STFXOBJC				//Store Fixed Object (Copy)
-* E1 99 Ix Gx, STFXOBJD				//Store Fixed Object (Destroy)
+* E1 98 Gj, STFXOBJC				//Store Fixed Object (Copy)
+* E1 99 Gj, STFXOBJD				//Store Fixed Object (Destroy)
 
 * E1 9A Zn, STIXZAC					//CVTZ2AA+STIXAC
 * E1 9B Zn, DSTIXZAC				//DUPA+CVTZ2AA+STIXAC
@@ -936,6 +1003,28 @@ More Array ops:
 * E1 A1, CVTD2HF					//Convert Double to Half-Float
 * E1 A2, CVTHF2F					//Convert Half-Float to Float
 * E1 A3, CVTHF2D					//Convert Half-Float to Double
+
+* E1 A4, SWAPI						//Swap Int
+* E1 A5, SWAPL						//Swap Long
+* E1 A6, SWAPF						//Swap Float
+* E1 A7, SWAPD						//Swap Double
+
+* E1 A8 Ci, DSTIXIC			//DUPA + Store Index Int ( I; A V => A)
+* E1 A9 Ci, DSTIXLC			//DUPA + Store Index Long ( I; A V => A)
+* E1 AA Ci, DSTIXFC			//DUPA + Store Index Float ( I; A V => A)
+* E1 AB Ci, DSTIXDC			//DUPA + Store Index Double ( I; A V => A)
+* E1 AC Ci, DSTIXAC			//DUPA + Store Index Address ( I; A V => A)
+* E1 AD Ci, DSTIXBC			//DUPA + Store Index Byte ( I; A V => A)
+* E1 AE Ci, DSTIXSC			//DUPA + Store Index Short ( I; A V => A)
+
+* E1 AF, SWAPA				//Swap Address
+
+* E1 B0, CVTA2PTR			//Convert Address (General) to Pointer
+* E1 B1, CVTPTR2A			//Convert Pointer to Address (Generic)
+** Convert between normal object representation, and a memory pointer.
+** Arrays or Structures will be converted to a pointer to the payload data.
+** Converting a pointer to an address will attempt to determine the type.
+*** Failing this, it will create a tagged representation of the pointer.
 
 
 === Vector Block (0x400) ===
@@ -1087,3 +1176,75 @@ Vector convert operations (NACHO2):
 * E4 52 Ci, LDIXXC			//Load Index X128 ( I; A => B )
 * E4 53 Ci, STIXXC			//Store Index X128 ( I; V A => )
 
+
+=== Three-Address Extension Block (0x500) (Possible) ===
+
+Optional block to support 2-address and 3-address operations.
+These operations will exist primarily to allow increased code density.
+These operations will also be considered an extension feature.
+
+*  0, ADD
+*  1, SUB
+*  2, MUL
+*  3, AND
+*  4, OR
+*  5, XOR
+*  6, SHL (Shift Left)
+*  7, SAR (Arithmetic Shift Right)
+
+* E5 00 Zi Jx,    ADD_LLL D, S, T
+* E5 01 Zi Jx,    SUB_LLL D, S, T
+* E5 02 Zi Jx,    MUL_LLL D, S, T
+* E5 03 Zi Jx,    AND_LLL D, S, T
+* E5 04 Zi Jx,     OR_LLL D, S, T
+* E5 05 Zi Jx,    XOR_LLL D, S, T
+* E5 06 Zi Jx,    SHL_LLL D, S, T
+* E5 07 Zi Jx,    SAR_LLL D, S, T
+* E5 08 Zi Kx,    ADD_LLC D, S, C
+* E5 09 Zi Kx,    SUB_LLC D, S, C
+* E5 0A Zi Kx,    MUL_LLC D, S, C
+* E5 0B Zi Kx,    AND_LLC D, S, C
+* E5 0C Zi Kx,     OR_LLC D, S, C
+* E5 0D Zi Kx,    XOR_LLC D, S, C
+* E5 0E Zi Kx,    SHL_LLC D, S, C
+* E5 0F Zi Kx,    SAR_LLC D, S, C
+* E5 10 Zo Jx,    BINOP_L2L D, T	//D=D op T
+* E5 11 Zo Kx,    BINOP_L2C D, C	//D=D op C
+* E5 12 Zo Jx,    BINOP_SLL S, T	//d=S op T ( => d )
+* E5 13 Zo Kx,    BINOP_SLC S, C	//d=S op C ( => d )
+* E5 14 Zo Jx,    BINOP_LSL D, T	//D=s op T ( s => )
+* E5 15 Zo Kx,    BINOP_LSC D, C	//D=s op C ( s => )
+* E5 16 Zo Jx,    CMPOP_LL S, T		//d=S cmp T ( => d )
+* E5 17 Zo Kx,    CMPOP_LC S, C		//d=S cmp C ( => d )
+
+* E5 18 Zo Jx Ax, JCMP_LL S, T, A	//Jump-Compare Locals
+* E5 19 Zo Kx Ax, JCMP_LC S, C, A	//Jump-Compare Local/Const
+
+* E5 1A Jx,       SWAP2I A, B		//
+* E5 1B Jx,       SWAP2L A, B		//
+* E5 1C Jx,       SWAP2F A, B		//
+* E5 1D Jx,       SWAP2D A, B		//
+* E5 1E Jx,       SWAP2A A, B		//
+** Swap values from two arbitrary stack locations.
+** Stack locations are given as absolutes (not stack relative)
+
+* E5 1F Jx,       DUP2A A, B		//
+* E5 20 Jx,       DUP2I A, B		//
+* E5 21 Jx,       DUP2L A, B		//
+* E5 22 Jx,       DUP2F A, B		//
+* E5 23 Jx,       DUP2D A, B		//
+** Push value from arbitrary location to top of stack.
+
+* E5 24 Jx,       POP2I A, B		//
+* E5 25 Jx,       POP2L A, B		//
+* E5 26 Jx,       POP2F A, B		//
+* E5 27 Jx,       POP2D A, B		//
+* E5 28 Jx,       POP2A A, B		//
+** Pop value from top of stack to arbitrary location.
+
+* E5 29 Jx,       MVS2I A, B		//
+* E5 2A Jx,       MVS2L A, B		//
+* E5 2B Jx,       MVS2F A, B		//
+* E5 2C Jx,       MVS2D A, B		//
+* E5 2D Jx,       MVS2A A, B		//
+** Move values between arbitrary stack locations.

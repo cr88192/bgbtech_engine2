@@ -338,6 +338,7 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bgbdt_isotest.h>
 
 #include <bgbdt_btpak0.h>
+#include <bt4b_common.h>
 
 struct BGBDT_MM_ParsePrintInfo_s {
 BGBDT_MM_ParsePrintInfo *next;

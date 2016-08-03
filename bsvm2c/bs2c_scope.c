@@ -900,6 +900,8 @@ int BS2C_LookupDynamicSlotName(
 	for(i=0; i<ctx->nglobals; i++)
 	{
 		vari=ctx->globals[i];
+		if(!vari)
+			continue;
 		if(!vari->qname)
 			continue;
 		
@@ -947,5 +949,19 @@ int BS2C_GetFrameDynamicSlotName(
 	
 	i=BS2C_GetDynamicSlotName(ctx, name);
 	j=BS2C_IndexFrameGlobal(ctx, i);
+	return(j);
+}
+
+int BS2C_GetFrameSymbol(
+	BS2CC_CompileContext *ctx, char *name)
+{
+	int i, j;
+	
+//	i=BS2C_GetDynamicSlotName(ctx, name);
+//	j=BS2C_IndexFrameGlobal(ctx, i);
+
+	i=BS2C_ImgGetString(ctx, name);
+	j=BS2C_IndexFrameLiteral(ctx, (i<<4)|BSVM2_OPZY_STRSYM);
+
 	return(j);
 }

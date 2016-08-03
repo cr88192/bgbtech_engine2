@@ -449,7 +449,7 @@ void BS2C_CompileTempJmpThen2(BS2CC_CompileContext *ctx,
 		if(t0>=0)
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_JNENULLL);
-			BS2C_EmitOpcodeSCx(ctx, t0);
+			BS2C_EmitOpcodeUCx(ctx, t0);
 			BS2C_EmitTempJAddr(ctx, tt);
 			return;
 		}
@@ -725,7 +725,7 @@ void BS2C_CompileTempJmpElse2(BS2CC_CompileContext *ctx,
 		if(t0>=0)
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_JEQNULLL);
-			BS2C_EmitOpcodeSCx(ctx, t0);
+			BS2C_EmitOpcodeUCx(ctx, t0);
 			BS2C_EmitTempJAddr(ctx, tf);
 			return;
 		}

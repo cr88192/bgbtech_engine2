@@ -846,28 +846,43 @@ int BS2I_ImageDecodeGlobalVar(
 		if(s)
 			{ clsi->qname=BGBDT_TagStr_StrSymbol(s); }
 
-		for(i=0; i<gbl->nfigix; i++)
+		if(gbl->nifgix>0)
 		{
-			clsvi=BGBDTC_GetClassSlotIndex(clsi, i);
-			vi=BS2I_ImageGetGlobal(img, gbl->figix[i]);
-			vi->objinf=clsvi;
-			
-			if(vi->name)
-				clsvi->name=vi->name;
-			if(vi->sig)
-				clsvi->sig=vi->sig;
-				
-			if(vi->tag==BS2CC_ITCC_SV)
-				clsvi->slotty=BGBDTC_STY_FIELD;
-
-			if(vi->tag==BS2CC_ITCC_SF)
+			BGBDTC_CheckExpandClassIfaceIndex(clsi, gbl->nifgix-1);
+			for(i=0; i<gbl->nifgix; i++)
 			{
-				if(!vi->nameh)
-					{ vi->nameh=BS2I_Image_QHashName(vi->name); }
-			
-				clsvi->slotty=BGBDTC_STY_METHOD;
-				clsvi->init=dtvWrapPtr(vi);
-				clsvi->nameh=vi->nameh;
+				vi=BS2I_ImageGetGlobal(img, gbl->ifgix[i]);
+				clsi->iface[i]=vi->objinf;
+			}
+			clsi->niface=gbl->nifgix;
+		}
+
+		if(gbl->nfigix>0)
+		{
+			BGBDTC_CheckExpandClassSlotIndex(clsi, gbl->nfigix-1);
+			for(i=0; i<gbl->nfigix; i++)
+			{
+				clsvi=BGBDTC_GetClassSlotIndex(clsi, i);
+				vi=BS2I_ImageGetGlobal(img, gbl->figix[i]);
+				vi->objinf=clsvi;
+				
+				if(vi->name)
+					clsvi->name=vi->name;
+				if(vi->sig)
+					clsvi->sig=vi->sig;
+					
+				if(vi->tag==BS2CC_ITCC_SV)
+					clsvi->slotty=BGBDTC_STY_FIELD;
+
+				if(vi->tag==BS2CC_ITCC_SF)
+				{
+					if(!vi->nameh)
+						{ vi->nameh=BS2I_Image_QHashName(vi->name); }
+				
+					clsvi->slotty=BGBDTC_STY_METHOD;
+					clsvi->init=dtvWrapPtr(vi);
+					clsvi->nameh=vi->nameh;
+				}
 			}
 		}
 		

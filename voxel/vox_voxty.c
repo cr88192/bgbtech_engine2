@@ -4,9 +4,11 @@ BTEIFGL_API int BGBDT_WorldVoxel_GetFlags(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, BGBDT_VoxData td)
 {
 	BGBDT_VoxTypeInfo *tyi;
-	int tix;
+	int tix, vty;
 	
-	tix=td.vtype&4095;
+	vty=td.vtypel|(td.vtypeh<<8);
+	tix=vty&4095;
+//	tix=td.vtype&4095;
 	tyi=world->voxtypes[tix];
 	if(!tyi)return(0);
 	return(tyi->flags);
@@ -16,9 +18,11 @@ BTEIFGL_API char *BGBDT_WorldVoxel_GetTypeName(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, BGBDT_VoxData td)
 {
 	BGBDT_VoxTypeInfo *tyi;
-	int tix;
+	int tix, vty;
 	
-	tix=td.vtype&4095;
+	vty=td.vtypel|(td.vtypeh<<8);
+	tix=vty&4095;
+//	tix=td.vtype&4095;
 	tyi=world->voxtypes[tix];
 	if(!tyi)return(NULL);
 	return(tyi->name);
@@ -91,9 +95,11 @@ BTEIFGL_API int BGBDT_WorldVoxel_GetGlow(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, BGBDT_VoxData td)
 {
 	BGBDT_VoxTypeInfo *tyi;
-	int tix;
+	int tix, vty;
 	
-	tix=td.vtype&4095;
+	vty=td.vtypel|(td.vtypeh<<8);
+	tix=vty&4095;
+//	tix=td.vtype&4095;
 	tyi=world->voxtypes[tix];
 	if(!tyi)return(0);
 	return(tyi->glow);

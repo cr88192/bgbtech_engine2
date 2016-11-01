@@ -43,62 +43,6 @@ BTEIFGL_SRCS=\
 	base/w32_net.c \
 	base/w32_udpip.c \
 	\
-	mm/mm_cell.c \
-	mm/mm_clsobj.c \
-	mm/mm_lobj.c \
-	mm/mm_mapobj.c \
-	mm/mm_objty.c \
-	mm/mm_tagarith.c \
-	mm/mm_tagarr.c \
-	mm/mm_tagparse.c \
-	mm/mm_tagprint.c \
-	mm/mm_tagstr.c \
-	mm/mm_thread.c \
-	mm/mm_typesig.c \
-	mm/mm_xi128.c \
-	mm/mm_xvec.c \
-	\
-	bsvm2c/bs2p_astnode.c \
-	bsvm2c/bs2p_decl.c \
-	bsvm2c/bs2p_litexpr.c \
-	bsvm2c/bs2p_stmt.c \
-	bsvm2c/bs2p_token.c \
-	\
-	bsvm2c/bs2c_compile.c \
-	bsvm2c/bs2c_conv.c \
-	bsvm2c/bs2c_disasm.c \
-	bsvm2c/bs2c_emit.c \
-	bsvm2c/bs2c_expr.c \
-	bsvm2c/bs2c_image.c \
-	bsvm2c/bs2c_infer.c \
-	bsvm2c/bs2c_jcond.c \
-	bsvm2c/bs2c_reduce.c \
-	bsvm2c/bs2c_scope.c \
-	bsvm2c/bs2c_stmt.c \
-	bsvm2c/bs2c_topstmt.c \
-	bsvm2c/bs2c_type.c \
-	bsvm2c/bs2e_expr.c \
-	\
-	bsvm2i/bs2i_fcnblock.c \
-	bsvm2i/bs2i_interp.c \
-	bsvm2i/bs2i_load.c \
-	bsvm2i/bs2i_natcall.c \
-	bsvm2i/bs2i_oparith.c \
-	bsvm2i/bs2i_oparr.c \
-	bsvm2i/bs2i_opcode.c \
-	bsvm2i/bs2i_opcvt.c \
-	bsvm2i/bs2i_opdtvar.c \
-	bsvm2i/bs2i_opinit.c \
-	bsvm2i/bs2i_opobj.c \
-	bsvm2i/bs2i_opptr.c \
-	bsvm2i/bs2i_opvars.c \
-	bsvm2i/bs2i_opvec2.c \
-	bsvm2i/bs2i_opvec3.c \
-	bsvm2i/bs2i_tailop.c \
-	bsvm2i/bs2i_topinit.c \
-	\
-	bsvm2i/bs2j_tr_x86.c \
-	\
 	entity/ent_tagval.c \
 	\
 	voxel/vox_chunk.c \
@@ -106,8 +50,10 @@ BTEIFGL_SRCS=\
 	voxel/vox_draw.c \
 	voxel/vox_drawent.c \
 	voxel/vox_light.c \
+	voxel/vox_load.c \
 	voxel/vox_mesh.c \
 	voxel/vox_rice.c \
+	voxel/vox_save.c \
 	voxel/vox_trace.c \
 	voxel/vox_voxty.c \
 	voxel/vox_world.c \
@@ -152,54 +98,31 @@ BTEIFGL_SRCS=\
 	btic4b/bt4b_shim_s2tc.c \
 	btic4b/bt4b_dump_hdr.c \
 
-
-BGBASM_SRCS = \
-	bgbasm3/front/basm_api.c \
-	bgbasm3/front/basm_rand.c \
-	bgbasm3/front/basm_callsig.c \
-	bgbasm3/front/basm_vfs.c \
-	bgbasm3/front/basm_preproc.c \
-	\
-	bgbasm3/asm/basm_core.c \
-	bgbasm3/asm/basm_parse.c \
-	bgbasm3/asm/basm_insns_x86.c \
-	bgbasm3/asm/basm_insns_arm.c \
-	bgbasm3/asm/basm_insns_thumb.c \
-	bgbasm3/asm/basm_disasm.c \
-	bgbasm3/asm/basm_coff.c \
-	\
-	bgbasm3/link/link_context.c \
-	bgbasm3/link/link_core.c \
-	bgbasm3/link/link_thunk.c \
-	bgbasm3/link/link_lnx.c \
-	bgbasm3/link/link_w32.c \
-	bgbasm3/link/link_vfs.c \
-	bgbasm3/link/bldr_coff.c \
-	bgbasm3/link/bldr_elf.c
-
-
 BTEIFGL_MULTISRCS=\
 	base/base_multi.c \
-	mm/mm_multi.c \
-	bsvm2c/bs2c_multi.c \
-	bsvm2i/bs2i_multi.c \
 	voxel/vox_multi.c \
 	btews/btws_multi.c \
-	bgbasm3/basm_multi.c \
 	fastbcn/bcn_multi.c \
 	btic4b/bt4b_multi.c \
+	\
+	$(BSVM2_MULTISRCS)
 
 
 SRCS=$(BTEIFGL_SRCS)
 MSRCS=$(BTEIFGL_MULTISRCS)
 
+BSVM2_BASE=bsvm2/
+
 DEP_HDRS=\
 	include/bteifgl_auto.h \
-	include/basm/bgbasm_auto.h
+	$(BSVM2_BASE)include/basm/bgbasm_auto.h \
+	$(BSVM2_BASE)include/bsvm2_auto.h
 
 all: libs apps
 
 FORCE:
+
+include $(BSVM2_BASE)Makefile.inc
 
 libs: $(DLLPF)btewsim$(DLLSUF)
 
@@ -213,9 +136,13 @@ includes: $(DEP_HDRS)
 include/bteifgl_auto.h: autohead$(BINSUF) $(SRCS)
 	./autohead$(BINSUF) -api BTEIFGL_API $(SRCS) > include/bteifgl_auto.h
 
-include/basm/bgbasm_auto.h: autohead$(BINSUF) $(BGBASM_SRCS)
-	./autohead$(BINSUF) -api BASM_API $(BGBASM_SRCS) \
-		> include/basm/bgbasm_auto.h
+# include/bsvm2/basm/bgbasm_auto.h: autohead$(BINSUF) $(BGBASM_SRCS)
+#	./autohead$(BINSUF) -api BASM_API $(BGBASM_SRCS) \
+#		> include/bsvm2/basm/bgbasm_auto.h
+
+# include/bsvm2/bsvm2_auto.h: autohead$(BINSUF) $(BS2VM_SRCS)
+#	./autohead$(BINSUF) -api BS2VM_API $(BS2VM_SRCS) \
+#		> include/bsvm2/bsvm2_auto.h
 
 $(DLLPF)btewsim$(DLLSUF): $(DEP_HDRS) $(SRCS) $(MSRCS)
 	$(CC_OUTDLL)$(DLLPF)btewsim$(DLLSUF) $(MSRCS) $(DLL_CFLAGS) $(DLL_LDFLAGS)
@@ -225,9 +152,6 @@ autohead$(BINSUF): autohead.c
 
 deeptail0$(EXESUF): deeptail0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)deeptail0$(EXESUF) deeptail0.c $(CFLAGS) $(LDFLAGS)
-
-bsvm2tst0$(EXESUF): bsvm2tst0.c $(DEP_HDRS) libs
-	$(CC_OUTEXE)bsvm2tst0$(EXESUF) bsvm2tst0.c $(CFLAGS) $(LDFLAGS)
 
 btewiresim0$(EXESUF): btewiresim0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)btewiresim0$(EXESUF) btewiresim0.c $(CFLAGS) $(LDFLAGS)

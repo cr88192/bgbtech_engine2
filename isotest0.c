@@ -474,6 +474,25 @@ void btews_vccgnd_Draw(BTEWS_WireNode *self,
 }
 #endif
 
+#if 0
+int maim_setupvm()
+{
+	BLNK_IOFuncs_t *lio;
+
+	BGBDT_MM_SetPuts(frgl_puts);
+	
+	lio=BLNK_GetIOFuncs();
+
+	lio->fopen_fp=(void *(*)(char*,char*))&vffopen;
+	lio->fclose_fp=(void (*)(void*))&vfclose;
+	lio->fread_fp=(int (*)(void*,int,int,void*))&vfread;
+	lio->fwrite_fp=(int (*)(void*,int,int,void*))&vfwrite;
+	lio->feof_fp=(int (*)(void*))&vfeof;
+	lio->ftell_fp=(s64 (*)(void*))&vftell;
+	lio->fseek_fp=(int (*)(void*,s64,int))&vfseek;
+}
+#endif
+
 int main_loadscript(char *def)
 {
 //	static char *mods[]={
@@ -495,6 +514,8 @@ int main_loadscript(char *def)
 	dtVal v0, v1, v2, v3;
 	int tsz;
 	int i, j, k;
+
+//	maim_setupvm();
 
 	tbuf=vf_loadfile(def, &tsz);
 	if(!tbuf)

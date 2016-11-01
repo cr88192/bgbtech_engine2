@@ -1,0 +1,60 @@
+Trampolined Native ABI
+
+Will assume that a compiler (JIT or native) produces code in an ABI which functions primarily or exclusively via the use of a trampoline loop.
+
+Some specifics may vary, but depend on the use-case and environment.
+
+Concept: Iteration.
+* Iteration will involve returning control to the trampoline.
+* After iteration, control will be handed back to the application.
+** To iterate, code will execute a call or return to the address it was given.
+* Code may be required to iterate within a given number of clock cycles.
+** This will depend primarily upon the operating environment.
+** However, code should not try to excessively "hog" clock cycles.
+** Running over this limit may prompt a watchdog timer or other mechanism to kill the process.
+
+Stack (rSP):
+* Generally serves as a scratch space.
+** Code may use the stack for holding local state and data.
+** The management of the stack is primarily up to the application.
+** / The stack may be used to pass the return address for the trampoline.
+** Stack position will be preserved across iterations.
+*** However, data below rSP may not be preserved.
+
+Thread Base (rBP):
+* Holds VM/Sched related thread state.
+** Must be returned to its original value before iterating.
+** rBP[0]: Holds a copy of the iteration address.
+
+Registers:
+* Will be split into ABI/App Scratch and Preserved.
+** The state of ABI scratch registers will be volatile.
+*** These may be used for passing information into/out-of the trampoline.
+*** Their values will not be preserved across iterations.
+** App scratch registers will be preserved across iterations.
+*** However, they need not be preserved between functions.
+** The state of preserved registers will be preserved across iterations.
+*** If the trampoline changes to a different thread, these will be preserved.
+
+Registers: x86 / x64
+* ABI Scratch: rAX, rCX, rDX
+* App Scratch: R8..R11
+* Preserve: rBX, rSI, rDI, R12..R15
+* Special: rBP, rSP
+** rAX: Used to pass interation address into application.
+** rAX: Used to pass next address for iteration.
+
+Registers: ARM
+* ABI Scratch: R0..R2
+* App Scratch: R3..R6
+* Preserve: R7..R11
+* Special: R12..R15
+** R12=BP, R13=SP, R14=LR, R15=PC
+
+Registers: SH-2
+* ABI Scratch: R0..R2
+* App Scratch: R3..R6
+* Preserve: R7..R11
+* Special: R12..R15
+** R14=BP, R15=SP
+

@@ -50,7 +50,7 @@ int BGBDT_VoxLight_UpdateChunkLight(
 	int tix, ds, dst, fl;
 	int x, y, z, w;
 	int a, b, c;
-	int vty_air;
+	int vty, vty_air;
 	int i, j, k;
 	
 	if(!chk)
@@ -62,7 +62,9 @@ int BGBDT_VoxLight_UpdateChunkLight(
 
 	if(chk->voxinfo && (chk->nvoxinfo==1))
 	{
-		if((chk->voxinfo[0].vtype&4095)!=vty_air)
+		vty=chk->voxinfo[0].vtypel|(chk->voxinfo[0].vtypeh<<8);
+//		if((chk->voxinfo[0].vtype&4095)!=vty_air)
+		if((vty&4095)!=vty_air)
 			return(0);
 		if(chk->voxinfo[0].alight<16)
 			{ chk->voxinfo[0].alight=16; }
@@ -70,7 +72,9 @@ int BGBDT_VoxLight_UpdateChunkLight(
 	{
 		for(i=0; i<chk->nvoxinfo; i++)
 		{
-			if((chk->voxinfo[i].vtype&4095)!=vty_air)
+			vty=chk->voxinfo[i].vtypel|(chk->voxinfo[0].vtypeh<<8);
+//			if((chk->voxinfo[i].vtype&4095)!=vty_air)
+			if((vty&4095)!=vty_air)
 				break;
 		}
 		if(i>=chk->nvoxinfo)
@@ -94,7 +98,9 @@ int BGBDT_VoxLight_UpdateChunkLight(
 				x, y, z, chk, &td, &tds,
 				BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
 
-			tix=td.vtype&4095;
+			vty=td.vtypel|(td.vtypeh<<8);
+			tix=vty&4095;
+//			tix=td.vtype&4095;
 			tyi=world->voxtypes[tix];
 			if(!tyi)continue;
 

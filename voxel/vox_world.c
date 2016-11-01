@@ -13,7 +13,9 @@ int bgbdt_log2f2(int v)
 	int i, j, k;
 	
 	i=v; j=0;
-	while(i>4)
+//	while(i>4)
+//	while(i>>3)
+	while(i>=8)
 		{ i=(i+1)>>1; j++; }
 //		{ i=i>>1; j++; }
 	k=(j<<2)|(i&3);
@@ -320,12 +322,14 @@ int BGBDT_VoxelWorld_GenerateChunkBasic(
 	BGBDT_VoxData td_dirt, td_snofce, td_lava;
 	float f0, f1, f2, f3;
 	float f, g;
-	int x, y, z, zbi, rsk, vz;
+	int x, y, z, zbi, rsk, vz, vty;
 	int i, j, k;
 
 	memset(&tsamp, 0, sizeof(BGBDT_NoiseSample));
-	
-	td_air.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
+
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
+	td_air.vtypel=vty;	td_air.vtypeh=vty>>8;
+//	td_air.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
 	td_air.vattr=0;
 //	td_air.vlight=0xFF;
 //	td_air.alight=0xFF;
@@ -333,21 +337,31 @@ int BGBDT_VoxelWorld_GenerateChunkBasic(
 	td_air.alight=0;
 
 
-	td_stone.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "stone");
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "stone");
+	td_stone.vtypel=vty;	td_stone.vtypeh=vty>>8;
+//	td_stone.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "stone");
 	td_stone.vattr=0;	td_stone.vlight=0;	td_stone.alight=0;
 
-	td_hardstone.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world,
-		"hardstone");
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "hardstone");
+	td_hardstone.vtypel=vty;	td_hardstone.vtypeh=vty>>8;
+//	td_hardstone.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world,
+//		"hardstone");
 	td_hardstone.vattr=0;	td_hardstone.vlight=0;	td_hardstone.alight=0;
 
-	td_dirt.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "dirt");
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "dirt");
+	td_dirt.vtypel=vty;	td_dirt.vtypeh=vty>>8;
+//	td_dirt.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "dirt");
 	td_dirt.vattr=0;	td_dirt.vlight=0;	td_dirt.alight=0;
 
-	td_snofce.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world,
-		"solidnoface");
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "solidnoface");
+	td_snofce.vtypel=vty;	td_snofce.vtypeh=vty>>8;
+//	td_snofce.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world,
+//		"solidnoface");
 	td_snofce.vattr=0;	td_snofce.vlight=0;	td_snofce.alight=0;
 
-	td_lava.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
+	td_lava.vtypel=vty;	td_lava.vtypeh=vty>>8;
+//	td_lava.vtype=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
 	td_lava.vattr=0;	td_lava.vlight=0xF4;	td_lava.alight=0;
 	
 	zbi=64<<BGBDT_XYZ_SHR_VOXEL;
@@ -434,6 +448,8 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name)
 	
 	wrl=BGBDT_AllocVoxelWorld();
 	wrl->GenerateChunk=BGBDT_VoxelWorld_GenerateChunkBasic;
+
+	wrl->worldname=frgl_strdup(name);
 	
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "null");
 	tyi->mat_side=FRGL_TexMat_GetLoadIndex("textures/atlas0");

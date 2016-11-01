@@ -1,0 +1,399 @@
+// native void printf(cstring str, ...);
+native int clock();
+native int rand();
+native int bsvm2_natfib(int x);
+native void bsvm2_natsorttst(int n);
+
+//native variant bsvm2_vm_printf(string str, variant[] va);
+native variant bsvm2_vm_printf(string str, ...va);
+void printf(string str, ...va)
+	{ bsvm2_vm_printf(str, va); }
+
+typedef int fn_noArgReturnsInt();
+
+public class Exception {
+	int dummy;
+	
+	public Exception()
+	{
+	}
+}
+
+package bstest {
+	public struct Foo {
+		int x, y;
+		double z;
+	}
+
+	public class Foo2 {
+		public int x, y;
+		public double z;
+		
+		public Foo2(int a)
+		{
+			printf("Foo2 Ctor %d\n", 4);
+		}
+		
+		public double method0()
+		{
+			return(x+y+z);
+		}
+	}
+
+	private int i, j;
+	private int[] arr;
+	private byte[256] arr2;
+
+	public int fib(int x)
+	{
+		if(x<2)return(1);
+		return(fib(x-1)+fib(x-2));
+	}
+
+	public int selsort(int[] arr, int n)
+	{
+		*int arr1;
+		int i, j, k;
+		
+		arr1=(*int)arr;
+		for(i=0; i<n; i++)
+			for(j=i+1; j<n; j++)
+		{
+			if(arr1[j]<arr1[i])
+			{
+				k=arr1[i];
+				arr1[i]=arr1[j];
+				arr1[j]=k;
+			}
+		}
+	}
+
+	public void sorttst(int n)
+	{
+		int[] arr;
+		int i;
+
+		arr=new int[n];
+//		arr=new int[256];
+		for(i=0; i<n; i++)
+			arr[i]=rand();
+		selsort(arr, n);
+	}
+
+/*
+	public interface IFoo {
+		public void doSomething();
+	}
+	
+	public class Fib2 extends Fib implements IFoo {
+		public Fib2()
+		{
+			int[16] ta;
+			int[] tb;
+			variant vo;
+			char c;
+			int i;
+
+			i=(int)(3.9*4.1);
+
+			super(2, 3);
+			foo.z=4;
+			foo.z=3.14159;
+			tst_switch(5);
+			c='A';
+			
+			tb=[1,2,3,4,5]i;
+			
+			vo={x: 2, y: 3};
+		}
+
+//		public void doSomething()
+//			{ }
+	}
+*/
+
+//	public int tst_ref(&int i, &int j)
+//	{
+//		i=i+j;
+//		return(j);
+//	}
+	
+	public class Fib {
+		Foo foo;
+	
+		public Fib(int x, int y)
+		{
+			foo.x=x;
+			foo.y=y;
+			foo.z=foo.x+foo.y;
+		}
+
+		public static int tst_switch(int i)
+		{
+			int j;
+			switch(i)
+			{
+			case 0:		j=  1; break;
+			case 1:		j=  4; break;
+			case 2:		j=  9; break;
+			case 3:		j= 16; break;
+			case 4:		j= 25; break;
+			case 5:		j= 36; break;
+			case 6:		j= 49; break;
+			case 7:		j= 64; break;
+			case 8:		j= 81; break;
+			case 9:		j=100; break;
+			case 10:	j=121; break;
+			case 11:	j=144; break;
+
+			default:	j=-1; break;
+			}
+			return(j);
+		}
+
+		public static int tst_ref(&int i, &int j)
+		{
+			i=i+j;
+			return(j);
+		}
+		
+		public static void tst_func()
+		{
+//			variant fn;
+			fn_noArgReturnsInt fn;
+			int x, y, z;
+			
+			x=2; y=3;
+			
+			fn=function():int { x+y }
+			z=fn();
+			printf("tst_func: %d %d %d\n", x, y, z);
+		}
+
+		public static void tst_func2()
+		{
+//			variant fn;
+			fn_noArgReturnsInt fn;
+			int x, y, z;
+			
+			x=3; y=4;
+			
+			fn=function!():int { x+y }
+			z=fn();
+			printf("tst_func2: %d %d %d\n", x, y, z);
+		}
+
+		public static void tst_tryex2()
+		{
+			throw new Exception();
+		}
+		
+		public static void tst_tryex()
+		{
+			try {
+				printf("try 1\n");
+				tst_tryex2();
+				printf("try 2\n");
+			}catch(Exception ex)
+			{
+				printf("catch\n");
+			}finally
+			{
+				printf("finally\n");
+			}
+		}
+
+		public static void tst_letlec()
+		{
+			printf("letlec A\n");
+			let_escape(variant ex)
+			{
+				printf("letlec B\n");
+				throw ex;
+				printf("letlec C\n");
+			}
+			printf("letlec D\n");
+		}
+
+		public static void tst_decjpg()
+		{
+			PDJPG_Context ctx;
+			byte[] rgba;
+			byte[] buf;
+			*byte cs;
+			int t0, t1, t2, t3;
+			int sz, xs, ys;
+			int i, j, k, n;
+
+			printf("ATst %d\n", pdjpg_zigzag2[23]);
+			
+			buf=readfile("NanoITX_4_1.jpg", sz);
+			printf("JP: %02X %02X sz=%d\n", buf[0], buf[1], sz);
+			
+			ctx=PDJPG_AllocContext();
+			
+			cs=buf;
+			cs++;
+			
+			t0=clock();
+			PDJPG_DecodeBasic(ctx, buf, sz, &xs, &ys);
+			t1=clock();
+			
+			t2=t1-t0;
+			printf("DecJPG %d\n", t2);
+			
+			printf("Image Dec %d x %d\n", xs, ys);
+			
+			rgba=new byte[xs*ys*4];
+			PDJPG_GetImageRGBA(ctx, rgba, xs, ys);
+			PDJPG_StoreTGA("fibtst0.tga", rgba, xs, ys);
+
+/*
+			t0=clock(); t1=clock(); t2=t0+30000; n=0; t3=t0;
+			while(t1<t2)
+			{
+				t3=t1;
+				PDJPG_DecodeBasic(ctx, buf, sz, &xs, &ys);
+				n++;
+				t1=clock();
+				printf("Dt=%d Cnt=%d LDt=%d\r", t1-t0, n, t1-t3);
+			}
+			printf("\n");
+*/
+		}
+	
+		public static void main(string[] argv)
+		{
+			Foo fstr;
+			Fib tfib;
+			Foo2 fobj;
+			vec2f v0, v1, v2;
+			vec3f w0, w1, w2;
+			uint u0, u1, u2;
+			int[] a1, a2;
+			*int p1, p2;
+			int i, j;
+			int t0, t1, t2, sz;
+
+			printf("%f\n", 3.14159);
+
+			i=8;
+
+			u0=0xDECAF000;
+			u1=u0>>8;
+//			u2=u0>>i;
+//			u2=u0<<i;
+			u2=(u0<<i)|u1;
+			j=(u2>>8)&15;
+			printf("%08X %08X %08X %d\n", u0, u1, u2, j);
+
+			j=-1;
+			if(j<=0)
+				{ printf("T\n"); }
+			else
+				{ printf("F\n"); }
+
+			t0=clock();
+//			printf("BS Fib %d\n", fib(32));
+			printf("BS Fib %d\n", fib(38));
+			t1=clock();
+			printf("BS Dt %d\n", t1-t0);
+
+			t0=clock();
+//			printf("Na Fib %d\n", bsvm2_natfib(32));
+			printf("Na Fib %d\n", bsvm2_natfib(38));
+			t1=clock();
+			printf("Na Dt %d\n", t1-t0);
+
+
+			t0=clock();
+//			sorttst(1<<16);
+			sorttst(1<<13);
+//			sorttst(1<<15);
+			t1=clock();
+			printf("Bs SortTst Dt %d\n", t1-t0);
+
+			t0=clock();
+//			sorttst(1<<16);
+			bsvm2_natsorttst(1<<13);
+//			bsvm2_natsorttst(1<<15);
+			t1=clock();
+			printf("Na SortTst Dt %d\n", t1-t0);
+
+
+//			fobj=new Foo2;
+			fobj=new Foo2(1);
+			fobj.x=3;
+			fobj.y=4;
+			fobj.z=5;
+			
+			printf("FObj ");
+			printf("%d(=3) ", fobj.x);
+			printf("%d(=4) ", fobj.y);
+			printf("%f(=5.0)\n", fobj.z);
+
+			printf("FObj Method %f(=12.0)\n", fobj.method0());
+
+			delete fobj;
+
+			v0=#[2, 3];
+			v1=#[4, 5];
+			v2=v0+v1;
+
+			printf("v2=(%f %f) (=6 8)\n", v2.x, v2.y);
+
+			w0=#[1, 0, 0];
+			w1=#[0, 1, 0];
+			w2=w0%w1;
+			
+			printf("w2=(%f %f %f) (=0 0 1)\n", w2.x, w2.y, w2.z);
+			
+			if(i && j)
+			{
+				printf("T\n");
+			}
+			
+//			printf("w2.x=%f\n", w2.x);
+
+			a1=new int[64];
+			a2=a1+32;
+			
+			a2[0]=69;
+			printf("Oat %d\n", a1[32]);
+			p1=a1;
+			p2=p1+32;
+			printf("Opt %d\n", *p2);
+
+			i=p2-p1;
+			printf("Dptr %d\n", i);
+
+//			arr=new int[64];
+//			for(i=0; i<32; i++)
+//				arr[i]=fib(i);
+			
+//			tfib=new Fib(2, 3);
+
+			i=3; j=4;
+
+			printf("RtA i=%d, j=%d\n", i, j);
+			tst_ref(i, j);
+			printf("RtB i=%d, j=%d\n", i, j);
+			
+			j=tst_switch(i);
+			printf("St i=%d, j=%d\n", i, j);
+			
+			i+=2;
+			j=i*j;
+			printf("St2 i=%d, j=%d\n", i, j);
+			
+			tst_func();
+			tst_func2();
+			
+			tst_letlec();
+			
+			tst_tryex();
+
+			tst_decjpg();
+		}
+	}
+}

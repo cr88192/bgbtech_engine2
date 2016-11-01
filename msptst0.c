@@ -20,6 +20,8 @@ int main_prestart(int argc, char *argv[])
 	GfxDrv_SetDefaults("BTE MspTest", 1024, 768);
 	FRGL_CvarSetDefault("hide_os_cursor", "1");
 
+	Con_Init();
+
 	Con_ExecCmdBuf("config.cfg");
 
 	return(0);
@@ -31,8 +33,10 @@ int main_startup(int argc, char *argv[])
 	
 	Tex_Init2();
 	GfxFont_Init();
-	Con_Init();
+//	Con_Init();
 //	ConCmds_Init();
+
+	Con_ReInit();
 
 	GPIO_InitRdtsc();
 	GPIO_Init();

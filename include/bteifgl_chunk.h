@@ -39,7 +39,7 @@ Chunk Format
   E4, Word24, 'CHK0'
     Context Data (E1 tag containing a coded bitstream)
 
-Tag Rice(4)
+Tag Rice(3)
   0: End of Chunk
   1: Chunk Table Size (TS), Rice(7)
     Gives the number of unique block types in the chunk.
@@ -63,7 +63,7 @@ Tag Rice(4)
     Planes are laid out in order.
     Data for one plane for all blocks will precede that for the next plane.
 
-Chunk LZ
+Chunk LZ (Old)
   AdRiceDC(S) 1..256: SMTF Symbol
   AdRiceDC(S) 0: Esc
     AdSRiceDC(L)
@@ -77,12 +77,46 @@ ChunkLZ data may not exceed the allowed number of bytes.
 It may encode less than the allowed byte count, in which case any remaining 
 bytes are to be zeroed.
 
+Chunk LZ (New)
+  AdRiceDC(R) Number of Raw Symbols (Raw)
+	AdRiceDC(S) 0..255: Raw Symbols (STF2)
+  AdRiceDC(L): Length (Len)
+    0=No Run/EOB
+    >0=Length
+      AdRiceDC(D): Distance(Dist)
+
+(Raw==0) && (Len==0): EOB
+  No distance is encoded.
+(Raw!=0) && (Len==0): No Match
+(Len!=0): Match
+  Len gives the number of bytes, with a minimum match of 3.
+    (Len==1), Reuse last Length
+    (Len==2), Special (Dist==Tag)
+  Dist gives the distance in the sliding window.
+    If (Dist==0), Reuse last dist.
+
+
 Region:
 E4, Word24, 'RGN0'
   Region Header
   E4, Word24, 'OFS4'
 
+'OFS4': Chunk offsets as 32-bit words.
+'OFS3': Chunk offsets as 24-bit words.
 
+'CEBM': Cell Bitmap (Inline)
+	Directly stores the bitmap data.
+'COBM': Cell Bitmap (Offset)
+	Word32 offs;	//Offset of bitmap in region image
+	Word32 size;	//Size of bitmap in region image
+
+Cell Bitmap: 2 Bits/Cell
+  00=Free Cell
+  01=Alloc Head
+  10=Alloc Data
+  11=Reserved
+
+Each cell is 64 bytes.
 */
 
 #define BGBDT_ACCFL_NOLOAD		1		//don't load chunks, fail silently
@@ -177,8 +211,15 @@ E4, Word24, 'RGN0'
 #define BGBDT_CHKFL_DIRTY		0x0001	//chunk is dirty
 #define BGBDT_CHKFL_MESHDIRTY	0x0002	//chunk needs mesh updated
 #define BGBDT_CHKFL_LIGHTDIRTY	0x0004	//should recalculate lighting.
+#define BGBDT_CHKFL_SAVEDIRTY	0x0008	//needs to be resaved
+
+#define BGBDT_CHKFL_ALLDIRTY	0x000F	//needs to be resaved
 
 #define BGBDT_RGNFL_NEWRGN		0x0001	//newly created region
+#define BGBDT_RGNFL_RGNDIRTY	0x0002	//region chunks have changed
+
+#define BGBDT_RGN_CELLSHR		6		//region cell shift
+#define BGBDT_RGN_CELLPAD		63		//region cell shift
 
 
 typedef struct BGBDT_VoxCoord_s BGBDT_VoxCoord;
@@ -218,10 +259,13 @@ int matnext;		//next for a given material
 };
 
 struct BGBDT_VoxData_s {
-u16 vtype;		//low 12: voxel type, high 4: voxel mode
+// u16 vtype;		//low 12: voxel type, high 4: voxel mode
+byte vtypel;	//low 8 bits of voxel type
+byte vtypeh;	//low 4: voxel type (high), high 4: voxel mode
 byte vattr;		//voxel attribute flags
 byte vlight;	//voxel block light
 byte alight;	//voxel area light
+byte resv0;		//reserved 0
 };
 
 struct BGBDT_VoxDataStatus_s {
@@ -301,6 +345,7 @@ int flags;
 byte *rgnmap;				//region cell bitmap
 byte *rgnbuf;				//region buffer
 int szrgnbuf;				//size of region buffer
+int nrgncell;				//number of region cells
 
 BGBDT_VoxChunk *chkptr[16*16*16];
 BGBDT_VoxChunkMesh *chkmesh[16*16*16];
@@ -336,6 +381,10 @@ byte seedperm_y[256];		//seed permutation y
 byte seedperm_z[256];		//seed permutation z
 byte seedperm_w[256];		//seed permutation w
 
+int tickstart;				//start time for tick
+int dt_tick;
+int dt_pvs;
+int dt_draw;
 
 float camorg[3];			//camera origin
 float camrot[9];			//camera rotation
@@ -378,6 +427,7 @@ u32 mark1;
 BGBDT_RiceContext *next;			//next context
 
 byte *bs_ct;						//bitstream output
+byte *bs_cts;						//bitstream output start
 byte *bs_cte;						//bitstream output end
 
 byte *bs_cs;						//bitstream input
@@ -399,5 +449,7 @@ u32 mark2;
 byte lzwin[256];					//command window
 byte lzidx[256];					//command window index
 byte lzwpos;						//command window position
+
+byte *lzhash[256];					//LZ hash
 
 };

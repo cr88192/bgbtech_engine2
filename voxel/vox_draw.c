@@ -60,6 +60,40 @@ void BGBDT_CalcChunkMeshViewCenter(BGBDT_VoxWorld *world,
 	vec[3]=vmorg[3];
 }
 
+void BGBDT_CalcChunkLocalCenter(BGBDT_VoxWorld *world,
+	BGBDT_VoxChunk *chk, float *vec)
+{
+	BGBDT_VoxCoord xyz;
+
+	xyz=BGBDT_WorldGetRegionChunkCoord(world, chk->rgn,
+		chk->bx, chk->by, chk->bz);
+	xyz.x+=8<<BGBDT_XYZ_SHR_VOXEL;
+	xyz.y+=8<<BGBDT_XYZ_SHR_VOXEL;
+	xyz.z+=8<<BGBDT_XYZ_SHR_VOXEL;
+
+	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER);
+	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER);
+	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER);
+	vec[3]=14;
+}
+
+void BGBDT_CalcRegionBlockLocalCenter(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, int bx, int by, int bz, float *vec)
+{
+	BGBDT_VoxCoord xyz;
+
+	xyz=BGBDT_WorldGetRegionVoxelCoord(world, rgn,
+		bx, by, bz);
+	xyz.x+=8<<BGBDT_XYZ_SHR_VOXEL;
+	xyz.y+=8<<BGBDT_XYZ_SHR_VOXEL;
+	xyz.z+=8<<BGBDT_XYZ_SHR_VOXEL;
+
+	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER);
+	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER);
+	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER);
+	vec[3]=14;
+}
+
 BTEIFGL_API BGBDT_VoxCoord BGBDT_ConvLocalToVoxCoord(
 	BGBDT_VoxWorld *world, float *vec)
 {
@@ -145,14 +179,58 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 	}
 }
 
+static byte pxtab[16][16]={
+{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15},
+{ 1, 0, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15},
+{ 2, 1, 3, 0, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15},
+{ 3, 2, 4, 1, 5, 0, 6, 7, 8, 9,10,11,12,13,14,15},
+{ 4, 3, 5, 2, 6, 1, 7, 0, 8, 9,10,11,12,13,14,15},
+{ 5, 4, 6, 3, 7, 2, 8, 1, 9, 0,10,11,12,13,14,15},
+{ 6, 5, 7, 4, 8, 3, 9, 2,10, 1,11, 0,12,13,14,15},
+{ 7, 6, 8, 5, 9, 4,10, 3,11, 2,12, 1,13, 0,14,15},
+{ 8, 7, 9, 6,10, 5,11, 4,12, 3,13, 2,14, 1,15, 0},
+{ 9, 8,10, 7,11, 6,12, 5,13, 4,14, 3,15, 2, 1, 0},
+{10, 9,11, 8,12, 7,13, 6,14, 5,15, 4, 3, 2, 1, 0},
+{11,10,12, 9,13, 8,14, 7,15, 6, 5, 4, 3, 2, 1, 0},
+{12,11,13,10,14, 9,15, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+{13,12,14,11,15,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+{14,13,15,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+{15,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0}
+};
+
 void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 	BGBDT_VoxRegion *rgn)
 {
+	float lorg[4];
+	BGBDT_VoxCoord cvorg;
 	BGBDT_VoxChunkMesh *mesh;
 	BGBDT_VoxChunk *chk;
+	byte *pxt, *pyt, *pzt;
 	int t0, t1, t2;
 	int bx, by, bz;
+	int cx, cy, cz;
+	int cvx, cvy, cvz;
 	int i;
+
+	BGBDT_CalcRegionBlockLocalCenter(world,
+		rgn, 128, 128, 128, lorg);
+	if(V3F_DIST(world->camorg, lorg)>256)
+		return;
+
+	cvorg=BGBDT_ConvLocalToVoxCoord(world, world->camorg);
+	cvx=(cvorg.x-(rgn->bx<<BGBDT_XYZ_SHR_REGION_XY))>>BGBDT_XYZ_SHR_CHUNK;
+	cvy=(cvorg.y-(rgn->by<<BGBDT_XYZ_SHR_REGION_XY))>>BGBDT_XYZ_SHR_CHUNK;
+	cvz=(cvorg.z-(rgn->bz<<BGBDT_XYZ_SHR_REGION_Z ))>>BGBDT_XYZ_SHR_CHUNK;
+	if(cvx<0)cvx=0;
+	if(cvy<0)cvy=0;
+	if(cvz<0)cvz=0;
+	if(cvx>15)cvx=15;
+	if(cvy>15)cvy=15;
+	if(cvz>15)cvz=15;
+
+	pxt=pxtab[cvx];
+	pyt=pxtab[cvy];
+	pzt=pxtab[cvz];
 
 	if(rgn->flags&BGBDT_RGNFL_NEWRGN)
 	{
@@ -175,39 +253,62 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 	BGBDT_VoxLight_UpdateChunkLight(world, chk);
 #endif
 
-	t0=clock();
+//	t0=clock();
+	t0=world->tickstart;
 
 //	for(bz=0; bz<8; bz++)
 //		for(by=0; by<16; by++)
 //			for(bx=0; bx<16; bx++)
 	for(bz=rgn->tbz; bz<8; bz++)
-		for(by=rgn->tby; by<16; by++)
-			for(bx=rgn->tbx; bx<16; bx++)
 	{
-		t1=clock();
-		t2=t1-t0;
-		if(t2>10)
+		for(by=rgn->tby; by<16; by++)
 		{
-			rgn->tbx=bx;
-			rgn->tby=by;
-			rgn->tbz=bz;
-			return;
+			for(bx=rgn->tbx; bx<16; bx++)
+			{
+				t1=clock();
+				t2=t1-t0;
+				if(t2>10)
+		//		if(t2>3)
+				{
+					rgn->tbx=bx;
+					rgn->tby=by;
+					rgn->tbz=bz;
+					return;
+				}
+
+				cx=pxt[bx];
+				cy=pyt[by];
+				cz=pzt[bz];
+
+		//		BGBDT_CalcChunkLocalCenter(world, mcur, lorg);
+				BGBDT_CalcRegionBlockLocalCenter(world,
+		//			rgn, bx*16+8, by*16+8, bz*16+8, lorg);
+					rgn, cx*16+8, cy*16+8, cz*16+8, lorg);
+					
+				if(V3F_DIST(world->camorg, lorg)>256)
+//					continue;
+					break;
+			
+				chk=BGBDT_GetRegionChunk(world, rgn,
+		//			bx, by, bz, 0);
+					cx, cy, cz, 0);
+				if(chk && (chk->flags&BGBDT_CHKFL_LIGHTDIRTY))
+				{
+					BGBDT_VoxLight_UpdateChunkLight(world, chk);
+					rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
+				}
+			}
+			rgn->tbx=0;
 		}
-	
-//		chk=BGBDT_GetRegionChunk(world, rgn,
-//			bx, by, bz, BGBDT_ACCFL_ENNEWCHK);
-		chk=BGBDT_GetRegionChunk(world, rgn,
-			bx, by, bz, 0);
-		if(chk && (chk->flags&BGBDT_CHKFL_LIGHTDIRTY))
-		{
-			BGBDT_VoxLight_UpdateChunkLight(world, chk);
-		}
-//		if(!mesh)continue;
-//		BGBDT_DrawVoxChunkMesh(world, mesh);
+		rgn->tby=0;
 	}
-	rgn->tbx=0;
-	rgn->tby=0;
 	rgn->tbz=0;
+	
+	if(rgn->flags&BGBDT_RGNFL_RGNDIRTY)
+	{
+		BGBDT_WorldSaveRegionData(world, rgn);
+		rgn->flags&=~BGBDT_RGNFL_RGNDIRTY;
+	}
 #endif
 }
 
@@ -216,25 +317,73 @@ void BGBDT_UpdateVoxRegionPVS(BGBDT_VoxWorld *world,
 {
 	BGBDT_VoxChunkMesh *mesh;
 	BGBDT_VoxChunkMesh *pvs;
+	BGBDT_VoxCoord cvorg;
 	float lvorg[8];
+	byte *pxt, *pyt, *pzt;
 	float d;
 	int t0, t1, t2;
 	int bx, by, bz;
-	int i;
+	int cx, cy, cz;
+	int cvx, cvy, cvz;
+	int i, j, k, accfl;
 
 	t0=clock();
 	if(t0<(rgn->lastpvs+500))
 		return;
-	rgn->lastpvs=t0;
+//	rgn->lastpvs=t0;
+
+	cvorg=BGBDT_ConvLocalToVoxCoord(world, world->camorg);
+	cvx=(cvorg.x-(rgn->bx<<BGBDT_XYZ_SHR_REGION_XY))>>BGBDT_XYZ_SHR_CHUNK;
+	cvy=(cvorg.y-(rgn->by<<BGBDT_XYZ_SHR_REGION_XY))>>BGBDT_XYZ_SHR_CHUNK;
+	cvz=(cvorg.z-(rgn->bz<<BGBDT_XYZ_SHR_REGION_Z ))>>BGBDT_XYZ_SHR_CHUNK;
+	if(cvx<0)cvx=0;
+	if(cvy<0)cvy=0;
+	if(cvz<0)cvz=0;
+	if(cvx>15)cvx=15;
+	if(cvy>15)cvy=15;
+	if(cvz>15)cvz=15;
+
+	pxt=pxtab[cvx];
+	pyt=pxtab[cvy];
+	pzt=pxtab[cvz];
+
+	t0=world->tickstart;
+	accfl=0;
 
 	pvs=NULL;
 	for(bz=0; bz<16; bz++)
 		for(by=0; by<16; by++)
 			for(bx=0; bx<16; bx++)
 	{
+		cx=pxt[bx];
+		cy=pyt[by];
+		cz=pzt[bz];
+	
+		BGBDT_CalcRegionBlockLocalCenter(world,
+//			rgn, bx*16+8, by*16+8, bz*16+8, lvorg);
+			rgn, cx*16+8, cy*16+8, cz*16+8, lvorg);
+		if(V3F_DIST(world->camorg, lvorg)>192)
+			continue;
+
+		t1=clock();
+		t2=t1-t0;
+//		if(t2>10)
+		if(t2>15)
+//		if(t2>20)
+//		if(t2>30)
+//		if(t2>45)
+		{
+			accfl=BGBDT_ACCFL_NOLOAD;
+//			rgn->tbx=bx;
+//			rgn->tby=by;
+//			rgn->tbz=bz;
+//			return;
+		}
+
 		mesh=BGBDT_GetRegionChunkMesh(world, rgn,
 //			bx, by, bz, BGBDT_ACCFL_ENNEWCHK);
-			bx, by, bz, 0);
+//			bx, by, bz, accfl);
+			cx, cy, cz, accfl);
 		if(!mesh)continue;
 		if(!mesh->nmat)
 			continue;
@@ -259,6 +408,9 @@ void BGBDT_UpdateVoxRegionPVS(BGBDT_VoxWorld *world,
 		pvs=mesh;
 //		BGBDT_DrawVoxChunkMesh(world, mesh);
 	}
+
+	if(!(accfl&BGBDT_ACCFL_NOLOAD))
+		rgn->lastpvs=t0;
 	
 	rgn->pvs=pvs;
 }
@@ -272,7 +424,7 @@ void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
 	float lvorg[8];
 	float d;
 
-	BGBDT_UpdateVoxRegionPVS(world, rgn);
+//	BGBDT_UpdateVoxRegionPVS(world, rgn);
 
 	t0=clock();
 	if(t0<(rgn->lastcvs+25))
@@ -304,12 +456,27 @@ void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
 void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 	BGBDT_VoxRegion *rgn)
 {
+	float lorg[4];
 	BGBDT_VoxChunkMesh *mesh;
 	BGBDT_VoxChunk *chk;
+	double f, g;
 	int bx, by, bz;
 	int i;
 
-	BGBDT_TickVoxRegion(world, rgn);
+//	corg[0]=rgn->bx*256+128;
+//	corg[1]=rgn->by*256+128;
+//	corg[2]=rgn->bz*256+128;
+
+//	f=V3F_LEN(world->camorg, corg);
+//	if(f>=256)
+//		return;
+
+	BGBDT_CalcRegionBlockLocalCenter(world,
+		rgn, 128, 128, 128, lorg);
+	if(V3F_DIST(world->camorg, lorg)>256)
+		return;
+
+//	BGBDT_TickVoxRegion(world, rgn);
 	BGBDT_UpdateVoxRegionCVS(world, rgn);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -317,7 +484,13 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 	
 	glTranslatef(rgn->bx*256, rgn->by*256, rgn->bz*256);
 	
-	glScalef(1.0/128, 1.0/128, 1.0/128);
+//	glScalef(1.0/128, 1.0/128, 1.0/128);
+
+//	glScalef(
+//		(1.0/128)*(32768.0/32767.0),
+//		(1.0/128)*(32768.0/32767.0),
+//		(1.0/128)*(32768.0/32767.0));
+	glScalef(1.0/127.996, 1.0/127.996, 1.0/127.996);
 
 #if 1
 	mesh=rgn->cvs;
@@ -347,8 +520,48 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 
 BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 {
-	BGBDT_VoxRegion *rcur;
-	
+	float lorg[4], lorg2[4];
+	BGBDT_VoxRegion *rcur, *rnxt, *rfst, *rcur2, *rprv2;
+	double d, d2;
+
+	world->tickstart=clock();
+
+#if 1
+	rcur=world->region; rfst=NULL;
+	while(rcur)
+	{
+		rnxt=rcur->next;
+		BGBDT_CalcRegionBlockLocalCenter(world,
+			rcur, 128, 128, 128, lorg);
+		d=V3F_DIST(world->camorg, lorg);
+		
+		rcur2=rfst; rprv2=NULL;
+		while(rcur2)
+		{
+			BGBDT_CalcRegionBlockLocalCenter(world,
+				rcur2, 128, 128, 128, lorg2);
+			d2=V3F_DIST(world->camorg, lorg2);
+			if(d<d2)
+				break;
+			rprv2=rcur2;
+			rcur2=rcur2->next;
+		}
+		
+		if(rprv2)
+		{
+			rcur->next=rcur2;
+			rprv2->next=rcur;
+		}else
+		{
+			rcur->next=rfst;
+			rfst=rcur;
+		}
+		
+		rcur=rnxt;
+	}
+	world->region=rfst;
+#endif
+
 	rcur=world->region;
 	while(rcur)
 	{
@@ -364,4 +577,32 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 		rcur=rcur->next;
 	}
 #endif
+
+	world->dt_draw=clock()-world->tickstart;
+}
+
+
+BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world)
+{
+	BGBDT_VoxRegion *rcur;
+	
+	world->tickstart=clock();
+	rcur=world->region;
+	while(rcur)
+	{
+		BGBDT_TickVoxRegion(world, rcur);
+		rcur=rcur->next;
+	}
+	world->dt_tick=clock()-world->tickstart;
+
+	world->tickstart=clock();
+	rcur=world->region;
+	while(rcur)
+	{
+		BGBDT_UpdateVoxRegionPVS(world, rcur);
+		rcur=rcur->next;
+	}
+	world->dt_pvs=clock()-world->tickstart;
+
+//	BGBDT_UpdateVoxRegionPVS(world, rgn);
 }

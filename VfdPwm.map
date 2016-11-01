@@ -1,7 +1,7 @@
 ******************************************************************************
                   MSP430 Linker PC v4.4.3                      
 ******************************************************************************
->> Linked Mon Mar 07 01:12:18 2016
+>> Linked Wed Apr 13 18:49:58 2016
 
 OUTPUT FILE NAME:   <VfdPwm.out>
 ENTRY POINT SYMBOL: "_c_int00_noargs_noexit"  address: 0000fd6c

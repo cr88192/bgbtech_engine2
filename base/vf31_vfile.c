@@ -261,6 +261,28 @@ BTEIFGL_API int VfRegisterVfsDrv(VF31_VFMNT_VTAB *drv)
 	return(0);
 }
 
+// #include <bsvm2_basm.h>
+
+int vf_setupvm()
+{
+//	BLNK_IOFuncs_t *lio;
+	BGBDT_MM_IOFuncs *lio;
+
+	BGBDT_MM_SetPuts(frgl_puts);
+	
+//	lio=BLNK_GetIOFuncs();
+	lio=BGBDT_MM_GetIOFuncs();
+
+	lio->fopen_fp=(void *(*)(char*,char*))&vffopen;
+	lio->fclose_fp=(void (*)(void*))&vfclose;
+	lio->fread_fp=(int (*)(void*,int,int,void*))&vfread;
+	lio->fwrite_fp=(int (*)(void*,int,int,void*))&vfwrite;
+//	lio->feof_fp=(int (*)(void*))&vfeof;
+	lio->ftell_fp=(s64 (*)(void*))&vftell;
+	lio->fseek_fp=(int (*)(void*,s64,int))&vfseek;
+	return(0);
+}
+
 BTEIFGL_API int VfInitVfs(void)
 {
 	static int init=0;
@@ -273,5 +295,8 @@ BTEIFGL_API int VfInitVfs(void)
 	
 	VfMount(".", "/", "dir", "");
 	VfMount("resource", "/", "dir", "");
+	
+	vf_setupvm();
+
 	return(1);
 }

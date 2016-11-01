@@ -7,6 +7,8 @@ entdef #FFD800 npc_fish
 entdef #FF6A00 npc_elf
 entdef #00FFFF npc_gecko
 
+entdef #00FF21 npc_jules
+
 physdef #FFFFFF solid
 physdef #0094FF solid_mvup
 physdef #808080 solid_front
@@ -21,5 +23,13 @@ physdef #FF00DC next_map
 tilemap testmap/Ghz1A_M0_Tile.png
 physmap testmap/Ghz1A_M0_Solid.png
 spawnmap testmap/Ghz1A_M0_Spawn.png
+
+skytex testmap/swiss1_nicyl0
+
+sprclr 0.3 0.4 0.5 1.0
+wrlclr 0.3 0.4 0.5 1.0
+
+atlasidx testmap/ghz_atlas0_1_ix.png
+atlastex testmap/ghz_atlas0_1
 
 nextmap testmap/ghz2_info.txt

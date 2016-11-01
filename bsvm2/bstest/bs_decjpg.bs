@@ -1,0 +1,1816 @@
+native *void fopen(cstring path, cstring mode);
+native int fclose(*void fd);
+native int fread(*byte buf, int n1, int n2, *void fd);
+native int fwrite(*byte buf, int n1, int n2, *void fd);
+native int fseek(*void fd, int pos, int rel);
+native int ftell(*void fd);
+
+public byte[] readfile(string path, &int rsz)
+{
+	byte[] buf;
+	*void fd;
+	int sz;
+	
+	fd=fopen(path, "rb");
+	if(!fd)
+		return(null);
+
+	fseek(fd, 0, 2);
+	sz=ftell(fd);
+	fseek(fd, 0, 0);
+	buf=new byte[sz];
+	fread(buf, 1, sz, fd);
+	fclose(fd);
+	
+	rsz=sz;
+	return(buf);
+}
+
+final int DCTSZ=8;
+final int DCTSZ2=64;
+
+final int JPG_SOF0 =0xC0;
+final int JPG_SOF1 =0xC1;
+final int JPG_SOF2 =0xC2;
+final int JPG_SOF3 =0xC3;
+final int JPG_DHT  =0xC4;
+final int JPG_SOF5 =0xC5;
+final int JPG_SOF6 =0xC6;
+final int JPG_SOF7 =0xC7;
+final int JPG_JPG  =0xC8;
+final int JPG_SOF9 =0xC9;
+final int JPG_SOF10=0xCA;
+final int JPG_SOF11=0xCB;
+final int JPG_DAC  =0xCC;
+final int JPG_SOF13=0xCD;
+final int JPG_SOF14=0xCE;
+final int JPG_SOF15=0xCF;
+
+final int JPG_RST0 =0xD0;
+final int JPG_RST1 =0xD1;
+final int JPG_RST2 =0xD2;
+final int JPG_RST3 =0xD3;
+final int JPG_RST4 =0xD4;
+final int JPG_RST5 =0xD5;
+final int JPG_RST6 =0xD6;
+final int JPG_RST7 =0xD7;
+
+final int JPG_SOI  =0xD8;
+final int JPG_EOI  =0xD9;
+final int JPG_SOS  =0xDA;
+final int JPG_DQT  =0xDB;
+final int JPG_DNL  =0xDC;
+final int JPG_DRI  =0xDD;
+final int JPG_DHP  =0xDE;
+final int JPG_EXP  =0xDF;
+
+final int JPG_APP0 =0xE0;
+final int JPG_APP1 =0xE1;
+final int JPG_APP2 =0xE2;
+final int JPG_APP3 =0xE3;
+final int JPG_APP4 =0xE4;
+final int JPG_APP5 =0xE5;
+final int JPG_APP6 =0xE6;
+final int JPG_APP7 =0xE7;
+final int JPG_APP8 =0xE8;
+final int JPG_APP9 =0xE9;
+final int JPG_APP10=0xEA;
+final int JPG_APP11=0xEB;
+final int JPG_APP12=0xEC;
+final int JPG_APP13=0xED;
+final int JPG_APP14=0xEE;
+final int JPG_APP15=0xEF;
+
+final int JPG_JPG0 =0xF0;
+final int JPG_JPG1 =0xF1;
+final int JPG_JPG2 =0xF2;
+final int JPG_JPG3 =0xF3;
+final int JPG_JPG4 =0xF4;
+final int JPG_JPG5 =0xF5;
+final int JPG_JPG6 =0xF6;
+final int JPG_JPG7 =0xF7;
+final int JPG_JPG8 =0xF8;
+final int JPG_JPG9 =0xF9;
+final int JPG_JPG10=0xFA;
+final int JPG_JPG11=0xFB;
+final int JPG_JPG12=0xFC;
+final int JPG_JPG13=0xFD;
+final int JPG_COM  =0xFE;
+
+final string[] pdjpg_marker=[
+"SOF0", "SOF1", "SOF2", "SOF3", "DHT", "SOF5", "SOF6", "SOF7",
+"JPG", "SOF9", "SOF10", "SOF11", "DAC", "SOF13", "SOF14", "SOF15",
+"RST0", "RST1", "RST2", "RST3", "RST4", "RST5", "RST6", "RST7",
+"SOI", "EOI", "SOS", "DQT", "DNL", "DRI", "DHP", "EXP",
+"APP0", "APP1", "APP2", "APP3", "APP4", "APP5", "APP6", "APP7", 
+"APP8", "APP9", "APP10", "APP11", "APP12", "APP13", "APP14", "APP15", 
+"JPG0", "JPG1", "JPG2", "JPG3", "JPG4", "JPG5", "JPG6", "JPG7", 
+"JPG8", "JPG9", "JPG10", "JPG11", "JPG12", "JPG13", "COM", ""
+];
+
+final int[] pdjpg_zigzag=[
+ 0,  1,  5,  6, 14, 15, 27, 28,
+ 2,  4,  7, 13, 16, 26, 29, 42,
+ 3,  8, 12, 17, 25, 30, 41, 43,
+ 9, 11, 18, 24, 31, 40, 44, 53,
+10, 19, 23, 32, 39, 45, 52, 54,
+20, 22, 33, 38, 46, 51, 55, 60,
+21, 34, 37, 47, 50, 56, 59, 61,
+35, 36, 48, 49, 57, 58, 62, 63
+];
+
+final int[64] pdjpg_zigzag2=[
+ 0,  1,  8, 16,  9,  2,  3, 10,
+17, 24, 32, 25, 18, 11,  4,  5,
+12, 19, 26, 33, 40, 48, 41, 34,
+27, 20, 13,  6,  7, 14, 21, 28,
+35, 42, 49, 56, 57, 50, 43, 36,
+29, 22, 15, 23, 30, 37, 44, 51,
+58, 59, 52, 45, 38, 31, 39, 46,
+53, 60, 61, 54, 47, 55, 62, 63
+];
+
+typedef ushort u16;
+typedef short s16;
+typedef uint u32;
+typedef int s32;
+typedef ulong u64;
+typedef long u64;
+
+public class PDJPG_Context
+{
+	public PDJPG_Context()
+	{
+		huff_code=new u16[8*256];
+		huff_mask=new u16[8*256];
+		huff_next=new s16[8*256];
+		huff_len=new byte[8*256];
+		huff_idx=new s16[8*256];
+
+		jpg_qt=new byte[4*64];
+
+		jpg_cid=new byte[16];
+		jpg_ch=new byte[16];
+		jpg_cv=new byte[16];
+		jpg_qid=new byte[16];
+		jpg_cxi=new int[16];
+		jpg_cyi=new int[16];
+
+		jpg_scid=new int[4];
+		jpg_scn=new int[4];
+//		jpg_sibuf=new byte[4][];
+		jpg_sibuf=(byte[][])(new variant[4]);
+
+		jpg_schs=new int[4];
+		jpg_scvs=new int[4];
+		jpg_schsci=new int[4];
+		jpg_scvsci=new int[4];
+	}
+
+	public *byte huff_css;	//current pos in bitstream (input)
+	public *byte huff_cs;	//current pos in bitstream (input)
+	public *byte huff_ct;	//current pos in bitstream (output)
+	public uint huff_win;	//bitstream window
+	public int huff_pos;	//bitstream offset
+	public int huff_isend;	//bitstream has broken (decoder)
+
+	//public u16[8*256] huff_code;
+	//public u16[8*256] huff_mask;	//huffman code masks
+	//public s16[8*256] huff_next;	//huffman code next
+	//public byte[8*256] huff_len;
+	//public s16[8*256] huff_idx;
+
+	//public u16[] huff_code;
+	//public u16[] huff_mask;	//huffman code masks
+	//public s16[] huff_next;	//huffman code next
+	//public byte[] huff_len;
+	//public s16[] huff_idx;
+
+	public *u16 huff_code;
+	public *u16 huff_mask;	//huffman code masks
+	public *s16 huff_next;	//huffman code next
+	public *byte huff_len;
+	public *s16 huff_idx;
+
+	//public byte[4*64] jpg_qt;
+	public byte[] jpg_qt;
+
+	public int xs, ys;
+	public int lxs, lys;
+	//public byte[16] jpg_cid;
+	//public byte[16] jpg_ch;
+	//public byte[16] jpg_cv;
+	//public byte[16] jpg_qid;
+	//public int[16] jpg_cxi;
+	//public int[16] jpg_cyi;
+
+	public byte[] jpg_cid;
+	public byte[] jpg_ch;
+	public byte[] jpg_cv;
+	public byte[] jpg_qid;
+	public int[] jpg_cxi;
+	public int[] jpg_cyi;
+
+	public int jpg_nc;
+	public int jpg_chm;
+	public int jpg_chn;
+
+	//public int[4] jpg_scid;
+	//public int[4] jpg_scn;
+	public int[] jpg_scid;
+	public int[] jpg_scn;
+	public byte[][] jpg_sibuf;
+	public byte[] jpg_sabuf;
+
+	//public int[4] jpg_schs;		//scan horizontal size
+	//public int[4] jpg_scvs;		//scan vertical size
+	//public int[4] jpg_schsci;		//scan horizontal scale
+	//public int[4] jpg_scvsci;		//scan vertical scale
+
+	public int[] jpg_schs;		//scan horizontal size
+	public int[] jpg_scvs;		//scan vertical size
+	public int[] jpg_schsci;		//scan horizontal scale
+	public int[] jpg_scvsci;		//scan vertical scale
+
+	public byte jpg_is420;			//image is 420
+	public byte jpg_is444;			//image is 444
+	public byte jpg_rdct;			//image uses RDCT
+}
+
+public int clamp255(int x)
+{
+	if(x<0)
+		return(0);
+	if(x>255)
+		return(255);
+	return(x);
+}
+
+public void memcpy(*byte dst, *byte src, int sz)
+{
+	*byte cs, ct, cse;
+	
+	cs=src; cse=cs+sz; ct=dst;
+// /*
+	while((cs+16)<=cse)
+	{
+		*(*long)ct=*(*long)cs;
+		*(*long)(ct+8)=*(*long)(cs+8);
+		ct+=16; cs+=16;
+	}
+	while((cs+4)<=cse)
+	{
+		*(*int)ct=*(*int)cs;
+		ct+=4; cs+=4;
+	}
+// */
+
+	while(cs<cse)
+		{ *ct++=*cs++; }
+}
+
+public void memset(*byte dst, byte val, int sz)
+{
+	*byte ct, cte;
+	
+	ct=dst; cte=ct+sz;
+	while(ct<cte)
+		{ *ct++=val; }
+}
+
+public int strcmp(*char8 s1, *char8 s2)
+{
+	while(*s1 && *s2 && *s1==*s2)
+		{ s1++; s2++; }
+	if(!(*s1))
+	{
+		if(!(*s2))
+			return(0);
+		return(1);
+	}
+	if(!(*s2))return(-1);
+	if(*s1>*s2)return(-1);
+	if(*s1<*s2)return( 1);
+	return(0);
+}
+
+public int strlen(*char8 s1)
+{
+	int n;
+	n=0;
+	while(*s1) { s1++; n++; }
+	return(n);
+}
+
+public PDJPG_Context PDJPG_AllocContext()
+{
+	PDJPG_Context ctx;
+	ctx=new PDJPG_Context();
+	return(ctx);
+}
+
+public void PDJPG_FreeContext(PDJPG_Context ctx)
+{
+	int i;
+
+	for(i=0; i<4; i++)
+		if(ctx.jpg_sibuf[i])
+			delete ctx.jpg_sibuf[i];
+
+	delete ctx;
+}
+
+public void PDJPG_Init()
+{
+	static int init=0;
+	int i, j;
+	float f, g;
+
+	if(init)return;
+	init=1;
+}
+
+public void PDJPG_TransIDCT_Horiz(*int iblk, *int oblk)
+{
+	int a, b, c, d, e, f;
+	int i, j, k, l;
+	int m, n, o, p;
+
+	a=iblk[0]* 91;	b=iblk[4]* 91;
+	c=iblk[2]*118;	d=iblk[2]* 49;
+	e=iblk[6]*118;	f=iblk[6]* 49;
+	i=a+c+b+f;	j=a+d-b-e;	k=a-d-b+e;	l=a-c+b-f;
+	m=iblk[1]*126+iblk[3]*106+iblk[5]* 71+iblk[7]* 25;
+	n=iblk[1]*106-iblk[3]* 25-iblk[5]*126-iblk[7]* 71;
+	o=iblk[1]* 71-iblk[3]*126+iblk[5]* 25+iblk[7]*106;
+	p=iblk[1]* 25-iblk[3]* 71+iblk[5]*106-iblk[7]*126;
+	oblk[0]=i+m;	oblk[1]=j+n;	oblk[2]=k+o;	oblk[3]=l+p;
+	oblk[4]=l-p;	oblk[5]=k-o;	oblk[6]=j-n;	oblk[7]=i-m;
+}
+
+public void PDJPG_TransIDCT_Vert(*int iblk, *int oblk)
+{
+	int a, b, c, d, e, f;
+	int i, j, k, l;
+	int m, n, o, p;
+
+	a=iblk[ 0]* 91;	b=iblk[32]*91;
+	c=iblk[16]*118;	d=iblk[16]*49;
+	e=iblk[48]*118;	f=iblk[48]*49;
+	i=a+c+b+f;	j=a+d-b-e;	k=a-d-b+e;	l=a-c+b-f;
+	m=iblk[8]*126+iblk[24]*106+iblk[40]* 71+iblk[56]* 25;
+	n=iblk[8]*106-iblk[24]* 25-iblk[40]*126-iblk[56]* 71;
+	o=iblk[8]* 71-iblk[24]*126+iblk[40]* 25+iblk[56]*106;
+	p=iblk[8]* 25-iblk[24]* 71+iblk[40]*106-iblk[56]*126;
+	oblk[ 0]=i+m;	oblk[ 8]=j+n;	oblk[16]=k+o;	oblk[24]=l+p;
+	oblk[32]=l-p;	oblk[40]=k-o;	oblk[48]=j-n;	oblk[56]=i-m;
+}
+
+public void BGBBTJ_JPG_TransIDCT_Vert2(*int iblk, *int oblk, int dcbias)
+{
+	int a, b, c, d, e, f;
+	int i, j, k, l;
+	int m, n, o, p;
+
+	a=iblk[ 0]* 91;	b=iblk[32]*91;
+	c=iblk[16]*118;	d=iblk[16]*49;
+	e=iblk[48]*118;	f=iblk[48]*49;
+	i=a+c+b+f;	j=a+d-b-e;	k=a-d-b+e;	l=a-c+b-f;
+	m=iblk[ 8]*126+iblk[24]*106+iblk[40]* 71+iblk[56]* 25;
+	n=iblk[ 8]*106-iblk[24]* 25-iblk[40]*126-iblk[56]* 71;
+	o=iblk[ 8]* 71-iblk[24]*126+iblk[40]* 25+iblk[56]*106;
+	p=iblk[ 8]* 25-iblk[24]* 71+iblk[40]*106-iblk[56]*126;
+	oblk[ 0]=((i+m)>>16)+dcbias;	oblk[ 8]=((j+n)>>16)+dcbias;
+	oblk[16]=((k+o)>>16)+dcbias;	oblk[24]=((l+p)>>16)+dcbias;
+	oblk[32]=((l-p)>>16)+dcbias;	oblk[40]=((k-o)>>16)+dcbias;
+	oblk[48]=((j-n)>>16)+dcbias;	oblk[56]=((i-m)>>16)+dcbias;
+}
+
+public void PDJPG_TransIDCT(*int iblk, *int oblk, int dcbias, int rtm)
+{
+	int[DCTSZ2] s;
+	int[DCTSZ2] t;
+	*int ob, obe;
+	int i, j, k;
+
+	if(rtm==2)
+	{
+		/* If DCT block is a flat color, fill directly */
+		k=((iblk[0]*8281+32768)>>16)+dcbias;
+		ob=oblk; obe=ob+64;
+		while(ob<obe)
+		{
+			ob[ 0]=k; ob[ 1]=k; ob[ 2]=k; ob[ 3]=k;
+			ob[ 4]=k; ob[ 5]=k; ob[ 6]=k; ob[ 7]=k;
+			ob[ 8]=k; ob[ 9]=k; ob[10]=k; ob[11]=k;
+			ob[12]=k; ob[13]=k; ob[14]=k; ob[15]=k;
+			ob+=16;
+		}
+		return;
+	}
+
+	PDJPG_TransIDCT_Horiz(iblk+0, s+0);
+	PDJPG_TransIDCT_Horiz(iblk+8, s+8);
+	PDJPG_TransIDCT_Horiz(iblk+16, s+16);
+	PDJPG_TransIDCT_Horiz(iblk+24, s+24);
+	PDJPG_TransIDCT_Horiz(iblk+32, s+32);
+	PDJPG_TransIDCT_Horiz(iblk+40, s+40);
+	PDJPG_TransIDCT_Horiz(iblk+48, s+48);
+	PDJPG_TransIDCT_Horiz(iblk+56, s+56);
+
+	BGBBTJ_JPG_TransIDCT_Vert2(s+0, oblk+0, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+1, oblk+1, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+2, oblk+2, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+3, oblk+3, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+4, oblk+4, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+5, oblk+5, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+6, oblk+6, dcbias);
+	BGBBTJ_JPG_TransIDCT_Vert2(s+7, oblk+7, dcbias);
+}
+
+
+//Decoder
+
+public int PDJHUFF_NextByte(PDJPG_Context ctx)
+{
+	int i, j;
+
+	i=*ctx.huff_cs++;
+	if(i==0xFF)
+	{
+//		printf("Esc @ %06X\n", ctx.huff_cs-ctx.huff_css);
+		j=*ctx.huff_cs++;
+		if(j)
+		{
+			printf("IsEnd\n");
+			ctx.huff_isend=1;
+			return(0x00);
+		}
+	}
+	
+//	printf("%02X ", i);
+	
+	return(i);
+}
+
+public int PDJHUFF_InitStream(PDJPG_Context ctx, *byte buf)
+{
+	ctx.huff_pos=0;
+	ctx.huff_isend=0;
+
+	ctx.huff_css=buf;
+	ctx.huff_cs=buf;
+	ctx.huff_win=PDJHUFF_NextByte(ctx);
+	ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+	ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+	ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+	return(0);
+}
+
+/*
+public int PDJHUFF_ReadBit(PDJPG_Context ctx)
+{
+	int i;
+
+	i=(ctx.huff_win>>>(31-ctx.huff_pos))&1;
+	ctx.huff_pos++;
+	if(ctx.huff_pos>=8)
+	{
+		ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+		ctx.huff_pos-=8;
+	}
+	return(i);
+}
+*/
+
+public int PDJHUFF_ReadNBits(PDJPG_Context ctx, int n)
+{
+	int i;
+
+	if(n<=0)return(0);
+
+/*	if(n>16)
+	{
+		printf("Pos1B p=%d n=%d @%06X\n",
+			ctx.huff_pos, n, ctx.huff_cs-ctx.huff_css);
+	} */
+
+	i=(ctx.huff_win>>(32-n-ctx.huff_pos))&((1<<n)-1);
+	ctx.huff_pos+=n;
+
+/*		if((ctx.huff_pos>=24) || (ctx.huff_pos<0))
+		{
+			printf("Pos2B %d @%06X\n",
+				ctx.huff_pos, ctx.huff_cs-ctx.huff_css);
+		} */
+
+//	while(ctx.huff_pos>=8)
+//	{
+//		ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+//		ctx.huff_pos-=8;
+//	}
+
+// /*
+	if(ctx.huff_pos>=8)
+	{
+		ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+		ctx.huff_pos-=8;
+		while(ctx.huff_pos>=8)
+		{
+			ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+			ctx.huff_pos-=8;
+		}
+	}
+// */
+
+	return(i);
+}
+
+public void PDJHUFF_SkipNBits(PDJPG_Context ctx, int n)
+{
+	ctx.huff_pos+=n;
+	while(ctx.huff_pos>=8)
+	{
+		ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+		ctx.huff_pos-=8;
+	}
+}
+
+public int PDJHUFF_PeekWord(PDJPG_Context ctx)
+{
+	int i;
+	i=(ctx.huff_win>>(16-ctx.huff_pos))&65535;
+	return(i);
+}
+
+/*
+public int PDJHUFF_DecodeSymbol(PDJPG_Context ctx, int tab)
+{
+	int i, j, k, l;
+
+	if((ctx.huff_pos>=8) || (ctx.huff_pos<0))
+		{ printf("Pos1 %d\n", ctx.huff_pos); }
+//	if(ctx.huff_pos>=8)
+//		{ printf("Pos1 %d\n", ctx.huff_pos); }
+//	if(ctx.huff_pos<0)
+//		{ printf("Pos1 %d\n", ctx.huff_pos); }
+
+	tab=tab<<8;
+//	tab<<=8;
+//	i=(ctx.huff_win>>(16-ctx.huff_pos))&65535;
+	i=(u16)(ctx.huff_win>>(16-ctx.huff_pos));
+
+	for(j=0; j<256; j++)
+	{
+		l=tab|j;
+		k=ctx.huff_len[l];
+		if(!k)
+			{ continue; }
+		if((i>>(16-k))!=ctx.huff_code[l])
+			{ continue; }
+		ctx.huff_pos+=k;
+
+		if((ctx.huff_pos>=24) || (ctx.huff_pos<0))
+		{
+			printf("Pos2 %d @%06X\n",
+				ctx.huff_pos, ctx.huff_cs-ctx.huff_css);
+		}
+
+ 		while(ctx.huff_pos>=8)
+		{
+			ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+			ctx.huff_pos-=8;
+		}
+		
+//		printf("%02X ", j);
+		return(j);
+	}
+	return(-1);
+}
+*/
+
+
+public int PDJHUFF_DecodeSymbol(PDJPG_Context ctx, int tab)
+{
+	int i, j, k, l;
+
+	i=(byte)(ctx.huff_win>>>(24-ctx.huff_pos));
+	
+	tab<<=8;
+	j=ctx.huff_idx[tab|i];
+
+	k=ctx.huff_len[tab|j];
+	if(k<=8)
+	{
+		ctx.huff_pos+=k;
+		if(ctx.huff_pos>=8)
+		{
+			ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+			ctx.huff_pos-=8;
+		}
+		return(j);
+	}
+
+	i=(u16)(ctx.huff_win>>>(16-ctx.huff_pos));
+//	j=ctx.huff_idx[tab|(i>>8)];
+
+	while(1)
+	{
+		l=tab|j;
+		k=ctx.huff_len[l];
+		if(!k)
+			{ break; }
+
+		if((i>>(16-k))!=ctx.huff_code[l])
+		{
+			j=ctx.huff_next[l];
+			if(j<0)
+				{ break; }
+			continue;
+		}
+
+		ctx.huff_pos+=k;
+		while(ctx.huff_pos>=8)
+		{
+			ctx.huff_win=(ctx.huff_win<<8)|PDJHUFF_NextByte(ctx);
+			ctx.huff_pos-=8;
+		}
+		return(j);
+	}
+	return(-1);
+}
+
+public int PDJHUFF_DecodeDiffDC(PDJPG_Context ctx, int tab)
+{
+	int i, j;
+
+	i=PDJHUFF_DecodeSymbol(ctx, tab);
+	
+//	if(i>=16)
+//		{ printf("DC: %d T=%d\n", i, tab); }
+	
+	j=PDJHUFF_ReadNBits(ctx, i);
+	j+=(~((j<<(32-i))>>31))&((-1<<i)+1);
+
+	return(j);
+}
+
+public int PDJHUFF_DecodeBlock(PDJPG_Context ctx,
+	*int buf, int dctab, int actab, int qid,
+	int ni, int nn)
+{
+	*byte qtab;
+	int i, j, k;
+
+//	printf("Tab DC=%d AC=%d\n", dctab, actab);
+
+//	for(i=1; i<64; i++)
+//		buf[i]=0;
+
+	buf[1]=0; buf[2]=0; buf[3]=0;
+	for(i=4; i<64; i+=4)
+	{	buf[i+0]=0;	buf[i+1]=0;
+		buf[i+2]=0;	buf[i+3]=0;	}
+
+	qtab=ctx.jpg_qt+qid*64;
+
+	buf[0]+=PDJHUFF_DecodeDiffDC(ctx, dctab)*qtab[0];
+	for(i=1; i<64; i++)
+	{
+		j=PDJHUFF_DecodeSymbol(ctx, actab);
+		if(j<=0)
+		{
+			if(j<0)
+			{
+				printf("bad dct block1 %02X(%d) %d/%d\n", j, j, ni, nn);
+				return(-1);
+			}
+			break;
+		}
+
+		i+=(j>>4)&15;	//preceding 0's
+		if(!(j&15))
+			continue;
+		if(i>=64)
+			{ break; }
+
+//		j&=15;
+		j=j&15;
+		k=PDJHUFF_ReadNBits(ctx, j);
+		k+=(~((k<<(32-j))>>31))&((-1<<j)+1);
+
+		j=pdjpg_zigzag2[i];
+		buf[j]=k*qtab[j];
+	}
+
+	if(i>64)
+	{
+		printf("bad dct block2 %02X(%d) len=%d %d/%d\n", j, j, i, ni, nn);
+		printf("Error @ %06X\n", ctx.huff_cs-ctx.huff_css);
+		return(-1);
+	}
+
+	if(i==1)
+		return(2);
+	return(0);
+}
+
+public void PDJPG_CopyOutBlock8B(
+	PDJPG_Context ctx, *int ibuf,
+	*byte obuf, int xs, int ys,
+	int x, int y)
+{
+	*int cs;
+	*byte ct;
+	int i0, i1, i2, i3, i4, i5, i6, i7;
+	int i, j, k;
+	
+	if(((x+8)>xs) || ((y+8)>ys))
+	{
+		for(i=0; i<8; i++)
+		{
+			if((y+i)>=ys)
+				continue;
+
+			cs=ibuf+i*8;
+			ct=obuf+(y+i)*xs+x;
+			for(j=0; j<8; j++)
+			{
+				if((x+j)>=xs)
+					continue;
+				k=*cs++;
+				if(k<0)k=0;
+				if(k>255)k=255;
+				*ct=k;
+				ct++;
+			}
+		}
+		return;
+	}
+	
+	for(i=0; i<8; i++)
+	{
+		cs=ibuf+i*8;
+		ct=obuf+(y+i)*xs+x;
+
+		j=cs[0]|cs[1]|cs[2]|cs[3]|cs[4]|cs[5]|cs[6]|cs[7];
+
+		if(j>>8)
+//		if(1)
+		{
+// /*
+			i0=cs[0];	i1=cs[1];	i2=cs[2];	i3=cs[3];
+			i4=cs[4];	i5=cs[5];	i6=cs[6];	i7=cs[7];
+			if(i0<0)i0=0;	if(i1<0)i1=0;
+			if(i2<0)i2=0;	if(i3<0)i3=0;
+			if(i4<0)i4=0;	if(i5<0)i5=0;
+			if(i6<0)i6=0;	if(i7<0)i7=0;
+			if(i0>255)i0=255;	if(i1>255)i1=255;
+			if(i2>255)i2=255;	if(i3>255)i3=255;
+			if(i4>255)i4=255;	if(i5>255)i5=255;
+			if(i6>255)i6=255;	if(i7>255)i7=255;
+			ct[0]=i0;	ct[1]=i1;	ct[2]=i2;	ct[3]=i3;
+			ct[4]=i4;	ct[5]=i5;	ct[6]=i6;	ct[7]=i7;
+// */
+
+//			i0=cs[0]|cs[1];	i1=(0-(i0>>8))>>8; i0=~(i0>>31);
+//			i2=cs[2]|cs[3];	i3=(0-(i2>>8))>>8; i2=~(i2>>31);
+//			i4=cs[4]|cs[5];	i5=(0-(i4>>8))>>8; i4=~(i4>>31);
+//			i6=cs[6]|cs[7];	i7=(0-(i6>>8))>>8; i6=~(i6>>31);
+//			ct[0]=(cs[0]|i1)&i0;	ct[1]=(cs[1]|i1)&i0;
+//			ct[2]=(cs[2]|i3)&i2;	ct[3]=(cs[3]|i3)&i2;
+//			ct[4]=(cs[4]|i5)&i4;	ct[5]=(cs[5]|i5)&i4;
+//			ct[6]=(cs[6]|i7)&i6;	ct[7]=(cs[7]|i7)&i6;
+			
+//			ct[0]=clamp255(cs[0]);	ct[1]=clamp255(cs[1]);
+//			ct[2]=clamp255(cs[2]);	ct[3]=clamp255(cs[3]);
+//			ct[4]=clamp255(cs[4]);	ct[5]=clamp255(cs[5]);
+//			ct[6]=clamp255(cs[6]);	ct[7]=clamp255(cs[7]);
+		}else
+		{
+			ct[0]=(cs[0]);	ct[1]=(cs[1]);
+			ct[2]=(cs[2]);	ct[3]=(cs[3]);
+			ct[4]=(cs[4]);	ct[5]=(cs[5]);
+			ct[6]=(cs[6]);	ct[7]=(cs[7]);
+		}
+	}
+}
+
+public int PDJPG_MarkerSOS(PDJPG_Context ctx, *byte buf)
+{
+	int[4*64] dbuf;
+	int[64] dcblk;
+	int[64] diblk;
+	byte[4] ch, cv, qid;
+	byte[4] step;
+	int[4] xi, yi, wi, hi;
+	byte[4] cdt, cat;
+	int[4] ccnt;
+
+	*byte[4] sibuf;
+	int[4] siystr;
+	
+	*byte s;
+	int t0, t1, t2;
+	int i, j, k, l, i1, j1, k1, l1;
+	int w, h, n, ns, rt;
+
+	printf("PDJPG_MarkerSOS: A\n");
+
+	t0=clock();
+
+	l=(buf[0]<<8)|buf[1];
+	printf("ns %d\n", buf[2]);
+
+	ns=buf[2]; rt=0;
+	s=buf+3;
+	for(i=0; i<buf[2]; i++)
+	{
+		printf("%d %d %d\n", s[0], s[1]>>4, s[1]&15);
+
+		cdt[i]=s[1]>>4;
+		cat[i]=s[1]&15;
+
+		for(j=0; j<ctx.jpg_nc; j++)
+		{
+			if(ctx.jpg_cid[j]==s[0])
+			{
+				ch[i]=ctx.jpg_ch[j];
+				cv[i]=ctx.jpg_cv[j];
+				qid[i]=ctx.jpg_qid[j];
+				xi[i]=ctx.jpg_cxi[j];
+				yi[i]=ctx.jpg_cyi[j];
+				step[i]=ch[i]*cv[i];
+
+				k1++;
+
+	//			if(j)k1++;
+	//			printf("  ch=%d cv=%d qi=%d xi=%d yi=%d st=%d\n",
+	//				ch[i], cv[i], qid[i], xi[i], yi[i], step[i]);
+
+				break;
+			}
+//			k++;
+		}
+
+		w=(xi[i]+7)/8;
+		h=(yi[i]+7)/8;
+//		w=(xi[i]+15)/8;
+//		h=(yi[i]+15)/8;
+		wi[i]=w;
+		hi[i]=h;
+
+		n=(w+1)*(h+2);
+		ctx.jpg_scid[i]=s[0];
+		ctx.jpg_scn[i]=j;
+
+//		if(!ctx.jpg_sibuf[i])
+//			ctx.jpg_sibuf[i]=malloc(n*64);
+//		memset(ctx.jpg_sibuf[i], 0, n*64);
+
+		if(!ctx.jpg_sibuf[i])
+			ctx.jpg_sibuf[i]=new byte[n*64];
+
+		sibuf[i]=ctx.jpg_sibuf[i];
+//		siystr[i]=w*8;
+
+		ccnt[i]=0;
+
+		s+=2;
+	}
+	s+=3;
+
+	printf("PDJPG_MarkerSOS: B\n");
+
+	for(i=0; i<ctx.jpg_nc; i++)
+	{
+		j=ctx.jpg_scn[i];
+
+		printf("PDJPG_MarkerSOS: ch=%d cv=%d chm=%d chn=%d\n",
+			ctx.jpg_ch[j], ctx.jpg_cv[j], ctx.jpg_chm, ctx.jpg_chn);
+
+		ctx.jpg_schsci[i]=(65536*ctx.jpg_ch[j])/ctx.jpg_chm;
+		ctx.jpg_scvsci[i]=(65536*ctx.jpg_cv[j])/ctx.jpg_chn;
+
+		ctx.jpg_schs[i]=(ctx.jpg_cxi[j]+7)/8;
+		ctx.jpg_scvs[i]=(ctx.jpg_cyi[j]+7)/8;
+		
+		printf("PDJPG_MarkerSOS: i=%d j=%d %d %d %d %d\n", i, j,
+			ctx.jpg_schsci[i], ctx.jpg_scvsci[i],
+			ctx.jpg_schs[i], ctx.jpg_scvs[i]);
+	}
+
+	if(ctx.jpg_nc==3)
+	{
+		i=1;
+		if(ctx.jpg_schsci[0]!=65536)i=0;
+		if(ctx.jpg_scvsci[0]!=65536)i=0;
+		if(ctx.jpg_schsci[1]!=32768)i=0;
+		if(ctx.jpg_scvsci[1]!=32768)i=0;
+		if(ctx.jpg_schsci[2]!=32768)i=0;
+		if(ctx.jpg_scvsci[2]!=32768)i=0;
+		ctx.jpg_is420=i;
+
+		i=1;
+		if(ctx.jpg_schsci[0]!=65536)i=0;
+		if(ctx.jpg_scvsci[0]!=65536)i=0;
+		if(ctx.jpg_schsci[1]!=65536)i=0;
+		if(ctx.jpg_scvsci[1]!=65536)i=0;
+		if(ctx.jpg_schsci[2]!=65536)i=0;
+		if(ctx.jpg_scvsci[2]!=65536)i=0;
+		ctx.jpg_is444=i;
+	}else
+	{
+		ctx.jpg_is420=0;
+		ctx.jpg_is444=0;
+	}
+
+	w=(ctx.xs+ctx.jpg_chm*8-1)/(ctx.jpg_chm*8);
+	h=(ctx.ys+ctx.jpg_chn*8-1)/(ctx.jpg_chn*8);
+	n=w*h;
+
+	PDJHUFF_InitStream(ctx, s);
+
+	for(i=0; i<(4*64); i++)dbuf[i]=0;
+
+	printf("PDJPG_MarkerSOS: C\n");
+
+//	t0=clock();
+	if(ctx.jpg_nc==1)
+	{
+		printf("PDJPG_MarkerSOS: Mono\n");
+
+		rt=0;
+		for(i=0; i<h; i++)
+		{
+			for(j=0; j<w; j++)
+			{
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf,
+					cdt[0]*2+0, cat[0]*2+1, qid[0], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[0], xi[0], yi[0], j*8, i*8);
+			}
+			if(rt<0)break;
+		}
+	}else if(ctx.jpg_is420)
+	{
+		printf("PDJPG_MarkerSOS: Clr420\n");
+
+		rt=0;
+		for(i=0; i<h; i++)
+		{
+			for(j=0; j<w; j++)
+			{
+				i1=i<<1;	j1=j<<1;
+
+				k=((i1+0)*wi[0])+(j1+0);
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf,
+					cdt[0]*2+0, cat[0]*2+1, qid[0], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[0], xi[0], yi[0],
+					8*(j1+0), ((i1+0)*8));
+
+				k=((i1+0)*wi[0])+(j1+1);
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf,
+					cdt[0]*2+0, cat[0]*2+1, qid[0], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[0], xi[0], yi[0],
+					8*(j1+1), ((i1+0)*8));
+
+				k=((i1+1)*wi[0])+(j1+0);
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf,
+					cdt[0]*2+0, cat[0]*2+1, qid[0], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[0], xi[0], yi[0],
+					8*(j1+0), ((i1+1)*8));
+
+				k=((i1+1)*wi[0])+(j1+1);
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf,
+					cdt[0]*2+0, cat[0]*2+1, qid[0], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[0], xi[0], yi[0],
+					8*(j1+1), ((i1+1)*8));
+
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf+1*64,
+					cdt[1]*2+0, cat[1]*2+1, qid[1], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf+1*64, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[1], xi[1], yi[1], j*8, i*8);
+
+				rt=PDJHUFF_DecodeBlock(ctx, dbuf+2*64,
+					cdt[2]*2+0, cat[2]*2+1, qid[2], i*w+j, n);
+				if(rt<0)break;
+				PDJPG_TransIDCT(dbuf+2*64, diblk, 128, rt);
+				PDJPG_CopyOutBlock8B(ctx, diblk,
+					sibuf[2], xi[2], yi[2], j*8, i*8);
+			}
+			if(rt<0)break;
+		}
+	}else
+	{
+		printf("PDJPG_MarkerSOS: Generic\n");
+
+		rt=0;
+		for(i=0; i<n; i++)
+		{
+			for(j=0; j<ns; j++)
+			{
+				for(k=0; k<cv[j]; k++)
+				{
+					for(l=0; l<ch[j]; l++)
+					{
+						if(rt<0)break;
+
+						i1=(i/(wi[j]/ch[j]))*ch[j];
+						j1=(i%(wi[j]/ch[j]))*ch[j];
+
+						rt=PDJHUFF_DecodeBlock(ctx, dbuf+j*64,
+							cdt[j]*2+0, cat[j]*2+1, qid[j], i, n);
+						if(rt<0)break;
+
+						PDJPG_TransIDCT(dbuf+j*64, diblk, 128, rt);
+						PDJPG_CopyOutBlock8B(ctx, diblk,
+							sibuf[j], xi[j], yi[j],
+							8*(j1+l), ((i1+k)*8));
+					}
+					if(rt<0)break;
+				}
+				if(rt<0)break;
+			}
+			if(rt<0)break;
+		}
+	}
+
+	t1=clock();
+	printf("PDJPG_MarkerSOS: Img Dec Dt=%d\n", t1-t0);
+
+	if(rt<0)
+	{
+		printf("PDJPG_MarkerSOS: Bad Image\n");
+		return(-1);
+	}
+
+	i=ctx.huff_cs-buf;
+	return(i);
+}
+
+public int PDJPG_MarkerSOF0(PDJPG_Context ctx, *byte buf)
+{
+	*byte cnt, s;
+	int i, j, k, l, m, n;
+
+	l=(buf[0]<<8)|buf[1];
+
+	i=(buf[3]<<8)|buf[4];
+	j=(buf[5]<<8)|buf[6];
+
+	ctx.xs=j;
+	ctx.ys=i;
+
+	m=0; n=0;
+
+	k=buf[7];
+	s=buf+8;
+	for(i=0; i<k; i++)
+	{
+		ctx.jpg_cid[i]=s[0];
+		ctx.jpg_ch[i]=s[1]>>4;
+		ctx.jpg_cv[i]=s[1]&15;
+		ctx.jpg_qid[i]=s[2];
+
+		if(ctx.jpg_ch[i]>m)m=ctx.jpg_ch[i];
+		if(ctx.jpg_cv[i]>n)n=ctx.jpg_cv[i];
+		s+=3;
+	}
+
+	ctx.jpg_chm=m;
+	ctx.jpg_chn=n;
+
+	for(i=0; i<k; i++)
+	{
+		ctx.jpg_cxi[i]=(ctx.jpg_ch[i]*ctx.xs)/m;
+		ctx.jpg_cyi[i]=(ctx.jpg_cv[i]*ctx.ys)/n;
+	}
+	ctx.jpg_nc=k;
+
+	return(0);
+}
+
+public int PDJPG_MarkerDQT(PDJPG_Context ctx, *byte buf)
+{
+	*byte s, se;
+	int i, j, l;
+
+	l=(buf[0]<<8)|buf[1];
+
+	s=buf+2;
+	se=buf+l;
+
+	while(s<se)
+	{
+		i=(s[0]>>4)&15;
+		if(i)
+			{ return(-1); }
+		i=s[0]&15;
+		for(j=0; j<64; j++)
+			ctx.jpg_qt[(i*64)+pdjpg_zigzag2[j]]=s[j+1];
+		s+=65;
+	}
+	
+	return(s-buf);
+}
+
+public int PDJPG_MarkerDHT(PDJPG_Context ctx, *byte buf)
+{
+	*byte cnt, s;
+	int i, j, k, l, tn;
+
+	l=(buf[0]<<8)|buf[1];
+
+	j=(buf[2]>>4)&15;
+	i=buf[2]&15;
+	printf("dest %d, type %d\n", i, j);
+
+	tn=i*2+j;
+
+	for(i=0; i<256; i++)
+	{
+		ctx.huff_len[tn*256+i]=0;
+		ctx.huff_next[tn*256+i]=-1;
+		ctx.huff_idx[tn*256+i]=-1;
+	}
+
+	cnt=buf+3;
+	s=cnt+16;
+	k=0; l=0;
+	for(i=0; i<16; i++)
+	{
+		k<<=1;
+		for(j=0; j<cnt[i]; j++)
+		{
+			ctx.huff_code[tn*256+(*s)]=k++;
+			ctx.huff_len[tn*256+(*s)]=i+1;
+			ctx.huff_mask[tn*256+(*s)]=(1<<(i+1))-1;
+			l=i+1;
+			s++;
+		}
+	}
+	printf("%04X %d\n", k, l);
+
+/*
+	for(i=0; i<256; i++)
+	{
+		printf("%d: %04X %d %04X\n", i,
+			ctx.huff_code[tn*256+i],
+			ctx.huff_len[tn*256+i],
+			ctx.huff_mask[tn*256+i]);
+	}
+*/
+
+	//build lookup indices / chains
+
+	for(i=0; i<256; i++)
+	{
+		ctx.huff_next[tn*256+i]=-1;
+		ctx.huff_idx[tn*256+i]=-1;
+	}
+
+	for(i=0; i<256; i++)
+	{
+		l=ctx.huff_len[tn*256+i];
+		if(!l)continue;
+		j=ctx.huff_code[tn*256+i];
+		
+		if(l<=8)
+		{
+			j=j<<(8-l);
+			k=1<<(8-l);
+			while((k--) && (j<256))
+			{
+				ctx.huff_idx[tn*256+j]=i;
+				j++;
+			}
+		}else
+		{
+			j=j>>(l-8);
+			ctx.huff_next[tn*256+i]=
+				ctx.huff_idx[tn*256+j];
+			ctx.huff_idx[tn*256+j]=i;
+		}
+	}
+
+	return(s-buf);
+}
+
+public int PDJPG_MarkerAPP0(PDJPG_Context ctx, *byte buf)
+{
+	return(0);
+}
+
+public int PDJPG_MarkerAPP9(PDJPG_Context ctx, *byte buf)
+{
+	int i;
+
+	return(0);
+}
+
+public int PDJPG_MarkerAPP11(PDJPG_Context ctx, *byte buf)
+{
+	int cr, cg, cb, ca;
+
+	buf+=2;	
+	return(0);
+}
+
+public int PDJPG_MarkerAPP12(PDJPG_Context ctx, *byte buf)
+{
+	int i;
+	buf+=2;
+
+	i=(buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3];
+
+	return(0);
+}
+
+public int PDJPG_MarkerAPP14(PDJPG_Context ctx, *byte buf)
+{
+	buf+=2;
+
+	return(0);
+}
+
+public int PDJPG_MarkerAPPN(PDJPG_Context ctx, *byte buf)
+{
+	return(0);
+}
+
+public int PDJPG_DecodeCtxInner(PDJPG_Context ctx,
+	*byte buf, int sz, *int xs, *int ys)
+{
+	*byte obuf, ct;
+	int y, u, v, r, g, b, a, u1, v1;
+	int y0, y1, y2, y3;
+	int r0, g0, b0, a0;
+	int r1, g1, b1, a1;
+	int r2, g2, b2, a2;
+	int r3, g3, b3, a3;
+	int l0, l1, l2, l3;
+	int i, j, k, l;
+
+	if((buf[0]!=0xFF) || (buf[1]!=JPG_SOI))
+		return(-1);
+
+	ctx.jpg_is420=0;
+	ctx.jpg_rdct=0;
+	
+	printf("PDJPG_DecodeCtxInner: Enter\n");
+
+	for(i=0; i<sz; i++)
+	{
+//		printf("PDJPG_DecodeCtxInner: %d/%d %02X %02X\n",
+//			i, sz, buf[i+0], buf[i+1]);
+
+		if(buf[i]!=0xFF)
+			continue;
+
+		if(buf[i+1]==0x00)
+			{ i++; continue; }
+		if(buf[i+1]==0xFF)
+			{ i++; continue; }
+
+		if(buf[i+1]==JPG_SOI)
+			{ i++; continue; }
+
+		j=buf[i+1]-0xC0;
+		if(j<0)j=63;
+
+		if(buf[i+1]==JPG_DQT)
+		{
+			printf("PDJPG_DecodeCtxInner: DQT\n");
+			PDJPG_MarkerDQT(ctx, buf+i+2);
+		}
+		if(buf[i+1]==JPG_DHT)
+		{
+			printf("PDJPG_DecodeCtxInner: DHT\n");
+			PDJPG_MarkerDHT(ctx, buf+i+2);
+		}
+		if(buf[i+1]==JPG_SOF0)
+		{
+			printf("PDJPG_DecodeCtxInner: SOF0\n");
+			PDJPG_MarkerSOF0(ctx, buf+i+2);
+		}
+		if(buf[i+1]==JPG_SOS)
+		{
+			printf("PDJPG_DecodeCtxInner: SOS\n");
+
+			j=PDJPG_MarkerSOS(ctx, buf+i+2);
+			if(j>0) { i+=j; }
+			continue;
+		}
+
+		if((buf[i+1]>=JPG_APP0) && (buf[i+1]<=JPG_APP15))
+		{
+			printf("PDJPG_DecodeCtxInner: APP%d\n",
+				buf[i+1]-JPG_APP0);
+
+			if(buf[i+1]==JPG_APP0)PDJPG_MarkerAPP0(ctx, buf+i+2);
+			if(buf[i+1]==JPG_APP11)PDJPG_MarkerAPP11(ctx, buf+i+2);
+			if(buf[i+1]==JPG_APP12)PDJPG_MarkerAPP12(ctx, buf+i+2);
+			if(buf[i+1]==JPG_APP14)PDJPG_MarkerAPP14(ctx, buf+i+2);
+
+			//skip over marker
+			j=(buf[i+2]<<8)|buf[i+3];
+			i+=j;
+			continue;
+		}
+
+		if(buf[i+1]==JPG_EOI)break;
+	}
+
+	printf("PDJPG_DecodeCtxInner: Exit\n");
+	printf("Sz=%d x %d\n", ctx.xs, ctx.ys);
+
+	*xs=ctx.xs;
+	*ys=ctx.ys;
+	return(0);
+}
+
+public int PDJPG_GetImageYUVA420(PDJPG_Context ctx,
+	*byte ybuf, *byte ubuf, *byte vbuf, *byte abuf,
+	int xs, int ys)
+{
+	if((xs!=ctx.xs) || (ys!=ctx.ys))
+		return(-1);
+
+	if(ctx.jpg_is420)
+	{
+		memcpy(ybuf, ctx.jpg_sibuf[0], xs*ys);
+		memcpy(ubuf, ctx.jpg_sibuf[1], (xs>>1)*(ys>>1));
+		memcpy(vbuf, ctx.jpg_sibuf[2], (xs>>1)*(ys>>1));
+		if(abuf)
+		{
+			if(ctx.jpg_sabuf)
+				{ memcpy(abuf, ctx.jpg_sabuf, xs*ys); }
+			else
+				{ memset(abuf, 255, xs*ys); }
+		}
+		return(0);
+	}
+	
+	return(-1);
+}
+
+public int PDJPG_GetImagePlaneYUVA420(PDJPG_Context ctx,
+	*byte yuva, int xs, int ys)
+{
+	int n0, n1;
+	
+	n0=xs*ys;
+	n1=(xs>>1)*(ys>>1);
+	PDJPG_GetImageYUVA420(ctx,
+		yuva, yuva+n0, yuva+n0+n1, yuva+n0+n1+n1, xs, ys);
+}
+
+public int PDJPG_GetImageRGBA(PDJPG_Context ctx,
+	*byte rgba, int xs, int ys)
+{
+	*byte ybuf, ubuf, vbuf;
+	*byte csy0, csy1, csu, csv;
+	*byte ct0, ct1;
+	int t0, t1, t2;
+	int cy0, cy1, cy2, cy3;
+	int cr0, cr1, cr2, cr3;
+	int cg0, cg1, cg2, cg3;
+	int cb0, cb1, cb2, cb3;
+	int cu, cv;
+	int lru, lrv;
+	int x, y, y1, xs1, ys1;
+	int n0, n1;
+	int i, j, k;
+	
+	if(ctx.jpg_is420)
+	{
+		printf("PDJPG_GetImageRGBA: Is 420\n");
+		t0=clock();
+	
+		ybuf=ctx.jpg_sibuf[0];
+		ubuf=ctx.jpg_sibuf[1];
+		vbuf=ctx.jpg_sibuf[2];
+		
+		xs1=xs>>1; ys1=ys>>1;
+		for(y=0; y<ys1; y++)
+		{
+			y1=ys1-y-1;
+			csy1=ybuf+(y1*2+0)*xs;
+			csy0=ybuf+(y1*2+1)*xs;
+			csu=ubuf+y1*xs1;
+			csv=vbuf+y1*xs1;
+
+			ct0=rgba+(y*2+0)*xs*4;
+			ct1=rgba+(y*2+1)*xs*4;
+
+			for(x=0; x<xs1; x++)
+			{
+				cy0=csy0[0]; cy1=csy0[1]; csy0+=2;
+				cy2=csy1[0]; cy3=csy1[1]; csy1+=2;
+				cu=*csu++;	cv=*csv++;
+				lru=cu-128; lrv=cv-128;
+				
+				cr0=cy0+lrv;	cg0=cy0;	cb0=cy0+lru;
+				cr1=cy1+lrv;	cg1=cy1;	cb1=cy1+lru;
+				cr2=cy2+lrv;	cg2=cy2;	cb2=cy2+lru;
+				cr3=cy3+lrv;	cg3=cy3;	cb3=cy3+lru;
+
+// /*
+				k=cr0|cr1|cr2|cr3;
+				if(k>>8)
+				{	if(cr0<  0)cr0=  0;		if(cr1<  0)cr1=  0;
+					if(cr2<  0)cr2=  0;		if(cr3<  0)cr3=  0;
+					if(cr0>255)cr0=255;		if(cr1>255)cr1=255;
+					if(cr2>255)cr2=255;		if(cr3>255)cr3=255;		}
+				k=cg0|cg1|cg2|cg3;
+				if(k>>8)
+				{	if(cg0<  0)cg0=  0;		if(cg1<  0)cg1=  0;
+					if(cg2<  0)cg2=  0;		if(cg3<  0)cg3=  0;
+					if(cg0>255)cg0=255;		if(cg1>255)cg1=255;
+					if(cg2>255)cg2=255;		if(cg3>255)cg3=255;		}
+
+				k=cb0|cb1|cb2|cb3;
+				if(k>>8)
+				{	if(cb0<  0)cb0=  0;		if(cb1<  0)cb1=  0;
+					if(cb2<  0)cb2=  0;		if(cb3<  0)cb3=  0;
+					if(cb0>255)cb0=255;		if(cb1>255)cb1=255;
+					if(cb2>255)cb2=255;		if(cb3>255)cb3=255;		}
+
+				ct0[0]=cr0;	ct0[1]=cg0;	ct0[2]=cb0;	ct0[3]=255;
+				ct0[4]=cr1;	ct0[5]=cg1;	ct0[6]=cb1;	ct0[7]=255;
+				ct1[0]=cr2;	ct1[1]=cg2;	ct1[2]=cb2;	ct1[3]=255;
+				ct1[4]=cr3;	ct1[5]=cg3;	ct1[6]=cb3;	ct1[7]=255;
+// */
+
+/*
+				k=cr0|cr1|cr2|cr3;
+				if(k>>8)
+				{
+					j=~(k>>31);
+					cr0=255&j;	cr1=255&j;
+					cr2=255&j;	cr3=255&j;
+				}
+
+				k=cg0|cg1|cg2|cg3;
+				if(k>>8)
+				{
+					j=~(k>>31);
+					cg0=255&j;	cg1=255&j;
+					cg2=255&j;	cg3=255&j;
+				}
+
+				k=cb0|cb1|cb2|cb3;
+				if(k>>8)
+				{
+					j=~(k>>31);
+					cb0=255&j;	cb1=255&j;
+					cb2=255&j;	cb3=255&j;
+				}
+
+				ct0[0]=cr0;	ct0[1]=cg0;	ct0[2]=cb0;	ct0[3]=255;
+				ct0[4]=cr1;	ct0[5]=cg1;	ct0[6]=cb1;	ct0[7]=255;
+				ct1[0]=cr2;	ct1[1]=cg2;	ct1[2]=cb2;	ct1[3]=255;
+				ct1[4]=cr3;	ct1[5]=cg3;	ct1[6]=cb3;	ct1[7]=255;
+*/
+
+/*
+				if((cr0|cr1|cr2|cr3)>>8)
+				{	cr0=clamp255(cr0);	cr1=clamp255(cr1);
+					cr2=clamp255(cr2);	cr3=clamp255(cr3);	}
+				if((cg0|cg1|cg2|cg3)>>8)
+				{	cg0=clamp255(cg0);	cg1=clamp255(cg1);
+					cg2=clamp255(cg2);	cg3=clamp255(cg3);	}
+				if((cb0|cb1|cb2|cb3)>>8)
+				{	cb0=clamp255(cb0);	cb1=clamp255(cb1);
+					cb2=clamp255(cb2);	cb3=clamp255(cb3);	}
+				
+				ct0[0]=cr0;	ct0[1]=cg0;	ct0[2]=cb0;	ct0[3]=255;
+				ct0[4]=cr1;	ct0[5]=cg1;	ct0[6]=cb1;	ct0[7]=255;
+				ct1[0]=cr2;	ct1[1]=cg2;	ct1[2]=cb2;	ct1[3]=255;
+				ct1[4]=cr3;	ct1[5]=cg3;	ct1[6]=cb3;	ct1[7]=255;
+*/
+
+/*
+				ct0[0]=clamp255(cr0);	ct0[1]=clamp255(cg0);
+				ct0[2]=clamp255(cb0);	ct0[3]=255;
+				ct0[4]=clamp255(cr1);	ct0[5]=clamp255(cg1);
+				ct0[6]=clamp255(cb1);	ct0[7]=255;
+				ct1[0]=clamp255(cr2);	ct1[1]=clamp255(cg2);
+				ct1[2]=clamp255(cb2);	ct1[3]=255;
+				ct1[4]=clamp255(cr3);	ct1[5]=clamp255(cg3);
+				ct1[6]=clamp255(cb3);	ct1[7]=255;
+*/
+
+/*
+				ct0[0]=clamp255(cy0+lrv);	ct0[1]=clamp255(cy0    );
+				ct0[2]=clamp255(cy0+lru);	ct0[3]=255;
+				ct0[4]=clamp255(cy1+lrv);	ct0[5]=clamp255(cy1    );
+				ct0[6]=clamp255(cy1+lru);	ct0[7]=255;
+
+				ct1[0]=clamp255(cy2+lrv);	ct1[1]=clamp255(cy2    );
+				ct1[2]=clamp255(cy2+lru);	ct1[3]=255;
+				ct1[4]=clamp255(cy3+lrv);	ct1[5]=clamp255(cy3    );
+				ct1[6]=clamp255(cy3+lru);	ct1[7]=255;
+*/
+
+				ct0+=8;
+				ct1+=8;
+			}
+		}
+
+		t1=clock();
+		printf("\tDt=%d\n", t1-t0);
+		
+		return(0);
+	}
+
+	printf("PDJPG_GetImageRGBA: Not 420\n");	
+	return(-1);
+}
+
+public void PDJPG_Free(*byte buf)
+{
+//	if(!buf)
+//		return;
+//	free(buf);
+}
+
+public *byte PDJPG_DecodeScanForComponentLayer(
+	*byte buf, int sz, string name)
+{
+	*byte cs, cs2, cse;
+	int i;
+	
+	printf("PDJPG_DecodeScanForComponentLayer: Enter\n");
+	
+	cs=buf; cse=buf+sz;
+	while(cs<cse)
+	{
+//		printf("PDJPG_DecodeScanForComponentLayer: %d/%d\n", cs-buf, sz);
+
+		if(*cs!=0xFF)
+		{
+			while((cs<cse) && ((*cs)!=0xFF))
+				cs++;
+			continue;
+		}
+
+//		printf("PDJPG_DecodeScanForComponentLayer: A\n");
+	
+		if((cs[0]==0xFF) && (cs[1]==JPG_APP11))
+		{
+			i=(cs[2]<<8)|cs[3];
+			cs2=cs+i+2;
+
+			cs+=4;
+			if(!strcmp((*char8)cs, "CompLayer"))
+			{
+				cs+=strlen((*char8)cs)+1;
+				if(!strcmp((*char8)cs, name))
+				{
+					printf("PDJPG_DecodeScanForComponentLayer: "
+						"Found %s\n", name);
+					cs+=strlen((*char8)cs)+1;
+					return(cs2);
+				}
+
+				cs+=strlen((*char8)cs)+1;
+				continue;
+			}
+			cs+=i-2;
+			continue;
+		}
+
+//		printf("PDJPG_DecodeScanForComponentLayer: B\n");
+
+		if((cs[0]==0xFF) && (cs[1]>=JPG_APP0) && (cs[1]<=JPG_APP15))
+		{
+			i=(cs[2]<<8)|cs[3];
+			cs+=i+2;
+			continue;
+		}
+
+//		printf("PDJPG_DecodeScanForComponentLayer: C\n");
+
+		cs++;
+	}
+	
+	printf("PDJPG_DecodeScanForComponentLayer: Exit, No\n");
+	return(null);
+}
+
+int pdjpg_hashBuffer(*byte buf, int sz)
+{
+	*byte cs, cse;
+	int h;
+	
+	cs=buf; cse=buf+sz; h=0;
+	while(cs<cse)
+	{
+		h=h*65521+(*cs++)+1;
+	}
+	return(h);
+}
+
+public int PDJPG_DecodeBasic(PDJPG_Context ctx,
+	*byte buf, int sz, *int rxs, *int rys)
+{
+	*byte obuf;
+	*byte otbuf;
+	*byte csl;
+	int i, n, sz1;
+	uint h0, h1;
+	
+	if(!ctx)
+		return(-1);
+	
+	csl=PDJPG_DecodeScanForComponentLayer(buf, sz, "Alpha");
+	if(csl)
+	{
+		printf("PDJPG_DecodeBasic: Found Alpha\n");
+		sz1=sz-(csl-buf);
+		PDJPG_DecodeLDatCtx(ctx, csl, sz1, rxs, rys);
+		
+		n=ctx.xs*ctx.ys;
+		if(!ctx.jpg_sabuf)
+//			ctx.jpg_sabuf=malloc(n);
+			ctx.jpg_sabuf=new byte[n];
+		memcpy(ctx.jpg_sabuf, ctx.jpg_sibuf[0], n);
+	}else
+	{
+		printf("PDJPG_DecodeBasic: No Alpha\n");
+
+		n=ctx.xs*ctx.ys;
+		if(ctx.jpg_sabuf)
+			memset(ctx.jpg_sabuf, 255, n);
+	}
+
+	h0=pdjpg_hashBuffer(buf, sz);
+
+	printf("PDJPG_DecodeBasic: Base\n");
+	i=PDJPG_DecodeCtxInner(ctx, buf, sz, rxs, rys);
+	printf("PDJPG_DecodeBasic: Base OK\n");
+
+	h1=pdjpg_hashBuffer(buf, sz);
+
+	printf("Hash %08X %08X\n", h0, h1);
+
+	return(i);
+}
+
+
+public int PDJPG_EscapeDecodeBuffer(*byte ibuf, int isz,
+	*byte obuf, int osz)
+{
+	*byte cs, ct, cse, cte;
+	
+	cs=ibuf; cse=ibuf+isz;
+	ct=obuf; cte=obuf+osz;
+	
+	while((cs<cse) && (ct<cte))
+	{
+		if((cs[0]==0xFF) && (cs[1]==0x00))
+			{ cs+=2; *ct++=0xFF; continue; }
+		*ct++=*cs++;
+	}
+	if(ct>=cte)return(-1);
+	return(ct-obuf);
+}
+
+public int PDJPG_EscapeDecodeSingleBuffer(*byte buf, int sz)
+{
+	*byte cs, ct, cse, cte;
+	
+	cs=buf; cse=buf+sz;
+	ct=buf; cte=buf+sz;
+	
+	while((cs<cse) && (ct<cte))
+	{
+		if((cs[0]==0xFF) && (cs[1]==0x00))
+			{ cs+=2; *ct++=0xFF; continue; }
+		*ct++=*cs++;
+	}
+	if(ct>=cte)return(-1);
+	return(ct-buf);
+}
+
+public int PDJPG_DecodeLDatCtx(PDJPG_Context ctx,
+	*byte buf, int sz, *int xs, *int ys)
+{
+	byte[] tbufa;
+	*byte tbuf, tbuf2, cs, ct;
+	int tsz;
+	int i, j, k;
+
+	if((buf[0]!=0xFF) || (buf[1]!=JPG_APP12) ||
+		(buf[4]!='L') || (buf[5]!='D') ||
+		(buf[6]!='A') || (buf[7]!='T'))
+	{
+		k=PDJPG_DecodeCtxInner(ctx, buf, sz, xs, ys);
+		return(k);
+	}
+
+	cs=buf; tsz=0;
+	while((cs[0]==0xFF) && (cs[1]==JPG_APP12) &&
+		(cs[4]=='L') && (cs[5]=='D') &&
+		(cs[6]=='A') && (cs[7]=='T'))
+	{
+		i=(cs[2]<<8)|cs[3];
+		tsz+=i;
+		cs+=i+2;
+	}
+	
+	tbufa=new byte[tsz];
+	tbuf=(*byte)tbufa;
+//	tbuf=malloc(tsz);
+	cs=buf; ct=tbuf;
+
+	while((cs[0]==0xFF) && (cs[1]==JPG_APP12) &&
+		(cs[4]=='L') && (cs[5]=='D') &&
+		(cs[6]=='A') && (cs[7]=='T'))
+	{
+		i=(cs[2]<<8)|cs[3];
+		memcpy(ct, cs+8, i-6);
+		cs+=i+2; ct+=(i-6);
+	}
+
+	i=ct-tbuf;
+	i=PDJPG_EscapeDecodeSingleBuffer(tbuf, i);
+
+	k=PDJPG_DecodeCtxInner(ctx, tbuf, i, xs, ys);
+	delete tbufa;
+	return(k);
+}
+
+public int PDJPG_FlattenTGA(*byte obuf, *byte rgba, int xs, int ys)
+{
+//	byte[256] head;
+	*byte head;
+	int i, j, k, n;
+	
+	head=obuf;
+	
+	head[0]=0;					//id_length
+	head[1]=0;					//ctype
+	head[2]=2;					//itype
+	
+	head[3]=0;	head[4]=0;		//cindex
+	head[5]=0;	head[6]=0;		//clength
+
+	head[7]=0;					//csize
+
+	head[8]=0;	head[9]=0;		//x origin
+	head[10]=0;	head[11]=0;		//y origin
+
+	head[12]=xs; head[13]=xs>>8;	//xsize
+	head[14]=ys; head[15]=ys>>8;	//ysize
+	head[16]=24;					//bpp
+	head[17]=0;						//attributes
+	
+	printf("PDJPG_FlattenTGA: %d x %d\n", xs, ys);
+	
+//	memcpy(obuf, head, 18);
+	
+	n=xs*ys;
+	for(i=0; i<n; i++)
+	{
+		j=i*4;
+		k=18+i*3;
+		obuf[k+0]=rgba[j+2];
+		obuf[k+1]=rgba[j+1];
+		obuf[k+2]=rgba[j+0];
+	}
+	return(18+n*3);
+}
+
+public int PDJPG_StoreTGA(string name, byte[] rgba, int xs, int ys)
+{
+	*void fd;
+	byte[] tbuf;
+	int sz;
+	
+	tbuf=new byte[xs*ys*4+64];
+	sz=PDJPG_FlattenTGA(tbuf, rgba, xs, ys);
+	
+	fd=fopen(name, "wb");
+	fwrite(tbuf, 1, sz, fd);
+	fclose(fd);
+	return(0);
+}

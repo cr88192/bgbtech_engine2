@@ -390,6 +390,7 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 		sz=PDJPG_EncodeClrs(ibuf, obuf, xs, ys, qfl, jclrs);
 	}else
 	{
+		qfl|=BTIC4B_QFL_OPTBCN;
 		sz=BTIC4B_EncodeImgBmpBuffer(obuf, 1<<24,
 			ibuf, xs, ys, qfl, clrs);
 	}

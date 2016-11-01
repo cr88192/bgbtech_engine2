@@ -3,7 +3,7 @@
 int BGBDT_VoxTrace_CheckChunkEmpty(
 	BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
 {
-	int vty_air;
+	int vty, vty_air;
 	int i, j, k;
 	
 	if(!chk)
@@ -15,7 +15,9 @@ int BGBDT_VoxTrace_CheckChunkEmpty(
 
 	for(i=0; i<chk->nvoxinfo; i++)
 	{
-		if((chk->voxinfo[i].vtype&4095)!=vty_air)
+		vty=chk->voxinfo[i].vtypel|(chk->voxinfo[i].vtypeh<<8);
+//		if((chk->voxinfo[i].vtype&4095)!=vty_air)
+		if((vty&4095)!=vty_air)
 			break;
 	}
 	return(i>=chk->nvoxinfo);
@@ -25,7 +27,7 @@ int BGBDT_VoxTrace_CheckChunkSolid(
 	BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
 {
 	BGBDT_VoxTypeInfo *tyi;
-	int tix;
+	int tix, vty;
 	int i, j, k;
 	
 	if(!chk)
@@ -35,7 +37,9 @@ int BGBDT_VoxTrace_CheckChunkSolid(
 
 	for(i=0; i<chk->nvoxinfo; i++)
 	{
-		tix=chk->voxinfo[i].vtype&4095;
+		vty=chk->voxinfo[i].vtypel|(chk->voxinfo[i].vtypeh<<8);
+		tix=vty&4095;
+//		tix=chk->voxinfo[i].vtype&4095;
 		tyi=world->voxtypes[tix];
 		if(!tyi)break;
 		if(tyi->flags&BGBDT_VOXFL_NONSOLID)
@@ -48,7 +52,7 @@ int BGBDT_VoxTrace_CheckChunkOpaque(
 	BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
 {
 	BGBDT_VoxTypeInfo *tyi;
-	int tix;
+	int tix, vty;
 	int i, j, k;
 	
 	if(!chk)
@@ -58,7 +62,9 @@ int BGBDT_VoxTrace_CheckChunkOpaque(
 
 	for(i=0; i<chk->nvoxinfo; i++)
 	{
-		tix=chk->voxinfo[i].vtype&4095;
+		vty=chk->voxinfo[i].vtypel|(chk->voxinfo[i].vtypeh<<8);
+		tix=vty&4095;
+//		tix=chk->voxinfo[i].vtype&4095;
 		tyi=world->voxtypes[tix];
 		if(!tyi)break;
 		if(tyi->flags&BGBDT_VOXFL_TRANSPARENT)
@@ -293,9 +299,9 @@ BTEIFGL_API int BGBDT_BoxQueryVoxel(BGBDT_VoxWorld *world,
 	bx=min.x>>BGBDT_XYZ_SHR_VOXEL;
 	by=min.y>>BGBDT_XYZ_SHR_VOXEL;
 	bz=min.z>>BGBDT_XYZ_SHR_VOXEL;
-	nx=(min.x+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
-	ny=(min.y+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
-	nz=(min.z+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+	nx=(max.x+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+	ny=(max.y+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+	nz=(max.z+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
 	
 	accfl=0;
 	if(tracefl&BGBDT_TRFL_NOLOAD)
@@ -324,5 +330,6 @@ BTEIFGL_API int BGBDT_BoxQueryVoxel(BGBDT_VoxWorld *world,
 	}
 	if(rnvox)
 		*rnvox=n;
-	return(0);
+	return(n>0);
+//	return(0);
 }

@@ -126,7 +126,8 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSamplerWAV(char *name)
 		cs2=cs+((tsz+1)&(~1));
 		if((cs2>cse) || (cs2<css))
 		{
-			__asm { int 3 }
+//			__asm { int 3 }
+			FRGL_DBGBREAK
 			break;
 		}
 		

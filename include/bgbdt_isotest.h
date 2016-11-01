@@ -36,6 +36,10 @@ byte *tile_phidx;	//tile physics index
 byte *tile_spidx;	//tile spawn index
 
 char *sky;
+char *atlas;
+
+float sprclr[4];
+float wrlclr[4];
 
 dtVal entarr;
 int nents;

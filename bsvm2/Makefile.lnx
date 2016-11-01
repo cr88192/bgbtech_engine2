@@ -1,0 +1,22 @@
+BUILD=.
+MKSUF=.lnx
+LIBSUF=.lib
+DLLSUF=.so
+EXESUF=.elf
+BINSUF=.elf
+OBJSUF=.o
+DLLPF=lib
+
+CC_OUTEXE=gcc -o 
+CC_OUTDLL=gcc -shared -fPIC -o 
+CC_OUTOBJ=gcc -c -o 
+CC_OUTTOOL=gcc -o 
+
+# CFLAGS=-Iinclude -g -O3
+CFLAGS=-Iinclude -g
+DLL_CFLAGS=$(CFLAGS) -DBTEIFGL_DLL
+DLL_LDFLAGS=-lm -lpthread -ldl
+LDFLAGS=-L. -lbtbsvm2 $(DLL_LDFLAGS) -Wl,-rpath,"$$PWD"
+
+include Makefile.inc
+

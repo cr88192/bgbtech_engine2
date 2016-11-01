@@ -28,9 +28,11 @@ dtcClass isotest_npcdiag_cls;
 dtcField isotest_npcdiag_fi_face1;
 dtcField isotest_npcdiag_fi_face2;
 dtcField isotest_npcdiag_fi_text;
+dtcField isotest_npcdiag_fi_voice;
 dtcField isotest_npcdiag_fi_options;
 
 dtcField isotest_npcdiag_fi_impulse;
+dtcField isotest_npcdiag_fi_setup;
 
 BGBDT_IsoMap *isotest_map;
 
@@ -56,6 +58,7 @@ int isotest_diag_lpchars;
 int isotest_diag_sndid;
 
 int isotest_snd_bgmid;
+char *isotest_usebkg;
 
 double isotest_diag_ptime;
 double isotest_worldtime;
@@ -69,6 +72,23 @@ MAIN_EXPORT void IsoTest_SetDialog(dtVal dbox)
 	isotest_diagbox=dbox;
 	isotest_diag_pchars=0;
 	isotest_diag_ptime=frgl_state->time_f;
+	
+	if(dtvTrueP(dbox))
+		{ IsoTile_CallDiagSetup(dbox); }
+}
+
+MAIN_EXPORT void IsoTest_SetUseBackground(char *bkg)
+{
+//	isotest_diagbox=dbox;
+//	isotest_diag_pchars=0;
+//	isotest_diag_ptime=frgl_state->time_f;
+	if(!bkg)
+	{
+		isotest_usebkg=NULL;
+		return;
+	}
+
+	isotest_usebkg=frgl_strdup(bkg);
 }
 
 MAIN_EXPORT void IsoTest_SetApplyWorldFlags(int flag)
@@ -463,6 +483,22 @@ dtVal IsoTest_DiagGetOptions(dtVal obj)
 	return(v);
 }
 
+char *IsoTest_DiagGetVoice(dtVal obj)
+{
+	dtVal v;
+
+	if(!isotest_npcdiag_fi_voice)
+	{
+		isotest_npcdiag_fi_voice=BGBDTC_LookupClassSlotName(
+			isotest_npcdiag_cls, "voice");
+		if(!isotest_npcdiag_fi_voice)
+			return(NULL);
+	}
+
+	v=dtcVaGetA(obj, isotest_npcdiag_fi_voice);
+	return(BGBDT_TagStr_GetUtf8(v));
+}
+
 int main_prestart(int argc, char *argv[])
 {
 	char tb[256];
@@ -548,6 +584,7 @@ int main_loadscript(char *def)
 	vi=BS2I_ImageGetMain(isotest_img, NULL);
 
 	frgl_free(tbuf);
+	BS2P_FreeCompileContext(ctx);
 
 	vctx=BSVM2_Interp_AllocPoolContext();
 	BSVM2_Interp_SetupCallVM(vctx, vi, NULL);
@@ -725,6 +762,19 @@ int IsoTile_CallDiagImpulse(dtVal self, int imp)
 	return(0);
 }
 
+int IsoTile_CallDiagSetup(dtVal self)
+{
+	static dtcMethod fi=NULL;
+	BSVM2_Value targs[4];
+	int i;
+
+//	targs[0].i=imp;
+	i=BSVM2_Interp_CallCacheMethodVM(self, &fi, targs,
+		"NpcDialogBox", "setup", NULL, 999999999);
+	if(i)printf("IsoTile_CallDiagImpulse: Status=%d\n", i);
+	return(0);
+}
+
 int IsoTile_SetGlobalA(char *cname, dtVal v)
 {
 	BSVM2_ImageGlobal *vi;
@@ -772,6 +822,9 @@ int IsoTest_DrawSprite(char *spr, vec2 vorg, float xs, float ys)
 	fw[2]=0;
 
 	tex=Tex_LoadFile(spr, NULL, NULL);
+
+	if(isotest_map)
+		frglColor4fv(isotest_map->sprclr);
 
 	frglEnableTexture2D();
 	frglBindTexture2D(tex);
@@ -844,8 +897,11 @@ int isotile_drawsky(BGBDT_IsoMap *map)
 	char *spr;
 	int tex;
 
+	spr=map->sky;
+
 //	spr="testmap/swiss1_cyl0";
-	spr="testmap/swiss1_day0";
+	if(!spr)
+		spr="testmap/swiss1_day0";
 
 	tex=Tex_LoadFile(spr, NULL, NULL);
 
@@ -912,9 +968,13 @@ int isotile_drawmap2(BGBDT_IsoMap *map)
 	if(nx>map->xs)nx=map->xs;
 	if(ny>map->ys)ny=map->ys;
 
-	spr="testmap/ghz_atlas0_1";
+	spr=map->atlas;
+	if(!spr)
+		spr="testmap/ghz_atlas0_1";
 
 	tex=Tex_LoadFile(spr, NULL, NULL);
+
+	frglColor4fv(map->wrlclr);
 
 	frglEnableTexture2D();
 	frglBindTexture2D(tex);
@@ -966,6 +1026,9 @@ int isotile_drawmap(BGBDT_IsoMap *map)
 	int x, y, mx, my, nx, ny;
 	int i, j, k, l;
 
+	if(isotest_usebkg)
+		return;
+
 //	frglEnable(GL_CULL_FACE);
 	frglDisable(GL_CULL_FACE);
 	frglDisable(GL_ALPHA_TEST);
@@ -989,6 +1052,8 @@ int isotile_drawmap(BGBDT_IsoMap *map)
 	}
 
 	frglDisable(GL_ALPHA_TEST);
+
+	frglColor4f(1,1,1,1);
 }
 
 #if 0
@@ -1265,6 +1330,9 @@ int isotest_drawplayer()
 	int i;
 	char *str;
 
+	if(isotest_usebkg)
+		return(0);
+
 //	V3F_ADDSCALE(isotest_org,
 //		isotest_rot+3, 256, org);
 //	V3F_ADDSCALE(org,
@@ -1382,6 +1450,8 @@ int isotest_drawplayer()
 		flip=0;
 	}
 
+	if(isotest_map)
+		frglColor4fv(isotest_map->sprclr);
 
 	tex=Tex_LoadFile(str, NULL, NULL);
 
@@ -1403,7 +1473,7 @@ int IsoTile_DrawDialog(dtVal dbox)
 {
 	char tb[4096];
 	dtVal opts, a;
-	char *face1, *face2, *text;
+	char *face1, *face2, *text, *voc;
 	char *sf0, *s0;
 	float x0, y0, x1, y1;
 	float x2, y2, x3, y3;
@@ -1419,6 +1489,12 @@ int IsoTile_DrawDialog(dtVal dbox)
 	face2=IsoTest_DiagGetFace2(dbox);
 	text=IsoTest_DiagGetText(dbox);
 	opts=IsoTest_DiagGetOptions(dbox);
+	voc=IsoTest_DiagGetVoice(dbox);
+	
+//	voc=NULL;
+
+	if(!voc)
+		voc="sound/box_aa1";
 
 	x0=-320; y0=-240;
 	x1=320; y1=240;
@@ -1438,7 +1514,7 @@ int IsoTile_DrawDialog(dtVal dbox)
 			if(isotest_diag_sndid<=0)
 			{
 				isotest_diag_sndid=BGBDT_Sound_PlaySound(
-					"sound/box_aa1", 32, 0, BGBDT_SNDFL_LOOP);
+					voc, 32, 0, BGBDT_SNDFL_LOOP);
 			}
 		}else
 		{
@@ -1628,6 +1704,41 @@ int IsoTile_DrawDeadScreen(void)
 	x1=512; y1=384;
 
 	tex=Tex_LoadFile("images/ui/dead0", NULL, NULL);
+
+	frglEnableTexture2D();
+	frglBindTexture2D(tex);
+	frglBegin(GL_QUADS);
+	frglTexCoord2f(0, 0);
+	frglVertex2f(x0, y0);
+	frglTexCoord2f(1, 0);
+	frglVertex2f(x1, y0);
+	frglTexCoord2f(1, 1);
+	frglVertex2f(x1, y1);
+	frglTexCoord2f(0, 1);
+	frglVertex2f(x0, y1);
+	frglEnd();
+}
+
+int IsoTile_DrawUseBackground(void)
+{
+	char tb[256];
+	dtVal opts, a;
+//	char *face1, *face2, *text;
+	char *sf0, *s0;
+	float x0, y0, x1, y1;
+	float x2, y2, x3, y3;
+	float z0, z1;
+	float u0, v0, u1, v1;
+	int tex;
+	int i, j, k, l;
+
+	if(!isotest_usebkg)
+		return;
+
+	x0=-512; y0=-384;
+	x1=512; y1=384;
+
+	tex=Tex_LoadFile(isotest_usebkg, NULL, NULL);
 
 	frglEnableTexture2D();
 	frglBindTexture2D(tex);
@@ -1873,10 +1984,11 @@ void isotest_newgame_init()
 void isotest_loadmap(char *mapinf)
 {
 //	BGBDT_IsoTile *tile;
+	float sclr[4], wclr[4];
 	char tb[256];
 
 	char *fname, *wname, *ename;
-	char *sky;
+	char *sky, *atlas, *atlasix;
 //	char *callfn;
 	byte *ixbuf, *itbuf;
 	char **a;
@@ -1912,12 +2024,18 @@ void isotest_loadmap(char *mapinf)
 		iso_map=frgl_strdup(mapinf);
 		iso_nextmap=NULL;
 		iso_callfunc=NULL;
+		isotest_usebkg=NULL;
 		
 		fname=NULL;
 		wname=NULL;
 		ename=NULL;
 //		callfn=NULL;
 		sky=NULL;
+		atlas=NULL;
+		atlasix=NULL;
+		
+		V4F_CONST(sclr, 1, 1, 1, 1);
+		V4F_CONST(wclr, 1, 1, 1, 1);
 		
 		cs=itbuf; cse=cs+sz;
 		while(*cs && (cs<cse))
@@ -1985,6 +2103,32 @@ void isotest_loadmap(char *mapinf)
 				sky=frgl_strdup(a[1]);
 				continue;
 			}
+
+			if(!strcmp(a[0], "atlastex"))
+			{
+				atlas=frgl_strdup(a[1]);
+				continue;
+			}
+
+			if(!strcmp(a[0], "atlasidx"))
+			{
+				atlasix=frgl_strdup(a[1]);
+				continue;
+			}
+
+			if(!strcmp(a[0], "sprclr"))
+			{
+				 sclr[0]=atof(a[1]); sclr[1]=atof(a[2]);
+				 sclr[2]=atof(a[3]); sclr[3]=atof(a[4]);
+				 continue;
+			}
+
+			if(!strcmp(a[0], "wrlclr"))
+			{
+				 wclr[0]=atof(a[1]); wclr[1]=atof(a[2]);
+				 wclr[2]=atof(a[3]); wclr[3]=atof(a[4]);
+				 continue;
+			}
 		}
 	
 //		iso_fbuf=Tex_LoadFileRaw("testmap/Ghz1_M0_Tile.png",
@@ -2025,6 +2169,10 @@ void isotest_loadmap(char *mapinf)
 		}
 
 		isotest_map->sky=sky;
+		isotest_map->atlas=atlas;
+
+		V4F_COPY(sclr, isotest_map->sprclr);
+		V4F_COPY(wclr, isotest_map->wrlclr);
 
 		if(iso_fbuf)
 		{
@@ -2041,8 +2189,9 @@ void isotest_loadmap(char *mapinf)
 				iso_xs*iso_ys);
 		}
 
-		ixbuf=Tex_LoadFileRaw(
-			"testmap/ghz_atlas0_1_ix.png", &xs0, &ys0);
+		if(!atlasix)
+			atlasix="testmap/ghz_atlas0_1_ix.png";
+		ixbuf=Tex_LoadFileRaw(atlasix, &xs0, &ys0);
 		stx=xs0>>4;
 		sty=ys0>>4;
 		
@@ -3009,6 +3158,9 @@ int main_body()
 //	tex=Tex_LoadFile("images/openhole0.png", NULL, NULL);
 
 	FRGL_Setup2D();
+
+	frglColor4f(1,1,1,1);
+	IsoTile_DrawUseBackground();
 
 	if(!dtvNullP(isotest_diagbox))
 	{

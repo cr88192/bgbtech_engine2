@@ -1,0 +1,34 @@
+First Stage:
+* Name: Star Lit Park
+* Player: Amanda (Younger)
+* Boss: Encounters Jules
+
+Location: End of Stage
+Jules:
+	No, don't run away!
+	I don't mean you any harm.
+	Rather, I have a business proposition.
+-
+	Yes. I could use your help with my robotics business.
+	Or, at least, your face.
+	You see, for a contract of mine, I need a second source, but as you can see,
+	I am the only real player in this industry.
+	So, what I need you to do, if you will, is to stand in as my competitor.
+	I will supply the funding, and the facilities.
+Amanda:
+	What's in it for me?
+	Why should I offer my services to a scary robot guy?
+Jules:
+	I will pay you well.
+	How about this, I will take you to dinner, and we can talk more about it.
+	Also, I assure you, I am not a robot.
+
+Location: At resteraunt (or otherwise getting food).
+Jules:
+	How is the food and wine, is it statisfactory?
+Amanda:
+	Yes, very much.
+	How about we go back to your place?...
+
+They go back to Jules place, and get it on.
+

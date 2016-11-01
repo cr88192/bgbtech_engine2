@@ -12,7 +12,7 @@ CC_OUTDLL=cl /LD /Fe
 CC_OUTOBJ=cl /c /Fo
 CC_OUTTOOL=cl /Fe
 
-CFLAGS=/Iinclude /Zi
+CFLAGS=/Iinclude /Ibsvm2/include /Zi
 # CFLAGS=/Iinclude /O2 /Zi /arch:SSE2
 DLL_CFLAGS=$(CFLAGS) /DBTEIFGL_DLL
 DLL_LDFLAGS=opengl32.lib gdi32.lib user32.lib winmm.lib kernel32.lib \

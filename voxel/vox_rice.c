@@ -54,6 +54,7 @@ void BGBDT_Rice_SetupWrite(BGBDT_RiceContext *ctx, byte *obuf, int osz)
 	ctx->bs_bits=0;
 
 	ctx->bs_ct=obuf;
+	ctx->bs_cts=obuf;
 	ctx->bs_cte=obuf+osz;
 }
 
@@ -388,7 +389,7 @@ void BGBDT_Rice_WriteAdSRiceDc(BGBDT_RiceContext *ctx, int v, int *rk)
 	BGBDT_Rice_WriteAdRiceDc(ctx, (v<<1)^(v>>31), rk);
 }
 
-void BGBDT_Rice_FlushBits(BGBDT_RiceContext *ctx)
+int BGBDT_Rice_FlushBits(BGBDT_RiceContext *ctx)
 {
 	int i;
 	while(ctx->bs_pos>0)
@@ -399,4 +400,5 @@ void BGBDT_Rice_FlushBits(BGBDT_RiceContext *ctx)
 		ctx->bs_pos-=8;
 	}
 	ctx->bs_pos=0;
+	return(ctx->bs_ct-ctx->bs_cts);
 }

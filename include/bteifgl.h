@@ -79,6 +79,8 @@
 #define FRGL_QUAD_STRIP					8
 #define FRGL_POLYGON					9
 
+#define FRGL_DBGBREAK			__debugbreak();
+
 #define	BGBBTJ_JPG_RGBA			0	//RGBA(32)
 #define	BGBBTJ_JPG_RGB			1	//RGB(24)
 #define	BGBBTJ_JPG_BGRA			3	//BGRA(32)
@@ -304,8 +306,6 @@ int n_prim;
 int m_prim;
 }FRGL_TextVBO;
 
-typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
-
 #include <libvecmath.h>
 
 #include <bteifgl_keys.h>
@@ -313,16 +313,15 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 #include <bteifgl_net.h>
 // #include <bteifgl_btic1g.h>
 
-#include <bteifgl_mm.h>
+#ifdef BTEIFGL_DLL
+#define BS2VM_DLL
+#endif
 
-#include <bteifgl_tagval.h>
-#include <bgbdt_tagclass.h>
+#include <bsvm2.h>
+
 #include <bteifgl_entobj.h>
 
 #include <bgbdt_vfile31.h>
-
-#include <bgbdt_bs2cc.h>
-#include <bgbdt_bsvm21.h>
 
 #include <bteifgl_texmat.h>
 #include <bgbdt_sound.h>
@@ -339,19 +338,6 @@ typedef struct BGBDT_MM_ParsePrintInfo_s BGBDT_MM_ParsePrintInfo;
 
 #include <bgbdt_btpak0.h>
 #include <bt4b_common.h>
-
-struct BGBDT_MM_ParsePrintInfo_s {
-BGBDT_MM_ParsePrintInfo *next;
-char *buf;
-char *cs, *css, *cse;
-char *ct, *cts, *cte;
-
-dtVal recarr[256];
-int nrec;
-int nchars;
-
-int (*putstr)(BGBDT_MM_ParsePrintInfo *inf, char *str);
-};
 
 #include <bteifgl_auto.h>
 

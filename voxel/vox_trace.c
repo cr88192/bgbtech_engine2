@@ -166,8 +166,8 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 	BGBDT_VoxData *rtd, BGBDT_VoxDataStatus *rts,
 	int tracefl)
 {
-	BGBDT_VoxCoord cpos, lcpos, diff, step;
-	BGBDT_VoxData td;
+	BGBDT_VoxCoord cpos, lcpos, tpos, cp1, tp1, diff, step;
+	BGBDT_VoxData td, td1;
 	BGBDT_VoxDataStatus tds;
 	BGBDT_VoxChunk *chk;
 	int m, d, n, accfl;
@@ -191,8 +191,13 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 	accfl=0;
 	if(tracefl&BGBDT_TRFL_NOLOAD)
 		accfl|=BGBDT_ACCFL_NOLOAD;
+
+	n=1+(m>>(BGBDT_XYZ_SHR_VOXEL-1));
+	step.x>>=1;
+	step.y>>=1;
+	step.z>>=1;
 	
-	n=1+(m>>BGBDT_XYZ_SHR_VOXEL);
+//	n=1+(m>>BGBDT_XYZ_SHR_VOXEL);
 	cpos=spos;
 	for(i=0; i<n; i++)
 	{
@@ -253,6 +258,34 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 		cpos.z=cpos.z+step.z;
 	}
 
+	cp1.x=cpos.x&(~BGBDT_XYZ_MASK_VOXEL);
+	cp1.y=cpos.y&(~BGBDT_XYZ_MASK_VOXEL);
+	cp1.z=cpos.z&(~BGBDT_XYZ_MASK_VOXEL);
+
+//	tpos=lcpos;
+	k=4;
+	while((k--)>0)
+	{
+		tpos.x=(lcpos.x+cpos.x)>>1;
+		tpos.y=(lcpos.y+cpos.y)>>1;
+		tpos.z=(lcpos.z+cpos.z)>>1;
+
+		tp1.x=tpos.x&(~BGBDT_XYZ_MASK_VOXEL);
+		tp1.y=tpos.y&(~BGBDT_XYZ_MASK_VOXEL);
+		tp1.z=tpos.z&(~BGBDT_XYZ_MASK_VOXEL);
+	
+		if(	(cp1.x==tp1.x) &&
+			(cp1.y==tp1.y) &&
+			(cp1.z==tp1.z))
+				break;
+
+		BGBDT_WorldGetVoxelData(world, cpos, &td1, NULL, 0);
+		if(BGBDT_WorldVoxel_CheckMatchP(world, tpos, td1, tracefl))
+			break;
+
+		lcpos=tpos;
+	}
+
 	lcpos.x=lcpos.x&(~BGBDT_XYZ_MASK_VOXEL);
 	lcpos.y=lcpos.y&(~BGBDT_XYZ_MASK_VOXEL);
 	lcpos.z=lcpos.z&(~BGBDT_XYZ_MASK_VOXEL);
@@ -260,7 +293,7 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 	cpos.x=cpos.x&(~BGBDT_XYZ_MASK_VOXEL);
 	cpos.y=cpos.y&(~BGBDT_XYZ_MASK_VOXEL);
 	cpos.z=cpos.z&(~BGBDT_XYZ_MASK_VOXEL);
-	
+		
 	if(i<n)
 	{
 		if(rtd)
@@ -280,7 +313,25 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 		{ *rts=tds; }
 	if(rpos)
 		{ *rpos=cpos; }
+	if(rlpos)
+		{ *rlpos=lcpos; }
 	return(0);
+}
+
+BTEIFGL_API int BGBDT_CheckBoxCollideP(
+	BGBDT_VoxCoord min1, BGBDT_VoxCoord max1,
+	BGBDT_VoxCoord min2, BGBDT_VoxCoord max2)
+{
+	if(min1.x>=max2.x)	return(0);
+	if(min2.x>=max1.x)	return(0);
+
+	if(min1.y>=max2.y)	return(0);
+	if(min2.y>=max1.y)	return(0);
+
+	if(min1.z>=max2.z)	return(0);
+	if(min2.z>=max1.z)	return(0);
+
+	return(1);
 }
 
 BTEIFGL_API int BGBDT_BoxQueryVoxel(BGBDT_VoxWorld *world,

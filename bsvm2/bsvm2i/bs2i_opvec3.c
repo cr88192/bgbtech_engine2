@@ -459,3 +459,116 @@ BS2VM_API void BSVM2_Op_LDX4FD_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	a=frm->stack[op->t0].p;
 	frm->stack[op->t0].f=a->fw;
 	BSVM2_FrameFreeX128(frm, a);	}
+
+
+BS2VM_API void BSVM2_Op_UNOPX_NEG_X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=-a->fx;
+	a->fy=-a->fy;
+	a->fz=-a->fz;
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_RCP_X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=1.0/a->fx;
+	a->fy=1.0/a->fy;
+	a->fz=1.0/a->fz;
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_SQRT_X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=bsvm2_opf_ssqrtf(a->fx);
+	a->fy=bsvm2_opf_ssqrtf(a->fy);
+	a->fz=bsvm2_opf_ssqrtf(a->fz);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_RSQRT_X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=bsvm2_opf_ssqrtf(1.0/a->fx);
+	a->fy=bsvm2_opf_ssqrtf(1.0/a->fy);
+	a->fz=bsvm2_opf_ssqrtf(1.0/a->fz);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_LEN_X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].f=sqrt(
+		(a->fx*a->fx)+(a->fy*a->fy)+(a->fz*a->fz));
+	BSVM2_FrameFreeX128(frm, a);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_LEN2_X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].f=
+		((a->fx*a->fx)+(a->fy*a->fy)+(a->fz*a->fz));
+	BSVM2_FrameFreeX128(frm, a);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_NEG_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=-a->fx;
+	a->fy=-a->fy;
+	a->fz=-a->fz;
+	a->fw=-a->fw;
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_RCP_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=1.0/a->fx;
+	a->fy=1.0/a->fy;
+	a->fz=1.0/a->fz;
+	a->fw=1.0/a->fw;
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_SQRT_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=bsvm2_opf_ssqrtf(a->fx);
+	a->fy=bsvm2_opf_ssqrtf(a->fy);
+	a->fz=bsvm2_opf_ssqrtf(a->fz);
+	a->fw=bsvm2_opf_ssqrtf(a->fw);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_RSQRT_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	a->fx=bsvm2_opf_ssqrtf(1.0/a->fx);
+	a->fy=bsvm2_opf_ssqrtf(1.0/a->fy);
+	a->fz=bsvm2_opf_ssqrtf(1.0/a->fz);
+	a->fw=bsvm2_opf_ssqrtf(1.0/a->fw);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_LEN_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].f=sqrt(
+		(a->fx*a->fx)+(a->fy*a->fy)+(a->fz*a->fz)+(a->fw*a->fw));
+	BSVM2_FrameFreeX128(frm, a);
+}
+
+BS2VM_API void BSVM2_Op_UNOPX_LEN2_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].f=
+		((a->fx*a->fx)+(a->fy*a->fy)+(a->fz*a->fz)+(a->fw*a->fw));
+	BSVM2_FrameFreeX128(frm, a);
+}

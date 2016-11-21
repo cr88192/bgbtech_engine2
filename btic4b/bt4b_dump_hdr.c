@@ -28,6 +28,7 @@ int BTIC4B_Img_StoreHDR_RGBE(FILE *fd, byte *buf, int w, int h)
 	fprintf(fd, "FORMAT=32-bit_rle_rgbe\n\n");
 	fprintf(fd, "-Y %d +X %d\n", h, w);
 	fwrite(buf, 1, w*h*4, fd);
+	return(0);
 }
 
 int BTIC4B_Img_SaveHDR_RGBE(

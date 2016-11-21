@@ -317,8 +317,8 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 	char tb[1024], tb2[1024];
 	byte *ibuf, *ibuf2, *obuf;
 	char *s, *t;
-	int xs, ys, xs1, ys1, txs, tys, sz, clrs, jclrs;
-	int i, j, k;
+	int xs, ys, xs1, ys1, txs, tys, sz, clrs, jclrs, al;
+	int i, j, k, l;
 
 	if(qfl&(1<<28))
 	{
@@ -338,7 +338,8 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 	}
 	*t++=0;
 
-	ibuf=Tex_LoadFile2Raw(src, &xs, &ys);
+//	ibuf=Tex_LoadFile2Raw(src, &xs, &ys);
+	ibuf=Tex_LoadFile2AlphaRaw(src, &xs, &ys);
 
 	if(!ibuf)
 	{
@@ -361,8 +362,10 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 	while(txs<xs1)txs<<=1;
 	while(tys<ys1)tys<<=1;
 
-	if(txs>2048)txs=2048;
-	if(tys>2048)tys=2048;
+//	if(txs>2048)txs=2048;
+//	if(tys>2048)tys=2048;
+	if(txs>4096)txs=4096;
+	if(tys>4096)tys=4096;
 
 	if((xs!=txs) || (ys!=tys))
 	{
@@ -384,6 +387,17 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 		jclrs=BTIC1H_PXF_RGB8E8;
 	}
 
+	l=xs;
+	if(ys<l)l=ys;
+
+	al=0;
+	for(i=0; i<l; i++)
+	{
+		j=ibuf[(i*xs+i)*4+3];
+		if(j!=255)
+			{ al=1; break; }
+	}
+
 	if(qfl&(1<<28))
 	{
 //		sz=PDJPG_EncodeRgba(ibuf, obuf, xs, ys, qfl);
@@ -397,7 +411,7 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 
 //	printf("added teximg: %s\n", src);
 	printf("added teximg: %-48s %s %dk %1.1fbpp\n",
-		src, (clrs!=BTIC4B_CLRS_RGBA)?"HDR":"LDR",
+		src, (clrs!=BTIC4B_CLRS_RGBA)?"HDR":(al?"LDRA":"LDR"),
 		(sz+511)/1024, sz*8.0/(xs*ys));
 	BtPak_ImageStoreFile(img, tb, obuf, sz);
 	vf_storefile(tb2, obuf, sz);

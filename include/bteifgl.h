@@ -319,7 +319,7 @@ int m_prim;
 
 #include <bsvm2.h>
 
-#include <bteifgl_entobj.h>
+// #include <bteifgl_entobj.h>
 
 #include <bgbdt_vfile31.h>
 

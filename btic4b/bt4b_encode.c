@@ -1008,6 +1008,7 @@ int BTIC4B_EncBlockPriorColorP(BTIC4B_Context *ctx,
 int BTIC4B_EncEmitDbgCmdPfx(BTIC4B_Context *ctx)
 {
 //	BTIC4B_EncEmitCommand(ctx, 0x4C);	//Debug
+	return(0);
 }
 
 void BTIC4B_DecUpdateCtxPred(BTIC4B_Context *ctx,

@@ -215,7 +215,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 	BSVM2_TailOpcode *top;
 	BSVM2_Trace *tr, *tr1;
 	byte *csa, *jcs;
-	int opn, nopsa, ntrsa;
+	int opn, nopsa, ntrsa, hopn;
 	int i, j, k, n;
 
 	cblk->cs=cblk->code;
@@ -230,6 +230,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		k=99;
 	}
 	
+	hopn=0;
 	nopsa=0; ntrsa=0; csa=cblk->cs;
 	while(cblk->cs<cblk->cse)
 	{
@@ -241,6 +242,7 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		}
 	
 		opn=BSVM2_Interp_ReadOpcodeNumber(cblk);
+		hopn=hopn*4093+opn;
 
 #if 1
 		if(opn==BSVM2_OP_JMP)
@@ -381,7 +383,8 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		cblk->trace[i]=trsa[i];
 	}
 
-#ifdef BS2I_USE_BASM
+// #ifdef BS2I_USE_BASM
+#if 0
 	for(i=0; i<ntrsa; i++)
 		{ BS2J_CheckPreSetupJitTrace(trsa[i]); }
 	BS2J_BeginJitTraces(cblk);
@@ -392,11 +395,38 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		{ BS2J_CheckPostSetupJitTrace(trsa[i]); }
 #endif
 
+	hopn=hopn*4093+1;
+	k=(hopn>>12)&127;
+	cblk->jitdly=128+k;
+
 	if(cblk->stkpos!=0)
 	{
 		k=-1;
 		BSVM2_DBGTRAP
 	}
+
+	return(cblk->trace[0]);
+}
+
+BSVM2_Trace *BSVM2_Interp_TryJitBlock(BSVM2_CodeBlock *cblk)
+{
+	BSVM2_Trace **trsa;
+	int ntrsa;
+	int i;
+
+#ifdef BS2I_USE_BASM
+	trsa=cblk->trace;
+	ntrsa=cblk->ntrace;
+
+	for(i=0; i<ntrsa; i++)
+		{ BS2J_CheckPreSetupJitTrace(trsa[i]); }
+	BS2J_BeginJitTraces(cblk);
+	for(i=0; i<ntrsa; i++)
+		{ BS2J_CheckSetupJitTrace(trsa[i]); }
+	BS2J_EndJitTraces(cblk);
+	for(i=0; i<ntrsa; i++)
+		{ BS2J_CheckPostSetupJitTrace(trsa[i]); }
+#endif
 
 	return(cblk->trace[0]);
 }

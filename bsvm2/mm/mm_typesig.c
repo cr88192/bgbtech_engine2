@@ -221,6 +221,7 @@ int BGBDTC_GetSigSizeAlign(char *sig, int *rsz, int *ral)
 			sz=8; al=8; break;
 		case 'b': case 'c':
 		case 'd': case 'e':
+		case 'h':
 		case 'q':
 			sz=16; al=16; break;
 		case 's':

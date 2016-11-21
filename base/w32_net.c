@@ -234,7 +234,8 @@ VADDR *NET_Str2Addr(char *str, int proto)
 		tmp->proto=proto;
 
 		s=str2ipv6(tmp->ipv6.addr, str);
-		sscanf(s, ":%d", &tmp->ipv6.port);
+		sscanf(s, ":%d", &i);
+		tmp->ipv6.port=i;
 //		tmp->ipv6.port=htons(tmp->ipv6.port);
 		break;
 	default:

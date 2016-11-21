@@ -491,6 +491,7 @@ int BSVM2_NatCall_GetSigOpZ(char *sig)
 	case 'C':
 		if((sig[1]=='b') || (sig[1]=='c') ||
 			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='h') ||
 			(sig[1]=='q'))
 				{ i=BS2CC_TYZ_VEC4F; break; }
 		i=BSVM2_OPZ_ADDRESS; break;
@@ -542,6 +543,12 @@ int BSVM2_NatCall_GetSigBType(char *sig)
 	case 'C':
 //		if(sig[1]=='s')
 //			{ i=-1; break; }
+		if((sig[1]=='b') || (sig[1]=='c') ||
+			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='h') ||
+			(sig[1]=='q'))
+				{ i=5; break; }
+
 		i=4; break;
 
 	case 'Q':
@@ -556,6 +563,9 @@ int BSVM2_NatCall_GetSigBType(char *sig)
 	case 'P':
 		i=-1; break;
 //		i=5; break;
+
+	case 'R':
+		i=5; break;
 
 	default:
 		i=-1; break;
@@ -756,6 +766,7 @@ dtVal BSVM2_Sig_GetSigPtrDtVal(void *ptr, char *sig)
 	case 'C':
 		if((sig[1]=='b') || (sig[1]=='c') ||
 			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='h') ||
 			(sig[1]=='q'))
 		{
 			i=BS2CC_TYZ_VEC4F; break;
@@ -822,6 +833,7 @@ dtVal BSVM2_Sig_SetSigPtrDtVal(void *ptr, char *sig, dtVal v)
 	case 'C':
 		if((sig[1]=='b') || (sig[1]=='c') ||
 			(sig[1]=='d') || (sig[1]=='e') ||
+			(sig[1]=='h') ||
 			(sig[1]=='q'))
 		{
 			i=BS2CC_TYZ_VEC4F; break;

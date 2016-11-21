@@ -1,0 +1,25 @@
+//	origin x y z
+//		declare point at which model origin is located
+//		logically, bone 0 corresponds to origin
+//	iscale scale
+//		declare inverse scale
+//		this scale maps the internal units to meters.
+
+origin 640 1472 742
+iscale 1000
+
+bone  1  0 head  (  640 1470  350 )
+bone  2  0 lhip  (  566 1475  810 )
+bone  3  0 rhip  (  713 1475  810 )
+bone  4  2 lknee (  580 1449 1176 )
+bone  5  3 lknee (  698 1449 1176 )
+bone  6  4 lfoot (  564 1496 1598 )
+bone  7  5 rfoot (  717 1496 1598 )
+bone  8  0 uback (  639 1476  437 )
+bone  9  8 lshol (  563 1476  437 )
+bone 10  8 rshol (  716 1476  437 )
+bone 11  9 lelb  (  363 1476  534 )
+bone 12 10 relb  (  917 1476  534 )
+bone 13 11 lwri  (  177 1476  620 )
+bone 14 12 rwri  ( 1102 1476  620 )
+

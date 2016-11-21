@@ -1,0 +1,150 @@
+public native void Bt2Ent_SetDialog(NpcDialogBox dbox);
+public native variant BGBDT_TagParse_ParseValueFromLoadFile(
+	cstring name);
+
+native void Bt2Ent_SetUseBackground(cstring bkg);
+
+public class NpcDialogBox {
+	/** first frame of face sprite */
+	public string face1;
+	/** second frame of face sprite */
+	public string face2;
+
+	/** looping voice fragment */
+	public string voice;
+
+	/** text for dialog box */
+	public string text;
+	public string[] options;
+	public NpcDialogBox[] optchain;
+
+	/** setting */
+	public string image;
+	public string music;
+	
+	public void impulse(int imp)
+	{
+		frgl_printf("Diag Impulse %d\n", imp);
+		
+		if((imp>0) && optchain)
+		{
+			Bt2Ent_SetDialog(optchain[imp-1]);
+		}
+	}
+
+	public void setup()
+	{
+		if(image)
+		{
+			if(image=="")
+			{
+				usebkg=false;
+				Bt2Ent_SetUseBackground(null);
+			}else
+			{
+				usebkg=true;
+				Bt2Ent_SetUseBackground(image);
+			}
+		}
+
+		if(music)
+		{
+			if(music=="")
+			{
+				usecsbgm=false;
+			}else
+			{
+				usecsbgm=true;
+				Bt2Ent_SetBgm(music);
+			}
+		}
+	}
+}
+
+public class NpcDialogBox_StaticBkg extends NpcDialogBox {
+	public void setup()
+	{
+	}
+}
+
+NpcDialogBox DiagBoxFromXon(variant idiag, variant odiag, variant key)
+{
+	NpcDialogBox box;
+	variant[] ar;
+	variant n, a;
+	int i;
+
+	if(!key)
+		return(null);
+
+	n=odiag[key];
+	if(n)
+		return((NpcDialogBox)n);
+	
+	n=idiag[key];
+	if(!n)
+		return(null);
+		
+	box=new NpcDialogBox;
+	odiag[key]=box;
+	
+	box.face1=n.face1;
+	box.face2=n.face2;
+	box.text=n.text;
+
+	a=n.options;
+	if(a && (a instanceof variant[]))
+	{
+		box.options=new string[10];
+		ar=(variant[])(a);
+		for(i=0; i<ar.length; i++)
+		{
+			box.options[i]=ar[i];
+		}
+	}
+	
+	a=n.optchain;
+//	if(a)
+	if(a && (a instanceof variant[]))
+	{
+		box.optchain=new NpcDialogBox[10];
+		ar=(variant[])a;
+		for(i=0; i<ar.length; i++)
+		{
+			box.optchain[i]=DiagBoxFromXon(idiag, odiag, ar[i]);
+		}
+	}
+	
+	return(box);
+}
+
+NpcDialogBox DiagFromXon(variant root)
+{
+	NpcDialogBox box;
+	variant obj;
+	obj={};
+	box=DiagBoxFromXon(root, obj, #main);
+	return(box);
+}
+
+NpcDialogBox DiagFromFile(string path)
+{
+	NpcDialogBox box;
+	variant root;
+	root=BGBDT_TagParse_ParseValueFromLoadFile(path);
+	if((root==null) || (root==undefined))
+		return(null);
+	box=DiagFromXon(root);
+	return(box);
+}
+
+void ptrtst()
+{
+	byte[256] arr;
+	*byte aptr;
+	
+	aptr=arr;
+	aptr[16]=31;
+	aptr+=8;
+	*aptr=99;
+}

@@ -760,6 +760,9 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 				lt=BS2CC_TYZ_FCPLX;
 			if(!strcmp(fn, "JD"))
 				lt=BS2CC_TYZ_DCPLX;
+
+			if(!strcmp(fn, "XF"))
+				lt=BS2CC_TYZ_VEC3XF;
 		}
 		
 		ty=-1;
@@ -777,6 +780,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		{
 			if(l==2)
 				ty=BS2CC_TYZ_VEC2D;
+			if(l==3)
+				ty=BS2CC_TYZ_VEC3XF;
 		}
 
 		if(lt==BS2CC_TYZ_QUATF)

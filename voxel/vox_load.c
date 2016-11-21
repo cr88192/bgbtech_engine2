@@ -1,7 +1,7 @@
 int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,
 	BGBDT_VoxRegion *rgn)
 {
-	byte *cs, *cse, *cs1, *cs2;
+	byte *cs, *cse, *cs1, *cs2, *cs3;
 	int hsz;
 	int tsz;
 	int i, j, k;
@@ -77,6 +77,72 @@ int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,
 				k=(cs2[4]<<24)|(cs2[5]<<16)|
 					(cs2[6]<<8)|(cs2[7]);
 				memcpy(rgn->rgnmap, rgn->rgnbuf+j, k);
+				cs=cs1;
+				continue;
+			}
+
+			if((cs[4]=='S') && (cs[5]=='T') &&
+				(cs[6]=='R') && (cs[7]=='S'))
+			{
+				k=tsz;
+				if(k<1024)
+					k=1024;
+			
+				rgn->strtab_buf=frgl_malloc(k);
+				memcpy(rgn->strtab_buf, cs2, tsz-8);
+				cs3=rgn->strtab_buf+(tsz-8);
+				while(((cs3+2)>rgn->strtab_buf) && !cs3[0] && !cs3[-1])
+					cs3--;
+				cs3++;
+				
+				rgn->strtab_buf[0]=0;
+				rgn->strtab_buf[1]=0;
+				rgn->strtab_msz=k;
+				rgn->strtab_nsz=cs3-rgn->strtab_buf;
+				if(rgn->strtab_nsz<2)
+					rgn->strtab_nsz=2;
+				
+				cs=cs1;
+				continue;
+			}
+
+			if((cs[4]=='S') && (cs[5]=='T') &&
+				(cs[6]=='I') && (cs[7]=='3'))
+			{
+				k=(tsz-8)/3;
+				j=k;
+				if(j<256)j=256;
+
+				rgn->strix_ofs=frgl_malloc(j*sizeof(int));
+				rgn->strix_num=k;
+				rgn->strix_max=j;
+
+				for(i=0; i<k; i++)
+				{
+					j=(cs2[i*3+0]<<16)|
+						(cs2[i*3+1]<<8)|(cs2[i*3+2]);
+					rgn->strix_ofs[i]=j;
+				}
+				cs=cs1;
+				continue;
+			}
+
+			if((cs[4]=='S') && (cs[5]=='T') &&
+				(cs[6]=='I') && (cs[7]=='2'))
+			{
+				k=(tsz-8)/2;
+				j=k;
+				if(j<256)j=256;
+
+				rgn->strix_ofs=frgl_malloc(j*sizeof(int));
+				rgn->strix_num=k;
+				rgn->strix_max=j;
+
+				for(i=0; i<k; i++)
+				{
+					j=(cs2[i*2+0]<<8)|(cs2[i*2+1]);
+					rgn->strix_ofs[i]=j;
+				}
 				cs=cs1;
 				continue;
 			}
@@ -163,7 +229,8 @@ int BGBDT_ReadLzSTF(BGBDT_RiceContext *ctx, int *rk)
 	int ix0, ix1;
 	int sy0, sy1;
 	
-	ix0=BGBDT_Rice_ReadAdRiceDc(ctx, rk);
+//	ix0=BGBDT_Rice_ReadAdRiceDc(ctx, rk);
+	ix0=ctx->ReadAdRiceLL(ctx, rk);
 	ix1=(ix0*7)/8;
 	sy0=ctx->lzwin[ix0];	sy1=ctx->lzwin[ix1];
 	ctx->lzwin[ix0]=sy1;	ctx->lzwin[ix1]=sy0;
@@ -184,12 +251,17 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 		{ ctx->lzwin[i]=i; ctx->lzidx[i]=i; }
 	ctx->lzwpos=0;
 	
+	ctx->ReadAdRiceLL=BGBDT_Rice_ReadAdRiceDc;
+	if((ctx->lzctrl&7)!=0)
+		ctx->ReadAdRiceLL=BGBDT_Rice_ReadAdRiceLL;
+	
 	kr=4; ks=4; kl=4; kd=4; ll=1; ld=1;
 	ct=obuf; cte=obuf+obsz;
 //	while(ct<cte)
 	while(1)
 	{
-		r=BGBDT_Rice_ReadAdRiceDc(ctx, &kr);
+//		r=BGBDT_Rice_ReadAdRiceDc(ctx, &kr);
+		r=ctx->ReadAdRiceLL(ctx, &kr);
 		if(r>0)
 		{
 			ct1=ct+r;
@@ -202,7 +274,8 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 				*ct++=BGBDT_ReadLzSTF(ctx, &ks);
 		}
 
-		l=BGBDT_Rice_ReadAdRiceDc(ctx, &kl);
+//		l=BGBDT_Rice_ReadAdRiceDc(ctx, &kl);
+		l=ctx->ReadAdRiceLL(ctx, &kl);
 		
 		if(l<=0)
 		{
@@ -211,7 +284,8 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 			continue;
 		}
 		
-		d=BGBDT_Rice_ReadAdRiceDc(ctx, &kd);
+//		d=BGBDT_Rice_ReadAdRiceDc(ctx, &kd);
+		d=ctx->ReadAdRiceLL(ctx, &kd);
 		if(l<3)
 		{
 			if(l==2)
@@ -246,18 +320,19 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunk *chk, byte *ibuf, int ibsz, int accfl)
 {
-	BGBDT_RiceContext *ctx;
 	byte tb0[1024];
+	BGBDT_VoxData td;
+	BGBDT_VoxCoord xyz;
+	BGBDT_RiceContext *ctx;
 	byte *tbuf, *cs, *ct;
 	int cmd, ts, mts, tp, tpsz, tpn, vstr;
+	int vfl;
 	int i, j, k;
 	
 	ctx=BGBDT_Rice_AllocContext();
 	
 	BGBDT_Rice_SetupRead(ctx, ibuf, ibsz);
-	
-	chk->flags|=BGBDT_CHKFL_MESHDIRTY;
-	
+		
 	ts=1; tp=15;
 	while(1)
 	{
@@ -284,6 +359,20 @@ int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,
 		if(cmd==2)
 		{	tp=BGBDT_Rice_ReadRice(ctx, 7);
 			continue;	}
+
+		if(cmd==3)
+		{
+			i=BGBDT_Rice_ReadRice(ctx, 3);
+			j=BGBDT_Rice_ReadQExpBase(ctx, 5);
+			
+			switch(i)
+			{
+			case 1: chk->flags=j; break;
+			case 2: ctx->lzctrl=j; break;
+			default: break;
+			}
+			continue;
+		}
 
 		if(cmd==4)
 		{
@@ -344,6 +433,33 @@ int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,
 		__debugbreak();
 		break;
 	}
+
+	chk->flags|=BGBDT_CHKFL_MESHDIRTY;
+	xyz.x=chk->bx<<BGBDT_XYZ_SHR_CHUNK;
+	xyz.y=chk->by<<BGBDT_XYZ_SHR_CHUNK;
+	xyz.z=chk->bz<<BGBDT_XYZ_SHR_CHUNK;
+
+	if(!(chk->flags&(BGBDT_CHKFL_ONLYSOLID|BGBDT_CHKFL_ONLYAIR)))
+	{
+		k=0;
+		for(i=0; i<chk->nvoxinfo; i++)
+		{
+			td=chk->voxinfo[i];
+			vfl=BGBDT_WorldVoxel_GetFlags(world, xyz, td);
+			if(vfl&(BGBDT_VOXFL_TRANSPARENT|
+				BGBDT_VOXFL_NOFACES|
+				BGBDT_VOXFL_NONSOLID|
+				BGBDT_VOXFL_FLUID))
+					k|=1;
+			if(!(vfl&BGBDT_VOXFL_NOFACES))
+				k|=2;
+		}
+		if(!(k&1))
+			chk->flags|=BGBDT_CHKFL_ONLYSOLID;
+		if(!(k&2))
+			chk->flags|=BGBDT_CHKFL_ONLYAIR;
+	}
+		
 	
 	BGBDT_Rice_FreeContext(ctx);
 	return(0);
@@ -388,6 +504,7 @@ int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,
 			return(0);
 		}
 
+		printf("BGBDT_WorldDecodeChunk: Unexpected Marker Tag A\n");
 		return(0);
 	}
 
@@ -406,5 +523,6 @@ int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,
 		return(1);
 	}
 	
+	printf("BGBDT_WorldDecodeChunk: Unexpected Marker Tag B\n");
 	return(0);
 }

@@ -68,6 +68,13 @@ int BS2C_GetTypeVecZ(BS2CC_CompileContext *ctx, int ty)
 	if(ty==BS2CC_TYZ_DCPLX)
 		return(BSVM2_OPVZ_V2D);
 
+	if(ty==BS2CC_TYZ_VEC3D)
+		return(BSVM2_OPVZ_V3D);
+	if(ty==BS2CC_TYZ_VEC4D)
+		return(BSVM2_OPVZ_V4D);
+	if(ty==BS2CC_TYZ_VEC3XF)
+		return(BSVM2_OPVZ_V3XF);
+
 	if(ty==BS2CC_TYZ_INT128)
 		return(BSVM2_OPVZ_I128);
 	if(ty==BS2CC_TYZ_UINT128)
@@ -242,6 +249,10 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		case BS2CC_TYZ_QUATF:	*t++='C'; *t++='q'; break;
 		case BS2CC_TYZ_FCPLX:	*t++='C'; *t++='f'; break;
 		case BS2CC_TYZ_DCPLX:	*t++='C'; *t++='d'; break;
+		case BS2CC_TYZ_VEC3XF:	*t++='C'; *t++='h'; break;
+
+		case BS2CC_TYZ_VEC3D:	*t++='D'; *t++='b'; break;
+		case BS2CC_TYZ_VEC4D:	*t++='D'; *t++='c'; break;
 
 		default:				*t++='r'; break;
 		}
@@ -431,6 +442,13 @@ char *BS2C_GetTypeNameStr(BS2CC_CompileContext *ctx, int ty)
 			strcpy(t, "fcomplex"); t+=strlen(t); break;
 		case BS2CC_TYZ_DCPLX:
 			strcpy(t, "dcomplex"); t+=strlen(t); break;
+
+		case BS2CC_TYZ_VEC3XF:
+			strcpy(t, "vec3xf"); t+=strlen(t); break;
+		case BS2CC_TYZ_VEC3D:
+			strcpy(t, "vec3d"); t+=strlen(t); break;
+		case BS2CC_TYZ_VEC4D:
+			strcpy(t, "vec4d"); t+=strlen(t); break;
 
 		default:
 			strcpy(t, "unknown"); t+=strlen(t); break;
@@ -1026,6 +1044,13 @@ int BS2C_TypeVec2dP(BS2CC_CompileContext *ctx, int ty)
 int BS2C_TypeQuatfP(BS2CC_CompileContext *ctx, int ty)
 	{ return(ty==BS2CC_TYZ_QUATF); }
 
+int BS2C_TypeVec3dP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC3D); }
+int BS2C_TypeVec4dP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC4D); }
+int BS2C_TypeVec3xfP(BS2CC_CompileContext *ctx, int ty)
+	{ return(ty==BS2CC_TYZ_VEC3XF); }
+
 int BS2C_TypeFComplexP(BS2CC_CompileContext *ctx, int ty)
 	{ return(ty==BS2CC_TYZ_FCPLX); }
 int BS2C_TypeDComplexP(BS2CC_CompileContext *ctx, int ty)
@@ -1093,6 +1118,7 @@ int BS2C_TypeX128P(BS2CC_CompileContext *ctx, int ty)
 		(ty==BS2CC_TYZ_VEC2D)||
 		(ty==BS2CC_TYZ_QUATF)||
 		(ty==BS2CC_TYZ_DCPLX)||
+		(ty==BS2CC_TYZ_VEC3XF)||
 		(ty==BS2CC_TYZ_INT128)||
 		(ty==BS2CC_TYZ_UINT128)||
 		(ty==BS2CC_TYZ_FLOAT128));
@@ -1113,8 +1139,27 @@ int BS2C_TypeOpXvP(BS2CC_CompileContext *ctx, int ty)
 		(ty==BS2CC_TYZ_VEC3F)||
 		(ty==BS2CC_TYZ_VEC4F)||
 		(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_VEC3XF)||
 		(ty==BS2CC_TYZ_QUATF)||
 		(ty==BS2CC_TYZ_FCPLX)||
+		(ty==BS2CC_TYZ_DCPLX));
+}
+
+int BS2C_TypeOpXvFloatP(BS2CC_CompileContext *ctx, int ty)
+{
+	return(
+		(ty==BS2CC_TYZ_VEC2F)||
+		(ty==BS2CC_TYZ_VEC3F)||
+		(ty==BS2CC_TYZ_VEC4F)||
+		(ty==BS2CC_TYZ_QUATF)||
+		(ty==BS2CC_TYZ_FCPLX));
+}
+
+int BS2C_TypeOpXvDoubleP(BS2CC_CompileContext *ctx, int ty)
+{
+	return(
+		(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_VEC3XF)||
 		(ty==BS2CC_TYZ_DCPLX));
 }
 
@@ -1128,6 +1173,7 @@ int BS2C_TypeXvGetElemType(BS2CC_CompileContext *ctx, int ty)
 			return(BS2CC_TYZ_FLOAT);
 
 	if(	(ty==BS2CC_TYZ_VEC2D)||
+		(ty==BS2CC_TYZ_VEC3XF)||
 		(ty==BS2CC_TYZ_DCPLX))
 			return(BS2CC_TYZ_DOUBLE);
 
@@ -1141,7 +1187,8 @@ int BS2C_TypeXvGetElemCount(BS2CC_CompileContext *ctx, int ty)
 		(ty==BS2CC_TYZ_FCPLX)||
 		(ty==BS2CC_TYZ_DCPLX))
 			return(2);
-	if(	(ty==BS2CC_TYZ_VEC3F))
+	if(	(ty==BS2CC_TYZ_VEC3F)||
+		(ty==BS2CC_TYZ_VEC3XF))
 			return(3);
 	if(	(ty==BS2CC_TYZ_VEC4F)||
 		(ty==BS2CC_TYZ_QUATF))
@@ -1529,7 +1576,23 @@ int BS2C_InferSuperType(
 	{
 		return(BS2CC_TYZ_QUATF);
 	}
-	
+
+	if((lty==BS2CC_TYZ_VEC2F) ||
+		(lty==BS2CC_TYZ_VEC2D))
+	{
+		if((rty==BS2CC_TYZ_VEC2F) ||
+			(rty==BS2CC_TYZ_VEC2D))
+				return(BS2CC_TYZ_VEC2D);
+	}
+
+	if((lty==BS2CC_TYZ_VEC3F) ||
+		(lty==BS2CC_TYZ_VEC3XF))
+	{
+		if((rty==BS2CC_TYZ_VEC3F) ||
+			(rty==BS2CC_TYZ_VEC3XF))
+				return(BS2CC_TYZ_VEC3XF);
+	}
+
 	if(BS2C_TypeVariantP(ctx, lty) ||
 		BS2C_TypeVariantP(ctx, rty))
 	{
@@ -1581,7 +1644,23 @@ int BS2C_TypeAssignSuperType(
 	if(BS2C_TypePointerP(ctx, lty) &&
 		BS2C_TypeAddressP(ctx, rty))
 			return(lty);
-	
+
+	if((lty==BS2CC_TYZ_VEC2F) ||
+		(lty==BS2CC_TYZ_VEC2D))
+	{
+		if((rty==BS2CC_TYZ_VEC2F) ||
+			(rty==BS2CC_TYZ_VEC2D))
+				return(lty);
+	}
+
+	if((lty==BS2CC_TYZ_VEC3F) ||
+		(lty==BS2CC_TYZ_VEC3XF))
+	{
+		if((rty==BS2CC_TYZ_VEC3F) ||
+			(rty==BS2CC_TYZ_VEC3XF))
+				return(lty);
+	}
+
 	lty1=BS2C_InferSuperType(ctx, lty, rty);
 	return(lty1);
 }
@@ -1915,6 +1994,13 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_FCPLX);
 		if(!strcmp(tyn, "dcomplex"))
 			return(BS2CC_TYZ_DCPLX);
+
+		if(!strcmp(tyn, "vec3d"))
+			return(BS2CC_TYZ_VEC3D);
+		if(!strcmp(tyn, "vec4d"))
+			return(BS2CC_TYZ_VEC4D);
+		if(!strcmp(tyn, "vec3xf"))
+			return(BS2CC_TYZ_VEC3XF);
 	}
 	return(BS2CC_TYZ_ADDRESS);
 }
@@ -2228,6 +2314,12 @@ int BS2C_TypeRefinedType2(
 			{ bt=BS2CC_TYZ_FCPLX; }
 		else if(!strcmp(tyn, "dcomplex"))
 			{ bt=BS2CC_TYZ_DCPLX; }
+		else if(!strcmp(tyn, "vec3d"))
+			{ bt=BS2CC_TYZ_VEC3D; }
+		else if(!strcmp(tyn, "vec4d"))
+			{ bt=BS2CC_TYZ_VEC4D; }
+		else if(!strcmp(tyn, "vec3xf"))
+			{ bt=BS2CC_TYZ_VEC3XF; }
 		else
 		{
 			i=BS2C_LookupVariGlobal(ctx, vari, tyn);

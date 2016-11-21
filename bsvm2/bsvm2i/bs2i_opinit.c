@@ -1295,8 +1295,8 @@ void BSVM2_Interp_SetupOpTrin(BSVM2_CodeBlock *cblk,
 {
 	op->Run=run;
 
-	op->t2=cblk->stkpos--;
-	op->t1=cblk->stkpos--;
+	op->t2=--cblk->stkpos;
+	op->t1=--cblk->stkpos;
 	op->t0=cblk->stkpos-1;
 	op->opfl|=BSVM2_OPFL_USED_T0;
 	op->opfl|=BSVM2_OPFL_USED_T1;
@@ -1309,9 +1309,9 @@ void BSVM2_Interp_SetupOpQuad(BSVM2_CodeBlock *cblk,
 {
 	op->Run=run;
 
-	cblk->stkpos--;
-	op->t2=cblk->stkpos--;
-	op->t1=cblk->stkpos--;
+	--cblk->stkpos;
+	op->t2=--cblk->stkpos;
+	op->t1=--cblk->stkpos;
 	op->t0=cblk->stkpos-1;
 	op->opfl|=BSVM2_OPFL_USED_T0;
 	op->opfl|=BSVM2_OPFL_USED_T1;

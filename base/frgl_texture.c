@@ -101,9 +101,11 @@ BTEIFGL_API int Tex_Init2()
 	if(!gl_texfilter_var)
 	{
 #ifdef WIN32
-		gl_texfilter_var="GL_LINEAR_MIPMAP_LINEAR";
+//		gl_texfilter_var="GL_LINEAR_MIPMAP_LINEAR";
+		gl_texfilter_var="GL_NEAREST_MIPMAP_LINEAR_2";
 #else
-		gl_texfilter_var="GL_LINEAR_MIPMAP_LINEAR";
+		gl_texfilter_var="GL_NEAREST_MIPMAP_LINEAR_2";
+//		gl_texfilter_var="GL_LINEAR_MIPMAP_LINEAR";
 //		gl_texfilter_var="GL_NEAREST_MIPMAP_NEAREST";
 //		gl_texfilter_var="GL_NEAREST";
 #endif
@@ -3029,7 +3031,7 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 	free(resampbuf_cmp);
 
 //	tex_unlock();
-	return(num);
+	return(0);
 }
 #endif
 
@@ -3571,6 +3573,41 @@ BTEIFGL_API byte *Tex_LoadFile2Raw(char *name, int *w, int *h)
 	sprintf(tb, "%s.jpg", name);
 	buf=Tex_LoadFileRaw(tb, w, h);
 	if(buf)return(buf);
+
+	sprintf(tb, "%s.hdr", name);
+	buf=Tex_LoadFileRaw(tb, w, h);
+	if(buf)return(buf);
+	
+	return(NULL);
+}
+
+BTEIFGL_API byte *Tex_LoadFile2AlphaRaw(char *name, int *w, int *h)
+{
+	char tb[512];
+	byte *buf;
+	
+	buf=Tex_LoadFileExtAlphaRaw(name, NULL, w, h);
+	if(buf)return(buf);
+	
+//	sprintf(tb, "%s.tga", name);
+//	buf=Tex_LoadFileRaw(tb, w, h);
+//	if(buf)return(buf);
+
+//	sprintf(tb, "%s.bmp", name);
+//	buf=Tex_LoadFileRaw(tb, w, h);
+//	if(buf)return(buf);
+
+//	sprintf(tb, "%s.pcx", name);
+//	buf=Tex_LoadFileRaw(tb, w, h);
+//	if(buf)return(buf);
+
+//	sprintf(tb, "%s.png", name);
+//	buf=Tex_LoadFileRaw(tb, w, h);
+//	if(buf)return(buf);
+
+//	sprintf(tb, "%s.jpg", name);
+//	buf=Tex_LoadFileRaw(tb, w, h);
+//	if(buf)return(buf);
 
 	sprintf(tb, "%s.hdr", name);
 	buf=Tex_LoadFileRaw(tb, w, h);

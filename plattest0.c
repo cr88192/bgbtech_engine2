@@ -382,7 +382,7 @@ void IsoTest_EntSetRadius(dtVal obj, float val)
 		isotest_eb2d_fi_radius=BGBDTC_LookupClassSlotName(
 			isotest_eb2d_cls, "radius");
 		if(!isotest_eb2d_fi_radius)
-			return(0);
+			return;
 	}
 
 	dtcVaSetF(obj, isotest_eb2d_fi_radius, val);
@@ -783,6 +783,7 @@ int IsoTile_SetGlobalA(char *cname, dtVal v)
 		isotest_img, cname);
 	if(!vi)return(-1);
 	BSVM2_Interp_SetGlobalA(vi, v);
+	return(0);
 }
 
 int IsoTile_SetGlobalI(char *cname, int v)
@@ -793,6 +794,7 @@ int IsoTile_SetGlobalI(char *cname, int v)
 		isotest_img, cname);
 	if(!vi)return(-1);
 	BSVM2_Interp_SetGlobalI(vi, v);
+	return(0);
 }
 
 int IsoTest_DrawSprite(char *spr, vec2 vorg, float xs, float ys)
@@ -854,6 +856,7 @@ int IsoTest_DrawSprite(char *spr, vec2 vorg, float xs, float ys)
 #endif
 
 	frglEnd();
+	return(0);
 }
 
 int IsoTile_DrawEntity(BGBDT_IsoMap *map,
@@ -946,6 +949,7 @@ int isotile_drawsky(BGBDT_IsoMap *map)
 	frglVertex3fv(v2);
 
 	frglEnd();
+	return(0);
 }
 
 int isotile_drawmap2(BGBDT_IsoMap *map)
@@ -1017,6 +1021,7 @@ int isotile_drawmap2(BGBDT_IsoMap *map)
 	}
 	
 	frglEnd();
+	return(0);
 }
 
 int isotile_drawmap(BGBDT_IsoMap *map)
@@ -1027,7 +1032,7 @@ int isotile_drawmap(BGBDT_IsoMap *map)
 	int i, j, k, l;
 
 	if(isotest_usebkg)
-		return;
+		return(0);
 
 //	frglEnable(GL_CULL_FACE);
 	frglDisable(GL_CULL_FACE);
@@ -1054,6 +1059,7 @@ int isotile_drawmap(BGBDT_IsoMap *map)
 	frglDisable(GL_ALPHA_TEST);
 
 	frglColor4f(1,1,1,1);
+	return(0);
 }
 
 #if 0
@@ -1196,6 +1202,8 @@ int IsoTile_UpdateMap(BGBDT_IsoMap *map)
 {
 	dtVal e0, e1;
 	int i, j, k;
+
+	return(0);
 }
 
 dtVal IsoTile_QueryCollideMove(BGBDT_IsoMap *map,
@@ -1467,6 +1475,7 @@ int isotest_drawplayer()
 	frglTexCoord2f(flip?1:0, 1);
 	frglVertex3fv(v2);
 	frglEnd();
+	return(0);
 }
 
 int IsoTile_DrawDialog(dtVal dbox)
@@ -1594,6 +1603,7 @@ int IsoTile_DrawDialog(dtVal dbox)
 			GfxFont_DrawString2(text, -320+4+8, -8-4, 8, 8, 0, 0, 0, 255);
 		}
 	}
+	return(0);
 }
 
 int IsoTile_DrawInventory(void)
@@ -1680,11 +1690,13 @@ int IsoTile_DrawInventory(void)
 			GfxFont_DrawString(tb, x3-24, y2+2, 8, 8, 0, 0, 0, 255);
 		}
 	}
+	return(0);
 }
 
 MAIN_EXPORT int IsoTest_KillPlayer(void)
 {
 	isotest_isdead=1;
+	return(0);
 }
 
 int IsoTile_DrawDeadScreen(void)
@@ -1717,6 +1729,7 @@ int IsoTile_DrawDeadScreen(void)
 	frglTexCoord2f(0, 1);
 	frglVertex2f(x0, y1);
 	frglEnd();
+	return(0);
 }
 
 int IsoTile_DrawUseBackground(void)
@@ -1733,7 +1746,7 @@ int IsoTile_DrawUseBackground(void)
 	int i, j, k, l;
 
 	if(!isotest_usebkg)
-		return;
+		return(0);
 
 	x0=-512; y0=-384;
 	x1=512; y1=384;
@@ -1752,6 +1765,7 @@ int IsoTile_DrawUseBackground(void)
 	frglTexCoord2f(0, 1);
 	frglVertex2f(x0, y1);
 	frglEnd();
+	return(0);
 }
 
 int isotile_blfclr_idx(byte *buf, int xs, int ys,
@@ -2034,8 +2048,8 @@ void isotest_loadmap(char *mapinf)
 		atlas=NULL;
 		atlasix=NULL;
 		
-		V4F_CONST(sclr, 1, 1, 1, 1);
-		V4F_CONST(wclr, 1, 1, 1, 1);
+		V4F_CONST(sclr, 1);
+		V4F_CONST(wclr, 1);
 		
 		cs=itbuf; cse=cs+sz;
 		while(*cs && (cs<cse))
@@ -2761,6 +2775,7 @@ int istest_player_dophys(double dt)
 		istest_player_dophys2(step);
 		accDt-=step;
 	}
+	return(0);
 }
 
 int main_handle_input()

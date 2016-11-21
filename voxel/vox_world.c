@@ -184,9 +184,11 @@ void BGBDT_VoxelWorld_InitSamplerChk(
 	BGBDT_VoxWorld *world, BGBDT_NoiseSample *samp,
 	BGBDT_VoxCoord xyz, int kf)
 {
+//	int tlvt4a[8], tlvt4b[8];
 	BGBDT_VoxCoord xyz0, xyz1, xyz2;
 	int bx, by, bz, bh;
-	int tx, ty, tz;
+	int tx, ty, tz, kf2;
+	int txa, txb, txc, txd;
 	int i, j, k;
 	
 	bx=xyz.x>>BGBDT_XYZ_SHR_CHUNK;
@@ -215,6 +217,44 @@ void BGBDT_VoxelWorld_InitSamplerChk(
 		samp->lvt[i]=BGBDT_VoxelWorld_NoisePRandC(world, xyz2, kf);
 		samp->lvf[i]=(samp->lvt[i]*(1.0/32767.5))-1.0;
 	}
+
+#if 1
+	xyz0.x=(bx>>2)<<(BGBDT_XYZ_SHR_CHUNK+2);
+	xyz0.y=(by>>2)<<(BGBDT_XYZ_SHR_CHUNK+2);
+	xyz0.z=(bz>>2)<<(BGBDT_XYZ_SHR_CHUNK+2);
+	xyz1.x=xyz0.x+(4<<BGBDT_XYZ_SHR_CHUNK);
+	xyz1.y=xyz0.y+(4<<BGBDT_XYZ_SHR_CHUNK);
+	xyz1.z=xyz0.z+(4<<BGBDT_XYZ_SHR_CHUNK);
+
+	kf2=(kf*251+1)>>8;
+	for(i=0; i<8; i++)
+	{
+		xyz2.x=(i&1)?xyz1.x:xyz0.x;
+		xyz2.y=(i&2)?xyz1.y:xyz0.y;
+		xyz2.z=(i&4)?xyz1.z:xyz0.z;
+		samp->lvt4[i]=BGBDT_VoxelWorld_NoisePRandC(world, xyz2, kf2);
+		samp->lvf4[i]=(samp->lvt4[i]*(1.0/32767.5))-1.0;
+	}
+#endif
+
+#if 1
+	xyz0.x=(bx>>4)<<(BGBDT_XYZ_SHR_CHUNK+4);
+	xyz0.y=(by>>4)<<(BGBDT_XYZ_SHR_CHUNK+4);
+	xyz0.z=(bz>>4)<<(BGBDT_XYZ_SHR_CHUNK+4);
+	xyz1.x=xyz0.x+(16<<BGBDT_XYZ_SHR_CHUNK);
+	xyz1.y=xyz0.y+(16<<BGBDT_XYZ_SHR_CHUNK);
+	xyz1.z=xyz0.z+(16<<BGBDT_XYZ_SHR_CHUNK);
+
+	kf2=((kf+11)*251+1)>>8;
+	for(i=0; i<8; i++)
+	{
+		xyz2.x=(i&1)?xyz1.x:xyz0.x;
+		xyz2.y=(i&2)?xyz1.y:xyz0.y;
+		xyz2.z=(i&4)?xyz1.z:xyz0.z;
+		samp->lvt16[i]=BGBDT_VoxelWorld_NoisePRandC(world, xyz2, kf2);
+		samp->lvf16[i]=(samp->lvt16[i]*(1.0/32767.5))-1.0;
+	}
+#endif
 
 #if 0
 //	for(i=0; i<64; i++)
@@ -275,6 +315,66 @@ float BGBDT_VoxelWorld_NoiseChk(
 	return(f);
 }
 
+float BGBDT_VoxelWorld_NoiseChk4(
+	BGBDT_VoxWorld *world, BGBDT_NoiseSample *samp,
+	BGBDT_VoxCoord xyz, int k)
+{
+	BGBDT_VoxCoord xyz0, xyz1, xyz2, xyzf;
+	float fv[8];
+	float fx, fy, fz;
+	float f, g;
+
+	BGBDT_VoxelWorld_InitSamplerChk(world, samp, xyz, k);
+
+	xyzf.x=xyz.x&((4<<BGBDT_XYZ_SHR_CHUNK)-1);
+	xyzf.y=xyz.y&((4<<BGBDT_XYZ_SHR_CHUNK)-1);
+	xyzf.z=xyz.z&((4<<BGBDT_XYZ_SHR_CHUNK)-1);
+	
+	fx=xyzf.x*BGBDT_XYZ_SCALE_TOCHUNK4;
+	fy=xyzf.y*BGBDT_XYZ_SCALE_TOCHUNK4;
+	fz=xyzf.z*BGBDT_XYZ_SCALE_TOCHUNK4;
+	
+	fv[0]=(samp->lvf4[0]*(1.0-fx))+(samp->lvf4[1]*fx);
+	fv[1]=(samp->lvf4[2]*(1.0-fx))+(samp->lvf4[3]*fx);
+	fv[2]=(samp->lvf4[4]*(1.0-fx))+(samp->lvf4[5]*fx);
+	fv[3]=(samp->lvf4[6]*(1.0-fx))+(samp->lvf4[7]*fx);
+
+	fv[4]=(fv[0]*(1.0-fy))+(fv[1]*fy);
+	fv[5]=(fv[2]*(1.0-fy))+(fv[3]*fy);
+	f=(fv[4]*(1.0-fz))+(fv[5]*fz);
+	return(f);
+}
+
+float BGBDT_VoxelWorld_NoiseChk16(
+	BGBDT_VoxWorld *world, BGBDT_NoiseSample *samp,
+	BGBDT_VoxCoord xyz, int k)
+{
+	BGBDT_VoxCoord xyz0, xyz1, xyz2, xyzf;
+	float fv[8];
+	float fx, fy, fz;
+	float f, g;
+
+	BGBDT_VoxelWorld_InitSamplerChk(world, samp, xyz, k);
+
+	xyzf.x=xyz.x&((16<<BGBDT_XYZ_SHR_CHUNK)-1);
+	xyzf.y=xyz.y&((16<<BGBDT_XYZ_SHR_CHUNK)-1);
+	xyzf.z=xyz.z&((16<<BGBDT_XYZ_SHR_CHUNK)-1);
+	
+	fx=xyzf.x*BGBDT_XYZ_SCALE_TOCHUNK16;
+	fy=xyzf.y*BGBDT_XYZ_SCALE_TOCHUNK16;
+	fz=xyzf.z*BGBDT_XYZ_SCALE_TOCHUNK16;
+	
+	fv[0]=(samp->lvf16[0]*(1.0-fx))+(samp->lvf16[1]*fx);
+	fv[1]=(samp->lvf16[2]*(1.0-fx))+(samp->lvf16[3]*fx);
+	fv[2]=(samp->lvf16[4]*(1.0-fx))+(samp->lvf16[5]*fx);
+	fv[3]=(samp->lvf16[6]*(1.0-fx))+(samp->lvf16[7]*fx);
+
+	fv[4]=(fv[0]*(1.0-fy))+(fv[1]*fy);
+	fv[5]=(fv[2]*(1.0-fy))+(fv[3]*fy);
+	f=(fv[4]*(1.0-fz))+(fv[5]*fz);
+	return(f);
+}
+
 float BGBDT_VoxelWorld_NoiseVox4(
 	BGBDT_VoxWorld *world, BGBDT_NoiseSample *samp,
 	BGBDT_VoxCoord xyz, int k)
@@ -326,6 +426,13 @@ int BGBDT_VoxelWorld_GenerateChunkBasic(
 	int i, j, k;
 
 	memset(&tsamp, 0, sizeof(BGBDT_NoiseSample));
+
+	memset(&td_air		, 0, sizeof(BGBDT_VoxData));
+	memset(&td_stone	, 0, sizeof(BGBDT_VoxData));
+	memset(&td_hardstone, 0, sizeof(BGBDT_VoxData));
+	memset(&td_dirt		, 0, sizeof(BGBDT_VoxData));
+	memset(&td_snofce	, 0, sizeof(BGBDT_VoxData));
+	memset(&td_lava		, 0, sizeof(BGBDT_VoxData));
 
 	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
 	td_air.vtypel=vty;	td_air.vtypeh=vty>>8;
@@ -438,7 +545,157 @@ int BGBDT_VoxelWorld_GenerateChunkBasic(
 	return(0);
 }
 
+struct {
+char *name;
+char *mat_side;
+char *mat_top;
+char *mat_bot;
+int mat_side_x, mat_side_y;
+int mat_top_x, mat_top_y;
+int mat_bot_x, mat_bot_y;
+int flags;
+int glow;
+}bgbdt_matinfo[]={
+
+{"null", "textures/atlas0", NULL, NULL,
+	0, 0,  0, 0,  0, 0,
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NOFACES, 0},
+
+{"air", "textures/atlas0", NULL, NULL,
+  0, 0,  0, 0,  0, 0,  BGBDT_VOXFL_NONSOLID|
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NOFACES, 0x00},
+
+{"hardstone", "textures/atlas0", NULL, NULL,
+	1, 0,  1, 0,  1, 0,  0, 0x00},
+{"dirt", "textures/atlas0", NULL, NULL,
+	2, 0,  2, 0,  2, 0,  0, 0x00},
+{"grass", "textures/atlas0", NULL, NULL,
+	3, 0,  3, 0,  3, 0,  0, 0x00},
+{"stone", "textures/atlas0", NULL, NULL,
+	4, 0,  4, 0,  4, 0,  0, 0x00},
+{"bigbrick_brown", "textures/atlas0", NULL, NULL,
+	0, 1,  0, 1,  0, 1,  0, 0x00},
+{"bigbrick_gray", "textures/atlas0", NULL, NULL,
+	1, 1,  1, 1,  1, 1,  0, 0x00},
+{"brick_red", "textures/atlas0", NULL, NULL,
+	2, 1,  2, 1,  2, 1,  0, 0x00},
+{"stone_red", "textures/atlas0", NULL, NULL,
+	3, 1,  3, 1,  3, 1,  0, 0x00},
+{"solidnoface", "textures/atlas0", NULL, NULL,
+	15, 15,  15, 15,  15, 15,  BGBDT_VOXFL_NOFACES, 0x00},
+{"glass", "textures/atlas0", NULL, NULL,
+	15, 0,  15, 0,  15, 0,  BGBDT_VOXFL_TRANSPARENT, 0x00},
+
+{"lava", "textures/atlas0", NULL, NULL,
+	0, 2,  0, 2,  0, 2,  BGBDT_VOXFL_FLUID_LAVA|
+	BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_GLOWLIGHT,  0xF4},
+{"water", "textures/atlas0", NULL, NULL,
+	1, 2,  1, 2,  1, 2,  BGBDT_VOXFL_FLUID_WATER|
+	BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_TRANSPARENT, 0x00},
+{"slime", "textures/atlas0", NULL, NULL,
+	2, 2,  2, 2,  2, 2,  BGBDT_VOXFL_FLUID_SLIME|
+	BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_GLOWLIGHT|
+	BGBDT_VOXFL_TRANSPARENT,  0xF2},
+
+{"lantern_red", "textures/atlas0", NULL, NULL,
+	3, 2,  3, 2,  3, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xF4},
+{"lantern_blue", "textures/atlas0", NULL, NULL,
+	4, 2,  4, 2,  4, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xF1},
+{"lantern_yellow", "textures/atlas0", NULL, NULL,
+	5, 2,  5, 2,  5, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xF6},
+{"lantern_green", "textures/atlas0", NULL, NULL,
+	6, 2,  6, 2,  6, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xF2},
+{"lantern_cyan", "textures/atlas0", NULL, NULL,
+	7, 2,  7, 2,  7, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xF3},
+{"lantern_violet", "textures/atlas0", NULL, NULL,
+	8, 2,  8, 2,  8, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xF5},
+{"lantern_white", "textures/atlas0", NULL, NULL,
+	9, 2,  9, 2,  9, 2,  BGBDT_VOXFL_GLOWLIGHT,  0xFF},
+{"grate", "textures/atlas0", NULL, NULL,
+	15, 1,  15, 1,  15, 1,  BGBDT_VOXFL_TRANSPARENT, 0x00},
+{"bars", "textures/atlas0", NULL, NULL,
+	14, 0,  14, 0,  14, 0,  BGBDT_VOXFL_TRANSPARENT, 0x00},
+
+{"stone2", "textures/atlas0", NULL, NULL,
+	5, 0,  5, 0,  5, 0,  0, 0x00},
+{"stone3", "textures/atlas0", NULL, NULL,
+	4, 1,  4, 1,  4, 1,  0, 0x00},
+{"bigbrick_stone", "textures/atlas0", NULL, NULL,
+	5, 1,  5, 1,  5, 1,  0, 0x00},
+
+{"tridirt0", "textures/atlas0", NULL, NULL,
+	6, 1,  6, 1,  6, 1,  0, 0x00},
+{"tridirt1", "textures/atlas0", NULL, NULL,
+	7, 0,  7, 0,  7, 0,  0, 0x00},
+{"tridirt2", "textures/atlas0", NULL, NULL,
+	6, 0,  6, 0,  6, 0,  0, 0x00},
+{"tridirt3", "textures/atlas0", NULL, NULL,
+	7, 1,  7, 1,  7, 1,  0, 0x00},
+
+{"ent_mob", "textures/atlas0", NULL, NULL,
+	14, 14,  14, 14,  14, 14,
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID, 0},
+{"flip_up", "textures/atlas0", NULL, NULL,
+	15, 14,  15, 14,  15, 14,
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_PHYS_FLIPUP, 0},
+{"flip_dn", "textures/atlas0", NULL, NULL,
+	14, 15,  14, 15,  14, 15,
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_PHYS_FLIPDN, 0},
+
+//{"sky1", "textures/atlas0", NULL, NULL,
+//	0, 14,  0, 14,  0, 14,  BGBDT_VOXFL_GLOWLIGHT, 0xF900},
+//{"sky2", "textures/atlas0", NULL, NULL,
+//	1, 14,  1, 14,  1, 14,  BGBDT_VOXFL_GLOWLIGHT, 0xFA00},
+//{"sky3", "textures/atlas0", NULL, NULL,
+//	1, 15,  1, 15,  1, 15,  BGBDT_VOXFL_GLOWLIGHT, 0xFB00},
+
+{"sky1", "textures/sky1", NULL, NULL,
+	0, 0,  0, 0,  0, 0,  BGBDT_VOXFL_GLOWLIGHT, 0xF900},
+{"sky2", "textures/sky2", NULL, NULL,
+	0, 0,  0, 0,  0, 0,  BGBDT_VOXFL_GLOWLIGHT, 0xFA00},
+{"sky3", "textures/sky3", NULL, NULL,
+	0, 0,  0, 0,  0, 0,  BGBDT_VOXFL_GLOWLIGHT, 0xFB00},
+
+{"fence1", "textures/atlas0", NULL, NULL,
+	14, 1,  14, 1,  14, 1,  BGBDT_VOXFL_TRANSPARENT, 0x00},
+{"fence2", "textures/atlas0", NULL, NULL,
+	14, 2,  14, 2,  14, 2,  BGBDT_VOXFL_TRANSPARENT, 0x00},
+{"fence3", "textures/atlas0", NULL, NULL,
+	15, 2,  15, 2,  15, 2,  BGBDT_VOXFL_TRANSPARENT, 0x00},
+
+{"bricks", "textures/atlas0", NULL, NULL,
+	8, 1,  8, 1,  8, 1,  0, 0},
+{"log", "textures/atlas0", NULL, NULL,
+	8, 0,  8, 0,  8, 0,  0, 0},
+{"leaves", "textures/atlas0", NULL, NULL,
+	9, 0,  9, 0,  9, 0,  BGBDT_VOXFL_TRANSPARENT, 0},
+{"fruitleaves", "textures/atlas0", NULL, NULL,
+	9, 1,  9, 1,  9, 1,  BGBDT_VOXFL_TRANSPARENT, 0},
+{"sandstone", "textures/atlas0", NULL, NULL,
+	10, 0,  10, 0,  10, 0,  0, 0},
+{"sand", "textures/atlas0", NULL, NULL,
+	10, 1,  10, 1,  10, 1,  0, 0},
+{"snow", "textures/atlas0", NULL, NULL,
+	10, 3,  10, 3,  10, 3,  0, 0},
+{"cobble", "textures/atlas0", NULL, NULL,
+	11, 0,  11, 0,  11, 0,  0, 0},
+{"greencobble", "textures/atlas0", NULL, NULL,
+	11, 1,  11, 1,  11, 1,  0, 0},
+
+{"grassclump", "textures/atlas0", NULL, NULL,
+	14, 3,  14, 3,  14, 3, 
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID|
+	BGBDT_VOXFL_CROSSSPR, 0},
+
+{NULL, NULL}
+};
+
 BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name)
+{
+	return(BGBDT_CreateBasicWorld2(name, "default"));
+}
+
+BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld2(char *name, char *wrlty)
 {
 	BGBDT_VoxTypeInfo *tyi;
 	BGBDT_VoxWorld *wrl;
@@ -449,8 +706,33 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name)
 	wrl=BGBDT_AllocVoxelWorld();
 	wrl->GenerateChunk=BGBDT_VoxelWorld_GenerateChunkBasic;
 
+	if(!strcmp(wrlty, "mare"))
+	{
+		wrl->GenerateChunk=BGBDT_VoxTgMare_GenerateChunkBasic;
+	}
+
 	wrl->worldname=frgl_strdup(name);
-	
+
+	for(i=0; bgbdt_matinfo[i].name; i++)
+	{
+		tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, bgbdt_matinfo[i].name);
+		tyi->mat_side=FRGL_TexMat_GetLoadIndex(bgbdt_matinfo[i].mat_side);
+		if(!bgbdt_matinfo[i].mat_top)
+			{ tyi->mat_top=tyi->mat_side; }
+		if(!bgbdt_matinfo[i].mat_bot)
+			{ tyi->mat_bot=tyi->mat_side; }
+
+		tyi->mat_side_x=bgbdt_matinfo[i].mat_side_x;
+		tyi->mat_side_y=bgbdt_matinfo[i].mat_side_y;
+		tyi->mat_top_x=bgbdt_matinfo[i].mat_top_x;
+		tyi->mat_top_y=bgbdt_matinfo[i].mat_top_y;
+		tyi->mat_bot_x=bgbdt_matinfo[i].mat_bot_x;
+		tyi->mat_bot_y=bgbdt_matinfo[i].mat_bot_y;
+		tyi->flags=bgbdt_matinfo[i].flags;
+		tyi->glow=bgbdt_matinfo[i].glow;
+	}
+
+#if 0
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "null");
 	tyi->mat_side=FRGL_TexMat_GetLoadIndex("textures/atlas0");
 	tyi->mat_top=tyi->mat_side;	tyi->mat_bot=tyi->mat_side;
@@ -535,17 +817,17 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name)
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "solidnoface");
 	tyi->mat_side=FRGL_TexMat_GetLoadIndex("textures/atlas0");
 	tyi->mat_top=tyi->mat_side;	tyi->mat_bot=tyi->mat_side;
-	tyi->mat_side_x=4; tyi->mat_side_y=1;
-	tyi->mat_top_x=4; tyi->mat_top_y=1;
-	tyi->mat_bot_x=4; tyi->mat_bot_y=1;
+	tyi->mat_side_x=15; tyi->mat_side_y=15;
+	tyi->mat_top_x=15; tyi->mat_top_y=15;
+	tyi->mat_bot_x=15; tyi->mat_bot_y=15;
 	tyi->flags=BGBDT_VOXFL_NOFACES;
 
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "glass");
 	tyi->mat_side=FRGL_TexMat_GetLoadIndex("textures/atlas0");
 	tyi->mat_top=tyi->mat_side;	tyi->mat_bot=tyi->mat_side;
-	tyi->mat_side_x=5; tyi->mat_side_y=1;
-	tyi->mat_top_x=5; tyi->mat_top_y=1;
-	tyi->mat_bot_x=5; tyi->mat_bot_y=1;
+	tyi->mat_side_x=15; tyi->mat_side_y=0;
+	tyi->mat_top_x=15; tyi->mat_top_y=0;
+	tyi->mat_bot_x=15; tyi->mat_bot_y=0;
 	tyi->flags=BGBDT_VOXFL_TRANSPARENT;
 
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "lava");
@@ -638,6 +920,23 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name)
 	tyi->mat_bot_x=9; tyi->mat_bot_y=2;
 	tyi->flags=BGBDT_VOXFL_GLOWLIGHT;
 	tyi->glow=0xFF;
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "grate");
+	tyi->mat_side=FRGL_TexMat_GetLoadIndex("textures/atlas0");
+	tyi->mat_top=tyi->mat_side;	tyi->mat_bot=tyi->mat_side;
+	tyi->mat_side_x=15; tyi->mat_side_y=1;
+	tyi->mat_top_x=15; tyi->mat_top_y=1;
+	tyi->mat_bot_x=15; tyi->mat_bot_y=1;
+	tyi->flags=BGBDT_VOXFL_TRANSPARENT;
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "bars");
+	tyi->mat_side=FRGL_TexMat_GetLoadIndex("textures/atlas0");
+	tyi->mat_top=tyi->mat_side;	tyi->mat_bot=tyi->mat_side;
+	tyi->mat_side_x=14; tyi->mat_side_y=0;
+	tyi->mat_top_x=14; tyi->mat_top_y=0;
+	tyi->mat_bot_x=14; tyi->mat_bot_y=0;
+	tyi->flags=BGBDT_VOXFL_TRANSPARENT;
+#endif
 
 	s=name; h=0;
 	while(*s)

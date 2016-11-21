@@ -2899,7 +2899,7 @@ int BTIC1H_DecodeCtxBC7(BTIC1H_Context *ctx,
 	ybuf=tbuf;
 	ubuf=ybuf+xs*ys;
 	vbuf=ubuf+xs1*ys1;
-	abuf=abuf+xs1*ys1;
+	abuf=vbuf+xs1*ys1;
 	
 	i=BTIC1H_DecodeCtxPYUV(ctx, src, ssz, xs, ys,
 		ybuf, ubuf, vbuf, abuf);

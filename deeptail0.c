@@ -13,14 +13,26 @@ float bgbdt_vel[3];
 float bgbdt_tsorg[3];			//trace local origin
 BGBDT_VoxCoord bgbdt_tsxyz;		//trace ending xyz
 BGBDT_VoxCoord bgbdt_tslxyz;	//trace ending last xyz
+BGBDT_VoxCoord bgbdt_tsexyz;	//trace ending entity xyz
+dtVal bgbdt_tent;				//trace entity
+
+dtVal bgbdt_player;				//player entity
+
 int voxui_active;
 int voxui_placeidx;
 int voxui_voxui_idx;
 int voxui_tsvidx;
 
+BGBDT_VoxCoord voxui_xyz;
+bool voxui_isedit;
+
+char voxui_editbuf[256];
+int voxui_editpos;
+
 bool isotest_player_noclip=true;
 bool isotest_player_undying=true;
 bool isotest_player_onground=false;
+bool isotest_player_flip=false;
 
 double bgbdt_worldtime;
 
@@ -40,10 +52,17 @@ void isotest_menopt_toggle_act(FRGL_MenuInfo *menu, FRGL_MenuItem *mitm)
 		return;
 	}
 
+	if(!strcmp(mitm->name, "flip"))
+	{
+		isotest_player_flip=!isotest_player_flip;
+		mitm->opt_str=isotest_player_flip?"True":"False";
+		return;
+	}
+
 	if(!strcmp(mitm->name, "all_cookies"))
 	{
-//		IsoTest_GiveItem((64<<8)|4);
-//		IsoTest_GiveItem((64<<8)|5);
+		Bt2Ent_GiveItem((64<<8)|4);
+		Bt2Ent_GiveItem((64<<8)|5);
 	}
 }
 
@@ -55,32 +74,75 @@ void isotest_menopt_newgame(FRGL_MenuInfo *menu, FRGL_MenuItem *mitm)
 int main_movetick_checkmove(float *porg)
 {
 	BGBDT_VoxCoord min, max;
+	dtVal ents[16];
 	BGBDT_VoxCoord pos[16];
 	BGBDT_VoxData td[16];
 	float pomin[4], pomax[4];
-	int nvox;
+	int nvox, vfl, nent;
 	int i;
 
-	pomin[0]=porg[0]-0.45;
-	pomin[1]=porg[1]-0.45;
-	pomin[2]=porg[2]-1.30;
+	if(isotest_player_flip)
+	{
+		pomin[0]=porg[0]-0.40;
+		pomin[1]=porg[1]-0.40;
+		pomin[2]=porg[2]-0.20;
 
-	pomax[0]=porg[0]+0.45;
-	pomax[1]=porg[1]+0.45;
-	pomax[2]=porg[2]+0.30;
+		pomax[0]=porg[0]+0.40;
+		pomax[1]=porg[1]+0.40;
+		pomax[2]=porg[2]+1.30;
+	}else
+	{
+		pomin[0]=porg[0]-0.40;
+		pomin[1]=porg[1]-0.40;
+		pomin[2]=porg[2]-1.30;
+
+		pomax[0]=porg[0]+0.40;
+		pomax[1]=porg[1]+0.40;
+		pomax[2]=porg[2]+0.20;
+	}
 
 	min=BGBDT_ConvLocalToVoxCoord(bgbdt_voxworld, pomin);
 	max=BGBDT_ConvLocalToVoxCoord(bgbdt_voxworld, pomax);
+//	i=BGBDT_BoxQueryVoxel(bgbdt_voxworld, min, max, pos, td, &nvox,
+//		BGBDT_TRFL_NOLOAD|BGBDT_TRFL_NONEMPTY);
+	i=BGBDT_BoxQueryVoxel(bgbdt_voxworld, min, max, pos, td, &nvox,
+		BGBDT_TRFL_NOLOAD|BGBDT_TRFL_SOLID);
+	if(i)return(i);
+
 	i=BGBDT_BoxQueryVoxel(bgbdt_voxworld, min, max, pos, td, &nvox,
 		BGBDT_TRFL_NOLOAD|BGBDT_TRFL_NONEMPTY);
-	return(i);
+
+	bgbdt_voxworld->inwater=0;
+	if(i>0)
+	{
+		for(i=0; i<nvox; i++)
+		{
+			vfl=BGBDT_WorldVoxel_GetFlags(bgbdt_voxworld, pos[i], td[i]);
+			if((vfl&BGBDT_VOXFL_PHYS_MASK)==BGBDT_VOXFL_PHYS_FLIPUP)
+				isotest_player_flip=1;
+			if((vfl&BGBDT_VOXFL_PHYS_MASK)==BGBDT_VOXFL_PHYS_FLIPDN)
+				isotest_player_flip=0;
+			if(vfl&BGBDT_VOXFL_FLUID)
+				bgbdt_voxworld->inwater=(vfl>>4)&0x1F;
+		}
+	}
+
+	i=Bt2Ent_BoxQueryWorldEnts(bgbdt_voxworld,
+		bgbdt_voxworld->ent_player, min, max,
+		ents, &nent, BGBDT_TRFL_NOLOAD|BGBDT_TRFL_NONEMPTY);
+	if(i>0)
+	{
+		return(1);
+	}
+
+	return(0);
 }
 
 int main_movetick_step(double dt)
 {
 	float porg[4], pvel[4];
 	float f, g;
-	int i;
+	int i, fsg;
 
 	bgbdt_worldtime+=dt;
 
@@ -96,7 +158,21 @@ int main_movetick_step(double dt)
 		return(0);
 	}
 
-	bgbdt_vel[2]-=9.8*dt;
+	fsg=1;
+	if(isotest_player_flip)
+		fsg=-1;
+
+	if(bgbdt_voxworld->inwater)
+	{
+		f=1.0-2*dt;
+		if(f<0)f=0;
+		V3F_SCALE(bgbdt_vel, f, bgbdt_vel);
+		bgbdt_vel[2]-=fsg*2*dt;
+	}else
+	{
+		bgbdt_vel[2]-=fsg*9.8*dt;
+	}
+	
 	V3F_ADDSCALE(bgbdt_org, bgbdt_vel, dt, porg);
 
 //	xyzs=BGBDT_ConvLocalToVoxCoord(bgbdt_voxworld, bgbdt_org);
@@ -135,10 +211,15 @@ int main_movetick_step(double dt)
 			isotest_player_onground=true;
 
 			V3F_COPY(bgbdt_vel, pvel);
-			f=1-8*dt;
-			if(f<0)f=0;
-			pvel[0]*=f;
-			pvel[1]*=f;
+
+			if(!bgbdt_voxworld->inwater)
+			{
+				f=1-8*dt;
+				if(f<0)f=0;
+				pvel[0]*=f;
+				pvel[1]*=f;
+			}
+			
 			pvel[2]=0;
 
 			V3F_ADDSCALE(bgbdt_org, pvel, dt, porg);
@@ -158,7 +239,12 @@ int main_movetick_step(double dt)
 		V3F_COPY(porg, bgbdt_org);
 	}
 	
-	if(isotest_player_onground)
+	if(bgbdt_voxworld->inwater)
+	{
+		bgbdt_vel[0]+=bgbdt_imp[0]*dt*0.75;
+		bgbdt_vel[1]+=bgbdt_imp[1]*dt*0.75;
+		bgbdt_vel[2]+=bgbdt_imp[2]*dt*0.75;
+	}else if(isotest_player_onground)
 	{
 //		bgbdt_vel[0]=0;
 //		bgbdt_vel[1]=0;
@@ -177,13 +263,13 @@ int main_movetick_step(double dt)
 			bgbdt_vel[1]*=g;
 		}
 		
-		if(bgbdt_imp[2]>7)
-			bgbdt_vel[2]+=7;
+		if((fsg*bgbdt_imp[2])>7)
+			bgbdt_vel[2]+=fsg*7;
 	}else
 	{
 		bgbdt_vel[0]+=bgbdt_imp[0]*dt*0.25;
 		bgbdt_vel[1]+=bgbdt_imp[1]*dt*0.25;
-		bgbdt_vel[2]+=bgbdt_imp[2]*dt*0.25;
+//		bgbdt_vel[2]+=bgbdt_imp[2]*dt*0.25;
 //		V3F_COPY(porg, bgbdt_org);
 	}
 
@@ -223,7 +309,10 @@ int main_saveplayer()
 	BGBDT_WorldGetChunk(bgbdt_voxworld, xyz, fl);
 #endif
 
-	fd=vffopen("region/player.ini", "wt");
+	sprintf(tb, "region/%s/player.ini", bgbdt_voxworld->worldname);
+
+	fd=vffopen(tb, "wt");
+//	fd=vffopen("region/player.ini", "wt");
 	if(!fd)return(-1);
 	
 	sprintf(tb, "origin %f %f %f\n",
@@ -237,13 +326,17 @@ int main_saveplayer()
 		isotest_player_noclip);
 	vfwrite(tb, 1, strlen(tb), fd);
 
+	sprintf(tb, "zflip %d\n",
+		isotest_player_flip);
+	vfwrite(tb, 1, strlen(tb), fd);
+
 	vfclose(fd);
 	return(0);
 }
 
 int main_loadplayer()
 {
-//	char tb[256];
+	char tb[256];
 //	VFILE *fd;
 	char *buf, *cs, *cse;
 	char *s;
@@ -253,7 +346,10 @@ int main_loadplayer()
 //	fd=vffopen("region/player.ini", "wt");
 //	if(!fd)return(-1);
 	
-	buf=vf_loadfile("region/player.ini", &sz);
+	sprintf(tb, "region/%s/player.ini", bgbdt_voxworld->worldname);
+	
+	buf=vf_loadfile(tb, &sz);
+//	buf=vf_loadfile("region/player.ini", &sz);
 	if(!buf)
 		return(0);
 	
@@ -284,9 +380,15 @@ int main_loadplayer()
 		{
 			isotest_player_noclip=atoi(a[1]);
 		}
+
+		if(!strcmp(a[0], "zflip"))
+		{
+			isotest_player_flip=atoi(a[1]);
+		}
 	}
 
 	frgl_free(buf);
+	return(0);
 }
 
 int main_movetick(double dt)
@@ -353,7 +455,10 @@ int main_startup(int argc, char *argv[])
 
 	SoundDev_Init();
 
-	frgl_state->maxhz=60;
+//	frgl_state->maxhz=60;
+	frgl_state->maxhz=85;
+
+	Bt2Ent_LoadScript("bte3d.cfg", "bte3d.bsi");
 
 	menu=FRGL_GetMenu("main");
 	menu->title=frgl_strdup("Main Menu");
@@ -387,12 +492,20 @@ int main_startup(int argc, char *argv[])
 	mitm->title=frgl_strdup("All Cookies");
 	mitm->Action=isotest_menopt_toggle_act;
 
+	mitm=FRGL_GetMenuItem(menu, 3, "flip");
+	mitm->title=frgl_strdup("Flip");
+	mitm->Action=isotest_menopt_toggle_act;
+
 	mixl=BGBDT_Sound_GetListener(0);
 	mixr=BGBDT_Sound_GetListener(1);
 	mixl->rate=44100;
 	mixr->rate=44100;
 
-	bgbdt_voxworld=BGBDT_CreateBasicWorld("wrltest0");
+//	bgbdt_voxworld=BGBDT_CreateBasicWorld("wrltest0");
+	
+	bgbdt_voxworld=BGBDT_CreateBasicWorld2("maretst0", "mare");
+	
+	Bt2Ent_BindVoxWorld(bgbdt_voxworld);
 
 	xyz.x=-4<<BGBDT_XYZ_SHR_CHUNK;
 	xyz.y=-4<<BGBDT_XYZ_SHR_CHUNK;
@@ -423,6 +536,8 @@ int main_startup(int argc, char *argv[])
 	voxui_placeidx=BGBDT_VoxelWorld_LookupTypeIndexName(
 		bgbdt_voxworld, "stone");
 
+	Bt2Ent_SpawnWorld(NULL);
+
 	main_loadplayer();
 
 	return(0);
@@ -430,11 +545,26 @@ int main_startup(int argc, char *argv[])
 
 int main_drawvoxui()
 {
+	static int frcnt=0;
+	char tb[256];
 	BGBDT_VoxTypeInfo *tyi;
+	BGBDT_VoxData td, td1;
+	BGBDT_VoxCoord xyz2;
+	char *vs0;
+	int vfl, vty, vfl1, vty1, vval;
 	int x0, y0, x1, y1;
 	float s0, s1, t0, t1;
-	int ix, mat;
+	int ix, mat, setp;
 	int i, j, k;
+
+	if(voxui_isedit)
+	{
+		BGBDT_WorldGetVoxelData(bgbdt_voxworld, voxui_xyz, &td, NULL, 0);
+		vfl=BGBDT_WorldVoxel_GetFlags(bgbdt_voxworld, voxui_xyz, td);
+		vty=BGBDT_WorldVoxel_GetTypeID(bgbdt_voxworld, voxui_xyz, td);
+		
+		voxui_placeidx=vty;
+	}
 
 	frglDisableTexture2D();
 
@@ -456,6 +586,8 @@ int main_drawvoxui()
 	frglEnd();
 
 	frglEnableTexture2D();
+	
+	voxui_voxui_idx=-1;
 	
 	for(i=0; i<16; i++)
 		for(j=0; j<16; j++)
@@ -517,6 +649,75 @@ int main_drawvoxui()
 		frglVertex2f(x0, y1);
 		frglEnd();
 	}
+	
+	frcnt++;
+	
+	if(voxui_isedit)
+	{
+		BGBDT_WorldGetVoxelData(bgbdt_voxworld, voxui_xyz, &td, NULL, 0);
+		vfl=BGBDT_WorldVoxel_GetFlags(bgbdt_voxworld, voxui_xyz, td);
+		vty=BGBDT_WorldVoxel_GetTypeID(bgbdt_voxworld, voxui_xyz, td);
+		vval=td.vdatal|(td.vdatah<<8);
+		setp=0;
+
+		if(FRGL_KeyDown(K_ENTER) && !FRGL_LastKeyDown(K_ENTER))
+		{
+			if(voxui_voxui_idx>=0)
+			{
+				voxui_placeidx=voxui_voxui_idx;
+			}else if(strlen(voxui_editbuf)>0)
+			{
+				vs0=voxui_editbuf;
+				if(*vs0=='#')
+				{
+					vval=frgl_ratoi(vs0+1);
+					td.vdatal=vval;
+					td.vdatah=vval>>8;
+					setp=1;
+				}else
+				{
+					vval=BGBDT_WorldGetString(
+						bgbdt_voxworld, voxui_xyz, 0, voxui_editbuf);
+					td.vdatal=vval;
+					td.vdatah=vval>>8;
+					setp=1;
+				}
+			}
+		}
+
+		if(voxui_placeidx!=vty)
+		{
+			td.vtypel=voxui_placeidx;
+			td.vtypeh=voxui_placeidx>>8;
+			setp=1;
+		}
+
+		if(setp)
+		{
+			BGBDT_WorldSetVoxelData(bgbdt_voxworld,
+				voxui_xyz, td, BGBDT_ACCFL_CHKADJ);
+		}
+
+//		vs0=NULL;
+
+		vs0=BGBDT_WorldGetStringForIndex(bgbdt_voxworld,
+				voxui_xyz, 0, vval);
+
+		if(!vs0)vs0="";
+
+		x0=-32*8;
+		y0=8*36+36;
+		GfxFont_SetFont("fixed", 0);
+		sprintf(tb, "Vty=%04X Vdat=%04X Vstr=%s", vty, vval, vs0);
+		GfxFont_DrawString(tb, x0, y0, 8, 8, 0, 255, 0, 255);
+		
+		memset(tb, 0, 256);
+		sprintf(tb, "> %s", voxui_editbuf);
+		if(frcnt&1)
+			tb[voxui_editpos+2]='|';
+		GfxFont_DrawString(tb, x0, y0-8, 8, 8, 0, 255, 0, 255);
+	}
+	return(0);
 }
 
 int main_drawvoxhud()
@@ -572,6 +773,48 @@ int main_drawvoxhud()
 		frglVertex2f(x0, y1);
 		frglEnd();
 	}
+	return(0);
+}
+
+int main_setplacevox(BGBDT_VoxData *rtd)
+{
+	BGBDT_VoxData td;
+	char *vtn;
+	int vt_place;
+	int vdir;
+
+	vt_place=voxui_placeidx;
+
+	memset(&td, 0, sizeof(BGBDT_VoxData));
+	td.vtypel=vt_place;		td.vtypeh=vt_place>>8;
+	td.vattr=0;
+	td.vlight=0;		td.alight=0;
+	*rtd=td;
+
+	vdir=0;
+//	if((bgbdt_ang[2]>=0) && (bgbdt_ang[2]<=45))
+//		vdir=0;
+	if((bgbdt_ang[2]>=45) && (bgbdt_ang[2]<=135))
+		vdir=1;
+	if((bgbdt_ang[2]>=135) && (bgbdt_ang[2]<=225))
+		vdir=2;
+	if((bgbdt_ang[2]>=225) && (bgbdt_ang[2]<=315))
+		vdir=3;
+
+//	BGBDT_WorldSetVoxelData(
+//		bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
+
+	vtn=BGBDT_WorldVoxel_GetTypeName(bgbdt_voxworld, bgbdt_tslxyz, td);
+	
+	if(!strcmp(vtn, "ent_mob"))
+	{
+		td.vattr=vdir;
+		if(isotest_player_flip)
+			td.vattr|=0x40;
+	}
+
+	*rtd=td;
+	return(0);
 }
 
 int main_handle_input()
@@ -585,7 +828,7 @@ int main_handle_input()
 
 	BGBDT_VoxData td;
 	int vt_air, vt_place;
-	int mlook;
+	int mlook, fsg, hituse;
 
 	int i, j, k;
 	unsigned short *kcur;
@@ -597,6 +840,101 @@ int main_handle_input()
 	{
 		kcur=frgl_state->keys;
 		FRGL_MenuHandleKeys(kcur);
+		return(0);
+	}
+
+	if(Bt2Ent_DialogActiveP())
+	{
+		hituse=0;
+		kcur=frgl_state->keys;
+		while(*kcur)
+		{
+			switch(*kcur)
+			{
+			case K_DEL:
+			case K_ESC:
+//				isotest_diagbox=DTV_NULL;
+				Bt2Ent_SetDialog(DTV_NULL);
+				break;		
+			case K_ENTER:
+				hituse=1;
+				break;
+			case '0':	case '1':
+			case '2':	case '3':
+			case '4':	case '5':
+			case '6':	case '7':
+			case '8':	case '9':
+				hituse=1+(*kcur-'0');
+				break;
+			default:
+				break;
+			}
+			kcur++;
+		}
+
+		if(hituse>0)
+		{
+			Bt2Ent_DialogImpulse(hituse);
+		}
+		return(0);
+	}
+
+//	if(isotest_invopen || isotest_isdead)
+	if(Bt2Ent_InvenActiveP())
+	{
+		hituse=0;
+		kcur=frgl_state->keys;
+
+#if 0
+		if(isotest_isdead && isotest_player_undying)
+		{
+			if(kcur && *kcur)
+				isotest_isdead=0;
+			if(FRGL_KeyDown(K_LEFTARROW) ||
+				FRGL_KeyDown(K_RIGHTARROW) ||
+				FRGL_KeyDown(K_UPARROW) ||
+				FRGL_KeyDown(K_DOWNARROW))
+					isotest_isdead=0;
+		}
+#endif
+
+		while(*kcur)
+		{
+			switch(*kcur)
+			{
+			case K_ESC:
+				if(Bt2Ent_InvenActiveP())
+				{
+					Bt2Ent_InvenSetActive(0);
+					break;
+				}
+				FRGL_SetMenuActive("main");
+				break;
+			case K_DEL:
+//			case K_ESC:
+			case K_TAB:
+				Bt2Ent_InvenSetActive(0);
+				break;		
+			case K_ENTER:
+				hituse=1;
+				break;
+
+			case 'i':
+				Bt2Ent_InvenSetActive(0);
+				break;
+			
+			case '0':	case '1':
+			case '2':	case '3':
+			case '4':	case '5':
+			case '6':	case '7':
+			case '8':	case '9':
+				hituse=1+(*kcur-'0');
+				break;
+			default:
+				break;
+			}
+			kcur++;
+		}
 		return(0);
 	}
 
@@ -625,11 +963,44 @@ int main_handle_input()
 				voxui_active=!voxui_active;
 				break;
 			case K_DEL:
+				memmove(
+					voxui_editbuf+voxui_editpos,
+					voxui_editbuf+voxui_editpos+1,
+					254-voxui_editpos);
+				break;
+			case K_BACKSPACE:
+				if(voxui_editpos>0)
+				{
+					memmove(
+						voxui_editbuf+voxui_editpos-1,
+						voxui_editbuf+voxui_editpos,
+						254-voxui_editpos);
+					voxui_editpos--;
+				}
 				break;
 			case K_INS:
 				break;
+			case K_LEFTARROW:
+				if(voxui_editpos>0)
+					voxui_editpos--;
+				break;
+			case K_RIGHTARROW:
+				if((voxui_editpos<252) &&
+					(strlen(voxui_editbuf+voxui_editpos)>0))
+						voxui_editpos++;
+				break;
 			default:
 				break;
+			}
+			
+			if((*kcur>=' ') && (*kcur<='~'))
+			{
+				memmove(
+					voxui_editbuf+voxui_editpos+1,
+					voxui_editbuf+voxui_editpos,
+					254-voxui_editpos);
+				voxui_editbuf[voxui_editpos]=*kcur;
+				voxui_editpos++;
 			}
 			kcur++;
 		}
@@ -672,13 +1043,20 @@ int main_handle_input()
     }
     
     V3F_ZERO(iv);
+
+	if(isotest_player_flip)
+		{ fsg=-1; }
+	else
+		{ fsg=1; }
     
 	if(mlook)
 	{
 		if(lmlook)
 		{
-			bgbdt_ang[0]-=frgl_state->my*45*frgl_state->dt_f;
-			bgbdt_ang[2]-=frgl_state->mx*45*frgl_state->dt_f;
+			h=frgl_state->dt_f;
+			if(h>0.5)h=0;
+			bgbdt_ang[0]-=fsg*frgl_state->my*45*h;
+			bgbdt_ang[2]-=fsg*frgl_state->mx*45*h;
 
 			if(bgbdt_ang[0]<(-89))
 				bgbdt_ang[0]=-89;
@@ -700,9 +1078,9 @@ int main_handle_input()
 				{ iv[0]-=25*bgbdt_rot[3]; iv[1]-=25*bgbdt_rot[4]; }
 
 			if(FRGL_KeyDown(K_HOME))
-				{ iv[2]+=25; }
+				{ iv[2]+=fsg*25; }
 			if(FRGL_KeyDown(K_END))
-				{ iv[2]-=25; }
+				{ iv[2]-=fsg*25; }
 		}else
 		{
 			if(FRGL_KeyDown(K_LEFTARROW))
@@ -764,10 +1142,10 @@ int main_handle_input()
 
 		if(FRGL_KeyDown(K_HOME))
 //			{ bgbdt_org[2]+=25*frgl_state->dt_f; }
-			{ iv[2]+=25; }
+			{ iv[2]+=fsg*25; }
 		if(FRGL_KeyDown(K_END))
 //			{ bgbdt_org[2]-=25*frgl_state->dt_f; }
-			{ iv[2]-=25; }
+			{ iv[2]-=fsg*25; }
 		if(FRGL_KeyDown(K_PGUP))
 			{ bgbdt_ang[0]+=135*frgl_state->dt_f; }
 		if(FRGL_KeyDown(K_PGDN))
@@ -815,6 +1193,22 @@ int main_handle_input()
 		}
 	}
 
+	if(isotest_player_flip)
+	{
+		if(bgbdt_ang[1]<180)
+			bgbdt_ang[1]+=540*frgl_state->dt_f;
+		if(bgbdt_ang[1]>180)
+			bgbdt_ang[1]=180;
+//		bgbdt_ang[1]=180;
+	}else
+	{
+		if(bgbdt_ang[1]>0)
+			bgbdt_ang[1]-=540*frgl_state->dt_f;
+		if(bgbdt_ang[1]<0)
+			bgbdt_ang[1]=0;
+//		bgbdt_ang[1]=0;
+	}
+
 	V3F_COPY(iv, bgbdt_imp);
 	lmlook=mlook;
 
@@ -824,10 +1218,12 @@ int main_handle_input()
 
 	if((frgl_state->mb&1) && !(frgl_state->lmb&1))
 	{
-		memset(&td, 0, sizeof(BGBDT_VoxData));
-		td.vtypel=vt_place;		td.vtypeh=vt_place>>8;
-		td.vattr=0;
-		td.vlight=0;		td.alight=0;
+//		memset(&td, 0, sizeof(BGBDT_VoxData));
+//		td.vtypel=vt_place;		td.vtypeh=vt_place>>8;
+//		td.vattr=0;
+//		td.vlight=0;		td.alight=0;
+		
+		main_setplacevox(&td);
 		BGBDT_WorldSetVoxelData(
 			bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
 	}
@@ -850,10 +1246,24 @@ int main_handle_input()
 			if(voxui_active)
 			{
 				voxui_placeidx=voxui_voxui_idx;
+			}else if(voxui_tsvidx>0)
+			{
+				voxui_xyz=bgbdt_tsxyz;
+				voxui_active=1;
+				voxui_isedit=1;
+			}else if(!dtvNullP(bgbdt_tent))
+			{
+				Bt2Ent_CallEntityUse(bgbdt_tent, bgbdt_player);
 			}
 			break;
+
+		case 'i':
+			Bt2Ent_InvenSetActive(1);
+			break;
+
 		case K_TAB:
 			voxui_active=!voxui_active;
+			voxui_isedit=0;
 			break;
 		case K_DEL:
 			BGBDT_VoxLight_CheckClearBlockLightRadius(
@@ -867,13 +1277,25 @@ int main_handle_input()
 				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
 			break;
 		case K_INS:
-			memset(&td, 0, sizeof(BGBDT_VoxData));
-			td.vtypel=vt_place;	td.vtypeh=vt_place>>8;
-			td.vattr=0;
-			td.vlight=0;		td.alight=0;
+//			memset(&td, 0, sizeof(BGBDT_VoxData));
+//			td.vtypel=vt_place;	td.vtypeh=vt_place>>8;
+//			td.vattr=0;
+//			td.vlight=0;		td.alight=0;
+			main_setplacevox(&td);
 			BGBDT_WorldSetVoxelData(
 				bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
 			break;
+
+		case '\\':		
+//			memset(&td, 0, sizeof(BGBDT_VoxData));
+//			td.vtypel=vt_place;	td.vtypeh=vt_place>>8;
+//			td.vattr=0;
+//			td.vlight=0;		td.alight=0;
+			main_setplacevox(&td);
+			BGBDT_WorldSetVoxelData(
+				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
+			break;
+
 		default:
 			break;
 		}
@@ -887,16 +1309,19 @@ int main_body()
 {
 	static float frm_dtf[256];
 	static byte frm_rov;
+	static float expose=1.0;
 
 	char tb[1024];
 	int txa[6];
 	float org[3], rot[9], lorg[3], aclr[4];
-	float tsorg[3];
+	float tsorg[3], temin[3], temax[3];
 	float tv0[3], tv1[3], tv2[3];
 
-	BGBDT_VoxCoord xyzs, xyze, xyzt, xyztl;
+	BGBDT_VoxCoord xyzs, xyze, xyzt, xyztl, xyzte;
+	BGBDT_VoxCoord emin, emax;
 	BGBDT_VoxData td;
 	BGBDT_VoxDataStatus tds;
+	dtVal ent;
 
 //	BTEWS_WireNode *ncur;
 	char *s;
@@ -905,14 +1330,20 @@ int main_body()
 	float cr, cg, cb;
 	double x0, x1, y0, y1, z0, z1;
 	double f, g, h;
+	int t0, t1, t2, t3;
+	int t00;
 	int mx, my, mgx, mgy;
 	int tex, txs, tys, wxs, wys;
 	int i, j, k, l;
+
+	t00=clock();
 
 	mx=frgl_state->mx;
 	my=-frgl_state->my;
 
 	main_handle_input();
+
+	Bt2Ent_ScriptUpdate(frgl_state->dt_f);
 
 #if 0
 	org[0]=0;	org[1]=-1024;	org[2]=0;
@@ -947,6 +1378,7 @@ int main_body()
 	for(i=0; i<9; i++)
 		bgbdt_voxworld->camrot[i]=bgbdt_rot[i];
 
+	t0=clock();
 
 	BGBDT_Sound_SetListenOrg(vec3(
 		bgbdt_org[0], bgbdt_org[1], 0));
@@ -959,7 +1391,15 @@ int main_body()
 
 	BGBDT_Sound_MixTime(frgl_state->dt_f);
 
+	t1=clock();
+	t2=t1-t0;
+	bgbdt_voxworld->dt_sound=t2;
+
 	main_movetick(frgl_state->dt_f);
+
+	bgbdt_voxworld->camorg[0]=bgbdt_org[0];
+	bgbdt_voxworld->camorg[1]=bgbdt_org[1];
+	bgbdt_voxworld->camorg[2]=bgbdt_org[2];
 
 	GfxDrv_GetWindowSize(&wxs, &wys);
 
@@ -989,6 +1429,11 @@ int main_body()
 		&xyzt, &xyztl, &td, &tds,
 		BGBDT_TRFL_NOLOAD|BGBDT_TRFL_NONEMPTY);
 
+	j=Bt2Ent_RayCastEntity(bgbdt_voxworld,
+		bgbdt_voxworld->ent_player, xyzs, xyzt, &xyzte, &ent,
+//	j=Bt2Ent_RayCastEntity(bgbdt_voxworld, xyzs, xyze, &xyzte, &ent,
+		BGBDT_TRFL_NOLOAD|BGBDT_TRFL_NONEMPTY);
+
 	BGBDT_ConvVoxToLocalCoord(bgbdt_voxworld, xyzt, tsorg);
 
 //	voxui_tsvidx=td.vtype;
@@ -998,6 +1443,39 @@ int main_body()
 	V3F_COPY(tsorg, bgbdt_tsorg);
 
 	if(i<=0)voxui_tsvidx=0;
+
+	bgbdt_tent=DTV_NULL;
+	if(j>0)
+	{
+		voxui_tsvidx=0;
+		bgbdt_tent=ent;
+		bgbdt_tsexyz=xyzte;
+
+		Bt2Ent_GetBoxEnt(bgbdt_voxworld, ent, &emin, &emax);
+		BGBDT_ConvVoxToLocalCoord(bgbdt_voxworld, emin, temin);
+		BGBDT_ConvVoxToLocalCoord(bgbdt_voxworld, emax, temax);
+	}
+
+	BGBDT_WorldGetVoxelData(bgbdt_voxworld, xyzs, &td, NULL, 0);
+	i=BGBDT_VoxLight_GetBlockLightIntensity(bgbdt_voxworld, xyzs, td);
+	
+	f=(i+1)/16.0;	f=1.0/f;
+//	f=f*1.12;
+	f=f-0.25;
+	f=sqrt(f);
+	if(f<0.65)f=0.65;
+	if(f>3.00)f=3.00;
+	expose=((1.0-frgl_state->dt_f*0.3)*expose)+
+		(frgl_state->dt_f*0.3*f);
+	FRGL_TexMat_SetExposure(expose);
+
+	if(td.alight && ((td.alight>>3)>4))
+	{
+		bgbdt_voxworld->insky=(td.alight&7);
+	}else
+	{
+		bgbdt_voxworld->insky=0;
+	}
 
 	FRGL_Setup3D(bgbdt_org, bgbdt_rot);
 //	FRGL_Setup3D(org, rot);
@@ -1017,6 +1495,8 @@ int main_body()
 	BGBDT_TickVoxWorld(bgbdt_voxworld);
 
 	BGBDT_DrawVoxWorld(bgbdt_voxworld);
+
+	Bt2Ent_DrawWorldEnts(bgbdt_voxworld);
 
 	glEnable(GL_CULL_FACE);
 
@@ -1067,6 +1547,44 @@ int main_body()
 	}
 #endif
 
+#if 1
+	if(!dtvNullP(bgbdt_tent))
+	{
+		frglColor4f(255, 0, 0, 0.75);
+
+		frglBegin(GL_LINES);
+
+		frglVertex3f(temin[0], temin[1], temin[2]);
+		frglVertex3f(temin[0], temin[1], temax[2]);
+		frglVertex3f(temax[0], temin[1], temin[2]);
+		frglVertex3f(temax[0], temin[1], temax[2]);
+		frglVertex3f(temin[0], temax[1], temin[2]);
+		frglVertex3f(temin[0], temax[1], temax[2]);
+		frglVertex3f(temax[0], temax[1], temin[2]);
+		frglVertex3f(temax[0], temax[1], temax[2]);
+
+		frglVertex3f(temin[0], temin[1], temin[2]);
+		frglVertex3f(temax[0], temin[1], temin[2]);
+		frglVertex3f(temax[0], temin[1], temin[2]);
+		frglVertex3f(temax[0], temax[1], temin[2]);
+		frglVertex3f(temax[0], temax[1], temin[2]);
+		frglVertex3f(temin[0], temax[1], temin[2]);
+		frglVertex3f(temin[0], temax[1], temin[2]);
+		frglVertex3f(temin[0], temin[1], temin[2]);
+
+		frglVertex3f(temin[0], temin[1], temax[2]);
+		frglVertex3f(temax[0], temin[1], temax[2]);
+		frglVertex3f(temax[0], temin[1], temax[2]);
+		frglVertex3f(temax[0], temax[1], temax[2]);
+		frglVertex3f(temax[0], temax[1], temax[2]);
+		frglVertex3f(temin[0], temax[1], temax[2]);
+		frglVertex3f(temin[0], temax[1], temax[2]);
+		frglVertex3f(temin[0], temin[1], temax[2]);
+
+		frglEnd();
+	}
+#endif
+
 //	aclr[0]=0.25;	aclr[1]=0.75;
 //	aclr[2]=1.00;	aclr[3]=0.33;
 //	main_DrawColorSphere(264, aclr, lorg);
@@ -1078,6 +1596,8 @@ int main_body()
 //	BTEWS_DrawGrid(btews_grid, f, g, 32, 32);
 
 	main_drawvoxhud();
+
+	Bt2Ent_DrawDialog();
 
 	if(voxui_active)
 	{
@@ -1122,16 +1642,19 @@ int main_body()
 	g=g/256.0;
 
 	sprintf(tb, "Cur=%.2fHz, Avg=%.2fHz, Min=%.2fHz, Max=%.2fHz "
-			"Time=%d:%02d",
+			"Time=%d:%02d expose=%.3f",
 		1.0/frgl_state->dt_f, 1.0/g, 1.0/x1, 1.0/x0,
 		(((int)bgbdt_worldtime)/60),
-		(((int)bgbdt_worldtime)%60));
+		(((int)bgbdt_worldtime)%60),
+		expose);
 	GfxFont_DrawString(tb, -320, 384-16, 8, 8, 0, 255, 0, 255);
 
-	sprintf(tb, "dtTick=%dms dtPvs=%dms dtDraw=%dms",
+	sprintf(tb, "dtTick=%dms dtPvs=%dms dtDraw=%dms dtSound=%dms dtFrame=%dms",
 		bgbdt_voxworld->dt_tick,
 		bgbdt_voxworld->dt_pvs,
-		bgbdt_voxworld->dt_draw);
+		bgbdt_voxworld->dt_draw,
+		bgbdt_voxworld->dt_sound,
+		bgbdt_voxworld->dt_frame);
 	GfxFont_DrawString(tb, -320, 384-24, 8, 8, 0, 255, 0, 255);
 
 	frglColor4f(1, 1, 1, 1);
@@ -1152,6 +1675,10 @@ int main_body()
 	frglVertex2f(frgl_state->mx, -frgl_state->my+10);
 	frglEnd();
 #endif
+
+	t1=clock();
+	t2=t1-t00;
+	bgbdt_voxworld->dt_frame=t2;
 
 	return(0);
 }

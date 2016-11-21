@@ -229,6 +229,7 @@ BTEIFGL_API BtPak0_Image *BtPak_CreateImageRW(char *name)
 BTEIFGL_API int BtPak_ImageCloseImage(BtPak0_Image *img)
 {
 	BtPak_ImageCommit(img);
+	return(0);
 }
 
 BtPak0_LoadChunk *BtPak_ImageLookupChunk(BtPak0_Image *img, int idx)
@@ -441,6 +442,7 @@ int BtPak_ImageResizeLoadChunk(
 	chk->data=frgl_realloc(chk->data, newsz);
 	chk->szData=newsz;
 	chk->isDirty=1;
+	return(0);
 }
 
 int BtPak_ImageCommitLoadChunk(
@@ -1144,6 +1146,7 @@ BTEIFGL_API int BtPak_ImageCommit(
 	BtPak0_Image *img)
 {
 	BtPak_ImageCommitChunks(img);
+	return(0);
 }
 
 
@@ -1236,4 +1239,5 @@ BTEIFGL_API int BtPak_FileRead(
 BTEIFGL_API int BtPak_FileWrite(
 	void *buf, int sz1, int sz2, BtPak0_OpenFile *fd)
 {
+	return(0);
 }

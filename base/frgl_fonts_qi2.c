@@ -91,9 +91,9 @@ BTEIFGL_API void FRGL_TextVBO_Draw(FRGL_TextVBO *ctx)
 		glBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
 		FRGL_DrawPrim_DrawArraysTexRGB(
 			ctx->prim[i*4+2], ctx->prim[i*4+0], ctx->prim[i*4+1],
-			3, GL_FLOAT, 0, (byte *)ctx->ofs_xyz,
-			2, GL_FLOAT, 0, (byte *)ctx->ofs_st,
-			4, GL_UNSIGNED_BYTE, 0, (byte *)ctx->ofs_rgba);
+			3, GL_FLOAT, 0, (byte *)(nlint)ctx->ofs_xyz,
+			2, GL_FLOAT, 0, (byte *)(nlint)ctx->ofs_st,
+			4, GL_UNSIGNED_BYTE, 0, (byte *)(nlint)ctx->ofs_rgba);
 	}
 	frglBindBuffer(GL_ARRAY_BUFFER, 0);
 }

@@ -114,6 +114,7 @@ BTEIFGL_API int VfUnlinkMount(VF31_VFMNT *mnt)
 		mlst=mcur;
 		mcur=mcur->next;
 	}
+	return(0);
 }
 
 BTEIFGL_API void VfNormalizePath(char *path, char *pbuf)
@@ -226,7 +227,7 @@ BTEIFGL_API void *VfLoadFile2(char *path, int *rsz)
 	return(NULL);
 }
 
-BTEIFGL_API void *VfFreeLoadFileBuffer(void *buf)
+BTEIFGL_API void VfFreeLoadFileBuffer(void *buf)
 {
 	frgl_free(buf);
 }

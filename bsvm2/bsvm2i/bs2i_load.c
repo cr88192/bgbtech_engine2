@@ -1653,6 +1653,17 @@ BS2VM_API BSVM2_Trace *BS2I_ImageGetFuncTrace(
 {
 	BSVM2_Trace *tr;
 
+	if(vi->cblk && vi->cblk->jitdly)
+	{
+		vi->cblk->jitdly--;
+		if(!vi->cblk->jitdly)
+		{
+			tr=BSVM2_Interp_TryJitBlock(vi->cblk);
+			vi->ctrace=tr;
+			return(tr);
+		}
+	}
+
 	if(vi->ctrace)
 		return(vi->ctrace);
 

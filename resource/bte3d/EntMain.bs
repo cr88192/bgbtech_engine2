@@ -1,0 +1,121 @@
+native int frgl_printf(cstring str, ...);
+native int clock();
+native int rand();
+native void Bt2Ent_GiveItem(int item);
+native int Bt2Ent_TakeItem(int item);
+native int Bt2Ent_CheckItem(int item);
+native int Bt2Ent_SetBgm(cstring bgm);
+
+native void Bt2Ent_SetApplyWorldFlags(int flag);
+native void Bt2Ent_SetClearWorldFlags(int flag);
+// native int Bt2Ent_CheckEntMoveCollidePos(EntityBase self);
+
+native int Bt2Ent_EntityMoveCheckCollide(EntityBase ent, vec3xf pos);
+
+native int BGBDT_Sound_PlaySound(
+	cstring name, int vol, int att, int flag);
+native int BGBDT_Sound_ChanSetOriginF(
+	int id, float x, float y, float z);
+native int Bt2Ent_KillPlayer();
+
+public EntityBase[] world_entity;
+public int world_max_entity;
+
+public bool world_isHostile=false;
+public EntityBase world_player;
+public double world_time;
+int world_lottery;
+
+public bool usebkg=false;
+public bool usecsbgm=false;
+
+
+public class player extends EntityBase {
+	public void spawn()
+	{
+		world_player=this;
+		sprite_sz=#[32, 48];
+		radius=8;
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase other)
+	{
+	}
+
+	public void use(EntityBase other)
+	{
+	}
+}
+
+
+double accDt;
+double lotDt;
+
+public void update(double dt)
+{
+	int i;
+	
+	if(usebkg)
+		return;
+	
+	accDt=accDt+dt;
+	if(accDt<0.04)
+		return;
+	accDt-=0.04;
+	world_time+=0.04;
+	lotDt+=0.04;
+	
+	world_lottery=0;
+	
+	if(lotDt>1.0)
+	{
+		world_lottery=rand()&16383;
+		lotDt-=1.0;
+	}
+	
+//	if(Bt2Ent_CheckItem((63<<8)|4) ||
+//		Bt2Ent_CheckItem((63<<8)|5))
+	if(Bt2Ent_CheckItem((63<<8)|4) ||
+		Bt2Ent_CheckItem((63<<8)|5) ||
+		(world_time>(8*60)))
+	{
+		Bt2Ent_SetApplyWorldFlags(1);
+		if(!usecsbgm)
+		{
+//			Bt2Ent_SetBgm("sound/pi0_amb1");
+		}
+		world_isHostile=true;
+	}else
+	{
+		Bt2Ent_SetClearWorldFlags(1);
+//		Bt2Ent_SetBgm("sound/pi0_amb0");
+		if(!usecsbgm)
+		{
+			Bt2Ent_SetBgm("sound/pi0_amb0");
+//			Bt2Ent_SetBgm("sound/Noise0");
+		}
+		world_isHostile=false;
+	}
+	
+	for(i=0; i<world_max_entity; i++)
+	{
+		world_entity[i].tick();
+	}
+
+//	foo=3;
+//	foo(3, 4);
+}
+
+public void spawn_world()
+{
+	world_time=0;
+}
+
+public int main(string[] args)
+{
+	frgl_printf("IsoMain\n");
+}

@@ -43,8 +43,6 @@ BTEIFGL_SRCS=\
 	base/w32_net.c \
 	base/w32_udpip.c \
 	\
-	entity/ent_tagval.c \
-	\
 	voxel/vox_chunk.c \
 	voxel/vox_decrice.c \
 	voxel/vox_draw.c \
@@ -57,6 +55,11 @@ BTEIFGL_SRCS=\
 	voxel/vox_trace.c \
 	voxel/vox_voxty.c \
 	voxel/vox_world.c \
+	\
+	voxel/vox_tg_mare.c \
+	\
+	entity/ent_bsvm.c \
+	entity/ent_dialog.c \
 	\
 	btews/btws_diode.c \
 	btews/btws_dip.c \
@@ -107,6 +110,8 @@ BTEIFGL_MULTISRCS=\
 	\
 	$(BSVM2_MULTISRCS)
 
+#	entity/ent_tagval.c \
+#	\
 
 SRCS=$(BTEIFGL_SRCS)
 MSRCS=$(BTEIFGL_MULTISRCS)

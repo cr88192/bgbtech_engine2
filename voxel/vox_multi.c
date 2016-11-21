@@ -10,3 +10,8 @@
 #include "vox_trace.c"
 #include "vox_voxty.c"
 #include "vox_world.c"
+
+#include "vox_tg_mare.c"
+
+#include "../entity/ent_bsvm.c"
+#include "../entity/ent_dialog.c"

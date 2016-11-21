@@ -1,0 +1,111 @@
+public final int ENTFL_ZFLIP=0x0010;
+
+public class mob_spider extends EntityMob {
+	static bool isInit=false;
+	byte elfty;
+	byte pester;
+	
+	public static void init()
+	{
+		if(isInit)
+			return;
+		isInit=true;
+		
+		frgl_printf("Spider Init\n");
+	}
+
+	public void spawn()
+	{
+		init();
+	
+//		sprite_sz=#[32, 64];
+//		radius=12;
+//		height=64;
+//		sprite="sprites/elf/elf0_1";
+//		elfty=0;
+
+		sprite_sz=#[128, 96];
+		sprite="sprites/spider/spider0_1";
+		radius=24;
+		height=96;		
+	}
+
+	public void fallGravity()
+	{
+		vec3xf org1, org2;
+
+		org1=origin+0.04*velocity;
+		if(!Bt2Ent_EntityMoveCheckCollide(this, org1))
+		{
+			origin=org1;
+			if(((int)flags)&ENTFL_ZFLIP)
+				{ velocity=velocity+#[0, 0, 9.8*0.04]; }
+			else
+				{ velocity=velocity-#[0, 0, 9.8*0.04]; }
+		}else
+		{
+			velocity=#[0, 0, 0];
+		}
+	}
+
+	public void tick()
+	{
+		vec3xf org1, org2;
+		vec3f dir, lorg;
+		float dist;
+		int i, j, k;
+
+//		sprite_sz=#[128, 96];
+//		sprite="sprites/spider/spider0_1";
+//		radius=24;
+//		height=96;
+		
+		if(!world_player)
+			return;
+
+		fallGravity();
+
+		dir=world_player.origin-this.origin;
+		dist=dir.len;
+//		dir=#[dir.x/(dist+1), dir.y/(dist+1)];
+		dir=dir/(dist+1);
+		if(dist>64.0)
+		{
+//			frgl_printf("Dist=%f\n", dist);
+			return;
+		}
+		
+//		if(dist<48)
+//			Bt2Ent_KillPlayer();
+		
+		i=((int)(world_time*8))&1;
+//		i=i*2-1;
+		
+		sprite="sprites/spider/spider_walk0_1";
+		if(i)
+			{ sprite_sz=#[-128, 96]; }
+		else
+			{ sprite_sz=#[ 128, 96]; }
+
+		lorg=origin;
+		org1=origin+0.3*dir;
+//		if(IsoTile_CheckEntMoveCollidePos(this))
+//			{ origin=lorg; }
+
+		if(!Bt2Ent_EntityMoveCheckCollide(this, org1))
+			{ origin=org1; return; }
+			
+		org2=org1+#[0, 0, 1.25];
+		if(!Bt2Ent_EntityMoveCheckCollide(this, org2))
+			{ origin=org2; }
+	}
+	
+	public void touch(EntityBase other)
+	{
+	}
+
+	public void use(EntityBase other)
+	{
+//		int i;
+	}
+}

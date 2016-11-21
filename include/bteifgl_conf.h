@@ -2,6 +2,11 @@
 #ifndef X86_64
 #define X86_64
 #endif
+
+#ifndef ARCH_64BIT
+#define ARCH_64BIT
+#endif
+
 #endif
 
 #if defined(__i386__) || defined(_M_IX86)
@@ -27,6 +32,11 @@
 #ifndef WIN64
 #define WIN64
 #endif
+
+#ifndef ARCH_64BIT
+#define ARCH_64BIT
+#endif
+
 #endif
 
 #ifdef _MSC_VER
@@ -125,6 +135,16 @@ typedef float f32;
 #define F64_T
 typedef double f64;
 #endif
+
+#ifndef NLINT_T
+#define NLINT_T
+#ifdef ARCH_64BIT
+typedef s64 nlint;
+#else
+typedef u32 nlint;
+#endif
+#endif
+
 
 
 #ifndef static_inline

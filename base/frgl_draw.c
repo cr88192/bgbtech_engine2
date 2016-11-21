@@ -256,7 +256,8 @@ BTEIFGL_API int Draw_SetPerspective_3D(
 
 //	if(leftcoords)
 
-	dst=0.1;
+//	dst=0.1;
+	dst=0.001;
 
 	xmax=dst*tan(fov*(M_PI/360.0));
 	xmin=-xmax;
@@ -264,7 +265,8 @@ BTEIFGL_API int Draw_SetPerspective_3D(
 	ymin=xmin/aspect;
 	ymax=xmax/aspect;
 
-	glFrustum(xmin, xmax, ymin, ymax, dst, 100000);
+	glFrustum(xmin, xmax, ymin, ymax, dst, 10000);
+//	glFrustum(xmin, xmax, ymin, ymax, dst, 100000);
 //	glFrustum(xmin, xmax, ymin, ymax, dst, 100000000);
 //	glFrustum(xmin, xmax, ymin, ymax, dst, 1000000);
 
@@ -333,7 +335,8 @@ BTEIFGL_API int Draw_SetPerspective2_3D(
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	dst=0.1;
+//	dst=0.1;
+	dst=0.001;
 
 //	xmax=dst*tan(fov*(M_PI/360.0));
 //	xmin=-xmax;
@@ -345,12 +348,16 @@ BTEIFGL_API int Draw_SetPerspective2_3D(
 	ymax=xmax/aspect;
 
 	dst=xmax/tan(fov*(M_PI/360.0));
+//	dst=dst*0.25;
 
-	glFrustum(xmin, xmax, ymin, ymax, dst, 100000);
+	glFrustum(xmin, xmax, ymin, ymax, dst, 10000);
+//	glFrustum(xmin, xmax, ymin, ymax, dst, 100000);
 //	glFrustum(xmin, xmax, ymin, ymax, dst, 100000000);
 
 //	glScalef(1, 1, -1);
 	glTranslatef(0, 0, -dst);
+//	glTranslatef(0, 0, -2*dst);
+//	glTranslatef(0, 0, -dst*0.5);
 
 //	Mat3to4F_Transpose(rot, pos);
 
@@ -429,7 +436,11 @@ BTEIFGL_API void FRGL_Setup3D(float *org, float *rot)
 //		NULL, NULL, 0, 0,
 //		frgl_state->xs, frgl_state->ys);
 
+//	Draw_SetPerspective2_3D(
+//		f, 90, 1, org, rot,
+//		0, 0, frgl_state->xs, frgl_state->ys);
+
 	Draw_SetPerspective2_3D(
-		f, 90, 1, org, rot,
+		f, 90, 0.75, org, rot,
 		0, 0, frgl_state->xs, frgl_state->ys);
 }

@@ -1,0 +1,14 @@
+/** EntityMob
+  * Represents a mob-type entity
+  * Will search for enemies, and set an enemy when found.
+  * If it has an enemy, will pursue
+  */
+public class EntityMob extends EntityBase {
+	EntityBase enemy;
+	
+	/** Check if we can see another entity */
+	public bool canSeeP(EntityBase other)
+	{
+		return(true);
+	}
+}

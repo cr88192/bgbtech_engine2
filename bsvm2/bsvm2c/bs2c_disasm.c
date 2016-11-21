@@ -752,6 +752,13 @@ char *name;
 {"E452Ci",    "LDIXXC"},
 {"E453Ci",    "STIXXC"},
 
+{"E454",      "MKX3D"},
+{"E455",      "LDX3DA"},
+{"E456",      "LDX3DB"},
+{"E457",      "LDX3DC"},
+{"E458",      "CVTX3F2X3D"},
+{"E459",      "CVTX3D2X3F"},
+
 {NULL,        NULL}
 };
 

@@ -144,13 +144,14 @@ BTEIFGL_API BGBDT_SndListen *BGBDT_Sound_GetListener(int id)
 
 
 BTEIFGL_API int BGBDT_Sound_MixChannel(
-	BGBDT_SndListen *listen, BGBDT_SndMixChan *chan, double dt)
+	BGBDT_SndListen *listen, BGBDT_SndMixChan *chan,
+	double dt, double odt)
 {
 	vec3 dir, rvel;
 	double t0, d0, ts, hz;
 	float dist, dx, dy, dz, dlr, dvel, dv0, dv1;
 	float f, g;
-	int nsmps, fhz, sofs, att;
+	int nsmps, nsmps2, fhz, sofs, att;
 	int i, j, k, l;
 	
 	if(chan->donemsk&(1<<listen->id))
@@ -163,6 +164,7 @@ BTEIFGL_API int BGBDT_Sound_MixChannel(
 	}
 
 	nsmps=dt*listen->rate;
+	nsmps2=odt*listen->rate;
 	
 	t0=listen->ctime-chan->stime;
 	hz=listen->rate; fhz=hz*16;
@@ -231,7 +233,7 @@ BTEIFGL_API int BGBDT_Sound_MixChannel(
 		return(0);
 	}
 	
-	for(i=0; i<(2*nsmps); i++)
+	for(i=0; i<nsmps2; i++)
 	{
 //		sofs=(t0*hz+i)*16;
 //		sofs=((t0-d0)*hz+i)*16;
@@ -258,14 +260,14 @@ BTEIFGL_API int BGBDT_Sound_CheckListenBuffer(
 
 	if(!listen->mixbuf)
 	{
-		k=2*dt*listen->rate;
-		l=2*0.25*listen->rate;
+		k=4*dt*listen->rate;
+		l=4*0.25*listen->rate;
 		if(k>l)l=k;
 		listen->mixbuf=frgl_malloc(l*sizeof(s32));
 		listen->szmixbuf=l;
 	}else
 	{
-		k=2*dt*listen->rate;
+		k=4*dt*listen->rate;
 		if(k>listen->szmixbuf)
 		{
 			frgl_free(listen->mixbuf);
@@ -357,29 +359,66 @@ BTEIFGL_API int BGBDT_Sound_MixTime(double dt)
 
 	BGBDT_SndMixChan *cur, *nxt, *lst;
 	BGBDT_SndListen *mixl, *mixr;
-	double dt1;
-	int i, j, k, l;
+	double dt1, odt1;
+	int i, j, k, l,  k1;
 	
 	mixl=BGBDT_Sound_LookupListener(0);
 	mixr=BGBDT_Sound_LookupListener(1);
 	if(!mixl || !mixr)
 		return(-1);
 	
-	if(dt>0.25)
+//	if(dt>0.25)
+	if(dt>0.5)
 		return(-1);
+	
+	if(dt>0.05)
+	{
+		BGBDT_Sound_MixTime(dt*0.5);
+		BGBDT_Sound_MixTime(dt*0.5);
+		return(0);
+	}
 	
 	bgbdt_snd_abstime+=dt;
 	
 	accDt+=dt;
+
+#if 0
 	if(accDt<(1.0/32))
+//	if(accDt<=0)
 		return(0);
 	
 	dt1=0;
+//	if((accDt>=(1.0/32)) &&
+//		(dt1<=(0.25-(1.0/32))))
+	while((accDt>=(1.0/32)) &&
+		(dt1<=(0.25-(1.0/32))))
+//	while((accDt>0) && (dt1<=(0.22)))
+	{
+		dt1+=1.0/32;
+		accDt-=(1.0/32);
+	}
+#endif
+	
+#if 1
+	dt1=0;
+//	if((accDt>=(1.0/32)) &&
+//		(dt1<=(0.25-(1.0/32))))
+//	while((accDt>=(1.0/16)) &&
+//		(dt1<=(0.25-(1.0/16))))
+//	while((accDt>=(1.0/32)) &&
+//		(dt1<=(0.25-(1.0/32))))
+//	while((accDt>0) && (dt1<=(0.22)))
 	if(accDt>=(1.0/32))
 	{
 		dt1+=1.0/32;
 		accDt-=(1.0/32);
 	}
+
+	if(dt1<=0)
+		return(0);
+#endif
+
+	odt1=dt1*2;
 
 	BGBDT_Sound_CheckListenBuffer(mixl, dt1);
 	BGBDT_Sound_CheckListenBuffer(mixr, dt1);
@@ -391,8 +430,8 @@ BTEIFGL_API int BGBDT_Sound_MixTime(double dt)
 	while(cur)
 	{
 		nxt=cur->next;
-		BGBDT_Sound_MixChannel(mixl, cur, dt1);
-		BGBDT_Sound_MixChannel(mixr, cur, dt1);
+		BGBDT_Sound_MixChannel(mixl, cur, dt1, odt1);
+		BGBDT_Sound_MixChannel(mixr, cur, dt1, odt1);
 		
 		if(((cur->donemsk&3)==3) && 
 			!(cur->flag&BGBDT_SNDFL_KEEPDONE))
@@ -411,7 +450,7 @@ BTEIFGL_API int BGBDT_Sound_MixTime(double dt)
 		cur=nxt;
 	}
 
-	l=2*dt1*mixl->rate;
+	l=odt1*mixl->rate;
 	for(i=0; i<l; i++)
 	{
 		j=mixl->mixbuf[i];
@@ -426,9 +465,14 @@ BTEIFGL_API int BGBDT_Sound_MixTime(double dt)
 	}
 	
 	k=dt1*mixl->rate;
+	k1=odt1*mixl->rate;
 //	SoundDev_WriteSamples(sbuf, k);
-	SoundDev_WriteStereoSamples(sbuf, k);
-	
+//	SoundDev_WriteStereoSamples(sbuf, k);
+	SoundDev_WriteStereoSamples2(sbuf, k, k1);
+
+	if(accDt>=(1.0/32))
+		BGBDT_Sound_MixTime(0);
+
 	return(0);
 }
 

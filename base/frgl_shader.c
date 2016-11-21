@@ -137,7 +137,8 @@ BTEIFGL_API int FRGL_LookupShaderSource(char *name, int ty)
 	char tb[256];
 	int i, j;
 
-	sprintf(tb, "shaders/%s.%s", name,
+//	sprintf(tb, "shaders/%s.%s", name,
+	sprintf(tb, "%s.%s", name,
 		(ty==GL_VERTEX_SHADER)?"vert":"frag");
 
 	for(i=0; i<frgl_shader_cnt; i++)
@@ -162,7 +163,8 @@ BTEIFGL_API int FRGL_LoadShaderSource(char *name, int ty)
 	i=FRGL_LookupShaderSource(name, ty);
 	if(i>0)return(i);
 
-	sprintf(tb, "shaders/%s.%s", name,
+//	sprintf(tb, "shaders/%s.%s", name,
+	sprintf(tb, "%s.%s", name,
 		(ty==GL_VERTEX_SHADER)?"vert":"frag");
 	fd=vffopen(tb, "rb");
 //	fd=btcl_vffopen(tb, "rb");
@@ -316,8 +318,8 @@ BTEIFGL_API int frglGetUniformLocationF(int shader, char *name)
 //	hi=shader*4093; s=name;
 //	while(*s) { hi=(hi*4093)+(*s++); }
 
-//	hi=((shader*4093)+((nlint)name))*4093;
-	hi=((shader*4093)+((long)name))*4093;
+	hi=((shader*4093)+((nlint)name))*4093;
+//	hi=((shader*4093)+((long)name))*4093;
 	hi=(hi>>12)&4095;
 	
 	if((hash_sdr[hi]==shader) && (hash_name[hi]==name))
@@ -330,8 +332,8 @@ BTEIFGL_API int frglGetUniformLocationF(int shader, char *name)
 	if(!pglGetUniformLocation)return(-1);
 	i=pglGetUniformLocation(shader, name);
 	
-	if(i>0)
-//	if(i>=0)
+//	if(i>0)
+	if(i>=0)
 	{
 		hash_sdr[hi]=shader;
 		hash_name[hi]=name;

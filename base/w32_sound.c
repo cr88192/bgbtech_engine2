@@ -8,7 +8,8 @@
 #include <mmsystem.h>
 
 
-#define	WAV_BUFFERS				16
+//#define	WAV_BUFFERS				16
+#define	WAV_BUFFERS				128
 #define	WAV_MASK				(WAV_BUFFERS-1)
 #define	WAV_BUFFER_SIZE			0x1000
 #define SECONDARY_BUFFER_SIZE	0x10000
@@ -238,7 +239,27 @@ BTEIFGL_API int SoundDev_PaintSamples(short *buffer, int cnt)
 		cnt-=l;
 		snb=0;
 	}
-	if(cnt>0)memcpy(rover, buffer, cnt*sizeof(short));
+	if(!snb)
+	{
+		if(cnt>0)
+			{ memcpy(rover, buffer, cnt*sizeof(short)); }
+		return(0);
+	}
+
+	if(cnt>=16)
+	{
+		for(i=0; i<16; i++)
+		{
+			rover[i]=((rover[i]*(16-i))+(buffer[i]*i))/16;
+		}
+		for(; i<cnt; i++)
+			{ rover[i]=buffer[i]; }
+//		memcpy(rover+16, buffer+16, (cnt-16)*sizeof(short));
+	}else
+	{
+		for(i=0; i<cnt; i++)
+			{ rover[i]=((rover[i]*(16-i))+(buffer[i]*i))>>4; }
+	}
 
 #if 0
 	if(snb && (rover>(buf+32)) && ((rover+32)<(buf+samples)))
@@ -286,7 +307,8 @@ BTEIFGL_API int SoundDev_WriteRawSamples(short *buffer,
 
 //	dma2=buf+(((dma-buf)+((44100/40)&(~3)))&(samples-1));
 //	dma2=buf+(((dma-buf)+((44100/10)&(~3)))&(samples-1));
-	dma2=buf+(((dma-buf)+((44100/20)&(~3)))&(samples-1));
+//	dma2=buf+(((dma-buf)+((44100/20)&(~3)))&(samples-1));
+	dma2=buf+(((dma-buf)+((44100/15)&(~3)))&(samples-1));
 //	dma2=buf+(((dma-buf)+(44100/20))&(samples-1));
 //	dma2=buf+(((dma-buf)+44100/10)&(samples-1));
 //	d=abs(snd_rover-dma2);
@@ -306,6 +328,8 @@ BTEIFGL_API int SoundDev_WriteRawSamples(short *buffer,
 	{
 //		printf("Sound: Resync %d\n", snd_rover-dma);
 //		printf("Sound: Resync %d\n", snd_rover-dma2);
+		printf("Sound: Resync %d %.3fs\n",
+			snd_rover-dma2, (snd_rover-dma2)/(2*44100.0));
 		rs=1;
 
 #if 1

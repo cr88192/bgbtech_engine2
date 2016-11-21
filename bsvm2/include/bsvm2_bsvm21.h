@@ -102,6 +102,9 @@
 #define BSVM2_OPVZ_I128		8
 #define BSVM2_OPVZ_UI128	9
 #define BSVM2_OPVZ_F128		10
+#define BSVM2_OPVZ_V3D		11
+#define BSVM2_OPVZ_V4D		12
+#define BSVM2_OPVZ_V3XF		13
 
 
 #define BSVM2_OPZY_STRU8	1
@@ -686,6 +689,13 @@
 #define BSVM2_OP_LDIXXC		0x0452	//
 #define BSVM2_OP_STIXXC		0x0453	//
 
+#define BSVM2_OP_MKX3D		0x0454	//
+#define BSVM2_OP_LDX3DA		0x0455	//
+#define BSVM2_OP_LDX3DB		0x0456	//
+#define BSVM2_OP_LDX3DC		0x0457	//
+#define BSVM2_OP_CVTX3F2X3D	0x0458	//
+#define BSVM2_OP_CVTX3D2X3F	0x0459	//
+
 
 #define BSVM2_TRFL_TJNEXT		0x0000000000000001	//tail is simply jnext
 #define BSVM2_TRFL_CANTHROW		0x0000000000000002	//trace can throw
@@ -912,6 +922,7 @@ short ngi;			//number of global indices
 short largs;		//size of locals frame (variables+arguments)
 short szframe;		//size of locals+stack frame
 // byte alrov;
+byte jitdly;
 };
 
 struct BSVM2_ImageGlobal_s {

@@ -698,9 +698,10 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 			return;
 		}
 
-		if((dty==BS2CC_TYZ_VEC3F) ||
-			(dty==BS2CC_TYZ_VEC4F) ||
-			(dty==BS2CC_TYZ_QUATF))
+		if((sty==BS2CC_TYZ_VEC3F) ||
+			(sty==BS2CC_TYZ_VEC4F) ||
+			(sty==BS2CC_TYZ_VEC3XF)||
+			(sty==BS2CC_TYZ_QUATF))
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTX4F2V2F);
 			BS2C_CompileExprPopType1(ctx);
@@ -739,6 +740,7 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 
 		if(	(sty==BS2CC_TYZ_VEC3F)||
 			(sty==BS2CC_TYZ_VEC4F)||
+			(sty==BS2CC_TYZ_VEC3XF)||
 			(sty==BS2CC_TYZ_QUATF))
 		{
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTX4F2V2F);
@@ -766,12 +768,22 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 		if(flag&1)
 			BS2C_WarnImplicitConv(ctx, dty, sty);
 
-		if(sty==BS2CC_TYZ_VEC3F)
-			{ return; }
-		if(sty==BS2CC_TYZ_VEC4F)
-			{ return; }
-		if(sty==BS2CC_TYZ_QUATF)
-			{ return; }
+		if(	(sty==BS2CC_TYZ_VEC3F)||
+			(sty==BS2CC_TYZ_VEC4F)||
+			(sty==BS2CC_TYZ_QUATF))
+		{
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPushType(ctx, dty);
+			return;
+		}
+
+		if(sty==BS2CC_TYZ_VEC3XF)
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTX3D2X3F);
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPushType(ctx, dty);
+			return;
+		}
 
 		if((sty==BS2CC_TYZ_FCPLX) ||
 			(sty==BS2CC_TYZ_VEC2F))
@@ -804,6 +816,36 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_FLOAT);
 			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_FLOAT);
 			BS2C_CompileExprPopType4(ctx);
+			BS2C_CompileExprPushType(ctx, dty);
+			return;
+		}
+	}
+
+	if(dty==BS2CC_TYZ_VEC3XF)
+	{
+		if(flag&1)
+			BS2C_WarnImplicitConv(ctx, dty, sty);
+
+		if(	(sty==BS2CC_TYZ_VEC3F) ||
+			(sty==BS2CC_TYZ_VEC4F) ||
+			(sty==BS2CC_TYZ_QUATF))
+		{
+			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTX3F2X3D);
+			BS2C_CompileExprPopType1(ctx);
+			BS2C_CompileExprPushType(ctx, dty);
+			return;
+		}
+
+		if(BS2C_TypeSmallDoubleP(ctx, sty))
+		{
+			BS2C_CompileConvType(ctx, BS2CC_TYZ_DOUBLE);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_DUPD);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_DUPD);
+			BS2C_EmitOpcode(ctx, BSVM2_OP_MKX3D);
+
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_DOUBLE);
+			BS2C_CompileExprPushType(ctx, BS2CC_TYZ_DOUBLE);
+			BS2C_CompileExprPopType3(ctx);
 			BS2C_CompileExprPushType(ctx, dty);
 			return;
 		}

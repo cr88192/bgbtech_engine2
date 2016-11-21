@@ -19,6 +19,8 @@ void *VecNF_Ralloc(int sz);
 #include <libvecmath_vecnf_raw.h>
 #endif
 
+#include <libvecmath_vecnf_v3d.h>
+
 #undef gcralloc
 
 static vec3 q_rot_v3f(quat a, vec3 b)

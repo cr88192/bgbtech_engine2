@@ -55,6 +55,7 @@ export BS2VM_SRCS=\
 	$(BSVM2_BASE)bsvm2i/bs2i_opvars.c \
 	$(BSVM2_BASE)bsvm2i/bs2i_opvec2.c \
 	$(BSVM2_BASE)bsvm2i/bs2i_opvec3.c \
+	$(BSVM2_BASE)bsvm2i/bs2i_opvec3x.c \
 	$(BSVM2_BASE)bsvm2i/bs2i_opvxi.c \
 	$(BSVM2_BASE)bsvm2i/bs2i_tailop.c \
 	$(BSVM2_BASE)bsvm2i/bs2i_topinit.c \

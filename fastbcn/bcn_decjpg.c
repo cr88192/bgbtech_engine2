@@ -1459,6 +1459,7 @@ int PDJPG_GetImagePlaneYUVA420(PDJPG_Context *ctx,
 	n1=(xs>>1)*(ys>>1);
 	PDJPG_GetImageYUVA420(ctx,
 		yuva, yuva+n0, yuva+n0+n1, yuva+n0+n1+n1, xs, ys);
+	return(0);
 }
 
 int PDJPG_GetImageRGBA(PDJPG_Context *ctx,

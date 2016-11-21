@@ -202,7 +202,7 @@ Signature Characters:
 *  Ce, vec2d
 *  Cf, Complex Float (vec2f)
 *  Cg, Complex Float128 (N/A)
-*  Ch
+*  Ch, vec3xf
 *  Ci, (IsType) SmallInt
 *  Cj, (IsType) SmallFloat
 *  Ck, Complex Float16 (vec2hf)
@@ -218,6 +218,12 @@ Signature Characters:
 *  Cv, (IsType) null
 *  Cy, Class
 *  Cz, named vararg array
+
+*  Da, -
+*  Db, vec3d
+*  Dc, vec4d
+*  Dd, -
+*  De, -
 
 *  Pc, cstring
 
@@ -1356,19 +1362,26 @@ Vector convert operations (NACHO2):
 * E4 45, LDX2LB					//Load X2L.B
 * E4 46, LDX2DA					//Load X2D.A
 * E4 47, LDX2DB					//Load X2D.B
-* E4 48, LDV2IA					//Load X4I.A
-* E4 49, LDV2IB					//Load X4I.B
-* E4 4A, LDV2IC					//Load X4I.C
-* E4 4B, LDV2ID					//Load X4I.D
-* E4 4C, LDV2FA					//Load X4F.A
-* E4 4D, LDV2FB					//Load X4F.B
-* E4 4E, LDV2FC					//Load X4F.C
-* E4 4F, LDV2FD					//Load X4F.D
+* E4 48, LDX4IA					//Load X4I.A
+* E4 49, LDX4IB					//Load X4I.B
+* E4 4A, LDX4IC					//Load X4I.C
+* E4 4B, LDX4ID					//Load X4I.D
+* E4 4C, LDX4FA					//Load X4F.A
+* E4 4D, LDX4FB					//Load X4F.B
+* E4 4E, LDX4FC					//Load X4F.C
+* E4 4F, LDX4FD					//Load X4F.D
 
-* E4 50, LDIXX				//Load Index X128 ( A I => B )
-* E4 51, STIXX				//Store Index X128 ( V A I => )
-* E4 52 Ci, LDIXXC			//Load Index X128 ( I; A => B )
-* E4 53 Ci, STIXXC			//Store Index X128 ( I; V A => )
+* E4 50, LDIXX					//Load Index X128 ( A I => B )
+* E4 51, STIXX					//Store Index X128 ( V A I => )
+* E4 52 Ci, LDIXXC				//Load Index X128 ( I; A => B )
+* E4 53 Ci, STIXXC				//Store Index X128 ( I; V A => )
+
+* E4 54, MKX3D					//( A B C => X )
+* E4 55, LDX3DA					//Load X3D.A
+* E4 56, LDX3DB					//Load X3D.B
+* E4 57, LDX3DC					//Load X3D.C
+* E4 58, CVTX3F2X3D				//Vec3f to Vec3xf
+* E4 59, CVTX3D2X3F				//Vec3xf to Vec3f
 
 
 === Three-Address Extension Block (0x500) (Possible) ===

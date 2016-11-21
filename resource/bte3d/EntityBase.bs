@@ -1,0 +1,16 @@
+public class EntityBase {
+	public vec3xf origin;
+	public vec3xf velocity;
+	public float angle;
+	public float radius;
+	public float height;
+	public string sprite;
+	public vec2f sprite_sz;
+	public long flags;
+	
+	/** called after entity creation */
+	public abstract void spawn();
+	public abstract void tick();
+	public abstract void touch(EntityBase other);
+	public abstract void use(EntityBase other);
+}

@@ -46,6 +46,7 @@ THE SOFTWARE.
 #include "bs2i_opvars.c"
 #include "bs2i_opvec2.c"
 #include "bs2i_opvec3.c"
+#include "bs2i_opvec3x.c"
 #include "bs2i_opvxi.c"
 #include "bs2i_tailop.c"
 #include "bs2i_topinit.c"

@@ -3,14 +3,16 @@
 Voxels will be organized into chunks and regions.
 
 Chunk = 16x16x16 voxels
-Region = 16x16x8 chunks
+Region = 16x16x16 chunks
 
 Voxel Info Planes
   +0=Voxel Base Type (Bits 0..7)
   +1=Voxel Base Type (High 4), Voxel Mode
   +2=Voxel Attribute Bits
   +3=Block Light Color(0..3), Light Level (4..7)
-  +4=Area Light Level (0-255)
+  +4=Area Light ID (0..2), Light Level (3..7)
+  +5=Voxel Data (Low)
+  +6=Voxel Data (High)
 
 Voxel Mode:
   &1=Powered
@@ -19,6 +21,10 @@ Voxel Mode:
   &8=Reserved
 
 Area light is monochromatic.
+  ID Selects the logical light source.
+    0=Constant, falls off uniformly in every direction.
+    1/2/3=Sky 1/2/3, falls off in X/Y, no falloff in Z.
+    4-7=Resv/Special
 
 Block light may be colored, with a 2-level 16 color palette.
   0: White (Normalized)
@@ -31,8 +37,22 @@ Block light may be colored, with a 2-level 16 color palette.
   Low saturation colors will be tinted in that direction.
     240,60,60 vs 192,128,128
 
+Voxel Attribute Bits:
+  Exact meaning depends mostly on block type
+
+Voxel Data:
+  Intended as a data field for certain block types.
+  Nominally interpreted as a 16-bit number, or a string index.
+
+  ent_mob: string index for classname of mob to spawn, or entity-def
+
+
 Coordinate Space:
   20.12
+  
+  +X=East
+  +Y=North
+  +Z=Up
 
 
 Chunk Format
@@ -49,6 +69,9 @@ Tag Rice(3)
     Encodes which planes are present in the Block Plane Data.
     Absent planes are assumed to be zeroes.
     TSz=TS*TP (Where, TP is the number of planes present).
+  3: Paramater Value
+    Rice(3) Index
+    QExpBase(5) Value
 
   4: Index8 Plane (LZ:4096)
 	May be absent if chunk only has a single block type.
@@ -95,6 +118,9 @@ Chunk LZ (New)
   Dist gives the distance in the sliding window.
     If (Dist==0), Reuse last dist.
 
+Parameters:
+  1=Chunk Flags
+
 
 Region:
 E4, Word24, 'RGN0'
@@ -109,6 +135,9 @@ E4, Word24, 'RGN0'
 'COBM': Cell Bitmap (Offset)
 	Word32 offs;	//Offset of bitmap in region image
 	Word32 size;	//Size of bitmap in region image
+
+'STRS': String Data (Inline)
+	String Table Data.
 
 Cell Bitmap: 2 Bits/Cell
   00=Free Cell
@@ -131,27 +160,35 @@ Each cell is 64 bytes.
 #define BGBDT_TRFL_OPAQUE		8		//stop if we hit something opaque
 #define BGBDT_TRFL_NONCHUNK		16		//stop if missing chunk
 
-#define BGBDT_VOXFL_NONSOLID	1		//non-solid to entities
-#define BGBDT_VOXFL_TRANSPARENT	2		//transparent
-#define BGBDT_VOXFL_NOFACES		4		//does not emit faces
-#define BGBDT_VOXFL_ATLAS		8		//uses a texture atlas
-#define BGBDT_VOXFL_CONT0		16		//contents bit 0
-#define BGBDT_VOXFL_CONT1		32		//contents bit 1
-#define BGBDT_VOXFL_CONT2		64		//contents bit 2
-#define BGBDT_VOXFL_CONT3		128		//contents bit 3
-#define BGBDT_VOXFL_FLUID		256		//is a fluid
-#define BGBDT_VOXFL_GLOWLIGHT	512		//light source
+#define BGBDT_VOXFL_NONSOLID	0x0001	//non-solid to entities
+#define BGBDT_VOXFL_TRANSPARENT	0x0002	//transparent
+#define BGBDT_VOXFL_NOFACES		0x0004	//does not emit faces
+#define BGBDT_VOXFL_ATLAS		0x0008	//uses a texture atlas
+#define BGBDT_VOXFL_CONT0		0x0010	//contents bit 0
+#define BGBDT_VOXFL_CONT1		0x0020	//contents bit 1
+#define BGBDT_VOXFL_CONT2		0x0040	//contents bit 2
+#define BGBDT_VOXFL_CONT3		0x0080	//contents bit 3
+#define BGBDT_VOXFL_FLUID		0x0100	//is a fluid
+#define BGBDT_VOXFL_GLOWLIGHT	0x0200	//light source
+#define BGBDT_VOXFL_PHYSEFF		0x0400	//physics effect
+#define BGBDT_VOXFL_CROSSSPR	0x0800	//cross sprite
 
 #define BGBDT_VOXFL_CONT_0		0x0000		//contents=0
 #define BGBDT_VOXFL_CONT_1		0x0010		//contents=1
 #define BGBDT_VOXFL_CONT_2		0x0020		//contents=2
 #define BGBDT_VOXFL_CONT_3		0x0030		//contents=3
 
+#define BGBDT_VOXFL_CONT_MASK	0x00F0		//contents=3
+
 #define BGBDT_VOXFL_FLUID_WATER	0x0110
 #define BGBDT_VOXFL_FLUID_LAVA	0x0120
 #define BGBDT_VOXFL_FLUID_SLIME	0x0130
 
 #define BGBDT_VOXFL_FLUID_MASK	0x01F0
+
+#define BGBDT_VOXFL_PHYS_FLIPUP	0x0410
+#define BGBDT_VOXFL_PHYS_FLIPDN	0x0420
+#define BGBDT_VOXFL_PHYS_MASK	0x04F0
 
 #define BGBDT_ADJFL_SOLID_NX	0x0001	//solid -X
 #define BGBDT_ADJFL_SOLID_PX	0x0002	//solid +X
@@ -198,9 +235,13 @@ Each cell is 64 bytes.
 #define BGBDT_XYZ_OFS_VOXEL		(1<<BGBDT_XYZ_SHR_VOXEL)
 #define BGBDT_XYZ_MASK_VOXEL	((1<<BGBDT_XYZ_SHR_VOXEL)-1)
 
-#define BGBDT_XYZ_SCALE_TOMETER	(1.0/4096)
-#define BGBDT_XYZ_SCALE_TOCHUNK	(1.0/65536)
-#define BGBDT_XYZ_SCALE_TOVOX4	(1.0/16384)
+#define BGBDT_XYZ_SCALE_TOMETER		(1.0/4096)
+#define BGBDT_XYZ_SCALE_TOCHUNK		(1.0/65536)
+#define BGBDT_XYZ_SCALE_TOVOX4		(1.0/16384)
+#define BGBDT_XYZ_SCALE_TOCHUNK4	(1.0/(4*65536))
+#define BGBDT_XYZ_SCALE_TOCHUNK16	(1.0/(16*65536))
+
+#define BGBDT_XYZ_SCALE_FROMMETER	(4096.0)
 
 #define BGBDT_VTYFL_POWERED		0x1000
 #define BGBDT_VTYFL_UNBREAKABLE	0x2000
@@ -215,11 +256,20 @@ Each cell is 64 bytes.
 
 #define BGBDT_CHKFL_ALLDIRTY	0x000F	//needs to be resaved
 
+#define BGBDT_CHKFL_ONLYSOLID	0x0010	//only opaque solid blocks
+#define BGBDT_CHKFL_ONLYAIR		0x0020	//only 'air'
+#define BGBDT_CHKFL_MIXEDSOLID	0x0040	//mixture of solid and air
+
+#define BGBDT_CHKFL_ENTSPAWN	0x1000	//entities spawned
+
 #define BGBDT_RGNFL_NEWRGN		0x0001	//newly created region
 #define BGBDT_RGNFL_RGNDIRTY	0x0002	//region chunks have changed
 
 #define BGBDT_RGN_CELLSHR		6		//region cell shift
 #define BGBDT_RGN_CELLPAD		63		//region cell shift
+
+#define BGBDT_ENTFL_ONGROUND	0x0001	//onground
+#define BGBDT_ENTFL_ZFLIP		0x0010	//entity Z flip
 
 
 typedef struct BGBDT_VoxCoord_s BGBDT_VoxCoord;
@@ -265,7 +315,9 @@ byte vtypeh;	//low 4: voxel type (high), high 4: voxel mode
 byte vattr;		//voxel attribute flags
 byte vlight;	//voxel block light
 byte alight;	//voxel area light
-byte resv0;		//reserved 0
+byte vdatal;	//voxel data low
+byte vdatah;	//voxel data high
+byte resv0;		//voxel reserved
 };
 
 struct BGBDT_VoxDataStatus_s {
@@ -316,6 +368,7 @@ int va_nmesh;
 
 byte *vabuf;
 int sz_vabuf;
+int vbo_id;
 
 int ofs_xyz, ofs_st;
 int ofs_rgba, ofs_norm;
@@ -331,6 +384,7 @@ BGBDT_VoxData *voxinfo;		//voxel info
 short nvoxinfo;				//number of voxel-info entries
 short mvoxinfo;				//max number of voxel-info entries
 byte bx, by, bz;			//chunk location (in region)
+byte ticklim;				//tick limit
 int flags;					//chunk flags
 };
 
@@ -347,6 +401,14 @@ byte *rgnbuf;				//region buffer
 int szrgnbuf;				//size of region buffer
 int nrgncell;				//number of region cells
 
+byte *strtab_buf;
+int strtab_nsz;
+int strtab_msz;
+
+int *strix_ofs;
+int strix_num;
+int strix_max;
+
 BGBDT_VoxChunk *chkptr[16*16*16];
 BGBDT_VoxChunkMesh *chkmesh[16*16*16];
 int chkofs[16*16*16];
@@ -358,6 +420,7 @@ BGBDT_VoxChunkMesh *pvs;	//chunk PVS
 BGBDT_VoxChunkMesh *cvs;	//chunk CVS
 int lastpvs;
 int lastcvs;
+int lasttick;
 };
 
 struct BGBDT_VoxWorld_s {
@@ -385,13 +448,23 @@ int tickstart;				//start time for tick
 int dt_tick;
 int dt_pvs;
 int dt_draw;
+int dt_sound;
+int dt_frame;
 
+byte insky;
+byte inwater;
+
+double reforg[3];			//camera reference origin
 float camorg[3];			//camera origin
 float camrot[9];			//camera rotation
 
 int (*GenerateChunk)(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 
 void *freetmp[256];
+
+dtVal entarr;
+int nents;
+dtVal ent_player;
 };
 
 struct BGBDT_VoxTypeInfo_s {
@@ -419,6 +492,12 @@ float lvf[8];		//floating point chunk corners
 
 u16 lvs[5*5*5];		//random numbers for chunk corners
 float lvg[5*5*5];	//values for 4x4x4 grid
+
+u16 lvt4[8];		//random numbers for chunk corners
+float lvf4[8];		//floating point chunk corners
+
+u16 lvt16[8];		//random numbers for chunk corners
+float lvf16[8];		//floating point chunk corners
 };
 
 struct BGBDT_RiceContext_s {
@@ -451,5 +530,10 @@ byte lzidx[256];					//command window index
 byte lzwpos;						//command window position
 
 byte *lzhash[256];					//LZ hash
+
+int lzctrl;
+
+int (*ReadAdRiceLL)(BGBDT_RiceContext *ctx, int *rk);
+void (*WriteAdRiceLL)(BGBDT_RiceContext *ctx, int val, int *rk);
 
 };

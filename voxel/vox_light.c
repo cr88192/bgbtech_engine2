@@ -21,7 +21,7 @@ static const byte bgbdt_voxlight_blendtab[16*16]=
 /*F*/ 0x0,0x9,0xA,0xB,0xC,0xD,0xE,0xF,0xF,0xF,0xF,0xF,0xF,0xF,0xF,0xF,
 };
 
-int bgbdt_voxlight_blendv(int la, int lb)
+int bgbdt_voxlight_blendv(int la, int lb, int vfl)
 {
 
 	int lc;
@@ -34,9 +34,49 @@ int bgbdt_voxlight_blendv(int la, int lb)
 		return(lc);
 	}
 
+	if(vfl&BGBDT_VOXFL_FLUID)
+	{
+		lc=la;
+		if((la>>4)<((lb>>4)-4))
+			lc=((lb-64)&0xF0)|9;
+		return(lc);
+	}
+
 	if((la>>4)<((lb>>4)-2))
 		return(lb-16);
 	lc=((lb-16)&0xF0)|bgbdt_voxlight_blendtab[((la&15)<<4)|(lb&15)];
+	return(lc);
+}
+
+int bgbdt_voxlight_blenda(int la, int lb, int ix, int vfl)
+{
+	int lc;
+	
+	if(vfl&BGBDT_VOXFL_FLUID)
+	{
+		lc=la;
+		if((lb&0xF8)>((la+32)&0xF8))
+			lc=lb-32;
+		return(lc);
+	}
+
+	lc=la;
+	if(((lb&7)>=1) && ((lb&7)<=3))
+	{
+		if(ix<4)
+		{
+			if((lb&0xF8)>((la+8)&0xF8))
+				lc=lb-8;
+		}else
+		{
+			if((lb&0xF8)>=(la&0xF8))
+				lc=lb;
+		}
+	}else
+	{
+		if((lb&0xF8)>((la+8)&0xF8))
+			lc=lb-8;
+	}
 	return(lc);
 }
 
@@ -86,7 +126,45 @@ int BGBDT_VoxLight_UpdateChunkLight(
 			}
 		}
 	}
-	
+
+#if 0
+	for(z=0; z<16; z++)
+		for(y=0; y<16; y++)
+			for(x=0; x<16; x++)
+	{
+		BGBDT_WorldGetChunkVoxelData(world,
+			x, y, z, chk, &td, &tds,
+			BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
+
+		vty=td.vtypel|(td.vtypeh<<8);
+		tix=vty&4095;
+//			tix=td.vtype&4095;
+		tyi=world->voxtypes[tix];
+		if(!tyi)continue;
+
+		if(!(tyi->flags&BGBDT_VOXFL_TRANSPARENT))
+			continue;
+//			if(tix!=vty_air)
+//				continue;
+
+		ds=0;
+					
+		if(td.alight>4)
+		{
+			td.alight=0;
+			ds=1;
+		}
+
+		if(ds)
+		{
+			dst++;
+			xyz0=BGBDT_WorldGetChunkVoxCoord(world, chk, x, y, z);
+			BGBDT_WorldSetChunkVoxelData(world, chk, xyz0, td, 
+				BGBDT_ACCFL_CHKADJ|BGBDT_ACCFL_LIGHTDIRTY);
+		}
+	}
+#endif
+
 	for(w=0; w<6; w++)
 	{
 		dst=0;
@@ -110,14 +188,29 @@ int BGBDT_VoxLight_UpdateChunkLight(
 //				continue;
 
 			ds=0;
+						
 			for(i=0; i<6; i++)
 			{
+#if 0
 				a=(tds.adjlit[i]>>8)&255;
-				if(a>(td.alight+1))
-					{ td.alight=a-1; ds=1; }
+				if(i<4)
+				{
+					if(a>(td.alight+8))
+						{ td.alight=a-8; ds=1; }
+				}else
+				{
+					if(a>(td.alight+1))
+						{ td.alight=a-1; ds=1; }
+				}
+#endif
+
+				a=(tds.adjlit[i]>>8)&255;
+				c=bgbdt_voxlight_blenda(td.alight, a, i, tyi->flags);
+				if(c!=td.alight)
+					{ td.alight=c; ds=1; }
 
 				b=tds.adjlit[i]&255;
-				c=bgbdt_voxlight_blendv(td.vlight, b);
+				c=bgbdt_voxlight_blendv(td.vlight, b, tyi->flags);
 				if(c!=td.vlight)
 					{ td.vlight=c; ds=1; }
 			}
@@ -183,3 +276,120 @@ BTEIFGL_API int BGBDT_VoxLight_CheckClearBlockLightRadius(
 	}
 	return(0);
 }
+
+BTEIFGL_API int BGBDT_VoxLight_GetBlockLightIntensity(
+	BGBDT_VoxWorld *world,
+	BGBDT_VoxCoord xyz, BGBDT_VoxData td)
+{
+	int i, j;
+	
+	i=(td.vlight>>4);
+	j=(td.alight>>3);
+	if(j>i)i=j;
+	return(i);
+}
+
+
+int BGBDT_VoxEnt_UpdateChunkSpawnEnts(
+	BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
+{
+	BGBDT_VoxTypeInfo *tyi;
+	BGBDT_VoxDataStatus tds;
+	BGBDT_VoxData td;
+	BGBDT_VoxCoord xyz;
+	int vfl, vty, tix, vval, vt_entmob;
+	char *vs0;
+	int x, y, z;
+	int i, j, k;
+
+	if(chk->flags&BGBDT_CHKFL_ENTSPAWN)
+		return(0);
+
+	vt_entmob=BGBDT_VoxelWorld_LookupTypeIndexName(world, "ent_mob");
+
+	k=0;
+	for(i=0; i<chk->nvoxinfo; i++)
+	{
+		td=chk->voxinfo[i];
+//		vfl=BGBDT_WorldVoxel_GetFlags(world, xyz, td);
+//		vty=BGBDT_WorldVoxel_GetTypeID(world, xyz, td);
+		vty=td.vtypel|(td.vtypeh<<8);
+		tix=vty&4095;
+		if(tix==vt_entmob)
+			break;
+	}
+	
+	if(i>=chk->nvoxinfo)
+	{
+		chk->flags|=BGBDT_CHKFL_ENTSPAWN;
+		return(0);
+	}
+
+
+	for(z=0; z<16; z++)
+		for(y=0; y<16; y++)
+			for(x=0; x<16; x++)
+	{
+		BGBDT_WorldGetChunkVoxelData(world,
+			x, y, z, chk, &td, &tds,
+			BGBDT_ACCFL_NOLOAD);
+//			BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
+
+		vty=td.vtypel|(td.vtypeh<<8);
+		tix=vty&4095;
+		tyi=world->voxtypes[tix];
+		if(!tyi)continue;
+		if(tix!=vt_entmob)
+			continue;
+			
+		xyz=BGBDT_WorldGetChunkVoxCoord(world, chk, x, y, z);
+		vval=td.vdatal|(td.vdatah<<8);
+		vs0=BGBDT_WorldGetStringForIndex(world, xyz, 0, vval);
+		if(!vs0)continue;
+		
+		BGBDT_VoxEnt_CheckSpawnEnitity(world, xyz, td, vs0);
+	}
+
+	chk->flags|=BGBDT_CHKFL_ENTSPAWN;
+	return(1);
+}
+
+BTEIFGL_API int BGBDT_VoxEnt_CheckSpawnEnitity(
+	BGBDT_VoxWorld *world,
+	BGBDT_VoxCoord xyz, BGBDT_VoxData td, char *cname)
+{
+	vec3d orgd;
+	dtVal ent;
+	s64 efl;
+
+	if(td.vattr&0x40)
+	{
+		orgd=vec3d(
+			xyz.x*BGBDT_XYZ_SCALE_TOMETER+0.5,
+			xyz.y*BGBDT_XYZ_SCALE_TOMETER+0.5,
+			xyz.z*BGBDT_XYZ_SCALE_TOMETER+0.99);
+	}else
+	{
+		orgd=vec3d(
+			xyz.x*BGBDT_XYZ_SCALE_TOMETER+0.5,
+			xyz.y*BGBDT_XYZ_SCALE_TOMETER+0.5,
+			xyz.z*BGBDT_XYZ_SCALE_TOMETER+0.01);
+	}
+
+	printf("Spawn %s @ (%.2f %.2f %.2f)\n",
+		cname, v3dx(orgd), v3dy(orgd), v3dz(orgd));
+
+	ent=Bt2Ent_SpawnEntityBasic(cname, orgd);
+	if(!dtvNullP(ent))
+	{
+		if(td.vattr&0x40)
+		{
+			efl=Bt2Ent_EntGetFlags(ent);
+			efl|=BGBDT_ENTFL_ZFLIP;
+			Bt2Ent_EntSetFlags(ent, efl);
+		}
+	}
+	
+	return(0);
+}
+

@@ -1266,6 +1266,9 @@ int main_handle_input()
 			voxui_isedit=0;
 			break;
 		case K_DEL:
+			if(voxui_tsvidx<=0)
+				break;
+		
 			BGBDT_VoxLight_CheckClearBlockLightRadius(
 				bgbdt_voxworld, bgbdt_tsxyz, 0);
 		
@@ -1277,6 +1280,9 @@ int main_handle_input()
 				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
 			break;
 		case K_INS:
+			if(voxui_tsvidx<=0)
+				break;
+
 //			memset(&td, 0, sizeof(BGBDT_VoxData));
 //			td.vtypel=vt_place;	td.vtypeh=vt_place>>8;
 //			td.vattr=0;

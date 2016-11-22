@@ -889,7 +889,9 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 			memcpy(&(chk->voxinfo[ix]), &td, sizeof(BGBDT_VoxData));
 		}else
 		{
-			isz=chk->mvoxinfo; isz=isz+(isz>>1);
+			isz=chk->mvoxinfo;
+			isz=isz+(isz>>1);
+			if(isz<16)isz=16;
 			chk->voxinfo=BGBDT_WorldReallocVoxelData(world,
 				chk->voxinfo, chk->mvoxinfo, isz);
 			chk->mvoxinfo=isz;

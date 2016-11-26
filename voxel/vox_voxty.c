@@ -125,7 +125,8 @@ BTEIFGL_API BGBDT_VoxTypeInfo *BGBDT_VoxelWorld_LookupTypeInfoName(
 	{
 		tyi=world->voxtypes[i];
 		if(!tyi)
-			break;
+//			break;
+			continue;
 		if(!strcmp(tyi->name, name))
 			return(tyi);
 	}
@@ -148,9 +149,17 @@ BTEIFGL_API BGBDT_VoxTypeInfo *BGBDT_VoxelWorld_GetTypeInfoName(
 	{
 		tyi=world->voxtypes[i];
 		if(!tyi)
-			break;
+			continue;
+//			break;
 		if(!strcmp(tyi->name, name))
 			return(tyi);
+	}
+
+	for(i=0; i<4096; i++)
+	{
+		tyi=world->voxtypes[i];
+		if(!tyi)
+			break;
 	}
 	
 	if(i<4096)
@@ -185,6 +194,24 @@ BTEIFGL_API int BGBDT_VoxelWorld_LookupTypeIndexName(
 	if(!tyi)
 		return(0);
 	return(tyi->tidx);
+}
+
+BTEIFGL_API BGBDT_VoxTypeInfo *BGBDT_VoxelWorld_GetTypeInfoIndex(
+	BGBDT_VoxWorld *world, int idx)
+{
+	BGBDT_VoxTypeInfo *tyi;
+	
+	if((idx<0) || (idx>=4096))
+		return(NULL);
+	tyi=world->voxtypes[idx];
+	if(!tyi)
+	{
+		tyi=frgl_malloc(sizeof(BGBDT_VoxTypeInfo));
+//		tyi->name=frgl_strdup(name);
+		tyi->tidx=idx;
+		world->voxtypes[idx]=tyi;
+	}
+	return(tyi);
 }
 
 int BGBDT_WorldRegionLookupString(BGBDT_VoxWorld *world,

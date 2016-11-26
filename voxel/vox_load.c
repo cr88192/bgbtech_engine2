@@ -434,7 +434,7 @@ int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,
 		break;
 	}
 
-	chk->flags|=BGBDT_CHKFL_MESHDIRTY;
+//	chk->flags|=BGBDT_CHKFL_MESHDIRTY;
 	xyz.x=chk->bx<<BGBDT_XYZ_SHR_CHUNK;
 	xyz.y=chk->by<<BGBDT_XYZ_SHR_CHUNK;
 	xyz.z=chk->bz<<BGBDT_XYZ_SHR_CHUNK;

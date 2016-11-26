@@ -219,6 +219,7 @@ void BGBMID_Sound_MixPopReduceStereo2(
 
 BTEIFGL_API int SoundDev_PaintSamples(short *buffer, int cnt)
 {
+	int j0, j1, j2;
 	int i, j, k, l, snb;
 	short *buf, *rover;
 	float f, g;
@@ -239,27 +240,42 @@ BTEIFGL_API int SoundDev_PaintSamples(short *buffer, int cnt)
 		cnt-=l;
 		snb=0;
 	}
+
 	if(!snb)
+//	if(1)
 	{
 		if(cnt>0)
 			{ memcpy(rover, buffer, cnt*sizeof(short)); }
 		return(0);
 	}
 
+	memcpy(rover, buffer, cnt*sizeof(short));
+#if 0
 	if(cnt>=16)
 	{
 		for(i=0; i<16; i++)
 		{
-			rover[i]=((rover[i]*(16-i))+(buffer[i]*i))/16;
+			j=i;
+			if(j>=16)j=16;
+			j0=rover[i];
+			j1=buffer[i];
+//			j2=((j0*(16-j))+(j1*j))/16;
+//			j2=j1;
+			j2=(j0+j1)/2;
+//			j2=j0*(j/16.0)+j1*(1.0-(j/16.0));
+			rover[i]=j2;
 		}
 		for(; i<cnt; i++)
 			{ rover[i]=buffer[i]; }
 //		memcpy(rover+16, buffer+16, (cnt-16)*sizeof(short));
 	}else
 	{
-		for(i=0; i<cnt; i++)
-			{ rover[i]=((rover[i]*(16-i))+(buffer[i]*i))>>4; }
+//		for(i=0; i<cnt; i++)
+//		{
+//			rover[i]=((rover[i]*(16-i))+(buffer[i]*i))>>4;
+//		}
 	}
+#endif
 
 #if 0
 	if(snb && (rover>(buf+32)) && ((rover+32)<(buf+samples)))

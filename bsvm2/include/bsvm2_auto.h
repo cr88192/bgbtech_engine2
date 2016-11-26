@@ -1101,6 +1101,8 @@ int BSVM2_Interp_DecodeBlockNoexOp(BSVM2_CodeBlock *cblk, int opn);
 BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk);
 BSVM2_Trace *BSVM2_Interp_TryJitBlock(BSVM2_CodeBlock *cblk);
 //AHSRC:bsvm2/bsvm2i/bs2i_interp.c
+BS2VM_API int BSVM2_Interp_SetEnable(int parm);
+BS2VM_API int BSVM2_Interp_SetDisable(int parm);
 BS2VM_API int bsvm2_natfib(int x);
 BS2VM_API void bsvm2_natsorttst(int n);
 BS2VM_API dtVal bsvm2_vm_printf(dtVal str, dtVal va);

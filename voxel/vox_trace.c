@@ -334,6 +334,113 @@ BTEIFGL_API int BGBDT_CheckBoxCollideP(
 	return(1);
 }
 
+BTEIFGL_API int BGBDT_WorldVoxel_GetVoxNSBox(BGBDT_VoxWorld *world,
+	BGBDT_VoxCoord xyz, BGBDT_VoxData td,
+	BGBDT_VoxCoord *rmin, BGBDT_VoxCoord *rmax,
+	int *rnbox)
+{
+	BGBDT_VoxCoord v0, v1, v2, v3;
+	char *vtn;
+
+	vtn=BGBDT_WorldVoxel_GetTypeName(world, xyz, td);
+
+	if(!strcmp(vtn, "stairs"))
+	{
+		v0=xyz;	v1=xyz;
+		v2=xyz;	v3=xyz;
+		if(td.vattr&0x40)
+		{
+			v1.x+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v1.y+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v1.z+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v0.z+=0.5*BGBDT_XYZ_SCALE_FROMMETER;
+		}else
+		{
+			v1.x+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v1.y+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+//			v1.z+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v1.z+=0.5*BGBDT_XYZ_SCALE_FROMMETER;
+		}
+		
+		switch(td.vattr&3)
+		{
+		case 0:
+			v2.x+=0.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v2.y+=0.5*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.x+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.y+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.z+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			break;
+		case 1:
+			v2.x+=0.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v2.y+=0.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.x+=0.5*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.y+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.z+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			break;
+		case 2:
+			v2.x+=0.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v2.y+=0.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.x+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.y+=0.5*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.z+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			break;
+		case 3:
+			v2.x+=0.5*BGBDT_XYZ_SCALE_FROMMETER;
+			v2.y+=0.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.x+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.y+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			v3.z+=1.0*BGBDT_XYZ_SCALE_FROMMETER;
+			break;
+		}
+
+		rmin[0]=v0;	rmax[0]=v1;
+		rmin[1]=v2;	rmax[1]=v3;
+		*rnbox=2;
+		return(1);
+	}
+	
+	v0=xyz;
+	v1=xyz;
+	v1.x+=1<<BGBDT_XYZ_SHR_VOXEL;
+	v1.y+=1<<BGBDT_XYZ_SHR_VOXEL;
+	v1.z+=1<<BGBDT_XYZ_SHR_VOXEL;
+	*rmin=v0;
+	*rmax=v1;
+	*rnbox=1;
+	return(0);
+}
+
+BTEIFGL_API int BGBDT_WorldVoxel_CheckBoxMatchP(BGBDT_VoxWorld *world,
+	BGBDT_VoxCoord xyz, BGBDT_VoxData td,
+	BGBDT_VoxCoord min, BGBDT_VoxCoord max,
+	int tracefl)
+{
+	BGBDT_VoxCoord vxmin[16], vxmax[16];
+	int vfl, nvxb;
+	int i;
+
+	if(!BGBDT_WorldVoxel_CheckMatchP(world, xyz, td, tracefl))
+		return(0);
+
+	vfl=BGBDT_WorldVoxel_GetFlags(world, xyz, td);
+
+	if(vfl&BGBDT_VOXFL_SOLIDNSBOX)
+	{
+		BGBDT_WorldVoxel_GetVoxNSBox(world, xyz, td, vxmin, vxmax, &nvxb);
+		
+		for(i=0; i<nvxb; i++)
+		{
+			if(BGBDT_CheckBoxCollideP(min, max, vxmin[i], vxmax[i]))
+				break;
+		}
+		if(i>=nvxb)
+			return(0);
+	}
+
+	return(1);
+}
+
 BTEIFGL_API int BGBDT_BoxQueryVoxel(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord min, BGBDT_VoxCoord max,
 	BGBDT_VoxCoord *rpos, BGBDT_VoxData *rtd, int *rnvox, 
@@ -370,7 +477,9 @@ BTEIFGL_API int BGBDT_BoxQueryVoxel(BGBDT_VoxWorld *world,
 		s=0;
 		BGBDT_WorldGetVoxelData(world, cpos, &td, &tds, accfl);
 
-		if(BGBDT_WorldVoxel_CheckMatchP(world, cpos, td, tracefl))
+//		if(BGBDT_WorldVoxel_CheckMatchP(world, cpos, td, tracefl))
+		if(BGBDT_WorldVoxel_CheckBoxMatchP(world,
+			cpos, td, min, max, tracefl))
 		{
 			if(rpos)
 				rpos[n]=cpos;

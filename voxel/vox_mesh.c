@@ -36,7 +36,16 @@ void BGBDT_FreeChunkMeshTempData(BGBDT_VoxWorld *world,
 
 void BGBDT_FreeChunkMesh(BGBDT_VoxWorld *world, BGBDT_VoxChunkMesh *mesh)
 {
+	int id;
+
 	BGBDT_FreeChunkMeshTempData(world, mesh);
+
+	if(mesh->vbo_id>0)
+	{
+		id=mesh->vbo_id;
+		frglDeleteBuffers(1, &id);
+		mesh->vbo_id=0;
+	}
 
 	if(mesh->vabuf)
 	{
@@ -410,6 +419,81 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	return(0);
 }
 
+
+int BGBDT_VoxMesh_EmitBlockFacesNSBox(BGBDT_VoxWorld *world,
+	BGBDT_VoxChunkMesh *mesh, BGBDT_VoxChunk *chk,
+	int bx, int by, int bz,
+	BGBDT_VoxData td, BGBDT_VoxDataStatus tds)
+{
+	BGBDT_VoxCoord vxmin[16], vxmax[16];
+	BGBDT_VoxVertex v0, v1, v2, v3, v4, v5, v6, v7;
+	BGBDT_VoxVertex v08, v09, v10, v11, v12, v13, v14, v15;
+	int li[6];
+	BGBDT_VoxCoord xyzm, xyzn, xyzc;
+	BGBDT_VoxTypeInfo *tyi;
+	int vfl, nvxb;
+	int tix, atxys, atxyt, atxyb;
+	int vxfl, fmfl, vty;
+	int i;
+
+	vty=td.vtypel|(td.vtypeh<<8);
+	tix=vty&4095;
+	tyi=world->voxtypes[tix];
+	if(!tyi)
+		return(-1);
+	if(tyi->flags&BGBDT_VOXFL_NOFACES)
+		return(0);
+
+	xyzm=BGBDT_WorldGetChunkVoxCoord(
+		world, chk, bx, by, bz);
+	BGBDT_WorldVoxel_GetVoxNSBox(world, xyzm, td, vxmin, vxmax, &nvxb);
+
+	vxfl=0;
+	vty=td.vtypel|(td.vtypeh<<8);
+	vxfl|=BGBDT_VTXFL_NOMOVE;
+
+	atxys=tyi->mat_side_x|(tyi->mat_side_y<<4);
+	atxyt=tyi->mat_top_x|(tyi->mat_top_y<<4);
+	atxyb=tyi->mat_bot_x|(tyi->mat_bot_y<<4);
+
+	for(i=0; i<nvxb; i++)
+	{		
+		xyzm=vxmin[i];
+		xyzn=vxmax[i];
+		
+		v0.x=xyzm.x; v0.y=xyzm.y; v0.z=xyzm.z; v0.fl=vxfl;
+		v1.x=xyzn.x; v1.y=xyzm.y; v1.z=xyzm.z; v1.fl=vxfl;
+		v2.x=xyzm.x; v2.y=xyzn.y; v2.z=xyzm.z; v2.fl=vxfl;
+		v3.x=xyzn.x; v3.y=xyzn.y; v3.z=xyzm.z; v3.fl=vxfl;
+		v4.x=xyzm.x; v4.y=xyzm.y; v4.z=xyzn.z; v4.fl=vxfl;
+		v5.x=xyzn.x; v5.y=xyzm.y; v5.z=xyzn.z; v5.fl=vxfl;
+		v6.x=xyzm.x; v6.y=xyzn.y; v6.z=xyzn.z; v6.fl=vxfl;
+		v7.x=xyzn.x; v7.y=xyzn.y; v7.z=xyzn.z; v7.fl=vxfl;
+
+		li[0]=tds.adjlit[0];	li[1]=tds.adjlit[1];
+		li[2]=tds.adjlit[2];	li[3]=tds.adjlit[3];
+		li[4]=tds.adjlit[4];	li[5]=tds.adjlit[5];
+
+		BGBDT_VoxMesh_EmitQuad(mesh, v0, v2, v6, v4,
+			tyi->mat_side, atxys, li[0]);
+		BGBDT_VoxMesh_EmitQuad(mesh, v3, v1, v5, v7,
+			tyi->mat_side, atxys, li[1]);
+
+		BGBDT_VoxMesh_EmitQuad(mesh, v1, v0, v4, v5,
+			tyi->mat_side, atxys, li[2]);
+		BGBDT_VoxMesh_EmitQuad(mesh, v2, v3, v7, v6,
+			tyi->mat_side, atxys, li[3]);
+
+		BGBDT_VoxMesh_EmitQuad(mesh, v0, v1, v3, v2,
+			tyi->mat_bot, atxyt, li[4]);
+		BGBDT_VoxMesh_EmitQuad(mesh, v5, v4, v6, v7,
+			tyi->mat_top, atxyb, li[5]);
+	}
+
+	return(0);
+}
+
+
 int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunkMesh *mesh, BGBDT_VoxChunk *chk)
 {
@@ -427,7 +511,8 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 
 	BGBDT_WorldUpdateChunkSolid(world, chk);
 
-	if(chk->flags&BGBDT_CHKFL_ONLYAIR)
+//	if(chk->flags&BGBDT_CHKFL_ONLYAIR)
+	if(chk->flags&(BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_NOVISFACE))
 		return(0);
 
 	if((chk->flags&BGBDT_CHKFL_ONLYSOLID) &&
@@ -436,6 +521,9 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 //		(chk->bx>0) && (chk->by>0) && (chk->bz>0) &&
 //		(chk->bx<15) && (chk->by<15) && (chk->bz<15))
 	{
+//		return(0);
+
+#if 1
 		for(i=0; i<4; i++)
 		{
 			chk1=BGBDT_GetRegionChunk(world, chk->rgn,
@@ -449,6 +537,7 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 		}
 		if(i>=4)
 			return(0);
+#endif
 	}
 	
 	for(z=0; z<16; z++)
@@ -458,27 +547,25 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 		BGBDT_WorldGetChunkVoxelData(world,
 			x, y, z, chk, &td, &tds,
 			BGBDT_ACCFL_CHKADJ);
-//			BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
-//		BGBDT_VoxMesh_EmitChunkBlockFaces(world, mesh, chk,
-//			x, y, z, td, tds);
 
 		vty=td.vtypel|(td.vtypeh<<8);
 		tix=vty&4095;
-//		tix=td.vtype&4095;
 		tyi=world->voxtypes[tix];
 		if(!tyi)continue;
-		
-		if(tyi->EmitBlockFaces)
-		{
-			tyi->EmitBlockFaces(world, mesh, chk,
-				x, y, z, td, tds);
-			continue;
-		}else
-		{
-			BGBDT_VoxMesh_EmitBlockFacesGeneric(world, mesh, chk,
-				x, y, z, td, tds);
-		}
+
+		tyi->EmitBlockFaces(world, mesh, chk,
+			x, y, z, td, tds);
 	}
+	
+	world->meshchk_tot++;
+	if(!mesh->nmat)
+	{
+		world->meshchk_nvis++;
+		chk->flags|=BGBDT_CHKFL_NOVISFACE;
+		chk->flags|=BGBDT_CHKFL_SAVEDIRTY;
+		chk->rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
+	}
+	
 	return(0);
 }
 
@@ -755,6 +842,10 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 	
 	V3F_SUB(xyz[1], xyz[0], dv[0]);
 	V3F_SUB(xyz[2], xyz[1], dv[1]);
+
+//	V3F_NORMALIZE(dv[0], dv[0]);
+//	V3F_NORMALIZE(dv[1], dv[1]);
+
 //	V3F_CROSS(dv[0], dv[1], dv[2]);
 	V3F_CROSS(dv[1], dv[0], dv[2]);
 	V3F_NORMALIZE(dv[2], dv[2]);
@@ -814,13 +905,13 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 	{
 //		if(tv[0]>tv[2])		{ ax=0; }
 //		else				{ ax=2; }
-		if(tv[0]>tv[2])		{ ax=(dv[0]>=0)?0:4; }
+		if(tv[0]>=tv[2])		{ ax=(dv[0]>=0)?0:4; }
 		else				{ ax=(dv[2]>=0)?2:6; }
 	}else
 	{
 //		if(tv[1]>tv[2])		{ ax=1; }
 //		else				{ ax=2; }
-		if(tv[1]>tv[2])		{ ax=(dv[1]>=0)?1:5; }
+		if(tv[1]>=tv[2])		{ ax=(dv[1]>=0)?1:5; }
 		else				{ ax=(dv[2]>=0)?2:6; }
 	}
 #endif
@@ -893,6 +984,29 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 	if(st[2][1]<mt)mt=st[2][1];
 	if(st[2][1]>nt)nt=st[2][1];
 
+#if 1
+	i=((int)ms);
+	ms-=i; ns-=i; st[0][0]-=i; st[1][0]-=i; st[2][0]-=i;
+	i=((int)mt);
+	mt-=i; nt-=i; st[0][1]-=i; st[1][1]-=i; st[2][1]-=i;
+
+	i=((int)ns)-1;
+	ms-=i; ns-=i; st[0][0]-=i; st[1][0]-=i; st[2][0]-=i;
+	i=((int)nt)-1;
+	mt-=i; nt-=i; st[0][1]-=i; st[1][1]-=i; st[2][1]-=i;
+
+	if(ms<(-0.00))
+		{ ms+=1.0; ns+=1.0; st[0][0]+=1.0; st[1][0]+=1.0; st[2][0]+=1.0; }
+	if(ns>( 1.00))
+		{ ms-=1.0; ns-=1.0; st[0][0]-=1.0; st[1][0]-=1.0; st[2][0]-=1.0; }
+
+	if(mt<(-0.00))
+		{ mt+=1.0; nt+=1.0; st[0][1]+=1.0; st[1][1]+=1.0; st[2][1]+=1.0; }
+	if(nt>( 1.00))
+		{ mt-=1.0; nt-=1.0; st[0][1]-=1.0; st[1][1]-=1.0; st[2][1]-=1.0; }
+#endif
+
+#if 0
 	if(ns<(-3))
 	{
 		i=((int)(-ns))-1;
@@ -917,15 +1031,16 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 		mt-=i; nt-=i; st[0][1]-=i; st[1][1]-=i; st[2][1]-=i;
 	}
 	
-	while(ms<(-0.5))
+	while(ms<(-1.5))
 		{ ms+=1.0; ns+=1.0; st[0][0]+=1.0; st[1][0]+=1.0; st[2][0]+=1.0; }
 	while(ns>(1.5))
 		{ ms-=1.0; ns-=1.0; st[0][0]-=1.0; st[1][0]-=1.0; st[2][0]-=1.0; }
 
-	while(mt<(-0.5))
+	while(mt<(-1.5))
 		{ mt+=1.0; nt+=1.0; st[0][1]+=1.0; st[1][1]+=1.0; st[2][1]+=1.0; }
 	while(nt>(1.5))
 		{ mt-=1.0; nt-=1.0; st[0][1]-=1.0; st[1][1]-=1.0; st[2][1]-=1.0; }
+#endif
 	
 	if(tri->atxy)
 	{
@@ -938,6 +1053,13 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 		st[1][1]=bgbdt_clamp01(st[1][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
 		st[2][0]=bgbdt_clamp01(st[2][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
 		st[2][1]=bgbdt_clamp01(st[2][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
+
+//		st[0][0]=(st[0][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
+//		st[0][1]=(st[0][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
+//		st[1][0]=(st[1][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
+//		st[1][1]=(st[1][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
+//		st[2][0]=(st[2][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
+//		st[2][1]=(st[2][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
 	}
 	
 	i0=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
@@ -1183,18 +1305,25 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 	int bi;
 	int i;
 
+	if((bx|by|bz)>>4)
+		__debugbreak();
+
 	bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
 
 	mesh=rgn->chkmesh[bi];
 
-	if(mesh && !(accfl&BGBDT_ACCFL_NOLOAD))
+//	if(mesh && !(accfl&BGBDT_ACCFL_NOLOAD))
+	if(mesh && !(accfl&(BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_DISTANT)))
+//	if(mesh)
 	{
 		chk=rgn->chkptr[bi];
-		if(chk && chk->flags&BGBDT_CHKFL_MESHDIRTY)
+		if(chk && (chk->flags&BGBDT_CHKFL_MESHDIRTY))
 		{
+//			printf("BGBDT_GetRegionChunkMesh: Flush mesh dirty, %p\n", chk);
 			chk->flags&=~BGBDT_CHKFL_MESHDIRTY;
 			BGBDT_FreeChunkMesh(world, mesh);
 			mesh=NULL;
+			rgn->chkmesh[bi]=NULL;
 		}
 	}
 
@@ -1202,6 +1331,10 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 		return(mesh);
 	
 	if(accfl&BGBDT_ACCFL_NOLOAD)
+		return(NULL);
+
+	if(!(rgn->chkptr[bi]) && !(rgn->chkofs[bi]) &&
+			!(accfl&BGBDT_ACCFL_ENNEWCHK))
 		return(NULL);
 
 	mesh=BGBDT_AllocChunkMesh(world);

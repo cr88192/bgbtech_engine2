@@ -18,8 +18,10 @@ int	*gfxdrv_rkill;
 
 volatile int gfxdrv_waitdc=0;
 volatile int gfxdrv_waitok=0;
+volatile int gfxdrv_dt_swap=0;
 
 void *gfxdrv_mutex=NULL;
+int gfxdrv_dtt_swap;
 
 int window_center_x;
 int window_center_y;
@@ -95,10 +97,16 @@ BTEIFGL_API bool GfxDrv_WindowIsFullscreenP(void)
 
 BTEIFGL_API void GfxDrv_BeginDrawing()
 {
+	int t0, t1;
+	gfxdrv_dtt_swap=0;
+	
+	t0=clock();
 	GfxDrv_V_HandleMessages();
 	glViewport(0, 0, window_width, window_height);
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+	t1=clock();
+	gfxdrv_dtt_swap+=t1-t0;
 }
 
 BTEIFGL_API void GfxDrv_KeyEvent(int key, int down)
@@ -108,7 +116,11 @@ BTEIFGL_API void GfxDrv_KeyEvent(int key, int down)
 
 BTEIFGL_API void GfxDrv_EndDrawing(void)
 {
-	glFinish();
+	int t0, t1;
+
+	t0=clock();
+
+//	glFinish();
 	SwapBuffers(maindc);
 	
 	FRGL_EndInputFrame();
@@ -131,6 +143,11 @@ BTEIFGL_API void GfxDrv_EndDrawing(void)
 		wglMakeCurrent(maindc, mainrc);
 		gfxdrv_unlock();
 	}
+
+	t1=clock();
+	gfxdrv_dtt_swap+=t1-t0;
+	
+	gfxdrv_dt_swap=gfxdrv_dtt_swap;
 }
 
 void GfxDrv_V_HandleMessages()
@@ -793,6 +810,11 @@ BTEIFGL_API int GfxDrv_SetKill(int *rkill)
 {
 	gfxdrv_rkill=rkill;
 	return(0);
+}
+
+BTEIFGL_API int GfxDrv_GetDtSwap()
+{
+	return(gfxdrv_dt_swap);
 }
 
 #endif

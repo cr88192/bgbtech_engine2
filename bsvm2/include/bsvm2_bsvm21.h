@@ -751,6 +751,9 @@
 #define BSVM2_VAM_GLOBAL		0x30000		//stack var
 #define BSVM2_VAM_MASK			0xF0000		//stack var
 
+#define BSVM2_VMCTL_JITENABLE	0x01000		//jit enabled
+
+
 #ifndef BSVM2_DBGTRAP
 #ifdef _MSC_VER
 #define BSVM2_DBGTRAP __debugbreak();

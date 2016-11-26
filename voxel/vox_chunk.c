@@ -33,6 +33,18 @@ BGBDT_VoxChunk *BGBDT_AllocChunk(BGBDT_VoxWorld *world)
 	return(tmp);
 }
 
+void BGBDT_FreeRegion(BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn)
+{
+	rgn->next=world->freergn;
+	world->freergn=rgn;
+}
+
+void BGBDT_FreeChunk(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
+{
+	chk->next=world->freechk;
+	world->freechk=chk;
+}
+
 byte *BGBDT_WorldAllocVoxelIndexL(BGBDT_VoxWorld *world)
 {
 	byte *buf;
@@ -126,11 +138,18 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 	by=xyz.y>>BGBDT_XYZ_SHR_REGION_XY;
 	bz=xyz.z>>BGBDT_XYZ_SHR_REGION_Z;
 
+	rcur=world->lastrgn;
+	if(rcur && (rcur->bx==bx) && (rcur->by==by) && (rcur->bz==bz))
+		return(rcur);
+
 	rcur=world->region;
 	while(rcur)
 	{
 		if((rcur->bx==bx) && (rcur->by==by) && (rcur->bz==bz))
+		{
+			world->lastrgn=rcur;
 			return(rcur);
+		}
 		rcur=rcur->next;
 	}
 
@@ -165,6 +184,7 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 //		rcur->rgnbuf=vf_loadfile(tbuf, &(rcur->szrgnbuf));
 		BGBDT_WorldDecodeRegionData(world, rcur);
 
+		world->lastrgn=rcur;
 		return(rcur);
 	}
 
@@ -179,6 +199,7 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 		rcur->bz=bz;
 		rcur->flags=BGBDT_RGNFL_NEWRGN;
 
+		world->lastrgn=rcur;
 		return(rcur);
 	}
 
@@ -192,6 +213,65 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_WorldGetChunk(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunk *chk;
 	int bx, by, bz, bi;
 
+#if 0
+	chk=world->lastchk;
+	if(chk)
+	{
+		rgn=chk->rgn;
+		bx=xyz.x>>BGBDT_XYZ_SHR_REGION_XY;
+		by=xyz.y>>BGBDT_XYZ_SHR_REGION_XY;
+		bz=xyz.z>>BGBDT_XYZ_SHR_REGION_Z;
+		if((rgn->bx==bx) && (rgn->by==by) && (rgn->bz==bz))
+		{
+			bx=(xyz.x>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_XY;
+			by=(xyz.y>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_XY;
+			bz=(xyz.z>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_Z;
+
+			if((chk->bx==bx) && (chk->by==by) && (chk->bz==bz))
+			{
+				return(chk);
+			}
+
+			bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
+			chk=rgn->chkptr[bi];
+			if(chk)
+			{
+				world->lastchk=chk;
+				return(chk);
+			}
+
+			chk=BGBDT_GetRegionChunk(world, rgn, bx, by, bz, accfl);
+			world->lastchk=chk;
+			return(chk);
+		}
+	}
+#endif
+
+#if 1
+	rgn=world->lastrgn;
+	bx=xyz.x>>BGBDT_XYZ_SHR_REGION_XY;
+	by=xyz.y>>BGBDT_XYZ_SHR_REGION_XY;
+	bz=xyz.z>>BGBDT_XYZ_SHR_REGION_Z;
+	if(rgn && (rgn->bx==bx) && (rgn->by==by) && (rgn->bz==bz))
+	{
+		bx=(xyz.x>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_XY;
+		by=(xyz.y>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_XY;
+		bz=(xyz.z>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_Z;
+
+		bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
+		chk=rgn->chkptr[bi];
+		if(chk)
+		{
+			world->lastchk=chk;
+			return(chk);
+		}
+
+		chk=BGBDT_GetRegionChunk(world, rgn, bx, by, bz, accfl);
+		world->lastchk=chk;
+		return(chk);
+	}
+#endif
+	
 	rgn=BGBDT_WorldGetRegion(world, xyz, accfl);
 	if(!rgn)return(NULL);
 	
@@ -200,6 +280,8 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_WorldGetChunk(BGBDT_VoxWorld *world,
 	bz=(xyz.z>>BGBDT_XYZ_SHR_CHUNK)&BGBDT_XYZ_MASK_CHUNK_Z;
 	
 	chk=BGBDT_GetRegionChunk(world, rgn, bx, by, bz, accfl);
+	world->lastrgn=rgn;
+	world->lastchk=chk;
 	return(chk);
 }
 
@@ -207,8 +289,16 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_GetRegionChunk(
 	BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn,
 	int bx, int by, int bz, int accfl)
 {
+	static int rcnt=0;
 	BGBDT_VoxChunk *chk;
 	int bi, bid;
+	
+//	if((bx<0) || (by<0) || (bz<0))
+//		return(NULL);
+//	if((bx>15) || (by>15) || (bz>15))
+//		return(NULL);
+	if((bx|by|bz)>>4)
+		return(NULL);
 	
 	bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
 	chk=rgn->chkptr[bi];
@@ -232,6 +322,13 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_GetRegionChunk(
 	
 	if(accfl&BGBDT_ACCFL_ENNEWCHK)
 	{
+		if(world->CheckRgnGenChunkP(world, rgn, bx, by, bz)<=0)
+			return(NULL);
+
+		if(rcnt>=16)
+			return(NULL);
+		rcnt++;
+		
 		chk=BGBDT_AllocChunk(world);
 		rgn->chkptr[bi]=chk;
 		chk->rgn=rgn;	chk->bx=bx;
@@ -242,11 +339,16 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_GetRegionChunk(
 
 		rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
 
+		rcnt--;
 		return(chk);
 	}
 	
-	if(bz<8)
+//	if(bz<8)
+	if(1)
 	{
+		if(world->CheckRgnGenChunkP(world, rgn, bx, by, bz)<=0)
+			return(NULL);
+
 		bid=bgbdt_xyz2rgnid(rgn->bx, rgn->by, rgn->bz);
 		printf("BGBDT_GetRegionChunk: Null Chunk %d,%d,%d RGN=%08X\n",
 			bx, by, bz, bid);
@@ -255,6 +357,7 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_GetRegionChunk(
 			accfl|BGBDT_ACCFL_ENNEWCHK);
 		return(chk);
 	}
+
 	return(NULL);
 }
 
@@ -271,9 +374,13 @@ void BGBDT_WorldVoxel_GetTypeIdFlags(BGBDT_VoxWorld *world,
 {
 	BGBDT_VoxTypeInfo *tyi;
 	int tix, vty;
-	
+
+#if defined(X86) || defined(X86_64)
+	tix=(*(u16 *)(&td.vtypel))&4095;
+#else
 	vty=td.vtypel|(td.vtypeh<<8);
 	tix=vty&4095;
+#endif
 //	tix=td.vtype&4095;
 	tyi=world->voxtypes[tix];
 	if(!tyi)
@@ -299,17 +406,17 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 
 	BGBDT_WorldGetVoxelData(world, xyz, &td, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl=BGBDT_WorldVoxel_GetFlags(world, xyz, td);
-//	vty=BGBDT_WorldVoxel_GetTypeID(world, xyz, td);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz, td, &vty, &vfl);
 	
-	xyz2.x=xyz.x-BGBDT_XYZ_OFS_VOXEL;
-	xyz2.y=xyz.y;
-	xyz2.z=xyz.z;
+	if(!(vfl&BGBDT_VOXFL_NONSOLID))
+		{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
+	if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
+		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
+
+
+	xyz2.x=xyz.x-BGBDT_XYZ_OFS_VOXEL; xyz2.y=xyz.y; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz2, td1);
-//	vty1=BGBDT_WorldVoxel_GetTypeID(world, xyz2, td1);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_NX; }
@@ -319,13 +426,9 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[0]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
 
-	xyz2.x=xyz.x+BGBDT_XYZ_OFS_VOXEL;
-	xyz2.y=xyz.y;
-	xyz2.z=xyz.z;
+	xyz2.x=xyz.x+BGBDT_XYZ_OFS_VOXEL; xyz2.y=xyz.y; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz2, td1);
-//	vty1=BGBDT_WorldVoxel_GetTypeID(world, xyz2, td1);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_PX; }
@@ -335,13 +438,9 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[1]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
 
-	xyz2.x=xyz.x;
-	xyz2.y=xyz.y-BGBDT_XYZ_OFS_VOXEL;
-	xyz2.z=xyz.z;
+	xyz2.x=xyz.x; xyz2.y=xyz.y-BGBDT_XYZ_OFS_VOXEL; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz2, td1);
-//	vty1=BGBDT_WorldVoxel_GetTypeID(world, xyz2, td1);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_NY; }
@@ -351,13 +450,9 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[2]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
 
-	xyz2.x=xyz.x;
-	xyz2.y=xyz.y+BGBDT_XYZ_OFS_VOXEL;
-	xyz2.z=xyz.z;
+	xyz2.x=xyz.x; xyz2.y=xyz.y+BGBDT_XYZ_OFS_VOXEL; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz2, td1);
-//	vty1=BGBDT_WorldVoxel_GetTypeID(world, xyz2, td1);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_PY; }
@@ -367,13 +462,9 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[3]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
 
-	xyz2.x=xyz.x;
-	xyz2.y=xyz.y;
-	xyz2.z=xyz.z-BGBDT_XYZ_OFS_VOXEL;
+	xyz2.x=xyz.x; xyz2.y=xyz.y; xyz2.z=xyz.z-BGBDT_XYZ_OFS_VOXEL;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz2, td1);
-//	vty1=BGBDT_WorldVoxel_GetTypeID(world, xyz2, td1);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_NZ; }
@@ -383,13 +474,9 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[4]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
 
-	xyz2.x=xyz.x;
-	xyz2.y=xyz.y;
-	xyz2.z=xyz.z+BGBDT_XYZ_OFS_VOXEL;
+	xyz2.x=xyz.x; xyz2.y=xyz.y; xyz2.z=xyz.z+BGBDT_XYZ_OFS_VOXEL;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
 		accfl&(~BGBDT_ACCFL_CHKADJ));
-//	vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz2, td1);
-//	vty1=BGBDT_WorldVoxel_GetTypeID(world, xyz2, td1);
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_PZ; }
@@ -498,7 +585,7 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 	int ix1, ix2, ix3, ix4, ix5, ix6;
 	int vfl1, vfl2, vfl3, vfl4, vfl5, vfl6;
 	int vt1, vt2, vt3, vt4, vt5, vt6;
-	int ix, vfl, vty, bn;
+	int ix, vfl, vty, ufl, ifl, bn;
 	int i, j, k;
 
 	if((bx|by|bz)>>4)
@@ -512,54 +599,6 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 	bn=(bz*BGBDT_XYZ_TSZ_CHK_XY)+(by*BGBDT_XYZ_SZ_CHUNK_XYZ)+bx;
 
 	bgbdt_clearvoxdatastatus(rts);
-
-#if 0
-	if((!chk->voxidx && !chk->voxidxh) || !chk->voxinfo)
-	{
-		if(chk->voxinfo && (chk->nvoxinfo==1))
-		{
-			if(accfl&BGBDT_ACCFL_CHKADJ)
-			{
-				if(((bx+1)|(bx-1)|(by+1)|(by-1)|(bz+1)|(bz-1))>>4)
-				{
-					xyz=BGBDT_WorldGetChunkVoxCoord(
-						world, chk, bx, by, bz);
-
-					vfl=BGBDT_WorldVoxel_GetFlags(world,
-						xyz, *chk->voxinfo);
-					if(!(vfl&BGBDT_VOXFL_NONSOLID))
-						{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
-					if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
-						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
-
-					BGBDT_WorldGet_UpdateAdjFl(world, xyz, rts, accfl);
-				}else
-				{
-					xyz=BGBDT_WorldGetChunkVoxCoord(
-						world, chk, bx, by, bz);
-					vfl=BGBDT_WorldVoxel_GetFlags(world,
-						xyz, *chk->voxinfo);
-					if(!(vfl&BGBDT_VOXFL_NONSOLID))
-					{
-						rts->adjfl|=BGBDT_ADJFL_SOLID_MASK|
-							BGBDT_ADJFL_SOLID_S;
-					}
-					if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
-					{ 
-						rts->adjfl|=BGBDT_ADJFL_OPAQUE_MASK|
-							BGBDT_ADJFL_OPAQUE_S;
-					}
-				}
-			}
-		
-			*rtd=*chk->voxinfo;
-			return(0);
-		}
-
-		memset(rtd, 0, sizeof(BGBDT_VoxData));
-		return(-1);
-	}
-#endif
 
 	if(!chk->voxinfo)
 	{
@@ -594,12 +633,12 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 					xyz=BGBDT_WorldGetChunkVoxCoord(
 						world, chk, bx, by, bz);
 
-					vfl=BGBDT_WorldVoxel_GetFlags(world,
-						xyz, *chk->voxinfo);
-					if(!(vfl&BGBDT_VOXFL_NONSOLID))
-						{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
-					if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
-						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
+//					vfl=BGBDT_WorldVoxel_GetFlags(world,
+//						xyz, *chk->voxinfo);
+//					if(!(vfl&BGBDT_VOXFL_NONSOLID))
+//						{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
+//					if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
+//						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
 
 					BGBDT_WorldGet_UpdateAdjFl(world, xyz, rts, accfl);
 				}else
@@ -636,12 +675,12 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 			xyz=BGBDT_WorldGetChunkVoxCoord(
 				world, chk, bx, by, bz);
 
-			vfl=BGBDT_WorldVoxel_GetFlags(world,
-				xyz, chk->voxinfo[ix]);
-			if(!(vfl&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
-			if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
+//			vfl=BGBDT_WorldVoxel_GetFlags(world,
+//				xyz, chk->voxinfo[ix]);
+//			if(!(vfl&BGBDT_VOXFL_NONSOLID))
+//				{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
+//			if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
+//				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
 
 			BGBDT_WorldGet_UpdateAdjFl(world, xyz, rts, accfl);
 		}else
@@ -679,22 +718,6 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 			BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz, td5, &vt5, &vfl5);
 			BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz, td6, &vt6, &vfl6);
 
-#if 0
-			vt1=BGBDT_WorldVoxel_GetTypeID(world, xyz, td1);
-			vt2=BGBDT_WorldVoxel_GetTypeID(world, xyz, td2);
-			vt3=BGBDT_WorldVoxel_GetTypeID(world, xyz, td3);
-			vt4=BGBDT_WorldVoxel_GetTypeID(world, xyz, td4);
-			vt5=BGBDT_WorldVoxel_GetTypeID(world, xyz, td5);
-			vt6=BGBDT_WorldVoxel_GetTypeID(world, xyz, td6);
-
-			vfl1=BGBDT_WorldVoxel_GetFlags(world, xyz, td1);
-			vfl2=BGBDT_WorldVoxel_GetFlags(world, xyz, td2);
-			vfl3=BGBDT_WorldVoxel_GetFlags(world, xyz, td3);
-			vfl4=BGBDT_WorldVoxel_GetFlags(world, xyz, td4);
-			vfl5=BGBDT_WorldVoxel_GetFlags(world, xyz, td5);
-			vfl6=BGBDT_WorldVoxel_GetFlags(world, xyz, td6);
-#endif
-
 			rts->adjlit[0]=(td1.alight<<8)|td1.vlight;
 			rts->adjlit[1]=(td2.alight<<8)|td2.vlight;
 			rts->adjlit[2]=(td3.alight<<8)|td3.vlight;
@@ -702,43 +725,79 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 			rts->adjlit[4]=(td5.alight<<8)|td5.vlight;
 			rts->adjlit[5]=(td6.alight<<8)|td6.vlight;
 
-			if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
-				{ rts->adjlit[0]=BGBDT_WorldVoxel_GetGlow(world, xyz, td1); }
-			if(vfl2&BGBDT_VOXFL_GLOWLIGHT)
-				{ rts->adjlit[1]=BGBDT_WorldVoxel_GetGlow(world, xyz, td2); }
-			if(vfl3&BGBDT_VOXFL_GLOWLIGHT)
-				{ rts->adjlit[2]=BGBDT_WorldVoxel_GetGlow(world, xyz, td3); }
-			if(vfl4&BGBDT_VOXFL_GLOWLIGHT)
-				{ rts->adjlit[3]=BGBDT_WorldVoxel_GetGlow(world, xyz, td4); }
-			if(vfl5&BGBDT_VOXFL_GLOWLIGHT)
-				{ rts->adjlit[4]=BGBDT_WorldVoxel_GetGlow(world, xyz, td5); }
-			if(vfl6&BGBDT_VOXFL_GLOWLIGHT)
-				{ rts->adjlit[5]=BGBDT_WorldVoxel_GetGlow(world, xyz, td6); }
+			ufl=vfl1|vfl2|vfl3|vfl4|vfl5|vfl6;
+			ifl=vfl1&vfl2&vfl3&vfl4&vfl5&vfl6;
 
-			if(!(vfl1&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_NX; }
-			if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vt1==vty))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NX; }
-			if(!(vfl2&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_PX; }
-			if(!(vfl2&BGBDT_VOXFL_TRANSPARENT) || (vt2==vty))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PX; }
-			if(!(vfl3&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_NY; }
-			if(!(vfl3&BGBDT_VOXFL_TRANSPARENT) || (vt3==vty))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NY; }
-			if(!(vfl4&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_PY; }
-			if(!(vfl4&BGBDT_VOXFL_TRANSPARENT) || (vt4==vty))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PY; }
-			if(!(vfl5&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_NZ; }
-			if(!(vfl5&BGBDT_VOXFL_TRANSPARENT) || (vt5==vty))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
-			if(!(vfl6&BGBDT_VOXFL_NONSOLID))
-				{ rts->adjfl|=BGBDT_ADJFL_SOLID_PZ; }
-			if(!(vfl6&BGBDT_VOXFL_TRANSPARENT) || (vt6==vty))
-				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
+			if(ufl&BGBDT_VOXFL_GLOWLIGHT)
+			{
+				if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
+					{ rts->adjlit[0]=BGBDT_WorldVoxel_GetGlow(
+						world, xyz, td1); }
+				if(vfl2&BGBDT_VOXFL_GLOWLIGHT)
+					{ rts->adjlit[1]=BGBDT_WorldVoxel_GetGlow(
+						world, xyz, td2); }
+				if(vfl3&BGBDT_VOXFL_GLOWLIGHT)
+					{ rts->adjlit[2]=BGBDT_WorldVoxel_GetGlow(
+						world, xyz, td3); }
+				if(vfl4&BGBDT_VOXFL_GLOWLIGHT)
+					{ rts->adjlit[3]=BGBDT_WorldVoxel_GetGlow(
+						world, xyz, td4); }
+				if(vfl5&BGBDT_VOXFL_GLOWLIGHT)
+					{ rts->adjlit[4]=BGBDT_WorldVoxel_GetGlow(
+						world, xyz, td5); }
+				if(vfl6&BGBDT_VOXFL_GLOWLIGHT)
+					{ rts->adjlit[5]=BGBDT_WorldVoxel_GetGlow(
+						world, xyz, td6); }
+			}
+
+			if(!(ifl&BGBDT_VOXFL_NONSOLID))
+			{
+				if(!(ufl&BGBDT_VOXFL_NONSOLID))
+				{
+					rts->adjfl|=
+						BGBDT_ADJFL_SOLID_NX|BGBDT_ADJFL_SOLID_PX|
+						BGBDT_ADJFL_SOLID_NY|BGBDT_ADJFL_SOLID_PY|
+						BGBDT_ADJFL_SOLID_NZ|BGBDT_ADJFL_SOLID_PZ;
+				}else
+				{
+					if(!(vfl1&BGBDT_VOXFL_NONSOLID))
+						{ rts->adjfl|=BGBDT_ADJFL_SOLID_NX; }
+					if(!(vfl2&BGBDT_VOXFL_NONSOLID))
+						{ rts->adjfl|=BGBDT_ADJFL_SOLID_PX; }
+					if(!(vfl3&BGBDT_VOXFL_NONSOLID))
+						{ rts->adjfl|=BGBDT_ADJFL_SOLID_NY; }
+					if(!(vfl4&BGBDT_VOXFL_NONSOLID))
+						{ rts->adjfl|=BGBDT_ADJFL_SOLID_PY; }
+					if(!(vfl5&BGBDT_VOXFL_NONSOLID))
+						{ rts->adjfl|=BGBDT_ADJFL_SOLID_NZ; }
+					if(!(vfl6&BGBDT_VOXFL_NONSOLID))
+						{ rts->adjfl|=BGBDT_ADJFL_SOLID_PZ; }
+				}
+			}
+
+//			if(!(ifl&BGBDT_VOXFL_TRANSPARENT))
+
+			if(!(ufl&BGBDT_VOXFL_TRANSPARENT))
+			{
+				rts->adjfl|=
+					BGBDT_ADJFL_OPAQUE_NX|BGBDT_ADJFL_OPAQUE_PX|
+					BGBDT_ADJFL_OPAQUE_NY|BGBDT_ADJFL_OPAQUE_PY|
+					BGBDT_ADJFL_OPAQUE_NZ|BGBDT_ADJFL_OPAQUE_PZ;
+			}else
+			{
+				if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vt1==vty))
+					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NX; }
+				if(!(vfl2&BGBDT_VOXFL_TRANSPARENT) || (vt2==vty))
+					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PX; }
+				if(!(vfl3&BGBDT_VOXFL_TRANSPARENT) || (vt3==vty))
+					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NY; }
+				if(!(vfl4&BGBDT_VOXFL_TRANSPARENT) || (vt4==vty))
+					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PY; }
+				if(!(vfl5&BGBDT_VOXFL_TRANSPARENT) || (vt5==vty))
+					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
+				if(!(vfl6&BGBDT_VOXFL_TRANSPARENT) || (vt6==vty))
+					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
+			}
 		}
 	}
 
@@ -762,12 +821,18 @@ int BGBDT_WorldTouchAdjacentChunks(BGBDT_VoxWorld *world,
 
 	acc2=accfl&(~BGBDT_ACCFL_CHKADJ);
 
-	fl=BGBDT_CHKFL_DIRTY;
+//	fl=BGBDT_CHKFL_DIRTY;
 	if(accfl&BGBDT_ACCFL_LIGHTDIRTY)
+	{
 		fl=BGBDT_CHKFL_LIGHTDIRTY;
-
-	flcl=~(BGBDT_CHKFL_ONLYSOLID|BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_MIXEDSOLID);
-
+		flcl=-1;
+	}else
+	{
+		fl=BGBDT_CHKFL_ALLDIRTY;
+		flcl=~(BGBDT_CHKFL_ONLYSOLID|
+			BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_MIXEDSOLID|
+			BGBDT_CHKFL_NOVISFACE);
+	}
 
 	xyz1.x=xyz.x-BGBDT_XYZ_OFS_VOXEL; xyz1.y=xyz.y; xyz1.z=xyz.z;
 	chk=BGBDT_WorldGetChunk(world, xyz1, acc2);
@@ -800,6 +865,7 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunk *chk,
 	BGBDT_VoxCoord xyz, BGBDT_VoxData td, int accfl)
 {
+	BGBDT_VoxData td1;
 	int bx, by, bz, bn;
 	int ix, isz;
 	int i, j, k;
@@ -841,6 +907,11 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 	bx=(xyz.x>>BGBDT_XYZ_SHR_VOXEL)&BGBDT_XYZ_MASK_CHKVOX;
 	by=(xyz.y>>BGBDT_XYZ_SHR_VOXEL)&BGBDT_XYZ_MASK_CHKVOX;
 	bz=(xyz.z>>BGBDT_XYZ_SHR_VOXEL)&BGBDT_XYZ_MASK_CHKVOX;
+	if((bx|by|bz)>>4)
+	{
+		__debugbreak();
+	}
+	
 	bn=(bz*BGBDT_XYZ_TSZ_CHK_XY)+(by*BGBDT_XYZ_SZ_CHUNK_XYZ)+bx;
 
 	if(chk->voxidxh)
@@ -863,14 +934,27 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 	if(!memcmp(&(chk->voxinfo[ix]), &td, sizeof(BGBDT_VoxData)))
 		return(0);
 
-//	chk->flags|=BGBDT_CHKFL_DIRTY|
-//		BGBDT_CHKFL_MESHDIRTY|
-//		BGBDT_CHKFL_LIGHTDIRTY|
-//		BGBDT_CHKFL_SAVEDIRTY;
-	chk->flags|=BGBDT_CHKFL_ALLDIRTY;
+	td1=chk->voxinfo[ix];
+	if((td1.vtypel==td.vtypel) && (td1.vtypeh==td.vtypeh) &&
+		(td1.vattr==td.vattr))
+//	if(0)
+	{
+		chk->flags|=BGBDT_CHKFL_ALLDIRTY;
+//		if((td1.vdatal!=td.vdatal) || (td1.vdatah!=td.vdatah))
+		chk->rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
+	}else
+	{
+	//	chk->flags|=BGBDT_CHKFL_DIRTY|
+	//		BGBDT_CHKFL_MESHDIRTY|
+	//		BGBDT_CHKFL_LIGHTDIRTY|
+	//		BGBDT_CHKFL_SAVEDIRTY;
+		chk->flags|=BGBDT_CHKFL_ALLDIRTY;
+		chk->rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
 
-	chk->flags&=~(BGBDT_CHKFL_ONLYSOLID|
-		BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_MIXEDSOLID);
+		chk->flags&=~(BGBDT_CHKFL_ONLYSOLID|
+			BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_MIXEDSOLID|
+			BGBDT_CHKFL_NOVISFACE);
+	}
 
 	if(accfl&BGBDT_ACCFL_CHKADJ)
 		{ BGBDT_WorldTouchAdjacentChunks(world, xyz, accfl); }
@@ -989,6 +1073,10 @@ BTEIFGL_API int BGBDT_WorldSetVoxelData(BGBDT_VoxWorld *world,
 	}
 	
 	i=BGBDT_WorldSetChunkVoxelData(world, chk, xyz, td, accfl);
+//	if(!(chk->flags&BGBDT_CHKFL_MESHDIRTY))
+//	{
+//		printf("BGBDT_WorldSetVoxelData: No Mesh Dirty\n");
+//	}
 	return(i);
 }
 
@@ -1059,4 +1147,123 @@ BTEIFGL_API char *BGBDT_WorldGetStringForIndex(BGBDT_VoxWorld *world,
 	if(!rgn)return(NULL);
 	s=BGBDT_WorldRegionStringForIndex(world, rgn, idx);
 	return(s);
+}
+
+
+void BGBDT_UnloadVoxRegionChunk(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, BGBDT_VoxChunk *chk)
+{
+	if(chk->voxidxh)
+	{
+		BGBDT_WorldFreeVoxelIndexH(world, chk->voxidxh);
+		chk->voxidxh=NULL;
+	}
+
+	if(chk->voxidx)
+	{
+		BGBDT_WorldFreeVoxelIndexL(world, chk->voxidx);
+		chk->voxidx=NULL;
+	}
+
+	if(chk->voxinfo)
+	{
+		BGBDT_WorldFreeVoxelData(world,
+			chk->voxinfo, chk->mvoxinfo);
+		chk->voxinfo=NULL;
+	}
+
+	BGBDT_FreeChunk(world, chk);
+}
+
+void BGBDT_UnloadVoxRegion(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn)
+{
+	BGBDT_VoxRegion *rcur, *rprv;
+	BGBDT_VoxChunkMesh *mesh;
+	BGBDT_VoxChunk *chk;
+	int bx, by, bz, bi;
+
+	world->lastchk=NULL;
+	world->lastrgn=NULL;
+
+	if(rgn->flags&BGBDT_RGNFL_RGNDIRTY)
+	{
+		BGBDT_WorldSaveRegionData(world, rgn);
+		rgn->flags&=~BGBDT_RGNFL_RGNDIRTY;
+	}
+	
+	for(bz=0; bz<16; bz++)
+		for(by=0; by<16; by++)
+			for(bx=0; bx<16; bx++)
+	{
+		bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
+
+		mesh=rgn->chkmesh[bi];
+		if(mesh)
+		{
+			BGBDT_FreeChunkMesh(world, mesh);
+			rgn->chkmesh[bi]=NULL;
+		}
+
+		chk=rgn->chkptr[bi];
+		if(chk)
+		{
+			BGBDT_UnloadVoxRegionChunk(world, rgn, chk);
+			rgn->chkptr[bi]=NULL;
+		}
+	}
+	
+	if(rgn->rgnmap)
+	{
+		frgl_free(rgn->rgnmap);
+		rgn->rgnmap=NULL;
+	}
+
+	if(rgn->rgnbuf)
+	{
+		frgl_free(rgn->rgnbuf);
+		rgn->rgnbuf=NULL;
+	}
+	
+	rcur=world->region; rprv=NULL;
+	while(rcur && (rcur!=rgn))
+	{
+		rprv=rcur;
+		rcur=rcur->next;
+	}
+	
+	if(rcur)
+	{
+		if(rprv)
+		{
+			rprv->next=rcur->next;
+		}else
+		{
+			world->region=rcur->next;
+		}
+	}
+	
+	BGBDT_FreeRegion(world, rgn);
+}
+
+
+void BGBDT_UnloadRegionMeshes(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn)
+{
+	BGBDT_VoxChunkMesh *mesh;
+	int bx, by, bz, bi;
+
+	for(bz=0; bz<16; bz++)
+		for(by=0; by<16; by++)
+			for(bx=0; bx<16; bx++)
+	{
+		bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
+
+		mesh=rgn->chkmesh[bi];
+		if(mesh)
+		{
+			BGBDT_FreeChunkMesh(world, mesh);
+			rgn->chkmesh[bi]=NULL;
+		}
+	}
 }

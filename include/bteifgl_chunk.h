@@ -153,6 +153,7 @@ Each cell is 64 bytes.
 #define BGBDT_ACCFL_ENNEWCHK	4		//enable creating new chunks
 #define BGBDT_ACCFL_CHKADJ		8		//check adjacent blocks
 #define BGBDT_ACCFL_LIGHTDIRTY	16		//only lighting has changed
+#define BGBDT_ACCFL_DISTANT		32		//represents a distant chunk
 
 #define BGBDT_TRFL_NOLOAD		1		//don't load chunks during trace
 #define BGBDT_TRFL_SOLID		2		//stop if we hit something solid
@@ -172,6 +173,7 @@ Each cell is 64 bytes.
 #define BGBDT_VOXFL_GLOWLIGHT	0x0200	//light source
 #define BGBDT_VOXFL_PHYSEFF		0x0400	//physics effect
 #define BGBDT_VOXFL_CROSSSPR	0x0800	//cross sprite
+#define BGBDT_VOXFL_SOLIDNSBOX	0x1000	//solid non-standard box
 
 #define BGBDT_VOXFL_CONT_0		0x0000		//contents=0
 #define BGBDT_VOXFL_CONT_1		0x0010		//contents=1
@@ -259,6 +261,7 @@ Each cell is 64 bytes.
 #define BGBDT_CHKFL_ONLYSOLID	0x0010	//only opaque solid blocks
 #define BGBDT_CHKFL_ONLYAIR		0x0020	//only 'air'
 #define BGBDT_CHKFL_MIXEDSOLID	0x0040	//mixture of solid and air
+#define BGBDT_CHKFL_NOVISFACE	0x0080	//no visible faces (general)
 
 #define BGBDT_CHKFL_ENTSPAWN	0x1000	//entities spawned
 
@@ -270,6 +273,12 @@ Each cell is 64 bytes.
 
 #define BGBDT_ENTFL_ONGROUND	0x0001	//onground
 #define BGBDT_ENTFL_ZFLIP		0x0010	//entity Z flip
+
+#define BGBDT_MESHFL_QLIVE		0x0001	//query live
+#define BGBDT_MESHFL_QCLIP		0x0002	//query clipped
+#define BGBDT_MESHFL_QINHIBIT	0x0004	//query inhibited
+
+#define BGBDT_MESHFL_VISALL		0x0007	//query clipped
 
 
 typedef struct BGBDT_VoxCoord_s BGBDT_VoxCoord;
@@ -342,6 +351,7 @@ struct BGBDT_VoxChunkMesh_s {
 BGBDT_VoxRegion *rgn;		//parent region
 BGBDT_VoxChunkMesh *next;	//next chunk mesh
 byte bx, by, bz;			//chunk location (in region)
+byte vistick;				//visibility tick delay
 
 BGBDT_VoxChunkMesh *pvsnext;	//next chunk mesh (PVS)
 BGBDT_VoxChunkMesh *cvsnext;	//next chunk mesh (CVS)
@@ -369,6 +379,7 @@ int va_nmesh;
 byte *vabuf;
 int sz_vabuf;
 int vbo_id;
+int flags;
 
 int ofs_xyz, ofs_st;
 int ofs_rgba, ofs_norm;
@@ -421,12 +432,20 @@ BGBDT_VoxChunkMesh *cvs;	//chunk CVS
 int lastpvs;
 int lastcvs;
 int lasttick;
+
+int pvschk_tot;
+int pvschk_tris;
+int cvschk_tot;
+int cvschk_tris;
+int rawchk_tot;
+int rawchk_tris;
 };
 
 struct BGBDT_VoxWorld_s {
 BGBDT_VoxRegion *region;
 BGBDT_VoxTypeInfo *voxtypes[4096];
 char *worldname;
+char *worldtype;
 
 BGBDT_VoxRegion *freergn;
 BGBDT_VoxChunk *freechk;
@@ -437,6 +456,9 @@ void *freeidxh;
 byte *wrlmap;				//world cell bitmap
 byte *wrlbuf;				//world buffer
 int szwrlbuf;				//size of region buffer
+
+BGBDT_VoxRegion *lastrgn;
+BGBDT_VoxChunk *lastchk;
 
 u32 wrlseed;				//world seed
 byte seedperm_x[256];		//seed permutation x
@@ -450,6 +472,17 @@ int dt_pvs;
 int dt_draw;
 int dt_sound;
 int dt_frame;
+int dt_phytick;
+
+int meshchk_tot;
+int meshchk_nvis;
+
+int vischk_tot;
+int vischk_tris;
+int pvschk_tot;
+int pvschk_tris;
+int rawchk_tot;
+int rawchk_tris;
 
 byte insky;
 byte inwater;
@@ -458,6 +491,8 @@ double reforg[3];			//camera reference origin
 float camorg[3];			//camera origin
 float camrot[9];			//camera rotation
 
+int (*CheckRgnGenChunkP)(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, int bx, int by, int bz);
 int (*GenerateChunk)(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 
 void *freetmp[256];

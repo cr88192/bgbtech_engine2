@@ -352,8 +352,10 @@ int BGBDT_VoxTgMare_GenerateChunkBasic(
 				{
 					td1=voxtg_td_grassclump;
 					td1.vattr=bgbdt_voxtg_vxrand()&15;
-					BGBDT_WorldSetChunkVoxelData(world, chk, xyz2,
-						td1, 0);
+//					BGBDT_WorldSetChunkVoxelData(world, chk, xyz2,
+//						td1, 0);
+					BGBDT_WorldSetVoxelData(world,
+						xyz2, td1, BGBDT_ACCFL_ENNEWCHK);
 				}
 
 			}else

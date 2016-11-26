@@ -139,8 +139,11 @@ BTEIFGL_API void BGBDT_MsImaAdpcm_EncodeBlockMono(
 		if(uni2&8)diff=-diff;
 		p2=pred+diff; d2=j-p2; d2=d2*d2;
 		
-		if(d1<d0)uni=uni1;
-		if(d2<d0)uni=uni2;
+//		if(d1<d0)uni=uni1;
+//		if(d2<d0)uni=uni2;
+
+		if((d1<d0) && (d1>0))uni=uni1;
+		if((d2<d0) && (d2>0))uni=uni2;
 #endif
 	
 		index=index+bgbmid_ima_index_table[uni];

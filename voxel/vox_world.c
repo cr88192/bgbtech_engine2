@@ -687,8 +687,40 @@ int glow;
 	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID|
 	BGBDT_VOXFL_CROSSSPR, 0},
 
+{"somatred", "textures/atlas0", NULL, NULL,
+	3, 3,  3, 3,  3, 3,  0, 0},
+{"somatblu", "textures/atlas0", NULL, NULL,
+	4, 3,  4, 3,  4, 3,  0, 0},
+{"somatyel", "textures/atlas0", NULL, NULL,
+	5, 3,  5, 3,  5, 3,  0, 0},
+{"somatgrn", "textures/atlas0", NULL, NULL,
+	6, 3,  6, 3,  6, 3,  0, 0},
+{"somatcyn", "textures/atlas0", NULL, NULL,
+	7, 3,  7, 3,  7, 3,  0, 0},
+{"somatpur", "textures/atlas0", NULL, NULL,
+	8, 3,  8, 3,  8, 3,  0, 0},
+{"somatwht", "textures/atlas0", NULL, NULL,
+	9, 3,  9, 3,  9, 3,  0, 0},
+
+{"stairs", "textures/atlas0", NULL, NULL,
+	11, 0,  11, 0,  11, 0,
+	BGBDT_VOXFL_SOLIDNSBOX|BGBDT_VOXFL_TRANSPARENT, 0},
+
 {NULL, NULL}
 };
+
+int BGBDT_CheckRgnGenChunkBasicP(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, int bx, int by, int bz)
+{
+	if(rgn->bz)
+		return(0);
+	if(bz<0)
+		return(0);
+
+	if(bz>=8)
+		return(0);
+	return(1);
+}
 
 BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name)
 {
@@ -704,14 +736,34 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld2(char *name, char *wrlty)
 	int i, j, k, h;
 	
 	wrl=BGBDT_AllocVoxelWorld();
-	wrl->GenerateChunk=BGBDT_VoxelWorld_GenerateChunkBasic;
 
+	wrl->worldname=frgl_strdup(name);
+	wrl->worldtype=frgl_strdup(wrlty);
+
+	BGBDT_VoxelWorld_LoadWorldInfo(wrl);
+
+	BGBDT_SetupBasicWorld2(wrl, name, wrlty);
+
+	BGBDT_VoxelWorld_SaveWorldInfo(wrl);
+
+	return(wrl);
+}
+
+BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(
+	BGBDT_VoxWorld *wrl, char *name, char *wrlty)
+{
+	BGBDT_VoxTypeInfo *tyi;
+	char *s;
+	int i0, i1, i2, i3;
+	int i, j, k, h;
+	
+	wrl->GenerateChunk=BGBDT_VoxelWorld_GenerateChunkBasic;
+	wrl->CheckRgnGenChunkP=BGBDT_CheckRgnGenChunkBasicP;
 	if(!strcmp(wrlty, "mare"))
 	{
 		wrl->GenerateChunk=BGBDT_VoxTgMare_GenerateChunkBasic;
+		wrl->CheckRgnGenChunkP=BGBDT_CheckRgnGenChunkBasicP;
 	}
-
-	wrl->worldname=frgl_strdup(name);
 
 	for(i=0; bgbdt_matinfo[i].name; i++)
 	{
@@ -730,6 +782,11 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld2(char *name, char *wrlty)
 		tyi->mat_bot_y=bgbdt_matinfo[i].mat_bot_y;
 		tyi->flags=bgbdt_matinfo[i].flags;
 		tyi->glow=bgbdt_matinfo[i].glow;
+		
+		tyi->EmitBlockFaces=BGBDT_VoxMesh_EmitBlockFacesGeneric;
+
+		if(tyi->flags&BGBDT_VOXFL_SOLIDNSBOX)
+			tyi->EmitBlockFaces=BGBDT_VoxMesh_EmitBlockFacesNSBox;
 	}
 
 #if 0
@@ -983,4 +1040,94 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld2(char *name, char *wrlty)
 	}
 	
 	return(wrl);
+}
+
+int BGBDT_VoxelWorld_SaveWorldInfo(
+	BGBDT_VoxWorld *world)
+{
+	char tb[256];
+	BGBDT_VoxTypeInfo *tyi;
+	BGBDT_VoxCoord xyz, org;
+	VFILE *fd;
+	int fl;
+	int i, j, k;
+
+	sprintf(tb, "region/%s/world.ini", world->worldname);
+
+	fd=vffopen(tb, "wt");
+	if(!fd)return(-1);
+	
+	if(world->worldname)
+	{
+		sprintf(tb, "worldname %s\n",
+			world->worldname);
+		vfwrite(tb, 1, strlen(tb), fd);
+	}
+
+	if(world->worldtype)
+	{
+		sprintf(tb, "worldtype %s\n",
+			world->worldtype);
+		vfwrite(tb, 1, strlen(tb), fd);
+	}
+	
+	for(i=0; i<4096; i++)
+	{
+		tyi=world->voxtypes[i];
+		if(!tyi)
+			break;
+
+		sprintf(tb, "voxty %d %s\n",
+			i, tyi->name);
+		vfwrite(tb, 1, strlen(tb), fd);
+	}
+
+	vfclose(fd);
+	return(0);
+}
+
+int BGBDT_VoxelWorld_LoadWorldInfo(
+	BGBDT_VoxWorld *world)
+{
+	char tb[256];
+	BGBDT_VoxTypeInfo *tyi;
+	char *buf, *cs, *cse;
+	char *s;
+	char **a;
+	int sz, b;
+	int i, j, k;
+
+	sprintf(tb, "region/%s/world.ini", world->worldname);
+	
+	buf=vf_loadfile(tb, &sz);
+	if(!buf)
+		return(0);
+	
+	cs=buf; cse=buf+sz;
+	while(cs<cse)
+	{
+		s=frgl_rgets(&cs);
+		a=frgl_rsplit(s);
+		
+		if(!a[0])continue;
+
+		if(!strcmp(a[0], "worldtype"))
+		{
+			world->worldtype=frgl_strdup(a[1]);
+			continue;
+		}
+
+		if(!strcmp(a[0], "voxty"))
+		{
+			i=atoi(a[1]);
+			tyi=BGBDT_VoxelWorld_GetTypeInfoIndex(world, i);
+			if(!tyi)
+				continue;
+			tyi->name=frgl_strdup(a[2]);
+			continue;
+		}
+	}
+
+	frgl_free(buf);
+	return(0);
 }

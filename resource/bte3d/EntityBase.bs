@@ -5,6 +5,8 @@ public class EntityBase {
 	public float radius;
 	public float height;
 	public string sprite;
+	public string sprite_lf;
+	public string sprite_bk;
 	public vec2f sprite_sz;
 	public long flags;
 	

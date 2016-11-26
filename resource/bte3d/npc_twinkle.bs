@@ -1,0 +1,223 @@
+public class npc_twinkle extends EntityBase {
+	static NpcDialogBox diag0, diag1, diag2;
+	static NpcDialogBox diag3, diag4, diag5;
+	static NpcDialogBox diag6, diag7, diag8;
+	static bool isInit=false;
+	byte elfty;
+	byte pester;
+	
+	public static void init()
+	{
+		if(isInit)
+			return;
+		isInit=true;
+		
+		frgl_printf("Twinkle Init\n");
+
+		diag0=new NpcDialogBox;
+		diag1=new NpcDialogBox;
+		diag2=new NpcDialogBox;
+		diag3=new NpcDialogBox;
+		diag4=new NpcDialogBox;
+		diag5=new NpcDialogBox;
+		diag6=new NpcDialogBox;
+		diag7=new NpcDialogBox;
+		diag8=new NpcDialogBox;
+
+		diag0.face1="sprites/twinkle/twface0_smcl";
+		diag0.face2="sprites/twinkle/twface0_smop";
+		diag0.voice="sound/fem_eh0";
+		diag0.text=
+"""
+Greetings! I am Princess Twinkle.
+I can help you out if you bring me the right forms.
+""";
+		diag0.options=[
+			"Ask about Twinkle.",
+			"Ask about Celeste.",
+			"Goodbye."];
+		diag0.optchain=[null, diag1, diag2, null, null, null];
+
+		diag1.face1="sprites/twinkle/twface0_smcl";
+		diag1.face2="sprites/twinkle/twface0_smop";
+		diag1.voice="sound/fem_eh0";
+		diag1.text=
+"""
+Well, I am Twinkle, and this is my castle.
+I wait around here for whatever paperwork comes along, and report back to
+Queen Celeste.
+
+Though, between us, she is pretty strict. Any forms I submit to her need to be
+in order beforehand, and need the appropriate stamp. It is a problem for both
+of us if the paperwork is not in order and and properly stamped before it is
+brought to my attention.
+""";
+		diag1.options=["Return."];
+		diag1.optchain=[diag0, diag0, null, null, null];
+
+		diag2.face1="sprites/twinkle/twface0_frcl";
+		diag2.face2="sprites/twinkle/twface0_frop";
+		diag2.voice="sound/fem_eh0";
+		diag2.text=
+"""
+Well, what to say about Celeste?
+She is the queen of our people, and we are in her service.
+What can I really say about her?
+She doesn't really say what her reasoning is, but generally everything is ok.
+
+I don't always know what I am doing sometimes, but the job isn't too hard.
+If I see forms, and everything is in order, I can stamp them and pass them
+along. What happens after this, I don't really know.
+""";
+		diag2.options=["Return.", "Princess?"];
+		diag2.optchain=[diag0, diag0, diag3, null, null];
+
+
+		diag3.face1="sprites/twinkle/twface0_smcl";
+		diag3.face2="sprites/twinkle/twface0_smop";
+		diag3.voice="sound/fem_eh0";
+		diag3.text=
+"""
+Well, I am not actually related to her. Rather, I did well, and was picked out
+among my peers and assigned to rule over this area.
+""";
+		diag3.options=["Return."];
+		diag3.optchain=[diag0, diag0, null, null, null];
+
+
+		diag4.face1="sprites/elf/elfface1_happy0";
+		diag4.face2="sprites/elf/elfface1_cheer0";
+		diag4.voice="sound/fem_eh0";
+		diag4.text=
+"""
+Hurry on your way!
+Find Santa, he has everything you need!
+""";
+		diag4.options=["Return."];
+		diag4.optchain=[null, null, null, null, null];
+
+
+		diag5.face1="sprites/elf/elfface0_rshappy0";
+		diag5.face2="sprites/elf/elfface0_rscheer0";
+		diag5.voice="sound/fem_eh0";
+		diag5.text=
+"""
+Flesh! Flesh! FLESH!
+You have flesh! Come here, let me have a taste!
+Come on, it will only hurt for a moment!
+""";
+		diag5.options=["Return!"];
+		diag5.optchain=[null, null, null, null, null];
+
+
+		diag6.face1="sprites/twinkle/twface0_frcl";
+		diag6.face2="sprites/twinkle/twface0_frop";
+		diag6.voice="sound/fem_eh0";
+		diag6.text="Don't you have something better to be doing?";
+		diag6.options=["Talk Anyways."];
+		diag6.optchain=[null, diag0, null, null, null];
+
+		diag7.face1="sprites/twinkle/twface0_smcl";
+		diag7.face2="sprites/twinkle/twface0_smop";
+		diag7.voice="sound/fem_eh0";
+		diag7.text="Cookies! NOM NOM NOM!";
+		diag7.options=["Return."];
+		diag7.optchain=[null, null, null, null, null];
+
+		diag8.face1="sprites/twinkle/twface0_frcl";
+		diag8.face2="sprites/twinkle/twface0_frop";
+		diag8.voice="sound/fem_eh0";
+		diag8.text="No... more... cookies...";
+		diag8.options=["Return."];
+		diag8.optchain=[null, null, null, null, null];
+	}
+
+	public void spawn()
+	{
+		init();
+	
+		sprite_sz=#[32, 56];
+		radius=12;
+		height=64;
+		sprite="sprites/twinkle/twinkle0";
+		sprite_lf="sprites/twinkle/twinkle1s_0";
+		sprite_bk="sprites/twinkle/twinkle1b_0";
+		elfty=0;
+		angle=180;
+		
+//		if(!(rand()&3))
+//		{
+//			sprite="sprites/elf/elf1_0";
+//			elfty=1;
+//		}	
+	}
+
+	public void tick()
+	{
+		vec3f dir, lorg;
+		float dist;
+		int i, j, k;
+	}
+	
+	public void touch(EntityBase other)
+	{
+	}
+
+	public void use(EntityBase other)
+	{
+		int i;
+		pester++;
+
+/*
+		if(elfty==2)
+		{
+			if(!(Bt2Ent_TakeItem(4)|Bt2Ent_TakeItem(517)))
+			{
+				i=BGBDT_Sound_PlaySound("sound/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, origin.z);
+				Bt2Ent_KillPlayer();
+				return;
+			}
+		
+			if(pester>2)
+			{
+				i=BGBDT_Sound_PlaySound("sound/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, origin.z);
+				Bt2Ent_KillPlayer();
+				return;
+			}
+		
+			Bt2Ent_SetDialog(diag5);
+			return;
+		}
+
+		if(world_isHostile)
+		{
+			if(pester>2)
+			{
+				Bt2Ent_SetDialog(diag8);
+				return;
+			}
+
+			Bt2Ent_TakeItem((4<<8)|4);
+			Bt2Ent_TakeItem((4<<8)|5);
+			Bt2Ent_SetDialog(diag7);
+			return;
+		}
+*/
+
+		if(pester>2)
+		{
+			Bt2Ent_SetDialog(diag6);
+			return;
+		}
+
+//		if(elfty==1)
+//		{
+//			Bt2Ent_SetDialog(diag4);
+//			return;
+//		}
+	
+		Bt2Ent_SetDialog(diag0);
+	}
+}

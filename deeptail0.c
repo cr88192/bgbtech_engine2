@@ -10,6 +10,9 @@ float bgbdt_rot[9];
 float bgbdt_imp[3];
 float bgbdt_vel[3];
 
+double bgbdt_absorg[3];
+double bgbdt_reforg[3];
+
 float bgbdt_tsorg[3];			//trace local origin
 BGBDT_VoxCoord bgbdt_tsxyz;		//trace ending xyz
 BGBDT_VoxCoord bgbdt_tslxyz;	//trace ending last xyz
@@ -138,6 +141,168 @@ int main_movetick_checkmove(float *porg)
 	return(0);
 }
 
+int main_movetick_findmove(
+	float *org0, float *vel0,
+	float *org1, float *vel1,
+	double dt)
+{
+	float porg[4], pvel[4];
+	float f, g;
+	int i, j, k, fsg;
+
+	fsg=1;
+	if(isotest_player_flip)
+		fsg=-1;
+
+	V3F_ADDSCALE(org0, vel0, dt, porg);
+
+//	isotest_player_onground=false;
+	i=main_movetick_checkmove(porg);
+	if(!i)
+	{
+		if(fabs(vel0[2])>0.01)
+			isotest_player_onground=false;
+		V3F_COPY(porg, org1);
+		V3F_COPY(vel0, vel1);
+		return(0);
+	}
+	
+	if((vel0[2]*fsg)<=0)
+	{
+		V3F_COPY(vel0, pvel);
+		pvel[2]=0;
+
+		V3F_ADDSCALE(org0, pvel, dt, porg);
+		i=main_movetick_checkmove(porg);
+		if(!i)
+		{
+			isotest_player_onground=true;
+			V3F_COPY(porg, org1);
+			V3F_COPY(pvel, vel1);
+			return(0);
+		}
+
+		porg[2]+=fsg*0.55;
+		i=main_movetick_checkmove(porg);
+		if(!i)
+		{
+			isotest_player_onground=true;
+			V3F_COPY(porg, org1);
+			V3F_COPY(pvel, vel1);
+			return(0);
+		}
+
+		if((fabs(pvel[0])>0) && (fabs(pvel[1])>0))
+		{
+			if(fabs(pvel[0])<fabs(pvel[1]))
+				{ pvel[0]=0; }
+			else
+				{ pvel[1]=0; }
+		}
+
+		V3F_ADDSCALE(org0, pvel, dt, porg);
+		i=main_movetick_checkmove(porg);
+		if(!i)
+		{
+			isotest_player_onground=true;
+			V3F_COPY(porg, org1);
+			V3F_COPY(pvel, vel1);
+			return(0);
+		}
+	}
+
+	isotest_player_onground=false;
+
+	V3F_COPY(vel0, pvel);
+	if((fabs(pvel[0])>0) && (fabs(pvel[1])>0) && (fabs(pvel[2])>0))
+	{
+		if(fabs(pvel[0])<fabs(pvel[1]))
+		{
+			if(fabs(pvel[2])<fabs(pvel[0]))
+				{ pvel[2]=0; }
+			else
+				{ pvel[0]=0; }
+		}
+		else
+		{
+			if(fabs(pvel[2])<fabs(pvel[1]))
+				{ pvel[2]=0; }
+			else
+				{ pvel[1]=0; }
+		}
+	}
+
+	V3F_ADDSCALE(org0, pvel, dt, porg);
+	i=main_movetick_checkmove(porg);
+	if(!i)
+	{
+		V3F_COPY(porg, org1);
+		V3F_COPY(pvel, vel1);
+		return(0);
+	}
+
+	V3F_COPY(vel0, pvel);
+	if((fabs(pvel[0])>0) && (fabs(pvel[1])>0))
+	{
+		if(fabs(pvel[0])<fabs(pvel[1]))
+			{ pvel[0]=0; }
+		else
+			{ pvel[1]=0; }
+	}
+
+	V3F_ADDSCALE(org0, pvel, dt, porg);
+	i=main_movetick_checkmove(porg);
+	if(!i)
+	{
+		V3F_COPY(porg, org1);
+		V3F_COPY(pvel, vel1);
+		return(0);
+	}
+
+#if 1
+	for(j=0; j<3; j++)
+	{
+		V3F_COPY(vel0, pvel);
+		pvel[j]=0;
+
+		V3F_ADDSCALE(org0, pvel, dt, porg);
+		i=main_movetick_checkmove(porg);
+		if(!i)
+			break;
+	}
+
+	if(j<3)
+	{
+		V3F_COPY(porg, org1);
+		V3F_COPY(pvel, vel1);
+		return(0);
+	}
+
+	for(j=0; j<3; j++)
+	{
+		V3F_COPY(vel0, pvel);
+		pvel[(j+1)%3]=0;
+		pvel[(j+2)%3]=0;
+
+		V3F_ADDSCALE(org0, pvel, dt, porg);
+		i=main_movetick_checkmove(porg);
+		if(!i)
+			break;
+	}
+
+	if(j<3)
+	{
+		V3F_COPY(porg, org1);
+		V3F_COPY(pvel, vel1);
+		return(0);
+	}
+#endif
+
+	V3F_COPY(org0, org1);
+	V3F_ZERO(vel1);
+	return(1);
+}
+
 int main_movetick_step(double dt)
 {
 	float porg[4], pvel[4];
@@ -183,10 +348,44 @@ int main_movetick_step(double dt)
 
 //	BGBDT_ConvVoxToLocalCoord(bgbdt_voxworld, xyzt, tsorg);
 
+	main_movetick_findmove(
+		bgbdt_org, bgbdt_vel,
+		bgbdt_org, bgbdt_vel,
+		dt);
+
+#if 0
+	i=main_movetick_findmove(
+		bgbdt_org, bgbdt_vel,
+		porg, pvel, dt);
+	if(!i)
+	{
+		V3F_COPY(pvel, bgbdt_vel);
+		V3F_COPY(porg, bgbdt_org);
+	}else
+	{
+		V3F_COPY(bgbdt_org, porg);
+		V3F_COPY(bgbdt_vel, pvel);
+
+		porg[2]+=0.65;
+		i=main_movetick_findmove(
+			porg, pvel, porg, pvel, dt);
+		if(!i)
+		{
+			V3F_COPY(pvel, bgbdt_vel);
+			V3F_COPY(porg, bgbdt_org);
+		}else
+		{
+			V3F_ZERO(bgbdt_vel);
+		}
+	}
+#endif
+
+#if 0
 	isotest_player_onground=false;
 	i=main_movetick_checkmove(porg);
 	if(i>0)
 	{
+#if 1
 		V3F_COPY(bgbdt_vel, pvel);
 		if((fabs(pvel[0])>0) && (fabs(pvel[1])>0))
 		{
@@ -234,10 +433,12 @@ int main_movetick_step(double dt)
 				V3F_ZERO(bgbdt_vel);
 			}
 		}
+#endif
 	}else if(!i)
 	{
 		V3F_COPY(porg, bgbdt_org);
 	}
+#endif
 	
 	if(bgbdt_voxworld->inwater)
 	{
@@ -250,15 +451,20 @@ int main_movetick_step(double dt)
 //		bgbdt_vel[1]=0;
 //		bgbdt_vel[2]=0;
 
+		f=1-8*dt;
+		if(f<0)f=0;
+		bgbdt_vel[0]*=f;
+		bgbdt_vel[1]*=f;
+
 //		bgbdt_vel[0]+=bgbdt_imp[0]*dt*12;
 //		bgbdt_vel[1]+=bgbdt_imp[1]*dt*12;
 		bgbdt_vel[0]+=bgbdt_imp[0]*0.5;
 		bgbdt_vel[1]+=bgbdt_imp[1]*0.5;
 		
 		f=V2F_LEN(bgbdt_vel);
-		if(f>10)
+		if(f>7)
 		{
-			g=10/f;
+			g=7/f;
 			bgbdt_vel[0]*=g;
 			bgbdt_vel[1]*=g;
 		}
@@ -267,10 +473,16 @@ int main_movetick_step(double dt)
 			bgbdt_vel[2]+=fsg*7;
 	}else
 	{
-		bgbdt_vel[0]+=bgbdt_imp[0]*dt*0.25;
-		bgbdt_vel[1]+=bgbdt_imp[1]*dt*0.25;
-//		bgbdt_vel[2]+=bgbdt_imp[2]*dt*0.25;
-//		V3F_COPY(porg, bgbdt_org);
+		bgbdt_vel[0]+=bgbdt_imp[0]*dt*0.10;
+		bgbdt_vel[1]+=bgbdt_imp[1]*dt*0.10;
+
+		f=V2F_LEN(bgbdt_vel);
+		if(f>7)
+		{
+			g=7/f;
+			bgbdt_vel[0]*=g;
+			bgbdt_vel[1]*=g;
+		}
 	}
 
 	return(0);
@@ -282,6 +494,8 @@ int main_saveplayer()
 	BGBDT_VoxCoord xyz, org;
 	VFILE *fd;
 	int fl;
+	s64 li, lj;
+	int i, j, k;
 
 #if 1
 	org=BGBDT_ConvLocalToVoxCoord(bgbdt_voxworld, bgbdt_org);
@@ -315,10 +529,10 @@ int main_saveplayer()
 //	fd=vffopen("region/player.ini", "wt");
 	if(!fd)return(-1);
 	
-	sprintf(tb, "origin %f %f %f\n",
-		bgbdt_org[0], bgbdt_org[1], bgbdt_org[2]);
+	sprintf(tb, "origin %.3f %.3f %.3f\n",
+		bgbdt_absorg[0], bgbdt_absorg[1], bgbdt_absorg[2]);
 	vfwrite(tb, 1, strlen(tb), fd);
-	sprintf(tb, "angles %f %f %f\n",
+	sprintf(tb, "angles %.2f %.2f %.2f\n",
 		bgbdt_ang[0], bgbdt_ang[1], bgbdt_ang[2]);
 	vfwrite(tb, 1, strlen(tb), fd);
 
@@ -329,6 +543,26 @@ int main_saveplayer()
 	sprintf(tb, "zflip %d\n",
 		isotest_player_flip);
 	vfwrite(tb, 1, strlen(tb), fd);
+
+	for(i=0; i<32; i++)
+	{
+		sprintf(tb, "inven %d 0x%08X 0x%08X 0x%08X 0x%08X\n",
+			i*4,
+			Bt2Ent_GetInvenSlot(i*4+0), Bt2Ent_GetInvenSlot(i*4+1),
+			Bt2Ent_GetInvenSlot(i*4+2), Bt2Ent_GetInvenSlot(i*4+3));
+		vfwrite(tb, 1, strlen(tb), fd);
+	}
+	
+	k=Bt2Ent_GetNumToken();
+	for(i=0; i<k; i++)
+	{
+		lj=Bt2Ent_GetTokenSlot(i);
+		if(lj)
+		{
+			sprintf(tb, "token %d 0x%016llX\n", i, lj);
+			vfwrite(tb, 1, strlen(tb), fd);
+		}
+	}
 
 	vfclose(fd);
 	return(0);
@@ -341,7 +575,8 @@ int main_loadplayer()
 	char *buf, *cs, *cse;
 	char *s;
 	char **a;
-	int sz;
+	int sz, b;
+	int i, j, k;
 
 //	fd=vffopen("region/player.ini", "wt");
 //	if(!fd)return(-1);
@@ -379,11 +614,24 @@ int main_loadplayer()
 		if(!strcmp(a[0], "noclip"))
 		{
 			isotest_player_noclip=atoi(a[1]);
+			continue;
 		}
 
 		if(!strcmp(a[0], "zflip"))
 		{
 			isotest_player_flip=atoi(a[1]);
+			continue;
+		}
+
+		if(!strcmp(a[0], "inven"))
+		{
+			b=atoi(a[1]);
+			for(i=0; a[i+2]; i++)
+			{
+				j=frgl_ratoi(a[i+2]);
+				Bt2Ent_SetInvenSlot(b+i, j);
+			}
+			continue;
 		}
 	}
 
@@ -395,6 +643,7 @@ int main_movetick(double dt)
 {
 	static double accdt=0;
 	static double svdt=0;
+	int rx, ry, rz;
 	
 	if(dt>0.5)
 		return(-1);
@@ -407,7 +656,22 @@ int main_movetick(double dt)
 		main_movetick_step(1.0/30);
 		accdt-=(1.0/30);
 	}
-	
+
+	V3F_ADD(bgbdt_org, bgbdt_reforg, bgbdt_absorg);
+
+	rx=bgbdt_absorg[0]/256.0;
+	ry=bgbdt_absorg[1]/256.0;
+	rz=bgbdt_absorg[2]/256.0;
+//	if(rx<0)rx++;
+//	if(ry<0)ry++;
+//	if(rz<0)rz++;
+
+	bgbdt_reforg[0]=rx*256;
+	bgbdt_reforg[1]=ry*256;
+	bgbdt_reforg[2]=rz*256;
+
+	V3F_SUB(bgbdt_absorg, bgbdt_reforg, bgbdt_org);
+
 	if(svdt>1)
 	{
 		main_saveplayer();
@@ -458,6 +722,8 @@ int main_startup(int argc, char *argv[])
 //	frgl_state->maxhz=60;
 	frgl_state->maxhz=85;
 
+	BSVM2_Interp_SetDisable(BSVM2_VMCTL_JITENABLE);
+
 	Bt2Ent_LoadScript("bte3d.cfg", "bte3d.bsi");
 
 	menu=FRGL_GetMenu("main");
@@ -502,7 +768,6 @@ int main_startup(int argc, char *argv[])
 	mixr->rate=44100;
 
 //	bgbdt_voxworld=BGBDT_CreateBasicWorld("wrltest0");
-	
 	bgbdt_voxworld=BGBDT_CreateBasicWorld2("maretst0", "mare");
 	
 	Bt2Ent_BindVoxWorld(bgbdt_voxworld);
@@ -538,6 +803,8 @@ int main_startup(int argc, char *argv[])
 
 	Bt2Ent_SpawnWorld(NULL);
 
+	bgbdt_absorg[0]=0;	bgbdt_absorg[1]=0;	bgbdt_absorg[2]=0;
+	bgbdt_reforg[0]=0;	bgbdt_reforg[1]=0;	bgbdt_reforg[2]=0;
 	main_loadplayer();
 
 	return(0);
@@ -813,6 +1080,13 @@ int main_setplacevox(BGBDT_VoxData *rtd)
 			td.vattr|=0x40;
 	}
 
+	if(!strcmp(vtn, "stairs"))
+	{
+		td.vattr=vdir;
+		if(isotest_player_flip)
+			td.vattr|=0x40;
+	}
+
 	*rtd=td;
 	return(0);
 }
@@ -825,6 +1099,7 @@ int main_handle_input()
 	float io[3], iv[4], fw[2], pt[4], f, g, h, v;
 	float sh, ch, sg, cg;
 	float im[16], im1[16], *imv;
+	int mvsp;
 
 	BGBDT_VoxData td;
 	int vt_air, vt_place;
@@ -1049,14 +1324,18 @@ int main_handle_input()
 	else
 		{ fsg=1; }
     
+    mvsp=15;
+    
 	if(mlook)
 	{
 		if(lmlook)
 		{
 			h=frgl_state->dt_f;
 			if(h>0.5)h=0;
-			bgbdt_ang[0]-=fsg*frgl_state->my*45*h;
-			bgbdt_ang[2]-=fsg*frgl_state->mx*45*h;
+//			bgbdt_ang[0]-=fsg*frgl_state->my*45*h;
+//			bgbdt_ang[2]-=fsg*frgl_state->mx*45*h;
+			bgbdt_ang[0]-=fsg*frgl_state->my*30*h;
+			bgbdt_ang[2]-=fsg*frgl_state->mx*30*h;
 
 			if(bgbdt_ang[0]<(-89))
 				bgbdt_ang[0]=-89;
@@ -1069,46 +1348,46 @@ int main_handle_input()
 		if(!isotest_player_noclip)
 		{
 			if(FRGL_KeyDown(K_LEFTARROW))
-				{ iv[0]-=25*bgbdt_rot[0]; iv[1]-=25*bgbdt_rot[1]; }
+				{ iv[0]-=mvsp*bgbdt_rot[0]; iv[1]-=mvsp*bgbdt_rot[1]; }
 			if(FRGL_KeyDown(K_RIGHTARROW))
-				{ iv[0]+=25*bgbdt_rot[0]; iv[1]+=25*bgbdt_rot[1]; }
+				{ iv[0]+=mvsp*bgbdt_rot[0]; iv[1]+=mvsp*bgbdt_rot[1]; }
 			if(FRGL_KeyDown(K_UPARROW))
-				{ iv[0]+=25*bgbdt_rot[3]; iv[1]+=25*bgbdt_rot[4]; }
+				{ iv[0]+=mvsp*bgbdt_rot[3]; iv[1]+=mvsp*bgbdt_rot[4]; }
 			if(FRGL_KeyDown(K_DOWNARROW))
-				{ iv[0]-=25*bgbdt_rot[3]; iv[1]-=25*bgbdt_rot[4]; }
+				{ iv[0]-=mvsp*bgbdt_rot[3]; iv[1]-=mvsp*bgbdt_rot[4]; }
 
 			if(FRGL_KeyDown(K_HOME))
-				{ iv[2]+=fsg*25; }
+				{ iv[2]+=fsg*mvsp; }
 			if(FRGL_KeyDown(K_END))
-				{ iv[2]-=fsg*25; }
+				{ iv[2]-=fsg*mvsp; }
 		}else
 		{
 			if(FRGL_KeyDown(K_LEFTARROW))
 			{
-				iv[0]-=25*bgbdt_rot[0];
-				iv[1]-=25*bgbdt_rot[1];
-				iv[2]-=25*bgbdt_rot[2];
+				iv[0]-=mvsp*bgbdt_rot[0];
+				iv[1]-=mvsp*bgbdt_rot[1];
+				iv[2]-=mvsp*bgbdt_rot[2];
 			}
 
 			if(FRGL_KeyDown(K_RIGHTARROW))
 			{
-				iv[0]+=25*bgbdt_rot[0];
-				iv[1]+=25*bgbdt_rot[1];
-				iv[2]+=25*bgbdt_rot[2];
+				iv[0]+=mvsp*bgbdt_rot[0];
+				iv[1]+=mvsp*bgbdt_rot[1];
+				iv[2]+=mvsp*bgbdt_rot[2];
 			}
 
 			if(FRGL_KeyDown(K_END))
 			{
-				iv[0]-=25*bgbdt_rot[6];
-				iv[1]-=25*bgbdt_rot[7];
-				iv[2]-=25*bgbdt_rot[8];
+				iv[0]-=mvsp*bgbdt_rot[6];
+				iv[1]-=mvsp*bgbdt_rot[7];
+				iv[2]-=mvsp*bgbdt_rot[8];
 			}
 
 			if(FRGL_KeyDown(K_HOME))
 			{
-				iv[0]+=25*bgbdt_rot[6];
-				iv[1]+=25*bgbdt_rot[7];
-				iv[2]+=25*bgbdt_rot[8];
+				iv[0]+=mvsp*bgbdt_rot[6];
+				iv[1]+=mvsp*bgbdt_rot[7];
+				iv[2]+=mvsp*bgbdt_rot[8];
 			}
 		}
 	}else
@@ -1124,9 +1403,9 @@ int main_handle_input()
 //			bgbdt_org[1]-=25*bgbdt_rot[1]*frgl_state->dt_f;
 //			bgbdt_org[2]-=25*bgbdt_rot[2]*frgl_state->dt_f;
 
-			iv[0]-=25*bgbdt_rot[0];
-			iv[1]-=25*bgbdt_rot[1];
-			iv[2]-=25*bgbdt_rot[2];
+			iv[0]-=mvsp*bgbdt_rot[0];
+			iv[1]-=mvsp*bgbdt_rot[1];
+			iv[2]-=mvsp*bgbdt_rot[2];
 		}
 
 		if(FRGL_KeyDown(K_RIGHTARROW))
@@ -1135,61 +1414,61 @@ int main_handle_input()
 //			bgbdt_org[1]+=25*bgbdt_rot[1]*frgl_state->dt_f;
 //			bgbdt_org[2]+=25*bgbdt_rot[2]*frgl_state->dt_f;
 
-			iv[0]+=25*bgbdt_rot[0];
-			iv[1]+=25*bgbdt_rot[1];
-			iv[2]+=25*bgbdt_rot[2];
+			iv[0]+=mvsp*bgbdt_rot[0];
+			iv[1]+=mvsp*bgbdt_rot[1];
+			iv[2]+=mvsp*bgbdt_rot[2];
 		}
 
 		if(FRGL_KeyDown(K_HOME))
 //			{ bgbdt_org[2]+=25*frgl_state->dt_f; }
-			{ iv[2]+=fsg*25; }
+			{ iv[2]+=fsg*mvsp; }
 		if(FRGL_KeyDown(K_END))
 //			{ bgbdt_org[2]-=25*frgl_state->dt_f; }
-			{ iv[2]-=fsg*25; }
+			{ iv[2]-=fsg*mvsp; }
 		if(FRGL_KeyDown(K_PGUP))
-			{ bgbdt_ang[0]+=135*frgl_state->dt_f; }
+			{ bgbdt_ang[0]+=120*frgl_state->dt_f; }
 		if(FRGL_KeyDown(K_PGDN))
-			{ bgbdt_ang[0]-=135*frgl_state->dt_f; }
+			{ bgbdt_ang[0]-=120*frgl_state->dt_f; }
 	}
 
 	if(isotest_player_noclip)
 	{
 		if(FRGL_KeyDown(K_UPARROW) || FRGL_KeyDown(K_NUMPAD7))
 		{
-			iv[0]+=25*bgbdt_rot[3];
-			iv[1]+=25*bgbdt_rot[4];
-			iv[2]+=25*bgbdt_rot[5];
+			iv[0]+=mvsp*bgbdt_rot[3];
+			iv[1]+=mvsp*bgbdt_rot[4];
+			iv[2]+=mvsp*bgbdt_rot[5];
 		}
 
 		if(FRGL_KeyDown(K_DOWNARROW) || FRGL_KeyDown(K_NUMPAD9))
 		{
-			iv[0]-=25*bgbdt_rot[3];
-			iv[1]-=25*bgbdt_rot[4];
-			iv[2]-=25*bgbdt_rot[5];
+			iv[0]-=mvsp*bgbdt_rot[3];
+			iv[1]-=mvsp*bgbdt_rot[4];
+			iv[2]-=mvsp*bgbdt_rot[5];
 		}
 
 		if(FRGL_KeyDown(K_NUMPAD4))
 		{
-			bgbdt_ang[2]+=135*frgl_state->dt_f;
+			bgbdt_ang[2]+=120*frgl_state->dt_f;
 		}
 
 		if(FRGL_KeyDown(K_NUMPAD6))
 		{
-			bgbdt_ang[2]-=135*frgl_state->dt_f;
+			bgbdt_ang[2]-=120*frgl_state->dt_f;
 		}
 
 		if(FRGL_KeyDown(K_NUMPAD2))
 		{
-			iv[0]-=25*bgbdt_rot[6];
-			iv[1]-=25*bgbdt_rot[7];
-			iv[2]-=25*bgbdt_rot[8];
+			iv[0]-=mvsp*bgbdt_rot[6];
+			iv[1]-=mvsp*bgbdt_rot[7];
+			iv[2]-=mvsp*bgbdt_rot[8];
 		}
 
 		if(FRGL_KeyDown(K_NUMPAD8))
 		{
-			iv[0]+=25*bgbdt_rot[6];
-			iv[1]+=25*bgbdt_rot[7];
-			iv[2]+=25*bgbdt_rot[8];
+			iv[0]+=mvsp*bgbdt_rot[6];
+			iv[1]+=mvsp*bgbdt_rot[7];
+			iv[2]+=mvsp*bgbdt_rot[8];
 		}
 	}
 
@@ -1293,6 +1572,9 @@ int main_handle_input()
 			break;
 
 		case '\\':		
+			if(voxui_tsvidx<=0)
+				break;
+
 //			memset(&td, 0, sizeof(BGBDT_VoxData));
 //			td.vtypel=vt_place;	td.vtypeh=vt_place>>8;
 //			td.vattr=0;
@@ -1347,42 +1629,26 @@ int main_body()
 	mx=frgl_state->mx;
 	my=-frgl_state->my;
 
+	t0=clock();
+
 	main_handle_input();
 
 	Bt2Ent_ScriptUpdate(frgl_state->dt_f);
 
-#if 0
-	org[0]=0;	org[1]=-1024;	org[2]=0;
-//	org[0]=0;	org[1]=0;	org[2]=0;
-
-	f=frgl_state->time_f;
-//	h=f+(M_PI/2);
-	h=f;
-	rot[0]=cos(h);	rot[1]=sin(h);	rot[2]=0;
-	rot[3]=-sin(h);	rot[4]=cos(h);	rot[5]=0;
-	rot[6]=0;		rot[7]=0;		rot[8]=1;
-
-//	g=512;
-//	org[0]=sin(f)*g;	org[1]=-cos(f)*g;	org[2]=0;
-
-	x0=0; y0=-512; z0=0;
-
-	x0=256; y0=-256; z0=0;
-#endif
-
-#if 0
-//	x0=256; y0=-64; z0=0;
-	org[0]=rot[0]*x0+rot[3]*y0+rot[6]*z0;
-	org[1]=rot[1]*x0+rot[4]*y0+rot[7]*z0;
-	org[2]=rot[2]*x0+rot[5]*y0+rot[8]*z0;
-#endif
-
 	bgbdt_voxworld->camorg[0]=bgbdt_org[0];
 	bgbdt_voxworld->camorg[1]=bgbdt_org[1];
 	bgbdt_voxworld->camorg[2]=bgbdt_org[2];
+	bgbdt_voxworld->reforg[0]=bgbdt_reforg[0];
+	bgbdt_voxworld->reforg[1]=bgbdt_reforg[1];
+	bgbdt_voxworld->reforg[2]=bgbdt_reforg[2];
 
 	for(i=0; i<9; i++)
 		bgbdt_voxworld->camrot[i]=bgbdt_rot[i];
+
+	t1=clock();
+	t2=t1-t0;
+	bgbdt_voxworld->dt_phytick=t2;
+
 
 	t0=clock();
 
@@ -1406,6 +1672,9 @@ int main_body()
 	bgbdt_voxworld->camorg[0]=bgbdt_org[0];
 	bgbdt_voxworld->camorg[1]=bgbdt_org[1];
 	bgbdt_voxworld->camorg[2]=bgbdt_org[2];
+	bgbdt_voxworld->reforg[0]=bgbdt_reforg[0];
+	bgbdt_voxworld->reforg[1]=bgbdt_reforg[1];
+	bgbdt_voxworld->reforg[2]=bgbdt_reforg[2];
 
 	GfxDrv_GetWindowSize(&wxs, &wys);
 
@@ -1468,11 +1737,31 @@ int main_body()
 	f=(i+1)/16.0;	f=1.0/f;
 //	f=f*1.12;
 	f=f-0.25;
-	f=sqrt(f);
-	if(f<0.65)f=0.65;
-	if(f>3.00)f=3.00;
-	expose=((1.0-frgl_state->dt_f*0.3)*expose)+
-		(frgl_state->dt_f*0.3*f);
+//	f=sqrt(f);
+	f=pow(f, 0.3333);
+//	if(f<0.65)f=0.65;
+//	if(f>3.00)f=3.00;
+
+	g=f-expose;
+	if(fabs(g)>0.25)
+	{
+		f=expose+(g*(0.25/fabs(g)));
+	}
+
+	if(g>0)
+	{
+		expose=((1.0-frgl_state->dt_f*0.1)*expose)+
+			(frgl_state->dt_f*0.1*f);
+	}else
+	{
+		expose=((1.0-frgl_state->dt_f*0.3)*expose)+
+			(frgl_state->dt_f*0.3*f);
+	}
+
+//	if(expose<0.65)expose=0.65;
+	if(expose<0.50)expose=0.50;
+	if(expose>3.00)expose=3.00;
+
 	FRGL_TexMat_SetExposure(expose);
 
 	if(td.alight && ((td.alight>>3)>4))
@@ -1619,10 +1908,16 @@ int main_body()
 	frglEnableTexture2D();
 
 	GfxFont_SetFont("fixed", 0);
-	sprintf(tb, "(%.2f %.2f %.2f) (%.2f %.2f %.2f)",
+	sprintf(tb, "Rel=(%.2f %.2f %.2f) Ang=(%.1f %.1f %.1f)",
 		bgbdt_org[0], bgbdt_org[1], bgbdt_org[2],
 		bgbdt_ang[0], bgbdt_ang[1], bgbdt_ang[2]);
-	GfxFont_DrawString(tb, (wxs/2)-48*8, (wys/2)-1*8,
+	GfxFont_DrawString(tb, (wxs/2)-52*8, (wys/2)-1*8,
+		8, 8, 0, 255, 0, 255);
+
+	sprintf(tb, "Abs=(%.2f %.2f %.2f) Ref=(%.1f %.1f %.1f)",
+		bgbdt_absorg[0], bgbdt_absorg[1], bgbdt_absorg[2],
+		bgbdt_reforg[0], bgbdt_reforg[1], bgbdt_reforg[2]);
+	GfxFont_DrawString(tb, (wxs/2)-52*8, (wys/2)-2*8,
 		8, 8, 0, 255, 0, 255);
 
 #if 0
@@ -1653,15 +1948,35 @@ int main_body()
 		(((int)bgbdt_worldtime)/60),
 		(((int)bgbdt_worldtime)%60),
 		expose);
-	GfxFont_DrawString(tb, -320, 384-16, 8, 8, 0, 255, 0, 255);
+//	GfxFont_DrawString(tb, -480, 384-16, 8, 8, 0, 255, 0, 255);
+	GfxFont_DrawString(tb, -(wxs/2), 384-16, 8, 8, 0, 255, 0, 255);
 
-	sprintf(tb, "dtTick=%dms dtPvs=%dms dtDraw=%dms dtSound=%dms dtFrame=%dms",
+	sprintf(tb, "dt/ms ( phy=%2d tick=%2d pvs=%2d "
+			"draw=%2d sound=%2d )->frame=%2d swap=%2d",
+		bgbdt_voxworld->dt_phytick,
 		bgbdt_voxworld->dt_tick,
 		bgbdt_voxworld->dt_pvs,
 		bgbdt_voxworld->dt_draw,
 		bgbdt_voxworld->dt_sound,
-		bgbdt_voxworld->dt_frame);
-	GfxFont_DrawString(tb, -320, 384-24, 8, 8, 0, 255, 0, 255);
+		bgbdt_voxworld->dt_frame,
+		GfxDrv_GetDtSwap());
+//	GfxFont_DrawString(tb, -480, 384-24, 8, 8, 0, 255, 0, 255);
+	GfxFont_DrawString(tb, -(wxs/2), 384-24, 8, 8, 0, 255, 0, 255);
+
+	sprintf(tb, "Mesh gen-novis=%d/%d (%2.2f%%) "
+			"cvs=%d (%d tris) pvs=%d (%d tris) raw=%d (%d tris)",
+		bgbdt_voxworld->meshchk_nvis,
+		bgbdt_voxworld->meshchk_tot,
+		(100.0*bgbdt_voxworld->meshchk_nvis)/
+			(bgbdt_voxworld->meshchk_tot+1.0),
+		bgbdt_voxworld->vischk_tot,
+		bgbdt_voxworld->vischk_tris,
+		bgbdt_voxworld->pvschk_tot,
+		bgbdt_voxworld->pvschk_tris,
+		bgbdt_voxworld->rawchk_tot,
+		bgbdt_voxworld->rawchk_tris);
+//	GfxFont_DrawString(tb, -480, 384-16, 8, 8, 0, 255, 0, 255);
+	GfxFont_DrawString(tb, -(wxs/2), 384-32, 8, 8, 0, 255, 0, 255);
 
 	frglColor4f(1, 1, 1, 1);
 

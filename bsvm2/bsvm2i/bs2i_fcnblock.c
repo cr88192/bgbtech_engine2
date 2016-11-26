@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+byte bsvm2_interp_nojit;
+
 BSVM2_Opcode *BSVM2_Interp_AllocOpcode(BSVM2_CodeBlock *cblk)
 {
 	BSVM2_Opcode *tmp;
@@ -395,9 +397,12 @@ BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk)
 		{ BS2J_CheckPostSetupJitTrace(trsa[i]); }
 #endif
 
-	hopn=hopn*4093+1;
-	k=(hopn>>12)&127;
-	cblk->jitdly=128+k;
+	if(!bsvm2_interp_nojit)
+	{
+		hopn=hopn*4093+1;
+		k=(hopn>>12)&127;
+		cblk->jitdly=128+k;
+	}
 
 	if(cblk->stkpos!=0)
 	{

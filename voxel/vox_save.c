@@ -447,7 +447,7 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 	int n, sz0, sz1;
 	int i, j, k;
 
-#if 1
+#if 0
 	if(rgn->szrgnbuf>(6<<20) && (rgn->rgnmap[12288]==0xFF))
 	{
 		for(bz=0; bz<16; bz++)
@@ -505,6 +505,8 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 		j=BGBDT_WorldEncodeChunk(world, rgn, chk, 0);
 		rgn->chkofs[i]=j;
 		chk->flags&=~BGBDT_CHKFL_SAVEDIRTY;
+		
+//		printf("Saved Chk %p %04X\n", chk, chk->flags);
 		
 		if(!j)
 		{

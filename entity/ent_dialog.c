@@ -39,6 +39,9 @@ double bt2ent_worldtime;
 int bt2ent_invopen;
 int bt2ent_invslot[8*16];
 
+s64 bt2ent_tokenslot[1024];
+int bt2ent_ntoken;
+
 
 BTEIFGL_API int Bt2Ent_DialogActiveP(void)
 {
@@ -132,6 +135,52 @@ BTEIFGL_API void Bt2Ent_SetClearWorldFlags(int flag)
 {
 	bt2ent_wrlflag&=~flag;
 }
+
+BTEIFGL_API int Bt2Ent_GetInvenSlot(int slot)
+{
+	if((slot<0) || (slot>=(8*16)))
+		return(0);
+	return(bt2ent_invslot[slot]);
+}
+
+BTEIFGL_API int Bt2Ent_SetInvenSlot(int slot, int val)
+{
+	int oval;
+
+	if((slot<0) || (slot>=(8*16)))
+		return(0);
+	oval=bt2ent_invslot[slot];
+	bt2ent_invslot[slot]=val;
+	return(oval);
+}
+
+BTEIFGL_API s64 Bt2Ent_GetTokenSlot(int slot)
+{
+	if((slot<0) || (slot>=1024))
+		return(0);
+	return(bt2ent_tokenslot[slot]);
+}
+
+BTEIFGL_API int Bt2Ent_SetTokenSlot(int slot, s64 val)
+{
+	int oval;
+
+	if((slot<0) || (slot>=1024))
+		return(0);
+		
+	if(slot>=bt2ent_ntoken)
+		bt2ent_ntoken=slot+1;
+
+	oval=bt2ent_tokenslot[slot];
+	bt2ent_tokenslot[slot]=val;
+	return(oval);
+}
+
+BTEIFGL_API int Bt2Ent_GetNumToken(void)
+{
+	return(bt2ent_ntoken);
+}
+
 
 BTEIFGL_API void Bt2Ent_GiveItem(int item)
 {

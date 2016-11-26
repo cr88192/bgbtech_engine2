@@ -63,7 +63,8 @@ int bgbdt_voxlight_blenda(int la, int lb, int ix, int vfl)
 	lc=la;
 	if(((lb&7)>=1) && ((lb&7)<=3))
 	{
-		if(ix<4)
+//		if(ix<4)
+		if(ix<5)
 		{
 			if((lb&0xF8)>((la+8)&0xF8))
 				lc=lb-8;
@@ -87,7 +88,7 @@ int BGBDT_VoxLight_UpdateChunkLight(
 	BGBDT_VoxDataStatus tds;
 	BGBDT_VoxCoord xyz0;
 	BGBDT_VoxTypeInfo *tyi;
-	int tix, ds, dst, fl;
+	int tix, ds, dst, fl, oldcfl;
 	int x, y, z, w;
 	int a, b, c;
 	int vty, vty_air;
@@ -165,6 +166,7 @@ int BGBDT_VoxLight_UpdateChunkLight(
 	}
 #endif
 
+	oldcfl=chk->flags;
 	for(w=0; w<6; w++)
 	{
 		dst=0;
@@ -226,6 +228,14 @@ int BGBDT_VoxLight_UpdateChunkLight(
 		if(!dst)
 			break;
 	}
+	
+	if((oldcfl&BGBDT_CHKFL_MESHDIRTY) &&
+		!(chk->flags&BGBDT_CHKFL_MESHDIRTY))
+	{
+		printf("BGBDT_VoxLight_UpdateChunkLight: Flags Hack\n");
+		chk->flags=oldcfl;
+	}
+	
 	chk->flags&=~BGBDT_CHKFL_LIGHTDIRTY;
 	return(0);
 }
@@ -257,12 +267,41 @@ BTEIFGL_API int BGBDT_VoxLight_ClearBlockLightRadius(
 	return(0);
 }
 
+BTEIFGL_API int BGBDT_VoxLight_ClearBlockAreaLightRadius(
+	BGBDT_VoxWorld *world,
+	BGBDT_VoxCoord xyz, int accfl)
+{
+	BGBDT_VoxCoord xyz1;
+	BGBDT_VoxData td;
+	BGBDT_VoxDataStatus tds;
+	int x, y, z;
+	int i, j, k;
+	
+	for(z=-16; z<=16; z++)
+		for(y=-32; y<=32; y++)
+			for(x=-32; x<=32; x++)
+	{
+		xyz1.x=xyz.x+(x<<BGBDT_XYZ_SHR_VOXEL);
+		xyz1.y=xyz.y+(y<<BGBDT_XYZ_SHR_VOXEL);
+		xyz1.z=xyz.z+(z<<BGBDT_XYZ_SHR_VOXEL);
+	
+		i=BGBDT_WorldGetVoxelData(world, xyz1, &td, &tds, 0);
+		if(i<0)
+			continue;
+		td.alight=0;
+		BGBDT_WorldSetVoxelData(world, xyz1, td, 0);
+	}
+	return(0);
+}
+
 BTEIFGL_API int BGBDT_VoxLight_CheckClearBlockLightRadius(
 	BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, int accfl)
 {
 	BGBDT_VoxData td;
 	BGBDT_VoxDataStatus tds;
+	int ac;
+	int a0, a1, a2, a3, a4, a5;
 	int vfl;
 	int i;
 
@@ -274,6 +313,31 @@ BTEIFGL_API int BGBDT_VoxLight_CheckClearBlockLightRadius(
 	{
 		BGBDT_VoxLight_ClearBlockLightRadius(world, xyz, accfl);
 	}
+
+#if 0
+	if(td.alight && (td.alight&7) && ((td.alight&7)<4))
+	{
+		ac=td.alight;
+		a0=(tds.adjlit[0]>>8)&255;
+		a1=(tds.adjlit[1]>>8)&255;
+		a2=(tds.adjlit[2]>>8)&255;
+		a3=(tds.adjlit[3]>>8)&255;
+		a5=(tds.adjlit[5]>>8)&255;
+		
+		if((a5&0xF8)<(ac&0xF8))
+		{
+			if(((a0&0xF8)<=(ac&0xF8)) &&
+				((a1&0xF8)<=(ac&0xF8)) &&
+				((a2&0xF8)<=(ac&0xF8)) &&
+				((a3&0xF8)<=(ac&0xF8)))
+			{
+				BGBDT_VoxLight_ClearBlockAreaLightRadius(
+					world, xyz, accfl);
+			}
+		}
+	}
+#endif
+	
 	return(0);
 }
 

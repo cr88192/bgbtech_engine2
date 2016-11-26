@@ -11,6 +11,8 @@ dtcField bt2ent_eb3d_fi_angle;
 dtcField bt2ent_eb3d_fi_radius;
 dtcField bt2ent_eb3d_fi_height;
 dtcField bt2ent_eb3d_fi_sprite;
+dtcField bt2ent_eb3d_fi_sprite_lf;
+dtcField bt2ent_eb3d_fi_sprite_bk;
 dtcField bt2ent_eb3d_fi_sprite_sz;
 dtcField bt2ent_eb3d_fi_flags;
 
@@ -168,6 +170,38 @@ BTEIFGL_API char *Bt2Ent_EntGetSprite(dtVal obj)
 	}
 
 	v=dtcVaGetA(obj, bt2ent_eb3d_fi_sprite);
+	return(BGBDT_TagStr_GetUtf8(v));
+}
+
+BTEIFGL_API char *Bt2Ent_EntGetSpriteLf(dtVal obj)
+{
+	dtVal v;
+
+	if(!bt2ent_eb3d_fi_sprite_lf)
+	{
+		bt2ent_eb3d_fi_sprite_lf=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "sprite_lf");
+		if(!bt2ent_eb3d_fi_sprite_lf)
+			return(NULL);
+	}
+
+	v=dtcVaGetA(obj, bt2ent_eb3d_fi_sprite_lf);
+	return(BGBDT_TagStr_GetUtf8(v));
+}
+
+BTEIFGL_API char *Bt2Ent_EntGetSpriteBk(dtVal obj)
+{
+	dtVal v;
+
+	if(!bt2ent_eb3d_fi_sprite_bk)
+	{
+		bt2ent_eb3d_fi_sprite_bk=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "sprite_bk");
+		if(!bt2ent_eb3d_fi_sprite_bk)
+			return(NULL);
+	}
+
+	v=dtcVaGetA(obj, bt2ent_eb3d_fi_sprite_bk);
 	return(BGBDT_TagStr_GetUtf8(v));
 }
 
@@ -543,9 +577,9 @@ int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
 	int i;
 
 //	V3F_COPY(bt2ent_org, org);
-	org[0]=v3dx(vorg);
-	org[1]=v3dy(vorg);
-	org[2]=v3dz(vorg);
+	org[0]=v3dx(vorg)-(world->reforg[0]);
+	org[1]=v3dy(vorg)-(world->reforg[1]);
+	org[2]=v3dz(vorg)-(world->reforg[2]);
 	flip=0; zflip=0;
 
 	if(xs<0)
@@ -611,15 +645,20 @@ int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
 
 int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 {
-	vec3d org, corg;
-	char *spr;
+	vec3d org, corg, rdir;
+	char *spr, *sprft, *sprlf, *sprbk;
 	s64 fl;
-	float xs, ys, d;
+	float xs, ys, d, ang, cang, ang1;
+	int xflip=0;
 	
-	corg=vec3d(world->camorg[0], world->camorg[1], world->camorg[2]);
+	corg=vec3d(
+		world->camorg[0]+(world->reforg[0]),
+		world->camorg[1]+(world->reforg[1]),
+		world->camorg[2]+(world->reforg[2]));
 	
 	org=Bt2Ent_EntGetOrigin(ent);
 	fl=Bt2Ent_EntGetFlags(ent);
+	ang=Bt2Ent_EntGetAngle(ent);
 
 	d=v3ddist(org, corg);
 //	if(d>1024)
@@ -628,7 +667,31 @@ int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 	if(d<=0)
 		return(0);
 
-	spr=Bt2Ent_EntGetSprite(ent);
+	sprft=Bt2Ent_EntGetSprite(ent);
+	sprlf=Bt2Ent_EntGetSpriteLf(ent);
+	sprbk=Bt2Ent_EntGetSpriteBk(ent);
+
+	spr=sprft;
+	if(sprlf && sprbk)
+	{
+		rdir=v3dsub(org, corg);
+		cang=atan2(v3dy(rdir), v3dx(rdir))*(180/M_PI);
+		ang1=(ang-cang)+90;
+		if(ang1<0)
+			ang1+=360;
+		if(ang1>=360)
+			ang1-=360;
+		
+		if((ang1>=315) || (ang1<=45))
+			{ spr=sprbk; xflip=0; }
+		if((ang1>=45) && ang1<=135)
+			{ spr=sprlf; xflip=0; }
+		if((ang1>=135) && ang1<=225)
+			{ spr=sprft; xflip=0; }
+		if((ang1>=225) && ang1<=315)
+			{ spr=sprlf; xflip=1; }
+	}
+
 	Bt2Ent_EntGetSpriteSize(ent, &xs, &ys);
 	
 	if(!spr)
@@ -642,6 +705,8 @@ int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 
 	if(fl&BGBDT_ENTFL_ZFLIP)
 		ys=-ys;
+	if(xflip)
+		xs=-xs;
 
 	Bt2Ent_DrawSprite(world, spr, org, xs/32, ys/32);
 	return(1);

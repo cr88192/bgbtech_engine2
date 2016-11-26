@@ -29,6 +29,31 @@ THE SOFTWARE.
 BSVM2_Context *bsvm2_interp_freectx;
 
 BSVM2_Context *bsvm2_interp_freepoolctx;
+byte bsvm2_interp_nojit;
+
+BS2VM_API int BSVM2_Interp_SetEnable(int parm)
+{
+	switch(parm)
+	{
+	case 0x1000:
+		bsvm2_interp_nojit=0; break;
+	default:
+		break;
+	}
+	return(0);
+}
+
+BS2VM_API int BSVM2_Interp_SetDisable(int parm)
+{
+	switch(parm)
+	{
+	case 0x1000:
+		bsvm2_interp_nojit=1; break;
+	default:
+		break;
+	}
+	return(0);
+}
 
 BS2VM_API int bsvm2_natfib(int x)
 {

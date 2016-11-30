@@ -81,8 +81,9 @@ int main_movetick_checkmove(float *porg)
 	BGBDT_VoxCoord pos[16];
 	BGBDT_VoxData td[16];
 	float pomin[4], pomax[4];
+	char *str;
 	int nvox, vfl, nent;
-	int i;
+	int i, j, k;
 
 	if(isotest_player_flip)
 	{
@@ -127,6 +128,16 @@ int main_movetick_checkmove(float *porg)
 				isotest_player_flip=0;
 			if(vfl&BGBDT_VOXFL_FLUID)
 				bgbdt_voxworld->inwater=(vfl>>4)&0x1F;
+
+			if((vfl&BGBDT_VOXFL_PHYS_MASK)==BGBDT_VOXFL_PHYS_TRIG)
+			{
+				j=td[i].vdatal|(td[i].vdatah<<8);
+//				isotest_player_flip=0;
+				str=BGBDT_WorldGetStringForIndex(bgbdt_voxworld,
+					pos[i], 0, j);
+				if(str)
+					Con_StuffCmdBuf(str);
+			}
 		}
 	}
 
@@ -701,6 +712,21 @@ int main_prestart(int argc, char *argv[])
 	return(0);
 }
 
+int main_concmd_tp(FRGL_ConsoleInfo *con, char **args)
+{
+	bgbdt_org[0]=atof(args[1]);
+	bgbdt_org[1]=atof(args[2]);
+	bgbdt_org[2]=atof(args[3]);
+	
+	bgbdt_vel[0]=0;
+	bgbdt_vel[1]=0;
+	bgbdt_vel[2]=0;
+	
+	bgbdt_reforg[0]=0;
+	bgbdt_reforg[1]=0;
+	bgbdt_reforg[2]=0;
+}
+
 int main_startup(int argc, char *argv[])
 {
 	FRGL_MenuInfo *menu;
@@ -721,6 +747,8 @@ int main_startup(int argc, char *argv[])
 
 //	frgl_state->maxhz=60;
 	frgl_state->maxhz=85;
+	
+	FRGL_RegisterConCmd("tp", NULL, main_concmd_tp);
 
 	BSVM2_Interp_SetDisable(BSVM2_VMCTL_JITENABLE);
 
@@ -864,9 +892,13 @@ int main_drawvoxui()
 		
 		if(tyi)
 		{
-			mat=tyi->mat_top;
-			s0=tyi->mat_top_x/16.0; s1=s0+1.0/16;
-			t0=(15-tyi->mat_top_y)/16.0; t1=t0+1.0/16;
+//			mat=tyi->mat_top;
+//			s0=tyi->mat_top_x/16.0; s1=s0+1.0/16;
+//			t0=(15-tyi->mat_top_y)/16.0; t1=t0+1.0/16;
+
+			mat=tyi->mat_ico;
+			s0=tyi->mat_ico_x/16.0; s1=s0+1.0/16;
+			t0=(15-tyi->mat_ico_y)/16.0; t1=t0+1.0/16;
 		}else
 		{
 			mat=FRGL_TexMat_GetLoadIndex("textures/atlas0");
@@ -1005,9 +1037,13 @@ int main_drawvoxhud()
 		
 		if(tyi)
 		{
-			mat=tyi->mat_top;
-			s0=tyi->mat_top_x/16.0; s1=s0+1.0/16;
-			t0=(15-tyi->mat_top_y)/16.0; t1=t0+1.0/16;
+//			mat=tyi->mat_top;
+//			s0=tyi->mat_top_x/16.0; s1=s0+1.0/16;
+//			t0=(15-tyi->mat_top_y)/16.0; t1=t0+1.0/16;
+
+			mat=tyi->mat_ico;
+			s0=tyi->mat_ico_x/16.0; s1=s0+1.0/16;
+			t0=(15-tyi->mat_ico_y)/16.0; t1=t0+1.0/16;
 		}else
 		{
 			mat=FRGL_TexMat_GetLoadIndex("textures/atlas0");
@@ -1632,6 +1668,8 @@ int main_body()
 	t0=clock();
 
 	main_handle_input();
+
+	Con_DoExecCmds();
 
 	Bt2Ent_ScriptUpdate(frgl_state->dt_f);
 

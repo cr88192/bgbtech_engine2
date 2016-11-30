@@ -1344,7 +1344,7 @@ BTEIFGL_API int Tex_GetLastColorFormat()
 	return(resamp_colorfmt);
 }
 
-#if 1
+#if 0
 BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 {
 	byte *resampbuf;
@@ -1531,7 +1531,7 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 }
 #endif
 
-#if 0
+#if 1
 BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 {
 	byte *resampbuf;
@@ -1584,7 +1584,8 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 	glBindTexture(GL_TEXTURE_2D, num);
 
 #ifdef WIN32
-	cmp=(calcmip&16)?4:GL_COMPRESSED_RGBA;
+//	cmp=(calcmip&16)?4:GL_COMPRESSED_RGBA;
+	cmp=4;
 #else
 	cmp=4;
 #endif
@@ -2568,8 +2569,11 @@ BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h, int *rtxc)
 	}
 
 	ispot=!(xs&(xs-1)) && !(ys&(ys-1));
-	if(rtxc && ispot && ((imgt==BTIC4B_IMGT_LDR8) ||
-		(imgt==BTIC4B_IMGT_LDR8A)))
+//	if(rtxc && ispot && ((imgt==BTIC4B_IMGT_LDR8) ||
+//		(imgt==BTIC4B_IMGT_LDR8A)))
+	if(rtxc && ispot && (((imgt&255)==BTIC4B_IMGT_LDR8) ||
+		((imgt&255)==BTIC4B_IMGT_LDR8A)) &&
+		(imgt&BTIC4B_QFL_OPTBCN))
 	{
 		clrs=BTIC4B_CLRS_BC7MIP;
 		*rtxc=BTIC1H_PXF_BC7;

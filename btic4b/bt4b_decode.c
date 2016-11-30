@@ -1872,7 +1872,7 @@ byte *BTIC4B_BufReadUVLI(byte *cs, u64 *rval)
 BTIC4B_API int BTIC4B_DecodeImgHeaderDataCtx(BTIC4B_Context *ctx,
 	byte *ics, int isz)
 {
-	u64 xs2, ys2, mod;
+	u64 xs2, ys2, mod, qfl;
 	byte *cs, *cse;
 
 	cs=ics; cse=ics+isz;
@@ -1880,8 +1880,13 @@ BTIC4B_API int BTIC4B_DecodeImgHeaderDataCtx(BTIC4B_Context *ctx,
 	cs=BTIC4B_BufReadUVLI(cs, &xs2);
 	cs=BTIC4B_BufReadUVLI(cs, &ys2);
 	cs=BTIC4B_BufReadUVLI(cs, &mod);
+	if(cs<cse)
+		{ cs=BTIC4B_BufReadUVLI(cs, &qfl); }
+	else
+		{ qfl=0; }
 	
 	ctx->imgt=mod&7;
+	ctx->qfl=qfl;
 	
 	switch((mod>>3)&3)
 	{
@@ -2153,8 +2158,8 @@ BTIC4B_API int BTIC4B_DecodeImgBmpBuffer2(byte *cbuf, int cbsz,
 	i=BTIC4B_DecodeImgBmpBufferCtx(ctx, cbuf, cbsz,
 		ibuf, rxs, rys, 0xFF);
 		
-	if(imgt)*imgt=ctx->imgt;
-	if(imgt)*imgt=ctx->imgt;
+	if(imgt)*imgt=ctx->imgt|(ctx->qfl&(~255));
+	if(clrt)*clrt=ctx->clrt;
 	BTIC4B_FreeContext(ctx);
 	return(i);
 }

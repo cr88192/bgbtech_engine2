@@ -14,4 +14,6 @@ int alt_tex;		//higher resolution alternate image
 int norm_tex;		//normal map
 
 int use_pgm;
+
+int spr_tex[12];
 };

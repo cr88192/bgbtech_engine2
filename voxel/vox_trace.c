@@ -279,7 +279,8 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 			(cp1.z==tp1.z))
 				break;
 
-		BGBDT_WorldGetVoxelData(world, cpos, &td1, NULL, 0);
+//		BGBDT_WorldGetVoxelData(world, cpos, &td1, NULL, 0);
+		BGBDT_WorldGetVoxelData(world, tpos, &td1, NULL, 0);
 		if(BGBDT_WorldVoxel_CheckMatchP(world, tpos, td1, tracefl))
 			break;
 

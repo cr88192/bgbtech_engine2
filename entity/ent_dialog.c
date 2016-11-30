@@ -192,7 +192,9 @@ BTEIFGL_API void Bt2Ent_GiveItem(int item)
 
 	for(i=0; i<6*16; i++)
 	{
-		if((bt2ent_invslot[i]&255)==(item&255))
+//		if((bt2ent_invslot[i]&255)==(item&255))
+		if(((bt2ent_invslot[i]&255)==(item&255)) &&
+			((bt2ent_invslot[i]>>16)==(item>>16)))
 		{
 			i0=((bt2ent_invslot[i]>>8)&255)+1;
 			i1=((item>>8)&255)+1;
@@ -254,7 +256,9 @@ BTEIFGL_API int Bt2Ent_TakeItem(int item)
 
 	for(i=0; i<6*16; i++)
 	{
-		if((bt2ent_invslot[i]&255)==(item&255))
+//		if((bt2ent_invslot[i]&255)==(item&255))
+		if(((bt2ent_invslot[i]&255)==(item&255)) &&
+			((bt2ent_invslot[i]>>16)==(item>>16)))
 		{
 			i0=((bt2ent_invslot[i]>>8)&255)+1;
 			i1=((item>>8)&255)+1;
@@ -309,7 +313,9 @@ BTEIFGL_API int Bt2Ent_CheckItem(int item)
 
 	for(i=0; i<6*16; i++)
 	{
-		if((bt2ent_invslot[i]&255)==(item&255))
+//		if((bt2ent_invslot[i]&255)==(item&255))
+		if(((bt2ent_invslot[i]&255)==(item&255)) &&
+			((bt2ent_invslot[i]>>16)==(item>>16)))
 		{
 			i0=((bt2ent_invslot[i]>>8)&255)+1;
 			i1=((item>>8)&255)+1;
@@ -353,6 +359,183 @@ BTEIFGL_API int Bt2Ent_CheckItem(int item)
 		return(1);
 	return(0);
 }
+
+
+#if 1
+BTEIFGL_API void Bt2Ent_GiveToken(s64 item)
+{
+	int i0, i1, i2, i3;
+	int i, j, k;
+
+	if(!(item&255))
+		return;
+
+	for(i=0; i<bt2ent_ntoken; i++)
+	{
+		if(((bt2ent_tokenslot[i]&255)==(item&255)) &&
+			((bt2ent_tokenslot[i]>>16)==(item>>16)))
+		{
+			i0=((bt2ent_tokenslot[i]>>8)&255)+1;
+			i1=((item>>8)&255)+1;
+			i2=i0+i1;
+			if(i2>256)
+			{
+				i0=256;
+				i1=i2-256;
+			}else
+			{
+				i0=i2;
+				i1=0;
+			}
+			j=bt2ent_tokenslot[i];
+			j=j&(~(0xFF00));
+			j=j|((i0-1)<<8);
+			bt2ent_tokenslot[i]=j;
+			
+			if(!i1)
+			{
+				item=0;
+				break;
+			}
+			j=item;
+			j=j&(~(0xFF00));
+			j=j|((i1-1)<<8);
+			item=j;
+			continue;
+		}
+	}
+	
+	if(!item)
+		return;
+
+	for(i=0; i<bt2ent_ntoken; i++)
+	{
+		if(!(bt2ent_tokenslot[i]&255))
+		{
+			bt2ent_tokenslot[i]=item;
+			item=0;
+			break;
+		}
+	}
+
+	if(!item)
+		return;
+
+	i=bt2ent_ntoken++;
+	bt2ent_tokenslot[i]=item;
+
+	/* drop item */
+}
+
+
+BTEIFGL_API int Bt2Ent_TakeToken(s64 item)
+{
+	int i0, i1, i2, i3;
+	int i, j, k;
+
+	if(!(item&255))
+		return(0);
+
+	for(i=0; i<bt2ent_ntoken; i++)
+	{
+		if(((bt2ent_tokenslot[i]&255)==(item&255)) &&
+			((bt2ent_tokenslot[i]>>16)==(item>>16)))
+		{
+			i0=((bt2ent_tokenslot[i]>>8)&255)+1;
+			i1=((item>>8)&255)+1;
+			i2=i0-i1;
+			if(i2<0)
+			{
+				i1=i1-i0;
+				i0=0;
+//				i1=i2-256;
+			}else
+			{
+				i0=i2;
+				i1=0;
+			}
+			
+			if(i0>0)
+			{
+				j=bt2ent_tokenslot[i];
+				j=j&(~(0xFF00));
+				j=j|((i0-1)<<8);
+				bt2ent_tokenslot[i]=j;
+			}else
+			{
+				bt2ent_tokenslot[i]=0;
+			}
+			
+			if(!i1)
+			{
+				item=0;
+				break;
+			}
+			j=item;
+			j=j&(~(0xFF00));
+			j=j|((i1-1)<<8);
+			item=j;
+			continue;
+		}
+	}
+	
+	if(!item)
+		return(1);
+	return(0);
+}
+
+BTEIFGL_API int Bt2Ent_CheckToken(s64 item)
+{
+	int i0, i1, i2, i3;
+	int i, j, k;
+
+	if(!(item&255))
+		return(0);
+
+	for(i=0; i<bt2ent_ntoken; i++)
+	{
+		if(((bt2ent_tokenslot[i]&255)==(item&255)) &&
+			((bt2ent_tokenslot[i]>>16)==(item>>16)))
+		{
+			i0=((bt2ent_tokenslot[i]>>8)&255)+1;
+			i1=((item>>8)&255)+1;
+			i2=i0-i1;
+			if(i2<0)
+			{
+				i1=i1-i0;
+				i0=0;
+//				i1=i2-256;
+			}else
+			{
+				i0=i2;
+				i1=0;
+			}
+			
+			if(i0>0)
+			{
+				j=bt2ent_tokenslot[i];
+				j=j&(~(0xFF00));
+				j=j|((i0-1)<<8);
+			}
+			
+			if(!i1)
+			{
+				item=0;
+				break;
+			}
+			j=item;
+			j=j&(~(0xFF00));
+			j=j|((i1-1)<<8);
+			item=j;
+			continue;
+		}
+	}
+	
+	if(!item)
+		return(1);
+	return(0);
+}
+#endif
 
 BTEIFGL_API int Bt2Ent_SetBgm(char *bgm)
 {

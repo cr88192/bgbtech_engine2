@@ -190,6 +190,7 @@ Each cell is 64 bytes.
 
 #define BGBDT_VOXFL_PHYS_FLIPUP	0x0410
 #define BGBDT_VOXFL_PHYS_FLIPDN	0x0420
+#define BGBDT_VOXFL_PHYS_TRIG	0x0430
 #define BGBDT_VOXFL_PHYS_MASK	0x04F0
 
 #define BGBDT_ADJFL_SOLID_NX	0x0001	//solid -X
@@ -509,12 +510,16 @@ int flags;
 int mat_side, mat_side_x, mat_side_y;
 int mat_top, mat_top_x, mat_top_y;
 int mat_bot, mat_bot_x, mat_bot_y;
+int mat_ico, mat_ico_x, mat_ico_y;
 int glow;
 
 int (*EmitBlockFaces)(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunkMesh *mesh, BGBDT_VoxChunk *chk,
 	int bx, int by, int bz,
 	BGBDT_VoxData td, BGBDT_VoxDataStatus tds);
+void (*RandomTick)(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz,
+	BGBDT_VoxData td);
 };
 
 typedef struct BGBDT_NoiseSample_s BGBDT_NoiseSample;

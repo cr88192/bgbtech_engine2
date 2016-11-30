@@ -35,8 +35,9 @@ I can help you out if you bring me the right forms.
 		diag0.options=[
 			"Ask about Twinkle.",
 			"Ask about Celeste.",
+			"Give forms.",
 			"Goodbye."];
-		diag0.optchain=[null, diag1, diag2, null, null, null];
+		diag0.optchain=[null, diag1, diag2, diag4, null, null];
 
 		diag1.face1="sprites/twinkle/twface0_smcl";
 		diag1.face2="sprites/twinkle/twface0_smop";
@@ -85,28 +86,30 @@ among my peers and assigned to rule over this area.
 		diag3.optchain=[diag0, diag0, null, null, null];
 
 
-		diag4.face1="sprites/elf/elfface1_happy0";
-		diag4.face2="sprites/elf/elfface1_cheer0";
+		diag4.face1="sprites/twinkle/twface0_smcl";
+		diag4.face2="sprites/twinkle/twface0_smop";
 		diag4.voice="sound/fem_eh0";
+		diag4.need_item=0x00010006;
+		diag4.need_else=diag5;
 		diag4.text=
 """
-Hurry on your way!
-Find Santa, he has everything you need!
+Well, these forms seem mostly in order...
+Except, they lack a mayoral stamp.
+Celeste wont be happy if we try to give her paperwork lacking the needed stamps.
+Sunnerville... yeah... Have you checked with the Applessa Office?
 """;
 		diag4.options=["Return."];
 		diag4.optchain=[null, null, null, null, null];
 
 
-		diag5.face1="sprites/elf/elfface0_rshappy0";
-		diag5.face2="sprites/elf/elfface0_rscheer0";
+		diag5.face1="sprites/twinkle/twface0_frcl";
+		diag5.face2="sprites/twinkle/twface0_frop";
 		diag5.voice="sound/fem_eh0";
 		diag5.text=
 """
-Flesh! Flesh! FLESH!
-You have flesh! Come here, let me have a taste!
-Come on, it will only hurt for a moment!
+Well, I can't do much to help you if you didn't bring the needed paperwork.
 """;
-		diag5.options=["Return!"];
+		diag5.options=["Return."];
 		diag5.optchain=[null, null, null, null, null];
 
 
@@ -140,8 +143,8 @@ Come on, it will only hurt for a moment!
 		radius=12;
 		height=64;
 		sprite="sprites/twinkle/twinkle0";
-		sprite_lf="sprites/twinkle/twinkle1s_0";
-		sprite_bk="sprites/twinkle/twinkle1b_0";
+//		sprite_lf="sprites/twinkle/twinkle1s_0";
+//		sprite_bk="sprites/twinkle/twinkle1b_0";
 		elfty=0;
 		angle=180;
 		

@@ -1,0 +1,162 @@
+public class npc_office extends EntityBase {
+	static NpcDialogBox diag0, diag1, diag2;
+	static NpcDialogBox diag3, diag4, diag5;
+	static NpcDialogBox diag6, diag7, diag8;
+	static bool isInit=false;
+	byte elfty;
+	byte pester;
+	
+	public static void init()
+	{
+		if(isInit)
+			return;
+		isInit=true;
+		
+//		frgl_printf("Twinkle Init\n");
+
+		diag0=new NpcDialogBox;
+		diag1=new NpcDialogBox;
+		diag2=new NpcDialogBox;
+		diag3=new NpcDialogBox;
+		diag4=new NpcDialogBox;
+		diag5=new NpcDialogBox;
+		diag6=new NpcDialogBox;
+		diag7=new NpcDialogBox;
+		diag8=new NpcDialogBox;
+
+		diag0.face1="sprites/office/face0_smcl";
+		diag0.face2="sprites/office/face0_smop";
+//		diag0.voice="sound/fem_eh0";
+		diag0.text=
+"""
+I am sorry, but I am unable to help you with that.
+""";
+		diag0.options=["Return."];
+		diag0.optchain=[null, null, null, null, null];
+
+		diag1.face1="sprites/office/face0_smcl";
+		diag1.face2="sprites/office/face0_smop";
+//		diag1.voice="sound/fem_eh0";
+		diag1.text=
+"""
+Placeholder.
+""";
+		diag1.options=["Return."];
+		diag1.optchain=[diag0, diag0, null, null, null];
+
+		diag2.face1="sprites/office/face0_frcl";
+		diag2.face2="sprites/office/face0_frop";
+		diag2.voice="sound/fem_eh0";
+		diag2.text=
+"""
+Placeholder.
+""";
+		diag2.options=["Return.", "Applessa?"];
+		diag2.optchain=[diag0, diag0, diag3, null, null];
+
+
+		diag3.face1="sprites/office/face0_smcl";
+		diag3.face2="sprites/office/face0_smop";
+		diag3.voice="sound/fem_eh0";
+		diag3.text=
+"""
+Placeholder.
+""";
+		diag3.options=["Return."];
+		diag3.optchain=[diag0, diag0, null, null, null];
+
+
+		diag4.face1="sprites/office/face0_smcl";
+		diag4.face2="sprites/office/face0_smop";
+//		diag4.voice="sound/fem_eh0";
+		diag4.need_item=0x00010106;
+		diag4.need_else=diag5;
+		diag4.give_token=0x00020106;
+		diag4.text=
+"""
+Placeholder.
+""";
+
+		diag4.options=["Return."];
+		diag4.optchain=[null, null, null, null, null];
+
+
+		diag5.face1="sprites/office/face0_frcl";
+		diag5.face2="sprites/office/face0_frop";
+//		diag5.voice="sound/fem_eh0";
+		diag5.text=
+"""
+Placeholder.
+""";
+		diag5.options=["Return."];
+		diag5.optchain=[null, null, null, null, null];
+
+
+		diag6.face1="sprites/office/face0_frcl";
+		diag6.face2="sprites/office/face0_frop";
+//		diag6.voice="sound/fem_eh0";
+		diag6.text="Don't you have something better to be doing?";
+		diag6.options=["Talk Anyways."];
+		diag6.optchain=[null, diag0, null, null, null];
+
+		diag7.face1="sprites/office/face0_smcl";
+		diag7.face2="sprites/office/face0_smop";
+		diag7.voice="sound/fem_eh0";
+		diag7.text=
+"""
+Placeholder.
+""";
+		diag7.options=["Return."];
+		diag7.optchain=[null, null, null, null, null];
+
+		diag8.face1="sprites/office/face0_frcl";
+		diag8.face2="sprites/office/face0_frop";
+//		diag8.voice="sound/fem_eh0";
+		diag8.text="No... more... cookies...";
+		diag8.options=["Return."];
+		diag8.optchain=[null, null, null, null, null];
+	}
+
+	public void spawn()
+	{
+		init();
+	
+		sprite_sz=#[32, 56];
+		radius=12;
+		height=64;
+		sprite="sprites/office/office0";
+		elfty=0;
+		angle=0;
+		
+//		if(!(rand()&3))
+//		{
+//			sprite="sprites/elf/elf1_0";
+//			elfty=1;
+//		}	
+	}
+
+	public void tick()
+	{
+		vec3f dir, lorg;
+		float dist;
+		int i, j, k;
+	}
+	
+	public void touch(EntityBase other)
+	{
+	}
+
+	public void use(EntityBase other)
+	{
+		int i;
+		pester++;
+
+		if(pester>2)
+		{
+			Bt2Ent_SetDialog(diag6);
+			return;
+		}
+	
+		Bt2Ent_SetDialog(diag0);
+	}
+}

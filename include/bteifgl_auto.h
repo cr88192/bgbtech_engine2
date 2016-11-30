@@ -1,8 +1,9 @@
 //AHSRC:base/frgl_concmds.c
-FRGL_ConCmd *FRGL_LookupConCmd(char *name);
-FRGL_ConCmd *FRGL_GetConCmd(char *name);
-FRGL_ConCmd *FRGL_LookupConCmdPrefix(char *name);
+BTEIFGL_API FRGL_ConCmd *FRGL_LookupConCmd(char *name);
+BTEIFGL_API FRGL_ConCmd *FRGL_GetConCmd(char *name);
+BTEIFGL_API FRGL_ConCmd *FRGL_LookupConCmdPrefix(char *name);
 BTEIFGL_API char *FRGL_ConCmdComplete(char *name);
+BTEIFGL_API FRGL_ConCmd *FRGL_RegisterConCmd(char *name, char *desc,int (*func)(FRGL_ConsoleInfo *con, char **args));
 //AHSRC:base/frgl_console.c
 BTEIFGL_API int GfxFont_SetFont(char *name, int mode);
 BTEIFGL_API int GfxFont_DrawChar(int c, int x, int y, int w, int h,int r, int g, int b, int a);
@@ -400,6 +401,9 @@ BTEIFGL_API int FRGL_TexMat_BindBasic(int idx);
 BTEIFGL_API int FRGL_TexMat_CheckTeardown(FRGL_TextureMaterial *mat);
 BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx);
 BTEIFGL_API void FRGL_TexMat_SetExposure(float expose);
+BTEIFGL_API int FRGL_TexMat_GetLoadSprite(char *name);
+BTEIFGL_API int FRGL_TexMat_BoundSpriteFlipP(void);
+BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang);
 //AHSRC:base/math_m3.c
 BTEIFGL_API void Mat3F_Copy(float *a, float *b);
 BTEIFGL_API void Mat3F_Transpose(float *a, float *b);
@@ -937,12 +941,9 @@ BTEIFGL_API BGBDT_VoxCoord BGBDT_ConvLocalToVoxCoord(BGBDT_VoxWorld *world, floa
 BTEIFGL_API void BGBDT_ConvVoxToLocalCoord(BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, float *vec);
 void BGBDT_CalcChunkMeshFrustumCenter(BGBDT_VoxWorld *world,BGBDT_VoxChunkMesh *mesh, float *vec);
 void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,BGBDT_VoxChunkMesh *mesh);
-void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
-void BGBDT_UpdateVoxRegionPVS(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world);
-BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world);
 //AHSRC:voxel/vox_drawent.c
 void BGBDT_DrawVoxRegionEntity(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxRenderEntity *ent);
 void BGBDT_UpdateVoxRegionEntityCVS(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
@@ -1033,6 +1034,13 @@ int BGBDT_RegionAllocCellData(BGBDT_VoxRegion *rgn, int sz);
 int BGBDT_RegionFreeCellData(BGBDT_VoxRegion *rgn, int ix);
 int BGBDT_WorldEncodeChunk(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxChunk *chk, int accfl);
 int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
+//AHSRC:voxel/vox_tick.c
+void BGBDT_RandomTickRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz);
+void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
+void BGBDT_UpdateVoxRegionPVS(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
+BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world);
+void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz, BGBDT_VoxData td);
+void BGBDT_VoxelWorld_RandomTick_TallGrass(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz, BGBDT_VoxData td);
 //AHSRC:voxel/vox_trace.c
 int BGBDT_VoxTrace_CheckChunkEmpty(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 int BGBDT_VoxTrace_CheckChunkSolid(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
@@ -1096,6 +1104,7 @@ BTEIFGL_API void Bt2Ent_EntSetOrigin(dtVal obj, vec3d org);
 BTEIFGL_API vec3d Bt2Ent_EntGetVelocity(dtVal obj);
 BTEIFGL_API void Bt2Ent_EntSetVelocity(dtVal obj, vec3d org);
 BTEIFGL_API float Bt2Ent_EntGetAngle(dtVal obj);
+BTEIFGL_API void Bt2Ent_EntSetAngle(dtVal obj, float val);
 BTEIFGL_API float Bt2Ent_EntGetRadius(dtVal obj);
 BTEIFGL_API float Bt2Ent_EntGetHeight(dtVal obj);
 BTEIFGL_API void Bt2Ent_EntSetRadius(dtVal obj, float val);
@@ -1116,7 +1125,7 @@ BTEIFGL_API int Bt2Ent_CallEntityTouch(dtVal self, dtVal other);
 BTEIFGL_API int Bt2Ent_CallEntityUse(dtVal self, dtVal other);
 BTEIFGL_API int Bt2Ent_SetGlobalA(char *cname, dtVal v);
 BTEIFGL_API int Bt2Ent_SetGlobalI(char *cname, int v);
-int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,char *spr, vec3d vorg, float xs, float ys);
+int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,char *spr, vec3d vorg, float xs, float ys, int rang);
 int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent);
 BTEIFGL_API int Bt2Ent_DrawWorldEnts(BGBDT_VoxWorld *world);
 BTEIFGL_API int Bt2Ent_CheckBoxEnt(BGBDT_VoxWorld *world, BGBDT_VoxCoord min, BGBDT_VoxCoord max, dtVal ent);
@@ -1145,6 +1154,9 @@ BTEIFGL_API int Bt2Ent_GetNumToken(void);
 BTEIFGL_API void Bt2Ent_GiveItem(int item);
 BTEIFGL_API int Bt2Ent_TakeItem(int item);
 BTEIFGL_API int Bt2Ent_CheckItem(int item);
+BTEIFGL_API void Bt2Ent_GiveToken(s64 item);
+BTEIFGL_API int Bt2Ent_TakeToken(s64 item);
+BTEIFGL_API int Bt2Ent_CheckToken(s64 item);
 BTEIFGL_API int Bt2Ent_SetBgm(char *bgm);
 char *Bt2Ent_DiagGetFace1(dtVal obj);
 char *Bt2Ent_DiagGetFace2(dtVal obj);

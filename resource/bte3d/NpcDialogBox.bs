@@ -17,10 +17,19 @@ public class NpcDialogBox {
 	public string text;
 	public string[] options;
 	public NpcDialogBox[] optchain;
+	public NpcDialogBox need_else;		/* if need_item fails */
 
 	/** setting */
 	public string image;
 	public string music;
+	
+	public int take_item;		/* item taken from player */
+	public int give_item;		/* item given to player */
+	public int need_item;		/* item needed for this event */
+
+	public long take_token;	/* item taken from player */
+	public long give_token;	/* item given to player */
+	public long need_token;	/* item needed for this event */
 	
 	public void impulse(int imp)
 	{
@@ -34,6 +43,24 @@ public class NpcDialogBox {
 
 	public void setup()
 	{
+		if(need_item)
+		{
+			if(Bt2Ent_CheckItem(need_item)<=0)
+			{
+				Bt2Ent_SetDialog(need_else);
+				return;
+			}
+		}
+
+		if(need_token)
+		{
+			if(Bt2Ent_CheckToken(need_token)<=0)
+			{
+				Bt2Ent_SetDialog(need_else);
+				return;
+			}
+		}
+
 		if(image)
 		{
 			if(image=="")
@@ -58,6 +85,16 @@ public class NpcDialogBox {
 				Bt2Ent_SetBgm(music);
 			}
 		}
+		
+		if(take_item)
+			{ Bt2Ent_TakeItem(take_item); }
+		if(give_item)
+			{ Bt2Ent_GiveItem(give_item); }
+
+		if(take_token)
+			{ Bt2Ent_TakeToken(take_token); }
+		if(give_token)
+			{ Bt2Ent_GiveToken(give_token); }
 	}
 }
 

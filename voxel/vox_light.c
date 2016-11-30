@@ -452,6 +452,8 @@ BTEIFGL_API int BGBDT_VoxEnt_CheckSpawnEnitity(
 			efl|=BGBDT_ENTFL_ZFLIP;
 			Bt2Ent_EntSetFlags(ent, efl);
 		}
+		
+		Bt2Ent_EntSetAngle(ent, (td.vattr&3)*90);
 	}
 	
 	return(0);

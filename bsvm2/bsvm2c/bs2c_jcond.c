@@ -527,6 +527,21 @@ void BS2C_CompileTempJmpThen2(BS2CC_CompileContext *ctx,
 		return;
 	}
 
+	if(BS2C_TypeSmallLongP(ctx, cty))
+	{
+//		BS2C_CompileExpr(ctx, cc, BS2CC_TYZ_INT);
+		
+		BS2C_CompileExpr(ctx, cc, cty);
+		BS2C_CompilePushDummy(ctx, BS2CC_TYZ_LONG);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
+		BS2C_CompileExprPopType1(ctx);
+		
+		BS2C_EmitOpcode(ctx, BSVM2_OP_JNE);
+		BS2C_EmitTempJAddr(ctx, tt);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
 	if(BS2C_TypeAddressP(ctx, cty))
 	{
 		t0=BS2C_InferExprLocalIndex(ctx, cc);
@@ -829,6 +844,20 @@ void BS2C_CompileTempJmpElse2(BS2CC_CompileContext *ctx,
 	if(BS2C_TypeSmallIntP(ctx, cty))
 	{
 		BS2C_CompileExpr(ctx, cc, cty);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_JEQ);
+		BS2C_EmitTempJAddr(ctx, tf);
+		BS2C_CompileExprPopType1(ctx);
+		return;
+	}
+
+	if(BS2C_TypeSmallLongP(ctx, cty))
+	{
+//		BS2C_CompileExpr(ctx, cc, BS2CC_TYZ_INT);
+		BS2C_CompileExpr(ctx, cc, cty);
+		BS2C_CompilePushDummy(ctx, BS2CC_TYZ_LONG);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_CMPL);
+		BS2C_CompileExprPopType1(ctx);
+
 		BS2C_EmitOpcode(ctx, BSVM2_OP_JEQ);
 		BS2C_EmitTempJAddr(ctx, tf);
 		BS2C_CompileExprPopType1(ctx);

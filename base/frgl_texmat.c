@@ -210,6 +210,7 @@ BTEIFGL_API int FRGL_TexMat_CheckTeardown(FRGL_TextureMaterial *mat)
 	glEnable(GL_TEXTURE_2D);
 
 	FRGL_BindShader(0);
+	return(0);
 }
 
 BGBDT_VoxWorld *bt2ent_voxworld;
@@ -280,4 +281,95 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 BTEIFGL_API void FRGL_TexMat_SetExposure(float expose)
 {
 	frgl_texmat_expose=expose;
+}
+
+
+BTEIFGL_API int FRGL_TexMat_GetLoadSprite(char *name)
+{
+	static char *suf[]={"bk", "bl", "lf", "fl",  "ft", "fr", "rt", "br"};
+	char tb[256];
+	FRGL_TextureMaterial *cur;
+	int idx;
+	int i, j, k;
+
+	cur=FRGL_TexMat_LookupInfo(name);
+	if(cur)
+		return(cur->matid);
+
+	frgl_texmat_init();
+
+	cur=FRGL_TexMat_GetInfo(name);
+
+	j=Tex_LoadFile(name, NULL, NULL);
+	cur->basetex=j;
+
+	for(i=0; i<8; i++)
+	{
+		sprintf(tb, "%s_%s", name, suf[i]);
+//		cur->spr_tex[i]=frgl_strdup(tb);
+		j=Tex_LoadFile(tb, NULL, NULL);
+		cur->spr_tex[i]=j;
+	}
+	
+	if((cur->basetex>0) && !(cur->spr_tex[4]>0))
+		cur->spr_tex[4]=cur->basetex;
+
+	return(cur->matid);
+}
+
+int frgl_texmat_boundspriteflip;
+
+BTEIFGL_API int FRGL_TexMat_BoundSpriteFlipP(void)
+	{ return(frgl_texmat_boundspriteflip); }
+
+BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang)
+{
+	static int ftab[8]={0, 7, 6, 5,  4, 3, 2, 1};
+	FRGL_TextureMaterial *cur;
+	int ra1, ra2, ra3, ra4;
+	int t0;
+
+	if((idx<0) || (idx>=frgl_texmat_ninfos))
+		return(-1);
+
+	cur=frgl_texmat_infos[idx];
+	
+	ra1=(rang+0)&7;
+	ra2=(rang+1)&6;
+//	ra3=(rang+4)&7;
+//	ra4=(rang+5)&6;
+	ra3=(ftab[ra1])&7;
+	ra4=(ftab[ra2])&6;
+	
+	if(cur->spr_tex[ra1]>0)
+	{
+		frglBindTexture2D(cur->spr_tex[ra1]);
+		frgl_texmat_boundspriteflip=0;
+		return(0);
+	}
+
+	if(cur->spr_tex[ra2]>0)
+	{
+		frglBindTexture2D(cur->spr_tex[ra2]);
+		frgl_texmat_boundspriteflip=0;
+		return(0);
+	}
+
+	if(cur->spr_tex[ra3]>0)
+	{
+		frglBindTexture2D(cur->spr_tex[ra3]);
+		frgl_texmat_boundspriteflip=1;
+		return(0);
+	}
+
+	if(cur->spr_tex[ra4]>0)
+	{
+		frglBindTexture2D(cur->spr_tex[ra4]);
+		frgl_texmat_boundspriteflip=1;
+		return(0);
+	}
+
+	frglBindTexture2D(cur->basetex);
+	frgl_texmat_boundspriteflip=0;
+	return(0);
 }

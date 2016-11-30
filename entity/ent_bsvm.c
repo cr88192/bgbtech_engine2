@@ -105,6 +105,20 @@ BTEIFGL_API float Bt2Ent_EntGetAngle(dtVal obj)
 	return(dtcVaGetF(obj, bt2ent_eb3d_fi_angle));
 }
 
+BTEIFGL_API void Bt2Ent_EntSetAngle(dtVal obj, float val)
+{
+	if(!bt2ent_eb3d_fi_angle)
+	{
+		bt2ent_eb3d_fi_angle=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "angle");
+		if(!bt2ent_eb3d_fi_angle)
+			return;
+	}
+
+	dtcVaSetF(obj, bt2ent_eb3d_fi_angle, val);
+}
+
+
 BTEIFGL_API float Bt2Ent_EntGetRadius(dtVal obj)
 {
 	if(!bt2ent_eb3d_fi_radius)
@@ -569,7 +583,7 @@ BTEIFGL_API int Bt2Ent_SetGlobalI(char *cname, int v)
 
 #if 1
 int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
-	char *spr, vec3d vorg, float xs, float ys)
+	char *spr, vec3d vorg, float xs, float ys, int rang)
 {
 	float org[4], v0[4], v1[4], v2[4], v3[4];
 	float fw[4];
@@ -607,13 +621,18 @@ int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
 	V3F_COPY(world->camrot+3, fw);
 	fw[2]=0;
 
-	tex=Tex_LoadFile(spr, NULL, NULL);
+//	tex=Tex_LoadFile(spr, NULL, NULL);
+	tex=FRGL_TexMat_GetLoadSprite(spr);
 
 //	if(bt2ent_map)
 //		frglColor4fv(bt2ent_map->sprclr);
 
 	frglEnableTexture2D();
-	frglBindTexture2D(tex);
+//	frglBindTexture2D(tex);
+	FRGL_TexMat_BindSprite(tex, rang);
+	if(FRGL_TexMat_BoundSpriteFlipP())
+		flip=!flip;
+
 	frglBegin(GL_QUADS);
 
 	frglTexCoord2f(flip?1:0, zflip?1:0);
@@ -649,7 +668,8 @@ int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 	char *spr, *sprft, *sprlf, *sprbk;
 	s64 fl;
 	float xs, ys, d, ang, cang, ang1;
-	int xflip=0;
+//	int xflip=0;
+	int rang;
 	
 	corg=vec3d(
 		world->camorg[0]+(world->reforg[0]),
@@ -668,9 +688,12 @@ int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 		return(0);
 
 	sprft=Bt2Ent_EntGetSprite(ent);
-	sprlf=Bt2Ent_EntGetSpriteLf(ent);
-	sprbk=Bt2Ent_EntGetSpriteBk(ent);
+//	sprlf=Bt2Ent_EntGetSpriteLf(ent);
+//	sprbk=Bt2Ent_EntGetSpriteBk(ent);
 
+	spr=sprft;
+
+#if 0
 	spr=sprft;
 	if(sprlf && sprbk)
 	{
@@ -691,6 +714,17 @@ int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 		if((ang1>=225) && ang1<=315)
 			{ spr=sprlf; xflip=1; }
 	}
+#endif
+
+	rdir=v3dsub(org, corg);
+	cang=atan2(v3dy(rdir), v3dx(rdir))*(180/M_PI);
+	ang1=(ang-cang)+90;
+	if(ang1<0)
+		ang1+=360;
+	if(ang1>=360)
+		ang1-=360;
+	rang=ang1*(8.0/360);
+//	rang&=7;
 
 	Bt2Ent_EntGetSpriteSize(ent, &xs, &ys);
 	
@@ -705,10 +739,10 @@ int Bt2Ent_DrawEntity(BGBDT_VoxWorld *world, dtVal ent)
 
 	if(fl&BGBDT_ENTFL_ZFLIP)
 		ys=-ys;
-	if(xflip)
-		xs=-xs;
+//	if(xflip)
+//		xs=-xs;
 
-	Bt2Ent_DrawSprite(world, spr, org, xs/32, ys/32);
+	Bt2Ent_DrawSprite(world, spr, org, xs/32, ys/32, rang);
 	return(1);
 }
 

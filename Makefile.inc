@@ -52,6 +52,7 @@ BTEIFGL_SRCS=\
 	voxel/vox_mesh.c \
 	voxel/vox_rice.c \
 	voxel/vox_save.c \
+	voxel/vox_tick.c \
 	voxel/vox_trace.c \
 	voxel/vox_voxty.c \
 	voxel/vox_world.c \

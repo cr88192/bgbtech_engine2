@@ -6,6 +6,10 @@ native int Bt2Ent_TakeItem(int item);
 native int Bt2Ent_CheckItem(int item);
 native int Bt2Ent_SetBgm(cstring bgm);
 
+native void Bt2Ent_GiveToken(long tok);
+native int Bt2Ent_TakeToken(long tok);
+native int Bt2Ent_CheckToken(long tok);
+
 native void Bt2Ent_SetApplyWorldFlags(int flag);
 native void Bt2Ent_SetClearWorldFlags(int flag);
 // native int Bt2Ent_CheckEntMoveCollidePos(EntityBase self);
@@ -29,6 +33,13 @@ int world_lottery;
 public bool usebkg=false;
 public bool usecsbgm=false;
 
+public final int ITEM_NONE		=0;
+public final int ITEM_CUBE		=1;
+public final int ITEM_COIN		=2;
+public final int ITEM_CYLINDER	=3;
+public final int ITEM_MILK		=4;
+public final int ITEM_COOKIE		=5;
+public final int ITEM_SCROLL		=6;
 
 public class player extends EntityBase {
 	public void spawn()
@@ -79,9 +90,10 @@ public void update(double dt)
 	
 //	if(Bt2Ent_CheckItem((63<<8)|4) ||
 //		Bt2Ent_CheckItem((63<<8)|5))
-	if(Bt2Ent_CheckItem((63<<8)|4) ||
-		Bt2Ent_CheckItem((63<<8)|5) ||
-		(world_time>(8*60)))
+//	if(Bt2Ent_CheckItem((63<<8)|4) ||
+//		Bt2Ent_CheckItem((63<<8)|5) ||
+//		(world_time>(8*60)))
+	if(false)
 	{
 		Bt2Ent_SetApplyWorldFlags(1);
 		if(!usecsbgm)

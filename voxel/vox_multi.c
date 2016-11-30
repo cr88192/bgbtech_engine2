@@ -7,6 +7,7 @@
 #include "vox_mesh.c"
 #include "vox_rice.c"
 #include "vox_save.c"
+#include "vox_tick.c"
 #include "vox_trace.c"
 #include "vox_voxty.c"
 #include "vox_world.c"

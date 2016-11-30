@@ -2,7 +2,7 @@
 
 FRGL_ConCmd *cmds_root;
 
-FRGL_ConCmd *FRGL_LookupConCmd(char *name)
+BTEIFGL_API FRGL_ConCmd *FRGL_LookupConCmd(char *name)
 {
 	FRGL_ConCmd *cur;
 	
@@ -17,7 +17,7 @@ FRGL_ConCmd *FRGL_LookupConCmd(char *name)
 	return(NULL);
 }
 
-FRGL_ConCmd *FRGL_GetConCmd(char *name)
+BTEIFGL_API FRGL_ConCmd *FRGL_GetConCmd(char *name)
 {
 	FRGL_ConCmd *cur;
 
@@ -32,7 +32,7 @@ FRGL_ConCmd *FRGL_GetConCmd(char *name)
 	return(cur);
 }
 
-FRGL_ConCmd *FRGL_LookupConCmdPrefix(char *name)
+BTEIFGL_API FRGL_ConCmd *FRGL_LookupConCmdPrefix(char *name)
 {
 	FRGL_ConCmd *cur;
 	
@@ -53,5 +53,19 @@ BTEIFGL_API char *FRGL_ConCmdComplete(char *name)
 
 	cvar=FRGL_LookupConCmdPrefix(name);
 	if(cvar)return(cvar->name);
+	return(NULL);
+}
+
+BTEIFGL_API FRGL_ConCmd *FRGL_RegisterConCmd(char *name, char *desc,
+	int (*func)(FRGL_ConsoleInfo *con, char **args))
+{
+	FRGL_ConCmd *cur;
+
+	cur=FRGL_GetConCmd(name);
+	if(cur)
+	{
+		cur->Func=func;
+		return(cur);
+	}
 	return(NULL);
 }

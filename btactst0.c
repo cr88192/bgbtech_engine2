@@ -404,7 +404,8 @@ int BtPk_ImageAddTexImg(BtPak0_Image *img, char *src,
 		sz=PDJPG_EncodeClrs(ibuf, obuf, xs, ys, qfl, jclrs);
 	}else
 	{
-		qfl|=BTIC4B_QFL_OPTBCN;
+		if(!(qfl&(2<<28)))
+			{ qfl|=BTIC4B_QFL_OPTBCN; }
 		sz=BTIC4B_EncodeImgBmpBuffer(obuf, 1<<24,
 			ibuf, xs, ys, qfl, clrs);
 	}
@@ -497,7 +498,8 @@ int main()
 
 		if(!strcmp(a[0], "addteximg"))
 		{
-			xs=0; ys=0; qf=80; fl=0;
+//			xs=0; ys=0; qf=80; fl=0;
+			xs=0; ys=0; qf=90; fl=0;
 			for(i=2; a[i]; i++)
 			{
 				if(!strncmp(a[i], "xs=", 3))
@@ -512,6 +514,8 @@ int main()
 
 				if(!strcmp(a[i], "jpg"))
 					{ fl|=(1<<28); continue; }
+				if(!strcmp(a[i], "nobcn"))
+					{ fl|=(2<<28); continue; }
 			}
 		
 			BtPk_ImageAddTexImg(img, a[1], xs, ys, qf|fl);

@@ -676,7 +676,7 @@ int glow;
 {"sand", "textures/atlas0", NULL, NULL,
 	10, 1,  10, 1,  10, 1,  0, 0},
 {"snow", "textures/atlas0", NULL, NULL,
-	10, 3,  10, 3,  10, 3,  0, 0},
+	10, 2,  10, 2,  10, 2,  0, 0},
 {"cobble", "textures/atlas0", NULL, NULL,
 	11, 0,  11, 0,  11, 0,  0, 0},
 {"greencobble", "textures/atlas0", NULL, NULL,
@@ -705,6 +705,24 @@ int glow;
 {"stairs", "textures/atlas0", NULL, NULL,
 	11, 0,  11, 0,  11, 0,
 	BGBDT_VOXFL_SOLIDNSBOX|BGBDT_VOXFL_TRANSPARENT, 0},
+
+{"gungerock", "textures/atlas0", NULL, NULL,
+	11, 2,  11, 2,  11, 2,  0, 0},
+
+{"stoneslab", "textures/atlas0", NULL, NULL,
+	10, 3,  10, 3,  10, 3,  0, 0},
+{"woodslab", "textures/atlas0", NULL, NULL,
+	11, 3,  11, 3,  11, 3,  0, 0},
+
+{"trigger", "textures/atlas0", NULL, NULL,
+	13, 14,  13, 14,  13, 14,
+	BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID|
+	BGBDT_VOXFL_PHYS_TRIG, 0},
+
+{"planks", "textures/atlas0", NULL, NULL,
+	12, 1,  12, 1,  12, 1,  0, 0},
+{"planks2", "textures/atlas0", NULL, NULL,
+	12, 2,  12, 2,  12, 2,  0, 0},
 
 {NULL, NULL}
 };
@@ -782,12 +800,26 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(
 		tyi->mat_bot_y=bgbdt_matinfo[i].mat_bot_y;
 		tyi->flags=bgbdt_matinfo[i].flags;
 		tyi->glow=bgbdt_matinfo[i].glow;
+
+		tyi->mat_ico=tyi->mat_side;
+		tyi->mat_ico_x=bgbdt_matinfo[i].mat_side_x;
+		tyi->mat_ico_y=bgbdt_matinfo[i].mat_side_y;
 		
 		tyi->EmitBlockFaces=BGBDT_VoxMesh_EmitBlockFacesGeneric;
 
 		if(tyi->flags&BGBDT_VOXFL_SOLIDNSBOX)
 			tyi->EmitBlockFaces=BGBDT_VoxMesh_EmitBlockFacesNSBox;
 	}
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "grass");
+	if(tyi)tyi->RandomTick=BGBDT_VoxelWorld_RandomTick_Grass;
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "grassclump");
+	if(tyi)tyi->RandomTick=BGBDT_VoxelWorld_RandomTick_TallGrass;
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "stairs");
+	if(tyi)
+		{ tyi->mat_ico_x=12; tyi->mat_ico_y=0; }
 
 #if 0
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "null");

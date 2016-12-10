@@ -132,9 +132,19 @@ int BGBMID_FlattenWAV_BTAC1C(byte *obuf, void *ibuf,
 	int ch, int rt, int bsz, int len)
 {
 	byte *ct;
-	int i, j, bl;
+	int i, j, k, bl, nb, isbt;
 
 	bl=2*bsz;
+
+	nb=(len+(bl-1))/bl;
+	isbt=0;
+	
+	for(i=0; i<nb; i++)
+	{
+		j=((byte *)ibuf)[i*bsz+2];
+		if(j>88)isbt=1;
+	}
+
 	ct=obuf;
 
 	*ct++='R';		*ct++='I';
@@ -150,7 +160,9 @@ int BGBMID_FlattenWAV_BTAC1C(byte *obuf, void *ibuf,
 	*ct++=20;		*ct++=0;
 	*ct++=0;		*ct++=0;
 
-	if(ch!=1)
+//	if(ch!=1)
+//	if(1)
+	if((ch!=1) || isbt)
 	{
 		*ct++=0x1C;		*ct++=0x7B;
 		*ct++=ch;		*ct++=0;
@@ -257,7 +269,10 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 		idx=0;
 		for(i=0; i<blks; i++)
 		{
-			BGBDT_SndBTAC1C_EncodeBlockMonoLg2(sbuf+(i*blen2),
+//			BGBDT_SndBTAC1C_EncodeBlockMonoLg2(sbuf+(i*blen2),
+//				bbuf+(i*bsz), blg2, &idx);
+
+			BGBDT_SndBTAC1C1_EncodeBlockMonoLg2(sbuf+(i*blen2),
 				bbuf+(i*bsz), blg2, &idx);
 		}
 

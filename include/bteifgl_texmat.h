@@ -8,6 +8,7 @@ char *name;
 char *base_img;
 char *alt_img;
 char *norm_img;
+char *shader;
 
 int basetex;		//sole image, or low-res base-texture/thumbnail
 int alt_tex;		//higher resolution alternate image

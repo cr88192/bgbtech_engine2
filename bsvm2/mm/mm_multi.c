@@ -14,6 +14,7 @@
 #include "mm_typesig.c"
 #include "mm_util.c"
 #include "mm_vfs.c"
+#include "mm_worker.c"
 #include "mm_xi128.c"
 #include "mm_xf128.c"
 #include "mm_xd128.c"

@@ -526,6 +526,13 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 		{
 			BS2P_NextToken(ctx);
 
+			t0=BS2P_PeekToken(ctx, 0);
+			if(!strcmp(t0, "X{") || !strcmp(t0, "X["))
+			{
+				n0=BS2P_ParseExprAssignOp(ctx);
+				return(n0);
+			}
+
 			n1=BS2P_ParseTypeExpr(ctx);
 
 			t0=BS2P_PeekToken(ctx, 0);
@@ -547,6 +554,13 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 			BS2P_SetAstNodeAttr(n0, "type", n1);
 			if(dtvTrueP(n2))
 				BS2P_SetAstNodeAttr(n0, "args", n2);
+
+			t0=BS2P_PeekToken(ctx, 0);
+			if(!strcmp(t0, "X{") || !strcmp(t0, "X["))
+			{
+				n2=BS2P_ParseExprAssignOp(ctx);
+				BS2P_SetAstNodeAttr(n0, "init", n2);
+			}
 
 			return(n0);
 		}
@@ -667,6 +681,36 @@ dtVal BS2P_ParseLitExpr(BS2CC_CompileContext *ctx)
 		
 		n0=BS2P_ParseWrapObject(ctx, n0);
 		
+		if(BS2P_ParseExpectOptToken(ctx, "X:"))
+		{
+			n3=n0;
+
+			n1=BS2P_ParseTypeExpr(ctx);
+
+			t0=BS2P_PeekToken(ctx, 0);
+			if(!strcmp(t0, "X("))
+			{
+				BS2P_NextToken(ctx);
+//				n2=BS2P_ParseFunVars(ctx);
+				n2=BS2P_ParseExprList(ctx);
+				BS2P_ParseExpectToken(ctx, "X)");
+
+				if(!dtvTrueP(n2))
+					n2=DTV_EMPTYLIST;
+			}else
+			{
+				n2=DTV_NULL;
+			}
+
+			n0=BS2P_NewAstNode(ctx, "new");
+			BS2P_SetAstNodeAttr(n0, "type", n1);
+			if(dtvTrueP(n2))
+				BS2P_SetAstNodeAttr(n0, "args", n2);
+			BS2P_SetAstNodeAttr(n0, "init", n3);
+
+			return(n0);
+		}
+
 		return(n0);
 	}
 
@@ -1040,7 +1084,7 @@ dtVal BS2P_ParseExprAddSub(BS2CC_CompileContext *ctx)
 	return(n0);
 }
 
-dtVal BS2P_ParseExprShlr(BS2CC_CompileContext *ctx)
+dtVal BS2P_ParseExprBitOp(BS2CC_CompileContext *ctx)
 {
 	dtVal n0, n1, n2;
 	char *t0, *t1, *t2;
@@ -1052,11 +1096,39 @@ dtVal BS2P_ParseExprShlr(BS2CC_CompileContext *ctx)
 	t0=BS2P_PeekToken(ctx, 0);
 	while(t0)
 	{
+		if(!strcmp(t0, "X&") || !strcmp(t0, "X|") ||
+			!strcmp(t0, "X^"))
+		{
+			BS2P_NextToken(ctx);
+			n1=BS2P_ParseExprAddSub(ctx);
+			n0=BS2P_ParseWrapBinary(ctx, t0+1, n0, n1);
+
+			t0=BS2P_PeekToken(ctx, 0);
+			continue;
+		}
+		break;
+	}
+	
+	return(n0);
+}
+
+dtVal BS2P_ParseExprShlr(BS2CC_CompileContext *ctx)
+{
+	dtVal n0, n1, n2;
+	char *t0, *t1, *t2;
+	s64 li;
+	int i, j, k;
+	
+	n0=BS2P_ParseExprBitOp(ctx);
+	
+	t0=BS2P_PeekToken(ctx, 0);
+	while(t0)
+	{
 		if(!strcmp(t0, "X<<") || !strcmp(t0, "X>>") ||
 			!strcmp(t0, "X>>>"))
 		{
 			BS2P_NextToken(ctx);
-			n1=BS2P_ParseExprAddSub(ctx);
+			n1=BS2P_ParseExprBitOp(ctx);
 			n0=BS2P_ParseWrapBinary(ctx, t0+1, n0, n1);
 
 			t0=BS2P_PeekToken(ctx, 0);
@@ -1166,7 +1238,7 @@ dtVal BS2P_ParseExprEqCmp(BS2CC_CompileContext *ctx)
 	return(n0);
 }
 
-dtVal BS2P_ParseExprBitOp(BS2CC_CompileContext *ctx)
+dtVal BS2P_ParseExprLogOp(BS2CC_CompileContext *ctx)
 {
 	dtVal n0, n1, n2;
 	char *t0, *t1, *t2;
@@ -1178,38 +1250,10 @@ dtVal BS2P_ParseExprBitOp(BS2CC_CompileContext *ctx)
 	t0=BS2P_PeekToken(ctx, 0);
 	while(t0)
 	{
-		if(!strcmp(t0, "X&") || !strcmp(t0, "X|") ||
-			!strcmp(t0, "X^"))
-		{
-			BS2P_NextToken(ctx);
-			n1=BS2P_ParseExprEqCmp(ctx);
-			n0=BS2P_ParseWrapBinary(ctx, t0+1, n0, n1);
-
-			t0=BS2P_PeekToken(ctx, 0);
-			continue;
-		}
-		break;
-	}
-	
-	return(n0);
-}
-
-dtVal BS2P_ParseExprLogOp(BS2CC_CompileContext *ctx)
-{
-	dtVal n0, n1, n2;
-	char *t0, *t1, *t2;
-	s64 li;
-	int i, j, k;
-	
-	n0=BS2P_ParseExprBitOp(ctx);
-	
-	t0=BS2P_PeekToken(ctx, 0);
-	while(t0)
-	{
 		if(!strcmp(t0, "X&&") || !strcmp(t0, "X||"))
 		{
 			BS2P_NextToken(ctx);
-			n1=BS2P_ParseExprBitOp(ctx);
+			n1=BS2P_ParseExprEqCmp(ctx);
 			n0=BS2P_ParseWrapBinary(ctx, t0+1, n0, n1);
 
 			t0=BS2P_PeekToken(ctx, 0);

@@ -380,6 +380,7 @@ int va_nmesh;
 byte *vabuf;
 int sz_vabuf;
 int vbo_id;
+int oqm_id;
 int flags;
 
 int ofs_xyz, ofs_st;
@@ -433,6 +434,8 @@ BGBDT_VoxChunkMesh *cvs;	//chunk CVS
 int lastpvs;
 int lastcvs;
 int lasttick;
+
+short pvsrov;
 
 int pvschk_tot;
 int pvschk_tris;
@@ -569,11 +572,18 @@ byte lzwin[256];					//command window
 byte lzidx[256];					//command window index
 byte lzwpos;						//command window position
 
-byte *lzhash[256];					//LZ hash
+// byte *lzhash[256];					//LZ hash
+// byte *lzhash[2048];					//LZ hash
+byte *lzhash[4096];					//LZ hash
 
 int lzctrl;
 
 int (*ReadAdRiceLL)(BGBDT_RiceContext *ctx, int *rk);
+int (*ReadAdDist)(BGBDT_RiceContext *ctx, int *rk);
+int (*ReadSym)(BGBDT_RiceContext *ctx, int *rk);
+
 void (*WriteAdRiceLL)(BGBDT_RiceContext *ctx, int val, int *rk);
+void (*WriteAdDist)(BGBDT_RiceContext *ctx, int val, int *rk);
+void (*WriteSym)(BGBDT_RiceContext *ctx, int sym, int *rk);
 
 };

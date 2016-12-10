@@ -602,6 +602,11 @@ BTEIFGL_API int FRGL_DeltaMS(int *l)
 	return(dt);
 }
 
+BTEIFGL_API int frgl_clock(void)
+{
+	return(FRGL_TimeMS());
+}
+
 BTEIFGL_API void FRGL_RegisterShutdown(void (*fcn)())
 {
 	int i;

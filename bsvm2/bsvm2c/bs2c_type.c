@@ -2001,6 +2001,15 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_VEC4D);
 		if(!strcmp(tyn, "vec3xf"))
 			return(BS2CC_TYZ_VEC3XF);
+
+		if(!strcmp(tyn, "vec2"))
+			return(BS2CC_TYZ_VEC2D);
+		if(!strcmp(tyn, "vec3"))
+			return(BS2CC_TYZ_VEC3XF);
+		if(!strcmp(tyn, "vec4"))
+			return(BS2CC_TYZ_VEC4F);
+		if(!strcmp(tyn, "quat"))
+			return(BS2CC_TYZ_QUATF);
 	}
 	return(BS2CC_TYZ_ADDRESS);
 }

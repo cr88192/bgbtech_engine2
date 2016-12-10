@@ -86,6 +86,9 @@ Integer types will be fixed size twos complement types.
 
 SmallInt types will implicitly promote to int in operations. If the destination is a wider type, then the types will implicitly promote to the wider type. This promotion will happen prior to performing arithmetic operations, and may be applied recursively.
 
+Note that the expression will promote after performing the operation if the early promotion would lead to a type error or adversely effect the result.
+
+
 Example:
  int i, j, k;
  long l;
@@ -93,6 +96,8 @@ Example:
 The values for i and j will promote to long prior to adding the values.
 
 For signed integer types, a right-shift operation will implicitly sign-extend the value. Shifts larger than the size of the type will behave as if they were done via multiple shifts less than the size of the type.
+
+Masking a shift may be recognized as a special case, for example (i>>(j&31)) will indicate the use of a mod32 shift operation.
 
 A partial exception is operations between int and uint, which are to implicitly promote to long if the destination is SmallLong. If the destination is SmallInt, then it will promote to int.
 
@@ -205,6 +210,11 @@ Objects may be created using a type suffix.
 
 This will allocate an object of the specified type and initialize the fields to the default values.
 
+Possible:
+  Foo obj={x: 3, y: 4}:Foo(...);
+
+Which creates an object instance, initializes the fields, and then calls the constructor.
+
 
 ==== Tail Position ====
 
@@ -235,6 +245,18 @@ Naturally, the scope visibility will be in lexical order.
 Dynamic variables may exist, but will be visible in terms of their declaration with the lexical context (a dynamic variable with no declaration within the lexically visible scope may not be accessed).
 
 However, with dynamic variables, their bound address will depend on the current call-frame. Similarly, each thread will have its own copies of each dynamic variable. For sake of this language, dynamic variables and Thread-Local-Storage will be regarded as equivalent.
+
+
+Closures will have one of several sub-variants:
+* Inner Functions
+** Declared as a function.
+** Will naturally have a lifetime limited to the parent scope.
+* Closure Expressions ('function')
+** Will normally make a copy of any captured bindings.
+** Lifetime will be unbounded.
+*** These are not automatically reclaimed, and delete may be needed for them.
+* Temporary Closure Expressions ('function!')
+** Will have a lifetime limited to the parent scope.
 
 
 ==== Method and Field Namespaces ====
@@ -380,6 +402,7 @@ Integer:
 * Numbers will begin with a digit.
 * An '0x' prefix will denote a hexadecimal number.
 * An '0' or '0c' prefix will denote octal.
+** Use of the '0' prefix may is deprecated.
 * An '0b' prefix will denote binary.
 * An '0d' prefix will denote decimal.
 ** Decimal will be the default number base.
@@ -510,7 +533,7 @@ ExpressionLiteral:
 
 * '''#[''' ''exprlist'' ''']''' ( ''':''' ''type'' )
 * '''#[''' ''exprlist'' ''']''' ( ''suffix'' )
-** Vector
+** Numeric Vector
 
 * '''function''' ( ''name'' ) '''(''' ''argslist '' ''')''' ( ''':''' ''type'' ) ''body''
 ** Closure
@@ -553,9 +576,12 @@ OperatorPrecedence:
 * addsub: '''+''', '''-'''
 ** ''addsub'' ''op'' ''muldiv''
 ** ''muldiv''
-* shlr: &lt;&lt;, &gt;&gt;, &gt;&gt;&gt;
-** ''shlr'' ''op'' ''addsub''
+* bitop: '''&''', '''|''', '''^'''
+** ''bitop'' ''op'' ''addsub''
 ** ''addsub''
+* shlr: &lt;&lt;, &gt;&gt;, &gt;&gt;&gt;
+** ''shlr'' ''op'' ''bitop''
+** ''bitop''
 * relcmp: &lt;, &gt;, &lt;=, &gt;=, '''in''', '''instanceof''', '''is''', '''as''', '''as!'''
 ** ''relcmp'' ''op'' ''shlr''
 ** ''relcmp'' '''is''' ''typeexpression''
@@ -572,12 +598,9 @@ OperatorPrecedence:
 * eqcmp: '''==''', '''!=''', '''===''', '''!=='''
 ** ''eqcmp'' ''op'' ''relcmp''
 ** ''relcmp''
-* bitop: '''&''', '''|''', '''^'''
-** ''bitop'' ''op'' ''eqcmp''
-** ''eqcmp''
 * logop: '''&&''', '''||'''
-** ''logop'' ''op'' ''bitop''
-** ''bitop''
+** ''logop'' ''op'' ''eqcmp''
+** ''eqcmp''
 * tern: ?:
 ** ''logop'' '''?''' ''tern'' ''':''' ''tern''
 ** ''logop''
@@ -749,6 +772,13 @@ TypeName:
 ** '''vec4f'''
 ** '''dcomplex'''
 ** '''quatf'''
+** '''vec3xf'''
+
+* Shorthands
+** '''vec2''' maps to '''vec2d'''
+** '''vec3''' maps to '''vec3xf'''
+** '''vec4''' maps to '''vec4f'''
+** '''quat''' maps to '''quatf'''
 
 TypeExpression:
 * ''typename''

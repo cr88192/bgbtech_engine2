@@ -723,6 +723,10 @@ int glow;
 	12, 1,  12, 1,  12, 1,  0, 0},
 {"planks2", "textures/atlas0", NULL, NULL,
 	12, 2,  12, 2,  12, 2,  0, 0},
+{"somatblk", "textures/atlas0", NULL, NULL,
+	2, 3,  2, 3,  2, 3,  0, 0},
+{"brick_blk", "textures/atlas0", NULL, NULL,
+	2, 4,  2, 4,  2, 4,  0, 0x00},
 
 {NULL, NULL}
 };
@@ -736,6 +740,19 @@ int BGBDT_CheckRgnGenChunkBasicP(BGBDT_VoxWorld *world,
 		return(0);
 
 	if(bz>=8)
+		return(0);
+	return(1);
+}
+
+int BGBDT_CheckRgnGenChunkBasic256P(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, int bx, int by, int bz)
+{
+	if(rgn->bz)
+		return(0);
+	if(bz<0)
+		return(0);
+
+	if(bz>=16)
 		return(0);
 	return(1);
 }
@@ -780,7 +797,8 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(
 	if(!strcmp(wrlty, "mare"))
 	{
 		wrl->GenerateChunk=BGBDT_VoxTgMare_GenerateChunkBasic;
-		wrl->CheckRgnGenChunkP=BGBDT_CheckRgnGenChunkBasicP;
+//		wrl->CheckRgnGenChunkP=BGBDT_CheckRgnGenChunkBasicP;
+		wrl->CheckRgnGenChunkP=BGBDT_CheckRgnGenChunkBasic256P;
 	}
 
 	for(i=0; bgbdt_matinfo[i].name; i++)

@@ -1,0 +1,46 @@
+Location: Maretia / Celeste's Kingdom
+	Applessa
+	Tron's Workshop
+	Castle
+		Throne Room / Twinkle's Office
+		Keep
+	Sunnerville
+
+Plot NPC's:
+	Misty Tron
+	Princess (Morning) Twinkle
+	Mayor (Broken) Apple
+	Unnamed Office-Worker (Multiple)
+	(Spy) Lumera (Dawn)
+
+Other NPC's:
+	Vanille Rabbit
+	Amanda Rose
+	Julian (?Rose) (If PC is not Julian)
+	? Zilia (?Rose)
+
+
+Castle Gate:
+	blocked by guards unless Token:4
+
+Sunnerville Quest:
+(Start in Sunnerville, some sort of setup/cutscene)
+	(Player is informed about Tron)
+
+(Player goes to Tron's Workshop)
+Tron: Gives Scroll:1
+(Player goes from Tron's Workshop to Applessa)
+Mayor Apple: Rejects scroll, but gives Token:2
+(Player goes back to Tron)
+Tron: Informs player of the Spy (Lumera Dawn?), Token:3
+(Player visits Spy near castle, spawns if Token:3)
+Spy: Takes Scroll:1, gives Token:4
+(Player heads to castle, interacts with guards)
+	Guards move out of way and give Token:5
+Twinkle: Informs player they need mayoral Stamp, gives Token:6 and Scroll:2
+(Player heads to Sunnerville)
+Amanda: Replaces Scroll:2 with Scroll:3
+(Player heads back to Castle)
+Twinkle: Accepts Scroll:3, gives Token:6
+(Player heads to back to Sunnerville)
+(Sunnerville Quest Complete)

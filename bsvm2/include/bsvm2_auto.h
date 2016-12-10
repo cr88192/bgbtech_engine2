@@ -423,6 +423,12 @@ BS2VM_API void bgbdt_mm_fputc(int c, void *fd);
 BS2VM_API void *bgbdt_mm_loadfile(char *name, int *rsz);
 BS2VM_API int bgbdt_mm_storefile(char *name, void *buf, int sz);
 BS2VM_API int bgbdt_mm_storetextfile(char *name, char *buf);
+//AHSRC:bsvm2/mm/mm_worker.c
+int bgbdt_work_worker(void *ptr);
+BS2VM_API void BGBDT_Work_SubmitItem(BGBDT_WorkItem *item);
+BS2VM_API BGBDT_WorkItem *BGBDT_Work_AllocItem();
+BS2VM_API void BGBDT_Work_FreeItem(BGBDT_WorkItem *item);
+BS2VM_API void BGBDT_Work_KillWorkers(void);
 //AHSRC:bsvm2/mm/mm_xi128.c
 BS2VM_API BGBDTC_X128 *BGBDT_XI128_AllocInt128(void);
 BS2VM_API void BGBDT_XI128_FreeInt128(BGBDTC_X128 *xp);
@@ -655,10 +661,10 @@ dtVal BS2P_ParseExprPrefixCast(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprPrefix(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprMulDiv(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprAddSub(BS2CC_CompileContext *ctx);
+dtVal BS2P_ParseExprBitOp(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprShlr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprRelCmp(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprEqCmp(BS2CC_CompileContext *ctx);
-dtVal BS2P_ParseExprBitOp(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprLogOp(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprTern(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprAssignOp(BS2CC_CompileContext *ctx);
@@ -1130,6 +1136,8 @@ BS2VM_API int BSVM2_Interp_SetGlobalA(BSVM2_ImageGlobal *vi, dtVal v);
 BS2VM_API dtVal BSVM2_Interp_GetGlobalDy(BSVM2_ImageGlobal *vi);
 BS2VM_API dtVal BSVM2_Interp_SetGlobalDy(BSVM2_ImageGlobal *vi, dtVal v);
 BS2VM_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim);
+int BSVM2_Interp_RunDoWork(BGBDT_WorkItem *item);
+BS2VM_API BGBDT_WorkItem *BSVM2_Interp_RunContextWork(BSVM2_Context *ctx);
 //AHSRC:bsvm2/bsvm2i/bs2i_load.c
 byte *BS2I_ReadTag(byte *cs, u64 *rtag, s64 *rlen);
 byte *BS2I_ReadTag2(byte *cs, u32 *rtag, int *rlen);

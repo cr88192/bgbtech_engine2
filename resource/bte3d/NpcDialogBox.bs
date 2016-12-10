@@ -26,6 +26,7 @@ public class NpcDialogBox {
 	public int take_item;		/* item taken from player */
 	public int give_item;		/* item given to player */
 	public int need_item;		/* item needed for this event */
+	public int reject_item;	/* item may not be present event */
 
 	public long take_token;	/* item taken from player */
 	public long give_token;	/* item given to player */
@@ -55,6 +56,15 @@ public class NpcDialogBox {
 		if(need_token)
 		{
 			if(Bt2Ent_CheckToken(need_token)<=0)
+			{
+				Bt2Ent_SetDialog(need_else);
+				return;
+			}
+		}
+
+		if(reject_item)
+		{
+			if(Bt2Ent_CheckItem(reject_item)>0)
 			{
 				Bt2Ent_SetDialog(need_else);
 				return;

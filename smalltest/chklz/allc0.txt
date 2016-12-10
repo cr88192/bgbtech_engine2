@@ -1,0 +1,1928 @@
+#if 1
+int BGBDT_ReadLzSTF(BGBDT_RiceContext *ctx, int *rk)
+{
+	int ix0, ix1;
+	int sy0, sy1;
+	
+//	ix0=BGBDT_Rice_ReadAdRiceDc(ctx, rk);
+	ix0=ctx->ReadAdRiceLL(ctx, rk);
+//	ix0=ctx->ReadAdDist(ctx, rk);
+	ix1=(ix0*7)/8;
+//	ix1=(ix0*3)/4;
+	sy0=ctx->lzwin[ix0];	sy1=ctx->lzwin[ix1];
+	ctx->lzwin[ix0]=sy1;	ctx->lzwin[ix1]=sy0;
+	ctx->lzidx[sy0]=ix1;	ctx->lzidx[sy1]=ix0;
+	return(sy0);
+}
+
+int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
+	byte *obuf, int obsz)
+{
+	byte *ct, *ct1, *cte, *cs, *cse;
+	int kr, ks, kl, kd;
+	int r, l, d, ll, ld;
+	int i0, i1, i2, i3;
+	int i, j, k;
+	
+	for(i=0; i<256; i++)
+		{ ctx->lzwin[i]=i; ctx->lzidx[i]=i; }
+	ctx->lzwpos=0;
+	
+	ctx->ReadAdRiceLL=BGBDT_Rice_ReadAdRiceDc;
+	ctx->ReadAdDist=BGBDT_Rice_ReadAdRiceDc;
+	if((ctx->lzctrl&7)!=0)
+	{
+		ctx->ReadAdRiceLL=BGBDT_Rice_ReadAdRiceLL;
+		ctx->ReadAdDist=BGBDT_Rice_ReadAdRiceLL;
+
+		if((ctx->lzctrl&7)==2)
+		{
+			ctx->ReadAdDist=BGBDT_Rice_ReadAdExp2Rice;
+		}
+	}
+	
+	kr=4; ks=4; kl=4; kd=4; ll=1; ld=1;
+	ct=obuf; cte=obuf+obsz;
+//	while(ct<cte)
+	while(1)
+	{
+//		r=BGBDT_Rice_ReadAdRiceDc(ctx, &kr);
+		r=ctx->ReadAdRiceLL(ctx, &kr);
+//		r=ctx->ReadAdDist(ctx, &kr);
+		if(r>0)
+		{
+			ct1=ct+r;
+			if(ct1>cte)
+			{
+				__debugbreak();
+				break;
+			}
+			while(ct<ct1)
+				*ct++=BGBDT_ReadLzSTF(ctx, &ks);
+		}
+
+//		l=BGBDT_Rice_ReadAdRiceDc(ctx, &kl);
+		l=ctx->ReadAdRiceLL(ctx, &kl);
+//		l=ctx->ReadAdDist(ctx, &kl);
+		
+		if(l<=0)
+		{
+			if(r<=0)
+				break;
+			continue;
+		}
+		
+//		d=BGBDT_Rice_ReadAdRiceDc(ctx, &kd);
+//		d=ctx->ReadAdRiceLL(ctx, &kd);
+		d=ctx->ReadAdDist(ctx, &kd);
+		if(l<3)
+		{
+			if(l==2)
+			{
+				__debugbreak();
+				//special
+				break;
+			}
+			l=ll;
+		}
+		
+		if(!d)d=ld;
+		ll=l; ld=d;
+		if((ct+l)>cte)
+		{
+			__debugbreak();
+			break;
+		}
+		cs=ct-d; cse=cs+l;
+		if(cs<obuf)
+		{
+			__debugbreak();
+			break;
+		}
+		while(cs<cse)
+			*ct++=*cs++;
+	}
+	return(ct-obuf);
+}
+#endif
+/*
+Copyright (C) 2015 by Brendan G Bohannon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+// #include <bteifgl.h>
+
+static const byte bgbdt_rice_ntab[16]={
+	0, 0, 0, 0, 0, 0, 0, 0,
+	1, 1, 1, 1, 2, 2, 3, 4};
+
+static const byte bgbdt_rice_ntab2[256]={
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 00-0F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 10-1F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 20-2F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 30-3F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 40-4F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 50-5F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 60-6F */
+	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 70-7F */
+	1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1,	/* 80-8F */
+	1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1,	/* 90-9F */
+	1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1,	/* A0-AF */
+	1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1,	/* B0-BF */
+	2, 2, 2, 2, 2, 2, 2, 2,  2, 2, 2, 2, 2, 2, 2, 2,	/* C0-CF */
+	2, 2, 2, 2, 2, 2, 2, 2,  2, 2, 2, 2, 2, 2, 2, 2,	/* D0-DF */
+	3, 3, 3, 3, 3, 3, 3, 3,  3, 3, 3, 3, 3, 3, 3, 3,	/* E0-EF */
+	4, 4, 4, 4, 4, 4, 4, 4,  5, 5, 5, 5, 6, 6, 7, 8};	/* F0-FF */
+
+static int bgbdt_rice_valtab[16][256];
+
+int BGBDT_Rice_InitTables()
+{
+	static int init=0;
+	int i, j, k, l, k1, k2;
+	
+	if(init)
+		return(0);
+	init=1;
+	
+	for(i=0; i<16; i++)
+		for(j=0; j<256; j++)
+	{
+		k1=bgbdt_rice_ntab2[j];
+
+		l=i+k1+1;
+		if(l>8)
+		{
+			bgbdt_rice_valtab[i][j]=-1;
+			continue;
+		}
+		
+		k=(k1<<i)|((j>>(8-l))&((1<<i)-1));
+		
+#if 1
+		k2=i;
+		if(k1!=1)
+		{
+			if(k1>1)
+			{
+				while(k1>1)
+					{ k2++; k1=k1>>1; }
+				if(k2>15)k2=15;
+			}else
+			{
+				if(k2>0)k2--;
+			}
+		}
+#endif
+		
+		bgbdt_rice_valtab[i][j]=k|(l<<16)|(k2<<20);
+	}
+	
+	return(1);
+}
+
+int BGBDT_Rice_NextByte(BGBDT_RiceContext *ctx)
+{
+	int i, j;
+
+	i=*ctx->bs_cs++;
+	return(i);
+}
+
+int BGBDT_Rice_SetupRead(BGBDT_RiceContext *ctx, byte *buf, int szbuf)
+{
+	BGBDT_Rice_InitTables();
+
+	ctx->bs_pos=0;
+
+	ctx->bs_cs=buf;
+	ctx->bs_cse=buf+szbuf;
+	
+	ctx->bs_win=BGBDT_Rice_NextByte(ctx);
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+	return(0);
+}
+
+int BGBDT_Rice_ReadBit(BGBDT_RiceContext *ctx)
+{
+	int i;
+
+	i=(ctx->bs_win>>(31-ctx->bs_pos))&1;
+	ctx->bs_pos++;
+	if(ctx->bs_pos>=8)
+	{
+		ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+		ctx->bs_pos-=8;
+	}
+	return(i);
+}
+
+int BGBDT_Rice_ReadNBits(BGBDT_RiceContext *ctx, int n)
+{
+	int i, j, k;
+
+	j=ctx->bs_pos;	k=ctx->bs_win;
+	i=(k>>(32-n-j))&((1<<n)-1);
+	j+=n;
+	if(j>=8)
+	{
+		if(j>=16)
+		{
+			k=(k<<8)|BGBDT_Rice_NextByte(ctx);
+			k=(k<<8)|BGBDT_Rice_NextByte(ctx);
+			j-=16;
+		}else
+		{
+			k=(k<<8)|BGBDT_Rice_NextByte(ctx);
+			j-=8;
+		}
+		ctx->bs_win=k;
+	}
+	ctx->bs_pos=j;
+
+	return(i);
+}
+
+int BGBDT_Rice_ReadNBitsNoMask(BGBDT_RiceContext *ctx, int n)
+{
+	int i, j, k;
+
+	j=ctx->bs_pos+n; k=ctx->bs_win;
+	i=k>>(32-j);
+	if(j>=8)
+	{
+		k=(k<<8)|(*ctx->bs_cs++); j-=8;
+		if(j>=8)
+			{ k=(k<<8)|(*ctx->bs_cs++); j-=8; }
+		ctx->bs_win=k;
+	}
+	ctx->bs_pos=j;
+	return(i);
+}
+
+int BGBDT_Rice_Read4Bits(BGBDT_RiceContext *ctx)
+	{ return(BGBDT_Rice_ReadNBits(ctx, 4)); }
+
+int BGBDT_Rice_Read8Bits(BGBDT_RiceContext *ctx)
+{
+	int i;
+
+	i=(ctx->bs_win>>(24-ctx->bs_pos))&255;
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+	return(i);
+}
+
+int BGBDT_Rice_Read16Bits(BGBDT_RiceContext *ctx)
+{
+	int i;
+
+	i=(ctx->bs_win>>(16-ctx->bs_pos))&65535;
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+	return(i);
+}
+
+u32 BGBDT_Rice_Read32Bits(BGBDT_RiceContext *ctx)
+{
+	int i, j;
+	i=BGBDT_Rice_Read16Bits(ctx);
+	j=BGBDT_Rice_Read16Bits(ctx);
+	return((i<<16)|j);
+}
+
+u64 BGBDT_Rice_Read48Bits(BGBDT_RiceContext *ctx)
+{
+	u64 i, j, k;
+	i=BGBDT_Rice_Read16Bits(ctx);
+	j=BGBDT_Rice_Read16Bits(ctx);
+	k=BGBDT_Rice_Read16Bits(ctx);
+	return((i<<32)|(j<<16)|k);
+}
+
+void BGBDT_Rice_SkipNBits(BGBDT_RiceContext *ctx, int n)
+{
+	int i, j;
+	i=ctx->bs_pos+n;
+	if(i>=8)
+	{
+		if(i>=16)
+		{
+			ctx->bs_win=(ctx->bs_win<<16)|
+				(ctx->bs_cs[0]<<8)|(ctx->bs_cs[1]);
+			ctx->bs_cs+=2;
+			ctx->bs_pos=i-16;
+		}else
+		{
+			ctx->bs_win=(ctx->bs_win<<8)|(*ctx->bs_cs++);
+			ctx->bs_pos=i-8;
+		}
+	}else
+	{
+		ctx->bs_pos=i;
+	}
+}
+
+void BGBDT_Rice_Skip8Bits(BGBDT_RiceContext *ctx)
+{
+	ctx->bs_win=(ctx->bs_win<<8)|BGBDT_Rice_NextByte(ctx);
+}
+
+int BGBDT_Rice_PeekWord(BGBDT_RiceContext *ctx)
+{
+	int i;
+	i=(ctx->bs_win>>(16-ctx->bs_pos))&65535;
+	return(i);
+}
+
+int BGBDT_Rice_PeekByte(BGBDT_RiceContext *ctx)
+{
+	int i;
+	i=(ctx->bs_win>>(24-ctx->bs_pos))&255;
+	return(i);
+}
+
+int BGBDT_Rice_PeekNibble(BGBDT_RiceContext *ctx)
+{
+	int i;
+	i=(ctx->bs_win>>(28-ctx->bs_pos))&15;
+	return(i);
+}
+
+
+int BGBDT_Rice_ReadRiceQ(BGBDT_RiceContext *ctx)
+{
+	int i, j, k;
+
+	k=0;
+	i=BGBDT_Rice_PeekByte(ctx);
+	if(i==0xFF)
+	{
+		k=0;
+		while(i==0xFF)
+		{
+			BGBDT_Rice_Skip8Bits(ctx);
+			k+=8;
+			i=BGBDT_Rice_PeekByte(ctx);
+		}
+		j=bgbdt_rice_ntab2[i];
+		BGBDT_Rice_SkipNBits(ctx, j+1);
+		i=k+j;
+		return(i);
+	}else
+	{
+		j=bgbdt_rice_ntab2[i];
+		BGBDT_Rice_SkipNBits(ctx, j+1);
+		return(j);
+	}
+}
+
+int BGBDT_Rice_ReadRice(BGBDT_RiceContext *ctx, int k)
+{
+	int i, j;
+	
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	j=BGBDT_Rice_ReadNBits(ctx, k);
+	i=(i<<k)|j;
+	return(i);
+}
+
+int BGBDT_Rice_ReadAdRice2(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k;
+	
+	k=*rk;
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	j=BGBDT_Rice_ReadNBits(ctx, k);
+	j=(i<<k)|j;
+
+#if 1
+	if(i!=1)
+	{
+		if(i>1)
+		{
+			while(i>1)
+				{ k++; i=i>>1; }
+			if(k>15)k=15;
+		}else
+		{
+			if(k>0)k--;
+//			k--;
+//			if(k<0)k=0;
+		}
+		*rk=k;
+	}
+#endif
+
+	return(j);
+}
+
+#if 1
+int BGBDT_Rice_ReadAdRiceI(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+	k=*rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+
+	if(i!=0xFF)
+	{
+		j=bgbdt_rice_ntab2[i];
+		
+		l=j+k+1;
+		if(l<=16)
+		{
+//			i=BGBDT_Rice_ReadNBits(ctx, l);
+			i=BGBDT_Rice_ReadNBitsNoMask(ctx, l);
+			i=(j<<k)|(i&((1<<k)-1));
+
+			if(j!=1)
+			{
+				if(j>1)
+				{
+					while(j>1)
+						{ k++; j=j>>1; }
+				}else
+				{
+					if(k>0)k--;
+				}
+				*rk=k;
+			}
+
+			return(i);
+		}
+	}
+
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	j=BGBDT_Rice_ReadNBits(ctx, k);
+	j=(i<<k)|j;
+
+#if 1
+	if(i!=1)
+	{
+		if(i>1)
+		{
+			while(i>1)
+				{ k++; i=i>>1; }
+			if(k>15)k=15;
+		}else
+		{
+			if(k>0)k--;
+		}
+		*rk=k;
+	}
+#endif
+
+	return(j);
+}
+
+int BGBDT_Rice_ReadAdRice(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+#if 1
+//	if(k<8)
+	if(1)
+	{
+		k=*rk;
+		i=BGBDT_Rice_PeekByte(ctx);
+		j=bgbdt_rice_valtab[k][i];
+		if(j>=0)
+		{
+			i=j&65535;
+			l=(j>>16)&15;
+			*rk=(j>>20)&15;
+			BGBDT_Rice_SkipNBits(ctx, l);
+			return(i);
+		}
+	}
+#endif
+
+	i=BGBDT_Rice_ReadAdRiceI(ctx, rk);
+	return(i);
+}
+
+#endif
+
+int BGBDT_Rice_ReadAdSRice(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+#if 1
+//	if(k<8)
+	if(1)
+	{
+		k=*rk;
+		i=BGBDT_Rice_PeekByte(ctx);
+		j=bgbdt_rice_valtab[k][i];
+		if(j>=0)
+		{
+			i=j&65535;
+			l=(j>>16)&15;
+			*rk=(j>>20)&15;
+			i=(i>>1)^((i<<31)>>31);
+			BGBDT_Rice_SkipNBits(ctx, l);
+			return(i);
+		}
+	}
+#endif
+
+	i=BGBDT_Rice_ReadAdRiceI(ctx, rk);
+	i=(i>>1)^((i<<31)>>31);
+	return(i);
+}
+
+
+#if 1
+int BGBDT_Rice_ReadRiceDcI(BGBDT_RiceContext *ctx, int rk)
+{
+	int i, j, k, l;
+	
+	k=rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+
+	if(i!=0xFF)
+	{
+		j=bgbdt_rice_ntab2[i];
+		
+		l=j+k+1;
+		if(l<=16)
+		{
+//			i=BGBDT_Rice_ReadNBits(ctx, l);
+			i=BGBDT_Rice_ReadNBitsNoMask(ctx, l);
+			i=(j<<k)|(i&((1<<k)-1));
+			return(i);
+		}
+	}
+
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	if(i>=(8+k))
+	{
+		i=i-(7+k);
+		j=BGBDT_Rice_ReadNBits(ctx, i*(5+k));
+		return(j);
+	}
+	
+	j=BGBDT_Rice_ReadNBits(ctx, k);
+	j=(i<<k)|j;
+	return(j);
+}
+
+int BGBDT_Rice_ReadRiceDc(BGBDT_RiceContext *ctx, int rk)
+{
+	int i, j, k, l;
+	
+	k=rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+	j=bgbdt_rice_valtab[k][i];
+	if(j>=0)
+	{
+		i=j&65535;
+		l=(j>>16)&15;
+		BGBDT_Rice_SkipNBits(ctx, l);
+		return(i);
+	}
+
+	i=BGBDT_Rice_ReadRiceDcI(ctx, rk);
+	return(i);
+}
+#endif
+
+#if 1
+int BGBDT_Rice_ReadAdRiceDcI(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+	k=*rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+
+	if(i!=0xFF)
+	{
+		j=bgbdt_rice_ntab2[i];
+		
+		l=j+k+1;
+		if(l<=16)
+		{
+//			i=BGBDT_Rice_ReadNBits(ctx, l);
+			i=BGBDT_Rice_ReadNBitsNoMask(ctx, l);
+			i=(j<<k)|(i&((1<<k)-1));
+
+			if(j!=1)
+			{
+				if(j>1)
+				{
+					while(j>1)
+						{ k++; j=j>>1; }
+				}else
+				{
+					if(k>0)k--;
+				}
+				*rk=k;
+			}
+
+			return(i);
+		}
+	}
+
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	if(i>=(8+k))
+	{
+		i=i-(7+k);
+		j=BGBDT_Rice_ReadNBits(ctx, i*(5+k));
+		k=k+2*i;
+		if(k>15)k=15;
+		*rk=k;
+		return(j);
+	}
+	
+	j=BGBDT_Rice_ReadNBits(ctx, k);
+	j=(i<<k)|j;
+
+	if(i!=1)
+	{
+		if(i>1)
+		{
+			while(i>1)
+				{ k++; i=i>>1; }
+			if(k>15)k=15;
+		}else
+		{
+			if(k>0)k--;
+		}
+		*rk=k;
+	}
+	return(j);
+}
+
+int BGBDT_Rice_ReadAdRiceDc(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+	k=*rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+	j=bgbdt_rice_valtab[k][i];
+	if(j>=0)
+	{
+		i=j&65535;
+		l=(j>>16)&15;
+		*rk=(j>>20)&15;
+		BGBDT_Rice_SkipNBits(ctx, l);
+		return(i);
+	}
+
+	i=BGBDT_Rice_ReadAdRiceDcI(ctx, rk);
+	return(i);
+}
+
+#endif
+
+#if 1
+int BGBDT_Rice_ReadAdRiceLLI(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+	k=*rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+
+	if(i!=0xFF)
+	{
+		j=bgbdt_rice_ntab2[i];
+		
+		l=j+k+1;
+		if(l<=16)
+		{
+//			i=BGBDT_Rice_ReadNBits(ctx, l);
+			i=BGBDT_Rice_ReadNBitsNoMask(ctx, l);
+			i=(j<<k)|(i&((1<<k)-1));
+
+			if(j!=1)
+			{
+				if(j>1)
+				{
+					while(j>1)
+						{ k++; j=j>>1; }
+				}else
+				{
+					if(k>0)k--;
+				}
+				*rk=k;
+			}
+
+			return(i);
+		}
+	}
+
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	if(i>=8)
+	{
+		i=i-8;
+		j=BGBDT_Rice_ReadNBits(ctx, 5+i*3);
+		k=k+3+i;
+		if(k>15)k=15;
+		*rk=k;
+		return(j);
+	}
+	
+	j=BGBDT_Rice_ReadNBits(ctx, k);
+	j=(i<<k)|j;
+
+	if(i!=1)
+	{
+		if(i>1)
+		{
+			while(i>1)
+				{ k++; i=i>>1; }
+			if(k>15)k=15;
+		}else
+		{
+			if(k>0)k--;
+		}
+		*rk=k;
+	}
+	return(j);
+}
+
+int BGBDT_Rice_ReadAdRiceLL(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+	
+	k=*rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+	j=bgbdt_rice_valtab[k][i];
+	if(j>=0)
+	{
+		i=j&65535;
+		l=(j>>16)&15;
+		*rk=(j>>20)&15;
+		BGBDT_Rice_SkipNBits(ctx, l);
+		return(i);
+	}
+
+	i=BGBDT_Rice_ReadAdRiceLLI(ctx, rk);
+	return(i);
+}
+
+#endif
+
+int BGBDT_Rice_ReadAdSRiceDc(BGBDT_RiceContext *ctx, int *rk)
+{
+	int i, j, k, l;
+
+	k=*rk;
+	i=BGBDT_Rice_PeekByte(ctx);
+	j=bgbdt_rice_valtab[k][i];
+	if(j>=0)
+	{
+		i=j&65535;
+		l=(j>>16)&15;
+		*rk=(j>>20)&15;
+		i=(i>>1)^((i<<31)>>31);
+		BGBDT_Rice_SkipNBits(ctx, l);
+		return(i);
+	}
+
+	i=BGBDT_Rice_ReadAdRiceDcI(ctx, rk);
+	i=(i>>1)^((i<<31)>>31);
+	return(i);
+}
+
+
+int BGBDT_Rice_ReadQExpBase(BGBDT_RiceContext *ctx, int k)
+{
+	int i, j;
+	
+	i=BGBDT_Rice_ReadRiceQ(ctx);
+	j=BGBDT_Rice_ReadNBits(ctx, (i+1)*k);
+//	i=(i<<k)|j;
+	return(j);
+}
+
+int BGBDT_Rice_ReadAdExp2Rice(BGBDT_RiceContext *ctx, int *rk)
+{
+	int p, v;
+	int i, j, k;
+	
+	p=BGBDT_Rice_ReadAdRiceLL(ctx, rk);
+//	j=p>>2; i=p&3;
+//	j=p>>3; i=p&7;
+	j=p>>4; i=p&15;
+//	j=p>>5; i=p&31;
+	k=BGBDT_Rice_ReadNBits(ctx, j);
+	v=(i<<j)|k;
+	return(v);
+}
+int BGBDT_EmitLzSTF(BGBDT_RiceContext *ctx, int sym, int *rk)
+{
+	int ix0, ix1;
+	int sy0, sy1;
+	
+	ix0=ctx->lzidx[sym];
+	ix1=(ix0*7)/8;
+//	ix1=(ix0*3)/4;
+	sy0=ctx->lzwin[ix0];	sy1=ctx->lzwin[ix1];
+	ctx->lzwin[ix0]=sy1;	ctx->lzwin[ix1]=sy0;
+	ctx->lzidx[sy0]=ix1;	ctx->lzidx[sy1]=ix0;
+	
+//	BGBDT_Rice_WriteAdRiceDc(ctx, ix0, rk);
+	ctx->WriteAdRiceLL(ctx, ix0, rk);
+//	ctx->WriteAdDist(ctx, ix0, rk);
+	return(0);
+}
+
+void BGBDT_ChunkLzHashChi(BGBDT_RiceContext *ctx,
+	byte *ics, int *chi)
+{
+	int h;
+//	h=((ics[0]*251+ics[1])*251+ics[2])*251;
+	h=((ics[0]*251^ics[1])*251^ics[2])*251;
+
+#if 0
+	chi[0]=(h>>8)&1023;
+	h=h*251+31;
+	chi[1]=1024|((h>>8)&1023);
+	h=h*251+31;
+	chi[2]=1024|((h>>8)&1023);
+	h=h*251+31;
+	chi[3]=1024|((h>>8)&1023);
+#endif
+
+#if 0
+	h=(h>>9)&511;
+	chi[0]=(h<<2)|0;
+	chi[1]=(h<<2)|1;
+	chi[2]=(h<<2)|2;
+	chi[3]=(h<<2)|3;
+#endif
+
+#if 1
+//	h=(h>>9)&511;
+	h=(h>>9)&255;
+//	h=(h>>9)&127;
+	chi[0]=(h<<3)|0;
+	chi[1]=(h<<3)|1;
+	chi[2]=(h<<3)|2;
+	chi[3]=(h<<3)|3;
+	chi[4]=(h<<3)|4;
+	chi[5]=(h<<3)|5;
+	chi[6]=(h<<3)|6;
+	chi[7]=(h<<3)|7;
+#endif
+
+#if 0
+	chi[0]=(h>>8)&1023;
+	h=h*251+31;
+	chi[1]=1024|((h>>8)&1023);
+	h=h*251+31;
+	chi[2]=2048|((h>>8)&1023);
+	h=h*251+31;
+	chi[3]=2048|((h>>8)&1023);
+
+	h=h*251+31;	
+	chi[4]=3072|((h>>8)&1023);
+	h=h*251+31;
+	chi[5]=3072|((h>>8)&1023);
+	h=h*251+31;
+	chi[6]=3072|((h>>8)&1023);
+	h=h*251+31;
+	chi[7]=3072|((h>>8)&1023);
+#endif
+}
+
+int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
+	byte *ics, byte *icss, byte *icse, int *rbl, int *rbd)
+{
+	int chi[8];
+	byte *s0, *s1, *s2, *s3, *se;
+	int hi, l, d, bl, bd, bi;
+	int i, j, k;
+
+	if((ics+5)>=icse)
+		return(0);
+	
+//	hi=((ics[0]*251+ics[1])*251+ics[2])*251;
+//	hi=((ics[0]*251^ics[1])*251^ics[2])*251;
+//	hi=(hi>>8)&255;
+	
+	BGBDT_ChunkLzHashChi(ctx, ics, chi);
+	
+	bl=0; bd=0;
+	
+	for(i=1; i<6; i++)
+	{
+		s0=ics; se=s0+256;
+		if(icse<se)se=icse;
+		s1=ics-i;
+		if(s1<icss)break;
+
+		while((s0<se) && (*s0==*s1))
+			{ s0++; s1++; }
+		l=s0-ics;
+		d=s0-s1;
+		if(l>bl)
+			{ bl=l; bd=d; }
+	}
+
+#if 0
+	s0=ics; se=s0+256;
+	if(icse<se)se=icse;
+	s1=ctx->lzhash[hi];
+	if(s1)
+	{
+		while((s0<se) && (*s0==*s1))
+			{ s0++; s1++; }
+		l=s0-ics;
+		d=s0-s1;
+		if(l>bl)
+			{ bl=l; bd=d; }
+	}
+#endif
+
+#if 1
+	bi=0;
+	for(i=0; i<8; i++)
+//	for(i=0; i<4; i++)
+//	for(i=0; i<2; i++)
+	{
+		s0=ics; se=s0+256;
+		if(icse<se)se=icse;
+//		s1=ctx->lzhash[(i<<8)|hi];
+		s1=ctx->lzhash[chi[i]];
+		if(s1)
+		{
+			while((s0<se) && (*s0==*s1))
+				{ s0++; s1++; }
+			l=s0-ics;
+			d=s0-s1;
+			if(l>bl)
+				{ bl=l; bd=d; bi=i; }
+		}
+	}
+
+#if 0
+	switch(bi)
+	{
+	case 0: break;
+	case 1:
+		s0=ctx->lzhash[chi[0]];		s1=ctx->lzhash[chi[1]];
+		ctx->lzhash[chi[0]]=s1;		ctx->lzhash[chi[1]]=s0;
+		break;
+	case 2:
+		s0=ctx->lzhash[chi[0]];		s1=ctx->lzhash[chi[1]];
+		s2=ctx->lzhash[chi[2]];		ctx->lzhash[chi[0]]=s2;
+		ctx->lzhash[chi[1]]=s0;		ctx->lzhash[chi[2]]=s1;
+		break;
+	case 3:
+		s0=ctx->lzhash[chi[0]];		s1=ctx->lzhash[chi[1]];
+		s2=ctx->lzhash[chi[2]];		s3=ctx->lzhash[chi[3]];
+		ctx->lzhash[chi[0]]=s3;		ctx->lzhash[chi[1]]=s0;
+		ctx->lzhash[chi[2]]=s1;		ctx->lzhash[chi[3]]=s2;
+		break;
+	default:
+		break;
+	}
+#endif
+
+#if 0
+	switch(bi)
+	{
+	case 0: break;
+	case 1:
+		s0=ctx->lzhash[chi[0]];		s1=ctx->lzhash[chi[1]];
+		ctx->lzhash[chi[0]]=s1;		ctx->lzhash[chi[1]]=s0;
+		break;
+	case 2:
+		s0=ctx->lzhash[chi[0]];		s1=ctx->lzhash[chi[2]];
+		ctx->lzhash[chi[0]]=s1;		ctx->lzhash[chi[2]]=s0;
+		break;
+	case 3:
+		s0=ctx->lzhash[chi[0]];		s1=ctx->lzhash[chi[3]];
+		ctx->lzhash[chi[0]]=s1;		ctx->lzhash[chi[3]]=s0;
+		break;
+	default:
+		break;
+	}
+#endif
+#endif
+
+	*rbl=bl;
+	*rbd=bd;
+	return(bl>=3);
+}
+
+int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len)
+{
+	int chi[8];
+	byte *cs, *cse;
+	int hi;
+	
+	cs=ics; cse=cs+len;
+	while(cs<cse)
+	{
+//		hi=((cs[0]*251+cs[1])*251+cs[2])*251;
+//		hi=((cs[0]*251^cs[1])*251^cs[2])*251;
+//		hi=(hi>>8)&255;
+
+		BGBDT_ChunkLzHashChi(ctx, cs, chi);
+
+#if 1
+		ctx->lzhash[chi[7]]=ctx->lzhash[chi[6]];
+		ctx->lzhash[chi[6]]=ctx->lzhash[chi[5]];
+		ctx->lzhash[chi[5]]=ctx->lzhash[chi[4]];
+		ctx->lzhash[chi[4]]=ctx->lzhash[chi[3]];
+#endif
+
+		ctx->lzhash[chi[3]]=ctx->lzhash[chi[2]];
+		ctx->lzhash[chi[2]]=ctx->lzhash[chi[1]];
+		ctx->lzhash[chi[1]]=ctx->lzhash[chi[0]];
+		ctx->lzhash[chi[0]]=cs;
+
+//		ctx->lzhash[768|hi]=ctx->lzhash[512|hi];
+//		ctx->lzhash[512|hi]=ctx->lzhash[256|hi];
+//		ctx->lzhash[256|hi]=ctx->lzhash[hi];
+//		ctx->lzhash[hi]=cs;
+		cs++;
+	}
+	return(0);
+}
+
+int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
+	byte *ibuf, int ibsz)
+{
+	byte *ct, *cte, *cs, *css, *cse, *csrb;
+	int kr, ks, kl, kd;
+	int l, d, ll, ld, r;
+	int i0, i1, i2, i3;
+	int i, j, k;
+	
+	for(i=0; i<256; i++)
+		{ ctx->lzwin[i]=i; ctx->lzidx[i]=i; }
+	ctx->lzwpos=0;
+
+//	for(i=0; i<256; i++)
+	for(i=0; i<4096; i++)
+		{ ctx->lzhash[i]=NULL; }
+
+	ctx->WriteAdRiceLL=BGBDT_Rice_WriteAdRiceDc;
+	ctx->WriteAdDist=BGBDT_Rice_WriteAdRiceDc;
+	if((ctx->lzctrl&7)!=0)
+	{
+		ctx->WriteAdRiceLL=BGBDT_Rice_WriteAdRiceLL;
+		ctx->WriteAdDist=BGBDT_Rice_WriteAdRiceLL;
+		
+		if((ctx->lzctrl&7)==2)
+		{
+			ctx->WriteAdDist=BGBDT_Rice_WriteAdExp2Rice;
+		}
+	}
+	
+	kr=4; ks=4; kl=4; kd=4; ll=-1; ld=-1;
+	cs=ibuf; cse=ibuf+ibsz; css=ibuf; csrb=cs;
+	while(cs<cse)
+	{
+		i=BGBDT_ChunkLzLookupMatch(ctx, cs, css, cse, &l, &d);
+		if(i>0)
+		{
+			r=cs-csrb;
+
+			i0=BGBDT_Rice_OutBitPos(ctx);
+
+//			BGBDT_Rice_WriteAdRiceDc(ctx, r, &kr);
+			ctx->WriteAdRiceLL(ctx, r, &kr);
+//			ctx->WriteAdDist(ctx, r, &kr);
+			
+			i1=BGBDT_Rice_OutBitPos(ctx);
+			ctx->stat_kr+=i1-i0;
+			ctx->stat_nr++;
+
+			for(j=0; j<r; j++)
+				BGBDT_EmitLzSTF(ctx, csrb[j], &ks);
+			i2=BGBDT_Rice_OutBitPos(ctx);
+			ctx->stat_ks+=i2-i1;
+			ctx->stat_ns+=r;
+			
+
+#if 1
+			if(l==ll)
+				{ ctx->WriteAdRiceLL(ctx, 1, &kl); }
+			else
+				{ ctx->WriteAdRiceLL(ctx, l, &kl); }
+#endif
+
+#if 0
+			if(l==ll)
+				{ ctx->WriteAdDist(ctx, 1, &kl); }
+			else
+				{ ctx->WriteAdDist(ctx, l, &kl); }
+#endif
+
+			i0=BGBDT_Rice_OutBitPos(ctx);
+			ctx->stat_kl+=i0-i2;
+			ctx->stat_nl++;
+
+#if 0
+			if(d==ld)
+				{ ctx->WriteAdRiceLL(ctx, 0, &kd); }
+			else
+				{ ctx->WriteAdRiceLL(ctx, d, &kd); }
+#endif
+
+#if 1
+			if(d==ld)
+				{ ctx->WriteAdDist(ctx, 0, &kd); }
+			else
+				{ ctx->WriteAdDist(ctx, d, &kd); }
+#endif
+
+			i1=BGBDT_Rice_OutBitPos(ctx);
+			ctx->stat_kd+=i1-i0;
+			ctx->stat_nd++;
+
+
+			ll=l; ld=d;
+			BGBDT_ChunkLzUpdateWindow(ctx, cs, l);
+			cs+=l;
+			csrb=cs;
+		}else
+		{
+			BGBDT_ChunkLzUpdateWindow(ctx, cs, 1);
+			cs++;
+		}
+	}
+	
+	if(cs>csrb)
+	{
+		r=cs-csrb;
+//		BGBDT_Rice_WriteAdRiceDc(ctx, r, &kr);
+//		ctx->WriteAdRiceLL(ctx, r, &kr);
+		ctx->WriteAdDist(ctx, r, &kr);
+		for(j=0; j<r; j++)
+			BGBDT_EmitLzSTF(ctx, csrb[j], &ks);
+//		BGBDT_Rice_WriteAdRiceDc(ctx, 0, &kl);
+//		ctx->WriteAdRiceLL(ctx, 0, &kl);
+		ctx->WriteAdDist(ctx, 0, &kl);
+	}
+
+//	BGBDT_Rice_WriteAdRiceDc(ctx, 0, &kr);
+//	BGBDT_Rice_WriteAdRiceDc(ctx, 0, &kl);
+//	ctx->WriteAdRiceLL(ctx, 0, &kr);
+//	ctx->WriteAdRiceLL(ctx, 0, &kl);
+	ctx->WriteAdDist(ctx, 0, &kr);
+	ctx->WriteAdDist(ctx, 0, &kl);
+	return(0);
+}
+
+#include "clz_multi.c"
+
+void *frgl_malloc(int sz)
+{
+	void *ptr;
+	ptr=malloc(sz);
+	memset(ptr, 0, sz);
+	return(ptr);
+}
+
+int CLZ_EncodeBuffer(byte *ibuf, byte *obuf, int ibsz, int obsz)
+{
+	BGBDT_RiceContext *ctx;
+	int sz;
+
+
+	ctx=BGBDT_Rice_AllocContext();
+	ctx->lzctrl=1;
+
+	BGBDT_Rice_SetupWrite(ctx, obuf, obsz);
+
+//	BGBDT_Rice_WriteRice(ctx, 1, 3);
+//	BGBDT_Rice_WriteRice(ctx, ts, 7);
+
+	BGBDT_EncodeChunkLZ(ctx, ibuf, ibsz);
+
+	sz=BGBDT_Rice_FlushBits(ctx);
+	BGBDT_Rice_FreeContext(ctx);
+	return(sz);
+}
+
+byte *readfile(char *path, int *rsz)
+{
+	byte *buf;
+	FILE *fd;
+	int sz;
+	
+	fd=fopen(path, "rb");
+	if(!fd)
+		return(NULL);
+
+	fseek(fd, 0, 2);
+	sz=ftell(fd);
+	fseek(fd, 0, 0);
+	buf=malloc(sz);
+	fread(buf, 1, sz, fd);
+	fclose(fd);
+	
+	*rsz=sz;
+	return(buf);
+}
+
+int main(int argc, char *argv[])
+{
+	byte *ibuf, *obuf;
+	int sz, osz;
+	
+	ibuf=readfile(argv[1], &sz);
+	if(!ibuf)
+		return(-1);
+
+	obuf=malloc(1<<20);
+	osz=CLZ_EncodeBuffer(ibuf, obuf, sz, 1<<20);
+	
+	printf("%d->%d (%d%%)\n", sz, osz, (osz*100)/sz);
+	
+	return(0);
+}
+#include "clz_multi.c"
+
+void *frgl_malloc(int sz)
+{
+	void *ptr;
+	ptr=malloc(sz);
+	memset(ptr, 0, sz);
+	return(ptr);
+}
+
+int CLZ_EncodeBuffer(byte *ibuf, byte *obuf, int ibsz, int obsz)
+{
+	BGBDT_RiceContext *ctx;
+	int sz;
+	int i, j;
+
+
+	ctx=BGBDT_Rice_AllocContext();
+	ctx->lzctrl=2;
+
+	BGBDT_Rice_SetupWrite(ctx, obuf, obsz);
+
+//	BGBDT_Rice_WriteRice(ctx, 1, 3);
+//	BGBDT_Rice_WriteRice(ctx, ts, 7);
+
+	BGBDT_EncodeChunkLZ(ctx, ibuf, ibsz);
+
+	sz=BGBDT_Rice_FlushBits(ctx);
+
+//	printf("kr=%d(%d, %.1f) ks=%d(%d, %.1f) kl=%d(%d, %.1f) kd=%d(%d, %.1f)\n",
+//		ctx->stat_kr, ctx->stat_nr, (1.0*ctx->stat_kr)/ctx->stat_nr,
+//		ctx->stat_ks, ctx->stat_ns, (1.0*ctx->stat_ks)/ctx->stat_ns,
+//		ctx->stat_kl, ctx->stat_nl, (1.0*ctx->stat_kl)/ctx->stat_nl,
+//		ctx->stat_kd, ctx->stat_nd, (1.0*ctx->stat_kd)/ctx->stat_nd);
+
+	for(i=0; i<16; i++)
+	{
+		for(j=0; j<16; j++)
+		{
+			printf("%02X ", ctx->lzwin[i*16+j]);
+		}
+		printf("\n");
+	}
+
+	printf("kr: t=%d, n=%d, avg=%.2f\n",
+		ctx->stat_kr, ctx->stat_nr, (1.0*ctx->stat_kr)/ctx->stat_nr);
+	printf("ks: t=%d, n=%d, avg=%.2f\n",
+		ctx->stat_ks, ctx->stat_ns, (1.0*ctx->stat_ks)/ctx->stat_ns);
+	printf("kl: t=%d, n=%d, avg=%.2f\n",
+		ctx->stat_kl, ctx->stat_nl, (1.0*ctx->stat_kl)/ctx->stat_nl);
+	printf("kd: t=%d, n=%d, avg=%.2f\n",
+		ctx->stat_kd, ctx->stat_nd, (1.0*ctx->stat_kd)/ctx->stat_nd);
+
+	BGBDT_Rice_FreeContext(ctx);
+	return(sz);
+}
+
+int CLZ_DecodeBuffer(byte *ibuf, byte *obuf, int ibsz, int obsz)
+{
+	BGBDT_RiceContext *ctx;
+	int sz;
+
+
+	ctx=BGBDT_Rice_AllocContext();
+	ctx->lzctrl=2;
+
+	BGBDT_Rice_SetupRead(ctx, ibuf, ibsz);
+
+//	BGBDT_Rice_WriteRice(ctx, 1, 3);
+//	BGBDT_Rice_WriteRice(ctx, ts, 7);
+
+	sz=BGBDT_DecodeChunkLZ(ctx, obuf, obsz);
+	BGBDT_Rice_FreeContext(ctx);
+	return(sz);
+}
+
+byte *readfile(char *path, int *rsz)
+{
+	byte *buf;
+	FILE *fd;
+	int sz;
+	
+	fd=fopen(path, "rb");
+	if(!fd)
+		return(NULL);
+
+	fseek(fd, 0, 2);
+	sz=ftell(fd);
+	fseek(fd, 0, 0);
+	buf=malloc(sz);
+	fread(buf, 1, sz, fd);
+	fclose(fd);
+	
+	*rsz=sz;
+	return(buf);
+}
+
+int main(int argc, char *argv[])
+{
+	byte *ibuf, *obuf, *obuf2;
+	int sz, osz, osz2;
+	
+	ibuf=readfile(argv[1], &sz);
+	if(!ibuf)
+		return(-1);
+
+	obuf=malloc(1<<20);
+	obuf2=malloc(1<<20);
+	osz=CLZ_EncodeBuffer(ibuf, obuf, sz, 1<<20);
+	osz2=CLZ_DecodeBuffer(obuf, obuf2, osz, 1<<20);
+	
+	printf("%d->%d (%d%%)\n", sz, osz, (osz*100)/sz);
+	printf("%d->%d (%d%%)\n", osz, osz2, (osz2*100)/osz);
+	
+	if(sz!=osz2)
+	{
+		printf("Size Mismatch\n");
+		return(-1);
+	}
+	
+	if(memcmp(ibuf, obuf2, sz))
+	{
+		printf("Data Corrupt\n");
+		return(-1);
+	}else
+	{
+		printf("Data OK\n");
+	}
+	
+	return(0);
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "clz_mini.h"
+
+#include "clz_rice.c"
+#include "clz_decrice.c"
+
+#include "clz_encode.c"
+#include "clz_decode.c"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "clz_mini.h"
+
+#include "clz_rice.c"
+#include "clz_decrice.c"
+
+#include "clz_encode.c"
+#include "clz_decode.c"
+
+/*
+Copyright (C) 2015 by Brendan G Bohannon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+// #include <bteifgl.h>
+
+BGBDT_RiceContext *bgbdt_rice_freectx=NULL;
+
+BGBDT_RiceContext *BGBDT_Rice_AllocContext(void)
+{
+	BGBDT_RiceContext *tmp;
+
+	if(bgbdt_rice_freectx)
+	{
+		tmp=bgbdt_rice_freectx;
+		bgbdt_rice_freectx=tmp->next;
+		memset(tmp, 0, sizeof(BGBDT_RiceContext));
+		return(tmp);
+	}
+	
+	tmp=frgl_malloc(sizeof(BGBDT_RiceContext));
+	return(tmp);
+}
+
+void BGBDT_Rice_FreeContext(BGBDT_RiceContext *ctx)
+{
+	ctx->next=bgbdt_rice_freectx;
+	bgbdt_rice_freectx=ctx;
+}
+
+
+void BGBDT_Rice_SetupWrite(BGBDT_RiceContext *ctx, byte *obuf, int osz)
+{
+	ctx->bs_win=0;
+	ctx->bs_pos=0;
+	ctx->bs_bits=0;
+
+	ctx->bs_ct=obuf;
+	ctx->bs_cts=obuf;
+	ctx->bs_cte=obuf+osz;
+}
+
+int BGBDT_Rice_OutBitPos(BGBDT_RiceContext *ctx)
+{
+	return((ctx->bs_ct-ctx->bs_cts)*8+ctx->bs_pos);
+}
+
+void BGBDT_Rice_EmitByte(BGBDT_RiceContext *ctx, int i)
+{
+	*ctx->bs_ct++=i;
+}
+
+void BGBDT_Rice_WriteBit(BGBDT_RiceContext *ctx, int i)
+{
+	ctx->bs_bits++;
+
+	ctx->bs_win|=(i&1)<<(31-ctx->bs_pos);
+	ctx->bs_pos++;
+	if(ctx->bs_pos>=8)
+	{
+		i=(ctx->bs_win>>24)&0xFF;
+		BGBDT_Rice_EmitByte(ctx, i);
+		ctx->bs_win<<=8;
+		ctx->bs_pos-=8;
+	}
+}
+
+void BGBDT_Rice_WriteNBits(BGBDT_RiceContext *ctx, int v, int n)
+{
+	int i, j, k;
+
+	ctx->bs_bits+=n;
+
+	v&=(1<<n)-1;
+
+	j=ctx->bs_pos+n;
+	k=ctx->bs_win|(v<<(32-j));
+	if(j>=8)
+	{
+		*ctx->bs_ct++=(k>>24); k<<=8; j-=8;
+		if(j>=8)
+			{ *ctx->bs_ct++=(k>>24); k<<=8; j-=8; }
+	}
+	ctx->bs_pos=j;
+	ctx->bs_win=k;
+}
+
+void BGBDT_Rice_WriteNBitsH(BGBDT_RiceContext *ctx, u32 i, int n)
+{
+	if(n>16)
+	{
+		BGBDT_Rice_WriteNBits(ctx, i>>(n-16), 16);
+		n-=16;
+	}
+	BGBDT_Rice_WriteNBits(ctx, i, n);
+}
+
+void BGBDT_Rice_WriteNBitsL(BGBDT_RiceContext *ctx, s64 i, int n)
+{
+	while(n>16)
+	{
+		BGBDT_Rice_WriteNBits(ctx, i>>(n-16), 16);
+		n-=16;
+	}
+	BGBDT_Rice_WriteNBits(ctx, i, n);
+}
+
+void BGBDT_Rice_Write2Bits(BGBDT_RiceContext *ctx, int i)
+	{ BGBDT_Rice_WriteNBits(ctx, i, 2); }
+void BGBDT_Rice_Write3Bits(BGBDT_RiceContext *ctx, int i)
+	{ BGBDT_Rice_WriteNBits(ctx, i, 3); }
+void BGBDT_Rice_Write4Bits(BGBDT_RiceContext *ctx, int i)
+	{ BGBDT_Rice_WriteNBits(ctx, i, 4); }
+
+void BGBDT_Rice_Write8Bits(BGBDT_RiceContext *ctx, int v)
+{
+	int i, j, k;
+
+	ctx->bs_bits+=8;
+	k=ctx->bs_win|((v&255)<<(24-ctx->bs_pos));
+	*ctx->bs_ct++=k>>24;
+	ctx->bs_win=k<<8;
+}
+
+void BGBDT_Rice_Write16Bits(BGBDT_RiceContext *ctx, int v)
+{
+	int i, j, k;
+
+	ctx->bs_bits+=16;
+	k=ctx->bs_win|((v&65535)<<(16-ctx->bs_pos));
+	*ctx->bs_ct++=k>>24;
+	*ctx->bs_ct++=k>>16;
+	ctx->bs_win=k<<16;
+}
+
+void BGBDT_Rice_WriteRice(BGBDT_RiceContext *ctx, int v, int k)
+{
+	int j;
+	
+	j=v>>k;
+	while(j--)
+	 { BGBDT_Rice_WriteBit(ctx, 1); }
+	BGBDT_Rice_WriteBit(ctx, 0);
+	j=v&((1<<k)-1);
+	BGBDT_Rice_WriteNBits(ctx, j, k);
+}
+
+int BGBDT_Rice_CountWriteRice(BGBDT_RiceContext *ctx, int v, int k)
+{
+	int j;
+	j=v>>k;
+	return(j+k);
+}
+
+void BGBDT_Rice_WriteSRice(BGBDT_RiceContext *ctx, int v, int k)
+{
+	BGBDT_Rice_WriteRice(ctx, (v>=0)?(v<<1):(((-v)<<1)-1), k);
+}
+
+int BGBDT_Rice_CountWriteSRice(BGBDT_RiceContext *ctx, int v, int k)
+{
+	return(BGBDT_Rice_CountWriteRice(ctx,
+		(v>=0)?(v<<1):(((-v)<<1)-1), k));
+}
+
+void BGBDT_Rice_WriteAdRice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int p, b, n, bp, bw;
+	int i, j, k;
+	
+	k=*rk;
+
+	p=v>>k;
+
+	i=p+k+1;
+	if(i<=16)
+	{
+		j=v&((1<<k)-1);
+		BGBDT_Rice_WriteNBits(ctx, (0xFFFE<<k)|j, i);
+
+		if(p!=1)
+		{
+			if(!p)
+				{ if(k>0)k--; }
+			else if(p>1)
+			{
+				j=p;
+				while(j>1)
+					{ k++; j>>=1; }
+			}
+			*rk=k;
+		}
+		return;
+	}
+
+	j=p;
+
+	while(j>=16)
+		{ BGBDT_Rice_WriteNBits(ctx, 0xFFFF, 16); j-=16; }
+	BGBDT_Rice_WriteNBits(ctx, 0xFFFE, j+1);
+
+	BGBDT_Rice_WriteNBits(ctx, v, k);
+
+	if(p!=1)
+	{
+		if(p>1)
+		{
+			j=p;
+			while(j>1)
+				{ k++; j>>=1; }
+		}else
+		{
+			if(k>0)k--;
+		}
+		*rk=k;
+	}
+}
+
+int BGBDT_Rice_CountWriteAdRice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int j, k, p, n;
+	
+	k=*rk;
+	p=v>>k;
+	n=p+k;
+
+	if(!p && (k>0))k--;
+	if(p>1)
+	{
+		j=p;
+		while(j>1)
+			{ k++; j>>=1; }
+	}
+	*rk=k;
+	
+	return(n);
+}
+
+void BGBDT_Rice_WriteAdSRice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	BGBDT_Rice_WriteAdRice(ctx, (v<<1)^(v>>31), rk);
+}
+
+void BGBDT_Rice_WriteAdExpRice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int i, j, k;
+	
+	if(v<=0)
+	{
+		BGBDT_Rice_WriteAdRice(ctx, 0, rk);
+		return;
+	}
+	
+	i=v; j=0; k=*rk;
+	while(i>0) { i>>=1; j++; }
+	BGBDT_Rice_WriteAdRice(ctx, j, rk);
+	BGBDT_Rice_WriteNBitsL(ctx, v, j);
+}
+
+void BGBDT_Rice_WriteAdExpSRice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	BGBDT_Rice_WriteAdExpRice(ctx, (v>=0)?(v<<1):(((-v)<<1)-1), rk);
+}
+
+int BGBDT_Rice_CountWriteAdRiceDc(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int i, j, k, p, n;
+	
+	k=*rk;
+	p=v>>k;
+	n=p+k;
+
+	if(p>=(8+k))
+	{
+		j=v; i=1;
+
+		while(j>=(1<<(5+k)))
+			{ j=j>>(5+k); i++; }
+		n=8+(6+k)*i;
+
+		k=k+2*i;
+		if(k>15)k=15;
+		*rk=k;
+		return(n);
+	}
+
+	if(!p && (k>0))k--;
+	if(p>1)
+	{
+		j=p;
+		while(j>1)
+			{ k++; j>>=1; }
+	}
+	*rk=k;
+	
+	return(n);
+}
+
+int BGBDT_Rice_CountWriteAdSRiceDc(BGBDT_RiceContext *ctx, int v, int *rk)
+	{ return(BGBDT_Rice_CountWriteAdRiceDc(ctx, (v<<1)^(v>>31), rk)); }
+
+void BGBDT_Rice_WriteAdRiceDc(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int p, b, n, bp, bw;
+	int i, j, k;
+	
+	k=*rk;
+
+	p=v>>k;
+
+	if(p>=(8+k))
+	{
+		j=v; i=1;
+
+		while(j>=(1<<(5+k)))
+			{ j=j>>(5+k); i++; }
+
+		BGBDT_Rice_WriteNBitsH(ctx, 0xFFFFFFFEUL, 8+k+i);
+		BGBDT_Rice_WriteNBitsH(ctx, v, i*(5+k));
+
+		k+=2*i;
+		if(k>15)k=15;
+		*rk=k;
+		return;
+	}
+
+	i=p+k+1;
+	if(i<=16)
+	{
+		j=v&((1<<k)-1);
+		BGBDT_Rice_WriteNBits(ctx, (0xFFFE<<k)|j, i);
+
+		if(p!=1)
+		{
+			if(!p)
+				{ if(k>0)k--; }
+			else if(p>1)
+			{
+				j=p;
+				while(j>1)
+					{ k++; j>>=1; }
+				if(k>15)k=15;
+			}
+			*rk=k;
+		}
+		return;
+	}
+
+	j=p;
+
+	while(j>=16)
+		{ BGBDT_Rice_WriteNBits(ctx, 0xFFFF, 16); j-=16; }
+	BGBDT_Rice_WriteNBits(ctx, 0xFFFE, j+1);
+
+	BGBDT_Rice_WriteNBits(ctx, v, k);
+
+	if(p!=1)
+	{
+		if(p>1)
+		{
+			j=p;
+			while(j>1)
+				{ k++; j>>=1; }
+			if(k>15)k=15;
+		}else
+		{
+			if(k>0)k--;
+		}
+		*rk=k;
+	}
+}
+
+void BGBDT_Rice_WriteAdSRiceDc(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	BGBDT_Rice_WriteAdRiceDc(ctx, (v<<1)^(v>>31), rk);
+}
+
+
+void BGBDT_Rice_WriteAdRiceILL(BGBDT_RiceContext *ctx, int val, int *rk)
+{
+	int i, j, k, l;
+
+	k=*rk;
+	i=val>>k;
+
+#if 1
+	if(i>=8)
+	{
+		i=8; j=val>>5; k+=3;
+		while(j>0)
+			{ i++; j=j>>3; k++; }
+		if(k>=15)k=15;
+//		BGBDT_Rice_WriteNBits(ctx, (1<<i)-1, i+1);
+		BGBDT_Rice_WriteNBits(ctx, 0xFFFE, i+1);
+		BGBDT_Rice_WriteNBits(ctx, val, 5+(i-8)*3);
+		*rk=k;
+		return;
+	}
+#endif
+	
+//	BGBDT_Rice_WriteNBits(ctx, (1<<i)-1, i+1);
+	BGBDT_Rice_WriteNBits(ctx, 0xFFFE, i+1);
+	BGBDT_Rice_WriteNBits(ctx, val, k);
+	
+	if(!i)
+	{
+		if(k>0)k--;
+		*rk=k;
+	}else if(i>1)
+	{
+		j=i;
+		while(j>1)
+			{ k++; j=j>>1; }
+		if(k>15)k=15;
+		*rk=k;
+	}
+}
+
+void BGBDT_Rice_WriteAdRiceLL(BGBDT_RiceContext *ctx, int val, int *rk)
+{
+	int i, j, k, l;
+
+#if 0
+	if(!(val>>9))
+	{
+		j=lqtvq_encrice8[(*rk<<9)|val];
+		if(j)
+		{
+			BGBDT_Rice_WriteNBitsNM(ctx, (u16)j, (j>>16)&15);
+			*rk=(j>>20)&15;
+			return;
+		}
+	}
+#endif
+
+	BGBDT_Rice_WriteAdRiceILL(ctx, val, rk);	
+}
+
+
+int BGBDT_Rice_FlushBits(BGBDT_RiceContext *ctx)
+{
+	int i;
+	while(ctx->bs_pos>0)
+	{
+		i=(ctx->bs_win>>24)&0xFF;
+		BGBDT_Rice_EmitByte(ctx, i);
+		ctx->bs_win<<=8;
+		ctx->bs_pos-=8;
+	}
+	ctx->bs_pos=0;
+	return(ctx->bs_ct-ctx->bs_cts);
+}
+
+
+void BGBDT_Rice_WriteQExpBase(BGBDT_RiceContext *ctx, int v, int k)
+{
+	int i, j, q;
+	
+//	j=v>>k;
+
+	i=v; q=0;
+	while(i>=(1<<k))
+		{ i=i>>k; q++; }
+
+	j=q;
+	while(j--)
+	 { BGBDT_Rice_WriteBit(ctx, 1); }
+	BGBDT_Rice_WriteBit(ctx, 0);
+//	j=v&((1<<((q+1)*k))-1);
+	BGBDT_Rice_WriteNBits(ctx, v, (q+1)*k);
+}
+
+/*
+ Pfx Xtra Range
+ 0..3   0     0..3
+ 4      1     4/5
+ 5      1     6/7
+ ...
+ */
+void BGBDT_Rice_WriteAdExp2Rice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int i, j, k;
+	
+	i=v; j=0; k=*rk;
+//	while(i>=4)
+//	while(i>=8)
+	while(i>=16)
+//	while(i>=32)
+		{ i>>=1; j++; }
+//	i=(i&3)|(j<<2);
+//	i=(i&7)|(j<<3);
+	i=(i&15)|(j<<4);
+//	i=(i&31)|(j<<5);
+	BGBDT_Rice_WriteAdRiceLL(ctx, i, rk);
+	BGBDT_Rice_WriteNBitsL(ctx, v, j);
+}

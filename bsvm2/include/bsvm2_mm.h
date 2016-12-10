@@ -69,6 +69,8 @@ typedef struct BGBDT_MM_ObjLLnInfo_s BGBDT_MM_ObjLLnInfo;
 
 typedef struct BGBDT_MM_RegionInfo_s BGBDT_MM_RegionInfo;
 
+typedef struct BGBDT_WorkItem_s BGBDT_WorkItem;
+
 
 typedef struct th_context_s thContext;
 typedef struct BIPRO_RegisterState_s BIPRO_RegisterState;
@@ -161,4 +163,12 @@ u16 *strtabe;
 u16 *estrtab;
 u16 **strhash;
 int npstrtab;
+};
+
+struct BGBDT_WorkItem_s {
+volatile BGBDT_WorkItem *next;
+// BTIC4B_Context tctx;
+void *data;
+volatile byte done;
+int (*DoWork)(BGBDT_WorkItem *item);
 };

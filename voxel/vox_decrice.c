@@ -707,3 +707,15 @@ int BGBDT_Rice_ReadQExpBase(BGBDT_RiceContext *ctx, int k)
 //	i=(i<<k)|j;
 	return(j);
 }
+
+int BGBDT_Rice_ReadAdExp2Rice(BGBDT_RiceContext *ctx, int *rk)
+{
+	int p, v;
+	int i, j, k;
+	
+	p=BGBDT_Rice_ReadAdRiceLL(ctx, rk);
+	j=p>>4; i=p&15;
+	k=BGBDT_Rice_ReadNBits(ctx, j);
+	v=(i<<j)|k;
+	return(v);
+}

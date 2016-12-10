@@ -1,5 +1,8 @@
 #include <bteifgl.h>
 
+bool bgbdt_voxel_noshader;
+bool bgbdt_voxel_novbo;
+
 BGBDT_VoxChunkMesh *BGBDT_AllocChunkMesh(BGBDT_VoxWorld *world)
 {
 	BGBDT_VoxChunkMesh *tmp;
@@ -255,6 +258,7 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	BGBDT_VoxTypeInfo *tyi;
 	int tix, atxys, atxyt, atxyb;
 	int vxfl, fmfl, vty;
+	int i, j, k;
 
 	vty=td.vtypel|(td.vtypeh<<8);
 	tix=vty&4095;
@@ -265,6 +269,14 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 
 	if(tyi->flags&BGBDT_VOXFL_NOFACES)
 		return(0);
+
+	if((tyi->flags&BGBDT_VOXFL_GLOWLIGHT) && (tyi->glow>>8))
+	{
+		i=chk->bz*16+bz;
+		j=(tyi->glow>>8)&7;
+		if((i==255) && (j>0) && (j<4))
+			return(0);
+	}
 
 	xyzm=BGBDT_WorldGetChunkVoxCoord(
 		world, chk, bx, by, bz);
@@ -434,7 +446,7 @@ int BGBDT_VoxMesh_EmitBlockFacesNSBox(BGBDT_VoxWorld *world,
 	int vfl, nvxb;
 	int tix, atxys, atxyt, atxyb;
 	int vxfl, fmfl, vty;
-	int i;
+	int i, j;
 
 	vty=td.vtypel|(td.vtypeh<<8);
 	tix=vty&4095;
@@ -443,6 +455,14 @@ int BGBDT_VoxMesh_EmitBlockFacesNSBox(BGBDT_VoxWorld *world,
 		return(-1);
 	if(tyi->flags&BGBDT_VOXFL_NOFACES)
 		return(0);
+
+	if((tyi->flags&BGBDT_VOXFL_GLOWLIGHT) && (tyi->glow>>8))
+	{
+		i=chk->bz*16+bz;
+		j=(tyi->glow>>8)&7;
+		if((i==255) && (j>0) && (j<4))
+			return(0);
+	}
 
 	xyzm=BGBDT_WorldGetChunkVoxCoord(
 		world, chk, bx, by, bz);
@@ -720,7 +740,7 @@ void bgbdt_voxmesh_clrclamp(byte *clr, float cr, float cg, float cb)
 	int tr, tg, tb;
 	int te;
 	
-	if((cr<=1.2) && (cg<=1.2) && (cb<=1.2))
+	if(bgbdt_voxel_noshader || ((cr<=1.2) && (cg<=1.2) && (cb<=1.2)))
 	{
 		clr[0]=bgbdt_clamp01(cr)*255.0;
 		clr[1]=bgbdt_clamp01(cg)*255.0;
@@ -1083,12 +1103,31 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunkMesh *mesh)
 {
+	static int oqmrov=1;
 	BGBDT_VoxTriangle *tri;
 	byte *tbuf, *tbuf2;
 //	byte *cs, *ct;
 	int nv, ne, nm, c, sz, szt, id;
 	int i0, i1, i2;
 	int i, j, k;
+	
+	if(!mesh->nmat)
+	{
+		if(mesh->vabuf)
+		{
+			BGBDT_WorldFreeVoxelTemp(world, mesh->vabuf, mesh->sz_vabuf);
+			mesh->vabuf=NULL;
+		}
+
+		if(mesh->vbo_id>0)
+		{
+			id=mesh->vbo_id;
+			frglDeleteBuffers(1, &id);
+			mesh->vbo_id=0;
+		}
+
+		return(0);
+	}
 	
 	if(mesh->vabuf)
 	{
@@ -1186,20 +1225,34 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 	mesh->va_elem=(int *)(tbuf2+mesh->ofs_elem);
 	mesh->va_mesh=(int *)(tbuf2+mesh->ofs_mesh);
 
-	if(mesh->vbo_id<=0)
+	if(!bgbdt_voxel_novbo)
 	{
-		frglGenBuffers(1, &id);
-		frglBindBuffer(GL_ARRAY_BUFFER, id);
-		frglBufferData(GL_ARRAY_BUFFER,
-			mesh->sz_vabuf, mesh->vabuf, GL_STATIC_DRAW);
-		mesh->vbo_id=id;
-		frglBindBuffer(GL_ARRAY_BUFFER, 0);
+		if(mesh->vbo_id<=0)
+		{
+			frglGenBuffers(1, &id);
+			frglBindBuffer(GL_ARRAY_BUFFER, id);
+			frglBufferData(GL_ARRAY_BUFFER,
+				mesh->sz_vabuf, mesh->vabuf, GL_STATIC_DRAW);
+			mesh->vbo_id=id;
+			mesh->oqm_id=id;
+			frglBindBuffer(GL_ARRAY_BUFFER, 0);
+		}else
+		{
+			frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
+			frglBufferData(GL_ARRAY_BUFFER,
+				mesh->sz_vabuf, mesh->vabuf, GL_STATIC_DRAW);
+			frglBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
 	}else
 	{
-		frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
-		frglBufferData(GL_ARRAY_BUFFER,
-			mesh->sz_vabuf, mesh->vabuf, GL_STATIC_DRAW);
-		frglBindBuffer(GL_ARRAY_BUFFER, 0);
+		if(mesh->oqm_id<=0)
+		{
+			if(!oqmrov)
+				oqmrov++;
+			id=oqmrov;
+			mesh->oqm_id=id;
+			oqmrov=(oqmrov+1)&65535;
+		}
 	}
 
 	return(0);
@@ -1308,10 +1361,12 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 	if((bx|by|bz)>>4)
 		__debugbreak();
 
-	bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
+//	bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
+	bi=(((bz<<4)|by)<<4)|bx;
 
 	mesh=rgn->chkmesh[bi];
 
+#if 0
 //	if(mesh && !(accfl&BGBDT_ACCFL_NOLOAD))
 	if(mesh && !(accfl&(BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_DISTANT)))
 //	if(mesh)
@@ -1329,12 +1384,50 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 
 	if(mesh)
 		return(mesh);
+#endif
+
+#if 1
+	if(mesh)
+	{
+		if(!(accfl&(BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_DISTANT)))
+		{
+			chk=rgn->chkptr[bi];
+			if(chk && (chk->flags&BGBDT_CHKFL_MESHDIRTY))
+			{
+	//			printf("BGBDT_GetRegionChunkMesh: Flush mesh dirty, %p\n", chk);
+				chk->flags&=~BGBDT_CHKFL_MESHDIRTY;
+				BGBDT_FreeChunkMesh(world, mesh);
+				mesh=NULL;
+				rgn->chkmesh[bi]=NULL;
+				
+				/* Force redo to avoid ugly glitch */
+				rgn->lastpvs=0;
+				rgn->lastcvs=0;
+			}else
+			{
+				return(mesh);
+			}
+		}else
+		{
+			return(mesh);
+		}
+	}
+#endif
+
+	chk=rgn->chkptr[bi];
+	if(chk && (chk->flags&(BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_NOVISFACE)))
+		return(NULL);
 	
 	if(accfl&BGBDT_ACCFL_NOLOAD)
 		return(NULL);
 
 	if(!(rgn->chkptr[bi]) && !(rgn->chkofs[bi]) &&
 			!(accfl&BGBDT_ACCFL_ENNEWCHK))
+		return(NULL);
+
+	xyz=BGBDT_WorldGetRegionChunkCoord(world, rgn, bx, by, bz);
+	chk=BGBDT_WorldGetChunk(world, xyz, accfl);
+	if(chk && (chk->flags&(BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_NOVISFACE)))
 		return(NULL);
 
 	mesh=BGBDT_AllocChunkMesh(world);
@@ -1352,8 +1445,8 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 		}
 	}
 	
-	xyz=BGBDT_WorldGetRegionChunkCoord(world, rgn, bx, by, bz);
-	chk=BGBDT_WorldGetChunk(world, xyz, accfl);
+//	xyz=BGBDT_WorldGetRegionChunkCoord(world, rgn, bx, by, bz);
+//	chk=BGBDT_WorldGetChunk(world, xyz, accfl);
 	if(chk)
 	{
 		BGBDT_VoxMesh_RebuildChunkMesh(world, mesh, chk);

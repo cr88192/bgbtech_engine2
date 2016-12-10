@@ -483,3 +483,15 @@ void BGBDT_Rice_WriteQExpBase(BGBDT_RiceContext *ctx, int v, int k)
 //	j=v&((1<<((q+1)*k))-1);
 	BGBDT_Rice_WriteNBits(ctx, v, (q+1)*k);
 }
+
+void BGBDT_Rice_WriteAdExp2Rice(BGBDT_RiceContext *ctx, int v, int *rk)
+{
+	int i, j, k;
+	
+	i=v; j=0; k=*rk;
+	while(i>=16)
+		{ i>>=1; j++; }
+	i=(i&15)|(j<<4);
+	BGBDT_Rice_WriteAdRiceLL(ctx, i, rk);
+	BGBDT_Rice_WriteNBitsL(ctx, v, j);
+}

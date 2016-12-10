@@ -19,6 +19,7 @@ BGBDT_VoxData voxtg_td_sand;
 BGBDT_VoxData voxtg_td_log;
 BGBDT_VoxData voxtg_td_leaves;
 BGBDT_VoxData voxtg_td_grassclump;
+BGBDT_VoxData voxtg_td_fruitleaves;
 
 BGBDT_VoxData voxtg_td_lava;
 BGBDT_VoxData voxtg_td_water;
@@ -47,6 +48,7 @@ int BGBDT_VoxTg_SetupGenerate(
 	memset(&voxtg_td_log		, 0, sizeof(BGBDT_VoxData));
 	memset(&voxtg_td_leaves		, 0, sizeof(BGBDT_VoxData));
 	memset(&voxtg_td_grassclump	, 0, sizeof(BGBDT_VoxData));
+	memset(&voxtg_td_fruitleaves, 0, sizeof(BGBDT_VoxData));
 
 	memset(&voxtg_td_lava		, 0, sizeof(BGBDT_VoxData));
 	memset(&voxtg_td_water		, 0, sizeof(BGBDT_VoxData));
@@ -110,6 +112,10 @@ int BGBDT_VoxTg_SetupGenerate(
 	voxtg_td_grassclump.vtypel=vty;
 	voxtg_td_grassclump.vtypeh=vty>>8;
 
+	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "fruitleaves");
+	voxtg_td_fruitleaves.vtypel=vty;
+	voxtg_td_fruitleaves.vtypeh=vty>>8;
+
 
 	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
 	voxtg_td_lava.vtypel=vty;
@@ -170,8 +176,10 @@ int BGBDT_VoxTgMare_GenerateTree(
 			for(x=-2; x<3; x++)
 	{
 		d=x*x+y*y+z*z;
+//		d=(d-2)+(bgbdt_voxtg_vxrand()&3);
 //		if(d>(2*2+2*2+2*2))
-		if(d>8)
+//		if(d>8)
+		if(d>(6+(bgbdt_voxtg_vxrand()&3)))
 			continue;
 	
 		z1=z+h;
@@ -187,6 +195,12 @@ int BGBDT_VoxTgMare_GenerateTree(
 
 //		BGBDT_WorldSetVoxelData(world, xyz0,
 //			voxtg_td_air, BGBDT_ACCFL_ENNEWCHK);
+
+		if(!(bgbdt_voxtg_vxrand()&63))
+		{
+			BGBDT_WorldSetVoxelData(world, xyz0, voxtg_td_fruitleaves, 0);
+			continue;
+		}
 
 		BGBDT_WorldSetVoxelData(world, xyz0, voxtg_td_leaves, 0);
 	}
@@ -232,6 +246,15 @@ int BGBDT_VoxTgMare_GenerateChunkBasic(
 //		BGBDT_WorldSetChunkVoxelData(world, chk, xyz0, td_stone, 0);
 //		return(0);
 //	}
+
+	if((chk->bz>=8) && (chk->bz<15))
+	{
+		xyz0=BGBDT_WorldGetChunkVoxCoord(world, chk, 0, 0, 0);
+//		xyz0=BGBDT_WorldGetChunkVoxCoord(world, chk, x, y, z);
+		BGBDT_WorldSetChunkVoxelData(world, chk, xyz0,
+			voxtg_td_airsky, 0);
+		return(0);
+	}
 	
 	rsk=(chk->bx^chk->by^chk->bz)*251+world->wrlseed;
 	rsk=rsk*65521+1;
@@ -253,9 +276,23 @@ int BGBDT_VoxTgMare_GenerateChunkBasic(
 			continue;
 		}
 
-		if(vz==127)
+//		if(vz==127)
+		if(vz==255)
 		{
 			BGBDT_WorldSetChunkVoxelData(world, chk, xyz0, voxtg_td_sky, 0);
+
+			xyz2=xyz0;
+			xyz2.z=127<<BGBDT_XYZ_SHR_VOXEL;
+//			BGBDT_WorldSetChunkVoxelData(world, chk, xyz2, voxtg_td_airsky, 0);
+			BGBDT_WorldSetVoxelData(world, xyz2, voxtg_td_airsky, 0);
+
+			continue;
+		}
+
+		if(vz>=128)
+		{
+			BGBDT_WorldSetChunkVoxelData(world, chk, xyz0,
+				voxtg_td_airsky, 0);
 			continue;
 		}
 
@@ -286,7 +323,8 @@ int BGBDT_VoxTgMare_GenerateChunkBasic(
 //		zli=70+f7*32;
 		zli=70+f7*28;
 		if(zli<44)zli=44;
-		if(zli>112)zli=112;
+//		if(zli>112)zli=112;
+		if(zli>120)zli=120;
 
 //		f0=btge_scurve(f0);
 //		f1=btge_scurve(f1);
@@ -303,7 +341,7 @@ int BGBDT_VoxTgMare_GenerateChunkBasic(
 //		f2=f7*0.5;
 		f2=f7*1.0-0.5;
 
-		f=2*f0+(f1*0.5-0.25)+f2;
+		f=2*f0+(f1*0.5-0.25)+f2-0.15;
 		
 //		f=f*f;
 
@@ -330,7 +368,8 @@ int BGBDT_VoxTgMare_GenerateChunkBasic(
 			}
 		}else if((vz+4)>=zli)
 		{
-			if(vz<(64+3))
+//			if(vz<(64+3))
+			if((vz<(64+3)) && (zli<68))
 			{
 				BGBDT_WorldSetChunkVoxelData(world, chk, xyz0,
 					voxtg_td_sand, 0);

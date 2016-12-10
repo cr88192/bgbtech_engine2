@@ -1,7 +1,9 @@
 #include <bteifgl.h>
 
-//float bgbdt_voxel_drawdist=256;
-float bgbdt_voxel_drawdist=192;
+float bgbdt_voxel_drawdist=256;
+bool bgbdt_voxel_noshader=0;
+bool bgbdt_voxel_novbo=0;
+// float bgbdt_voxel_drawdist=192;
 
 void BGBDT_CalcCoordLocalOrigin(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, float *vec)
@@ -161,7 +163,7 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 
 		if(mesh->flags&BGBDT_MESHFL_QLIVE)
 		{
-			frglGetQueryObjectuiv(mesh->vbo_id, GL_QUERY_RESULT, &i);
+			frglGetQueryObjectuiv(mesh->oqm_id, GL_QUERY_RESULT, &i);
 			if(i<=0)
 			{
 				mesh->flags&=~BGBDT_MESHFL_QLIVE;
@@ -170,33 +172,33 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 			}
 		}
 
-		frglBeginQuery(GL_SAMPLES_PASSED, mesh->vbo_id);
+		frglBeginQuery(GL_SAMPLES_PASSED, mesh->oqm_id);
 	}
 
-	frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
+	if(mesh->vbo_id>0)
+		frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
 
 	for(i=0; i<mesh->va_nmesh; i++)
 	{
 		FRGL_TexMat_BindMaterial(mesh->va_mesh[i*4+2]);
 
-#if 1
-		FRGL_DrawPrim_DrawArraysNormalTexRGB(
-			GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
-			3, GL_SHORT, 3*2, (void *)(nlint)(mesh->ofs_xyz),
-			2, GL_HALF_FLOAT, 2*2, (void *)(nlint)(mesh->ofs_st),
-			3, GL_BYTE, 3, (void *)(nlint)(mesh->ofs_norm),
-			4, GL_UNSIGNED_BYTE, 4, (void *)(nlint)(mesh->ofs_rgba));
-#endif
-
-#if 0
-		FRGL_DrawPrim_DrawArraysNormalTexRGB(
-			GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
-			3, GL_SHORT, 3*2, mesh->va_xyz,
-			2, GL_HALF_FLOAT, 2*2, mesh->va_st,
-			3, GL_BYTE, 3, mesh->va_norm,
-			4, GL_UNSIGNED_BYTE, 4, mesh->va_rgba);
-#endif
-
+		if(mesh->vbo_id>0)
+		{
+			FRGL_DrawPrim_DrawArraysNormalTexRGB(
+				GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
+				3, GL_SHORT, 3*2, (void *)(nlint)(mesh->ofs_xyz),
+				2, GL_HALF_FLOAT, 2*2, (void *)(nlint)(mesh->ofs_st),
+				3, GL_BYTE, 3, (void *)(nlint)(mesh->ofs_norm),
+				4, GL_UNSIGNED_BYTE, 4, (void *)(nlint)(mesh->ofs_rgba));
+		}else
+		{
+			FRGL_DrawPrim_DrawArraysNormalTexRGB(
+				GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
+				3, GL_SHORT, 3*2, mesh->va_xyz,
+				2, GL_HALF_FLOAT, 2*2, mesh->va_st,
+				3, GL_BYTE, 3, mesh->va_norm,
+				4, GL_UNSIGNED_BYTE, 4, mesh->va_rgba);
+		}
 #if 0
 		FRGL_DrawPrim_DrawElementsNormalTexRGB(
 			GL_TRIANGLES, mesh->va_mesh[i*4+0],
@@ -237,7 +239,7 @@ void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
 
 //	BGBDT_UpdateVoxRegionPVS(world, rgn);
 
-	t0=clock();
+	t0=frgl_clock();
 	if(t0<(rgn->lastcvs+25) && (t0>rgn->lastcvs))
 		return;
 	rgn->lastcvs=t0;
@@ -297,7 +299,7 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 	float lorg[4];
 	BGBDT_VoxChunkMesh *mesh;
 	BGBDT_VoxChunk *chk;
-	double f, g;
+	double f, g, d;
 	int bx, by, bz;
 	int i;
 
@@ -314,7 +316,10 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 //	if(V3F_DIST(world->camorg, lorg)>256)
 //		return;
 
-	if(V3F_DIST(world->camorg, lorg)>(bgbdt_voxel_drawdist*1.5))
+	d=bgbdt_voxel_drawdist;
+	if(d<128)d=128;
+//	if(V3F_DIST(world->camorg, lorg)>(bgbdt_voxel_drawdist*1.5))
+	if(V3F_DIST(world->camorg, lorg)>(d*1.5))
 		return;
 
 //	BGBDT_TickVoxRegion(world, rgn);
@@ -383,7 +388,11 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 	int x, y;
 	int tx;
 
-	world->tickstart=clock();
+	world->tickstart=frgl_clock();
+
+	bgbdt_voxel_drawdist=FRGL_CvarGetNum("r_drawdist");
+	bgbdt_voxel_noshader=FRGL_CvarGetNum("r_noshader");
+	bgbdt_voxel_novbo=FRGL_CvarGetNum("r_novbo");
 
 	FRGL_TexMat_BindMaterial(0);
 
@@ -512,5 +521,5 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 
 	FRGL_TexMat_BindMaterial(0);
 
-	world->dt_draw=clock()-world->tickstart;
+	world->dt_draw=frgl_clock()-world->tickstart;
 }

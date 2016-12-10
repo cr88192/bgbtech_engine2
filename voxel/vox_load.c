@@ -238,6 +238,45 @@ int BGBDT_ReadLzSTF(BGBDT_RiceContext *ctx, int *rk)
 	return(sy0);
 }
 
+int BGBDT_ReadLzSTF3(BGBDT_RiceContext *ctx, int *rk)
+{
+	int ix0, ix1;
+	int sy0, sy1;
+	
+	ix0=ctx->ReadAdRiceLL(ctx, rk);
+	ix1=(ix0*(57344-ix0*68))>>16;
+	sy0=ctx->lzwin[ix0];	sy1=ctx->lzwin[ix1];
+	ctx->lzwin[ix0]=sy1;	ctx->lzwin[ix1]=sy0;
+	ctx->lzidx[sy0]=ix1;	ctx->lzidx[sy1]=ix0;
+	return(sy0);
+}
+
+int BGBDT_ReadLzSMTF2(BGBDT_RiceContext *ctx, int *rk)
+{
+	int ix0, ix1, ix2, ix3;
+	int sy0, sy1;
+	
+	ix0=ctx->ReadAdRiceLL(ctx, rk);
+	
+	if(ix0<72)
+	{
+		ix1=(ix0*(57344-ix0*72))>>16;
+		ix2=(byte)(ix0+ctx->lzwpos);
+		ix3=(byte)(ix1+ctx->lzwpos);
+	}else
+	{
+		ix1=-1;
+		ix2=(byte)(ix0+ctx->lzwpos);
+		ix3=(byte)(ix1+ctx->lzwpos);
+		ctx->lzwpos--;
+	}
+
+	sy0=ctx->lzwin[ix2];	sy1=ctx->lzwin[ix3];
+	ctx->lzwin[ix2]=sy1;	ctx->lzwin[ix3]=sy0;
+	
+	return(sy0);
+}
+
 int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 	byte *obuf, int obsz)
 {
@@ -252,8 +291,20 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 	ctx->lzwpos=0;
 	
 	ctx->ReadAdRiceLL=BGBDT_Rice_ReadAdRiceDc;
+	ctx->ReadAdDist=BGBDT_Rice_ReadAdRiceDc;
+	ctx->ReadSym=BGBDT_ReadLzSTF;
 	if((ctx->lzctrl&7)!=0)
+	{
 		ctx->ReadAdRiceLL=BGBDT_Rice_ReadAdRiceLL;
+		ctx->ReadAdDist=BGBDT_Rice_ReadAdRiceLL;
+
+		if((ctx->lzctrl&7)==2)
+		{
+			ctx->ReadAdDist=BGBDT_Rice_ReadAdExp2Rice;
+//			ctx->ReadSym=BGBDT_ReadLzSTF3;
+			ctx->ReadSym=BGBDT_ReadLzSMTF2;
+		}
+	}
 	
 	kr=4; ks=4; kl=4; kd=4; ll=1; ld=1;
 	ct=obuf; cte=obuf+obsz;
@@ -271,7 +322,10 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 				break;
 			}
 			while(ct<ct1)
-				*ct++=BGBDT_ReadLzSTF(ctx, &ks);
+			{
+//				*ct++=BGBDT_ReadLzSTF(ctx, &ks);
+				*ct++=ctx->ReadSym(ctx, &ks);
+			}
 		}
 
 //		l=BGBDT_Rice_ReadAdRiceDc(ctx, &kl);
@@ -285,7 +339,8 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 		}
 		
 //		d=BGBDT_Rice_ReadAdRiceDc(ctx, &kd);
-		d=ctx->ReadAdRiceLL(ctx, &kd);
+//		d=ctx->ReadAdRiceLL(ctx, &kd);
+		d=ctx->ReadAdDist(ctx, &kd);
 		if(l<3)
 		{
 			if(l==2)

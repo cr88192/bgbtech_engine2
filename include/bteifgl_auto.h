@@ -195,6 +195,7 @@ void FRGL_EndInputFrame();
 BTEIFGL_API short *FRGL_GetKeybuf();
 BTEIFGL_API int FRGL_TimeMS();
 BTEIFGL_API int FRGL_DeltaMS(int *l);
+BTEIFGL_API int frgl_clock(void);
 BTEIFGL_API void FRGL_RegisterShutdown(void (*fcn)());
 BTEIFGL_API void FRGL_Shutdown();
 //AHSRC:base/frgl_menu.c
@@ -212,11 +213,13 @@ BTEIFGL_API int FRGL_LookupShaderSource(char *name, int ty);
 BTEIFGL_API int FRGL_LoadShaderSource(char *name, int ty);
 BTEIFGL_API int FRGL_LookupShader(char *name);
 BTEIFGL_API int FRGL_LoadShader(char *name);
+BTEIFGL_API int FRGL_UnloadShaders(void);
 BTEIFGL_API int FRGL_BindShader(int num);
 BTEIFGL_API int FRGL_UnbindShader();
 BTEIFGL_API int FRGL_CheckGlExtension(char *str);
 BTEIFGL_API int FRGL_GetFreeVideoMemory();
 BTEIFGL_API int frglGetUniformLocation(int shader, char *name);
+void FRGL_FlushUniformLocationHash(void);
 BTEIFGL_API int frglGetUniformLocationF(int shader, char *name);
 BTEIFGL_API void FRGL_ErrorStatusUniform(char *name);
 BTEIFGL_API int FRGL_CheckForUniform(char *name);
@@ -392,6 +395,8 @@ BTEIFGL_API char *frgl_rdtoa4p(double v);
 BTEIFGL_API s64 frgl_ratoi(char *str);
 //AHSRC:base/frgl_texmat.c
 int frgl_texmat_init();
+void FRGL_TexMat_FlushMatShaders(void);
+BTEIFGL_API void FRGL_TexMat_FlushShaders(void);
 int frgl_texmat_hashname(char *name);
 BTEIFGL_API FRGL_TextureMaterial *FRGL_TexMat_LookupInfo(char *name);
 BTEIFGL_API FRGL_TextureMaterial *FRGL_TexMat_GetInfo(char *name);
@@ -674,6 +679,7 @@ BTEIFGL_API int BGBDT_MsImaAdpcm_MonoSamplesFromBlockSize(int sz);
 BTEIFGL_API int BGBDT_MsImaAdpcm_MonoBlockSizeFromSamples(int len);
 BTEIFGL_API int BGBDT_MsImaAdpcm_StereoSamplesFromBlockSize(int sz);
 BTEIFGL_API int BGBDT_MsImaAdpcm_StereoBlockSizeFromSamples(int len);
+BTEIFGL_API int BGBDT_MsImaAdpcm_MonoInitIndex(s16 *ibuf);
 void BGBDT_SndBTAC1C_DecodeStereoBlockStereo(byte *ibuf, s16 *obuf, int len);
 void BGBDT_SndBTAC1C_DecodeMonoBlockStereo(byte *ibuf, s16 *obuf, int len);
 void BGBDT_SndBTAC1C_DecodeJointBlockStereo(byte *ibuf, s16 *obuf, int len);
@@ -684,6 +690,15 @@ BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockStereoLg2(byte *ibuf, s16 *obuf, int
 BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockMonoLg2(byte *ibuf, s16 *obuf, int lg2);
 BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockMonoLg2(s16 *ibuf, byte *obuf, int lg2, int *ridx);
 BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockStereoLg2(s16 *ibuf, byte *obuf, int lg2, int *ridx);
+//AHSRC:base/snd_btac1c1.c
+BTEIFGL_API void BGBDT_SndBTAC1C1_DecodeBlockMonoSRI(byte *ibuf, s16 *obuf, int len);
+int BGBDT_SndBTAC1C1_QuantSBaseSRI(int diff);
+int BGBDT_SndBTAC1C1_QuantSRangeSRI(int diff);
+BTEIFGL_API void BGBDT_SndBTAC1C1_EncodeBlockMonoSRI(s16 *ibuf, byte *obuf, int len, int *ridx, int usetag);
+BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockMono(byte *ibuf, s16 *obuf, int len);
+int BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(s16 *ibuf0, s16 *ibuf1, int len);
+BTEIFGL_API void BGBDT_SndBTAC1C1_EncodeBlockMono(s16 *ibuf, byte *obuf, int len, int *ridx);
+BTEIFGL_API void BGBDT_SndBTAC1C1_EncodeBlockMonoLg2(s16 *ibuf, byte *obuf, int lg2, int *ridx);
 //AHSRC:base/snd_mixer.c
 BTEIFGL_API int BGBDT_Sound_AllocChanId(void);
 BTEIFGL_API int BGBDT_Sound_FreeChanId(int id);
@@ -930,6 +945,7 @@ int BGBDT_Rice_ReadAdRiceLLI(BGBDT_RiceContext *ctx, int *rk);
 int BGBDT_Rice_ReadAdRiceLL(BGBDT_RiceContext *ctx, int *rk);
 int BGBDT_Rice_ReadAdSRiceDc(BGBDT_RiceContext *ctx, int *rk);
 int BGBDT_Rice_ReadQExpBase(BGBDT_RiceContext *ctx, int k);
+int BGBDT_Rice_ReadAdExp2Rice(BGBDT_RiceContext *ctx, int *rk);
 //AHSRC:voxel/vox_draw.c
 void BGBDT_CalcCoordLocalOrigin(BGBDT_VoxWorld *world,BGBDT_VoxCoord xyz, float *vec);
 float BGBDT_CalcCameraChunkMeshDistance(BGBDT_VoxWorld *world,BGBDT_VoxChunkMesh *mesh);
@@ -958,10 +974,13 @@ BTEIFGL_API int BGBDT_VoxLight_CheckClearBlockLightRadius(BGBDT_VoxWorld *world,
 BTEIFGL_API int BGBDT_VoxLight_GetBlockLightIntensity(BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, BGBDT_VoxData td);
 int BGBDT_VoxEnt_UpdateChunkSpawnEnts(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 BTEIFGL_API int BGBDT_VoxEnt_CheckSpawnEnitity(BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, BGBDT_VoxData td, char *cname);
+int BGBDT_WorldChunkCompact(BGBDT_VoxWorld *world,BGBDT_VoxChunk *chk);
 //AHSRC:voxel/vox_load.c
 int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,byte *obuf, int obsz);
 int BGBDT_ReadLzSTF(BGBDT_RiceContext *ctx, int *rk);
+int BGBDT_ReadLzSTF3(BGBDT_RiceContext *ctx, int *rk);
+int BGBDT_ReadLzSMTF2(BGBDT_RiceContext *ctx, int *rk);
 int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,byte *obuf, int obsz);
 int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,BGBDT_VoxChunk *chk, byte *ibuf, int ibsz, int accfl);
 int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,BGBDT_VoxChunk *chk, byte *ibuf, int accfl);
@@ -1019,8 +1038,12 @@ void BGBDT_Rice_WriteAdRiceILL(BGBDT_RiceContext *ctx, int val, int *rk);
 void BGBDT_Rice_WriteAdRiceLL(BGBDT_RiceContext *ctx, int val, int *rk);
 int BGBDT_Rice_FlushBits(BGBDT_RiceContext *ctx);
 void BGBDT_Rice_WriteQExpBase(BGBDT_RiceContext *ctx, int v, int k);
+void BGBDT_Rice_WriteAdExp2Rice(BGBDT_RiceContext *ctx, int v, int *rk);
 //AHSRC:voxel/vox_save.c
-int BGBDT_EmitLzSTF(BGBDT_RiceContext *ctx, int sym, int *rk);
+void BGBDT_EmitLzSTF(BGBDT_RiceContext *ctx, int sym, int *rk);
+void BGBDT_EmitLzSTF3(BGBDT_RiceContext *ctx, int sym, int *rk);
+void BGBDT_EmitLzSMTF2(BGBDT_RiceContext *ctx, int sym, int *rk);
+void BGBDT_ChunkLzHashChi(BGBDT_RiceContext *ctx,byte *ics, int *chi);
 int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,byte *ics, byte *icss, byte *icse, int *rbl, int *rbd);
 int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len);
 int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,byte *ibuf, int ibsz);
@@ -1037,6 +1060,7 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 //AHSRC:voxel/vox_tick.c
 void BGBDT_RandomTickRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz);
 void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
+void BGBDT_UpdateVoxRegionPVS_MeshUpd(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 void BGBDT_UpdateVoxRegionPVS(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world);
 void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz, BGBDT_VoxData td);
@@ -1087,6 +1111,7 @@ float BGBDT_VoxelWorld_NoiseVox4(BGBDT_VoxWorld *world, BGBDT_NoiseSample *samp,
 float btge_scurve(float a);
 int BGBDT_VoxelWorld_GenerateChunkBasic(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 int BGBDT_CheckRgnGenChunkBasicP(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, int bx, int by, int bz);
+int BGBDT_CheckRgnGenChunkBasic256P(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, int bx, int by, int bz);
 BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld(char *name);
 BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld2(char *name, char *wrlty);
 BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(BGBDT_VoxWorld *wrl, char *name, char *wrlty);
@@ -1148,9 +1173,11 @@ BTEIFGL_API void Bt2Ent_SetApplyWorldFlags(int flag);
 BTEIFGL_API void Bt2Ent_SetClearWorldFlags(int flag);
 BTEIFGL_API int Bt2Ent_GetInvenSlot(int slot);
 BTEIFGL_API int Bt2Ent_SetInvenSlot(int slot, int val);
+BTEIFGL_API int Bt2Ent_ClearInven(void);
 BTEIFGL_API s64 Bt2Ent_GetTokenSlot(int slot);
 BTEIFGL_API int Bt2Ent_SetTokenSlot(int slot, s64 val);
 BTEIFGL_API int Bt2Ent_GetNumToken(void);
+BTEIFGL_API int Bt2Ent_ClearTokens(void);
 BTEIFGL_API void Bt2Ent_GiveItem(int item);
 BTEIFGL_API int Bt2Ent_TakeItem(int item);
 BTEIFGL_API int Bt2Ent_CheckItem(int item);

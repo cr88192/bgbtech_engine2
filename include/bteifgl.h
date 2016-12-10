@@ -25,6 +25,10 @@
 
 #endif
 
+#ifndef offsetof
+#define offsetof(str, var)	((nlint)(((str *)0)->var))
+#endif
+
 #ifndef frgl_state
 #define frgl_state	((FRGL_State *)FRGL_GetState())
 #endif

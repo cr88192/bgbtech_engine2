@@ -568,7 +568,8 @@ int BGBDT_Snd_GetSampleMono_MADPCM(BGBDT_SndSampler *samp, int pos)
 	
 	if(i==0)
 	{
-		BGBDT_MsImaAdpcm_DecodeBlockMono(
+//		BGBDT_MsImaAdpcm_DecodeBlockMono(
+		BGBDT_SndBTAC1C_DecodeBlockMono(
 			samp->data+(b*samp->wf_blkalign),
 			sb, samp->sblksz);
 		return(sb[r]);
@@ -643,7 +644,9 @@ int BGBDT_Snd_GetSampleMonoI_MADPCM_2N8(BGBDT_SndSampler *samp, int pos)
 	
 	if(i==0)
 	{
-		BGBDT_MsImaAdpcm_DecodeBlockMono(
+#if 0
+//		BGBDT_MsImaAdpcm_DecodeBlockMono(
+		BGBDT_SndBTAC1C_DecodeBlockMono(
 			samp->data+(b*samp->wf_blkalign),
 			sb, samp->sblksz);
 		
@@ -653,6 +656,11 @@ int BGBDT_Snd_GetSampleMonoI_MADPCM_2N8(BGBDT_SndSampler *samp, int pos)
 			k=(j+1)>>(samp->cblg2-3);
 			sb[j]=sb[j-k];
 		}
+#endif
+
+		BGBDT_SndBTAC1C_DecodeBlockMonoLg2(
+			samp->data+(b*samp->wf_blkalign),
+			sb, samp->cblg2);
 		
 		return(sb[r]);
 	}

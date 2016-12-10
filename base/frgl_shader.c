@@ -8,6 +8,11 @@
 #include <commctrl.h>
 #endif
 
+char *frgl_shadersrc_name[1024];
+int frgl_shadersrc_hdl[1024];
+int frgl_shadersrc_cnt;
+// int frgl_shadersrc_cur;
+
 char *frgl_shader_name[1024];
 int frgl_shader_hdl[1024];
 int frgl_shader_cnt;
@@ -128,6 +133,7 @@ BTEIFGL_API int FRGL_InitShader()
 	printf("FRGL_InitShader: %s\n", pglCreateShader?"OK":"Fail");
 
 	frgl_shader_cnt=0;
+	frgl_shadersrc_cnt=0;
 
 	return(1);
 }
@@ -141,9 +147,9 @@ BTEIFGL_API int FRGL_LookupShaderSource(char *name, int ty)
 	sprintf(tb, "%s.%s", name,
 		(ty==GL_VERTEX_SHADER)?"vert":"frag");
 
-	for(i=0; i<frgl_shader_cnt; i++)
-		if(!strcmp(frgl_shader_name[i], tb))
-			return(frgl_shader_hdl[i]);
+	for(i=0; i<frgl_shadersrc_cnt; i++)
+		if(!strcmp(frgl_shadersrc_name[i], tb))
+			return(frgl_shadersrc_hdl[i]);
 	return(-1);
 }
 
@@ -187,9 +193,9 @@ BTEIFGL_API int FRGL_LoadShaderSource(char *name, int ty)
 		return(-1);
 	}
 
-	j=frgl_shader_cnt++;
-	frgl_shader_name[j]=strdup(tb);
-	frgl_shader_hdl[j]=i;
+	j=frgl_shadersrc_cnt++;
+	frgl_shadersrc_name[j]=strdup(tb);
+	frgl_shadersrc_hdl[j]=i;
 
 	return(i);
 }
@@ -233,6 +239,30 @@ BTEIFGL_API int FRGL_LoadShader(char *name)
 	frgl_shader_hdl[i]=k;
 
 	return(k);
+}
+
+BTEIFGL_API int FRGL_UnloadShaders(void)
+{
+	int i, j;
+
+	pglUseProgram(0);
+
+	FRGL_FlushUniformLocationHash();
+
+	for(i=0; i<frgl_shader_cnt; i++)
+	{
+		pglDeleteProgram(frgl_shader_hdl[i]);
+	}
+
+	for(i=0; i<frgl_shadersrc_cnt; i++)
+	{
+		pglDeleteShader(frgl_shadersrc_hdl[i]);
+	}
+	
+	frgl_shader_cnt=0;
+	frgl_shadersrc_cnt=0;
+
+	return(-1);
 }
 
 BTEIFGL_API int FRGL_BindShader(int num)
@@ -306,11 +336,23 @@ BTEIFGL_API int frglGetUniformLocation(int shader, char *name)
 	return(i);
 }
 
+static int hash_sdr[4096];
+static char *hash_name[4096];
+static int hash_var[4096];
+
+void FRGL_FlushUniformLocationHash(void)
+{
+	int i;
+	
+	for(i=0; i<4096; i++)
+	{
+		hash_sdr[i]=0;
+		hash_name[i]=NULL;
+	}
+}
+
 BTEIFGL_API int frglGetUniformLocationF(int shader, char *name)
 {
-	static int hash_sdr[4096];
-	static char *hash_name[4096];
-	static int hash_var[4096];
 	char *s;
 	int i, hi;
 //	return(frglGetAttribLocation(frgl_shader_cur, name));
@@ -351,7 +393,8 @@ BTEIFGL_API void FRGL_ErrorStatusUniform(char *name)
 	while(i!=GL_NO_ERROR)
 	{
 		printf("FRGL_ErrorStatusUniform: Var=%s Error 0x%04X\n", name, i);
-		*(int *)-1=-1;
+		__debugbreak();
+//		*(int *)-1=-1;
 		i=glGetError();
 	}
 }

@@ -136,6 +136,37 @@ extern "C" {
 #define V3F_LEN(a)		(sqrt(V3F_DOT(a, a)))
 #define V4F_LEN(a)		(sqrt(V4F_DOT(a, a)))
 
+static INLINE V2F_DIST2I(float *a, float *b)
+{
+	float d, dx, dy;
+	dx=a[0]-b[0];
+	dy=a[1]-b[1];
+	d=dx*dx+dy*dy;
+	return(d);
+}
+
+static INLINE V3F_DIST2I(float *a, float *b)
+{
+	float d, dx, dy, dz;
+	dx=a[0]-b[0];
+	dy=a[1]-b[1];
+	dz=a[2]-b[2];
+	d=dx*dx+dy*dy+dz*dz;
+	return(d);
+}
+
+static INLINE V4F_DIST2I(float *a, float *b)
+{
+	float d, dx, dy, dz, dw;
+	dx=a[0]-b[0];
+	dy=a[1]-b[1];
+	dz=a[2]-b[2];
+	dw=a[3]-b[3];
+	d=dx*dx+dy*dy+dz*dz+dw*dw;
+	return(d);
+}
+
+#if 1
 #define V1F_DIST2(a, b)		(((a)-(b))*((a)-(b)))
 #define V2F_DIST2(a, b)		(V1F_DIST2((a)[0], (b)[0])+ \
 							V1F_DIST2((a)[1], (b)[1]))
@@ -146,10 +177,15 @@ extern "C" {
 							V1F_DIST2((a)[1], (b)[1])+ \
 							V1F_DIST2((a)[2], (b)[2])+ \
 							V1F_DIST2((a)[3], (b)[3]))
+#endif
 
-#define V2F_DIST(a, b)		(sqrt(V2F_DIST2(a, b)))
-#define V3F_DIST(a, b)		(sqrt(V3F_DIST2(a, b)))
-#define V4F_DIST(a, b)		(sqrt(V4F_DIST2(a, b)))
+#define V2F_DISTP(a, b)		(sqrt(V2F_DIST2(a, b)))
+#define V3F_DISTP(a, b)		(sqrt(V3F_DIST2(a, b)))
+#define V4F_DISTP(a, b)		(sqrt(V4F_DIST2(a, b)))
+
+#define V2F_DIST(a, b)		(sqrt(V2F_DIST2I(a, b)))
+#define V3F_DIST(a, b)		(sqrt(V3F_DIST2I(a, b)))
+#define V4F_DIST(a, b)		(sqrt(V4F_DIST2I(a, b)))
 
 #define V2F_ZERO(a)		(a)[0]=0; (a)[1]=0;
 #define V3F_ZERO(a)		(a)[0]=0; (a)[1]=0; (a)[2]=0;

@@ -880,6 +880,11 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 			chk->mvoxinfo=isz;
 			memcpy(&(chk->voxinfo[0]), &td, sizeof(BGBDT_VoxData));
 			return(0);
+		}else if(chk->nvoxinfo<=0)
+		{
+			chk->nvoxinfo=1;
+			memcpy(&(chk->voxinfo[0]), &td, sizeof(BGBDT_VoxData));
+			return(0);
 		}
 
 //		if(chk->voxinfo && (chk->nvoxinfo==1))
@@ -931,8 +936,11 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 		ix=chk->voxidx[bn];
 	}
 
-	if(!memcmp(&(chk->voxinfo[ix]), &td, sizeof(BGBDT_VoxData)))
-		return(0);
+	if(chk->nvoxinfo>0)
+	{
+		if(!memcmp(&(chk->voxinfo[ix]), &td, sizeof(BGBDT_VoxData)))
+			return(0);
+	}
 
 	td1=chk->voxinfo[ix];
 	if((td1.vtypel==td.vtypel) && (td1.vtypeh==td.vtypeh) &&

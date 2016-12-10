@@ -154,6 +154,14 @@ BTEIFGL_API int Bt2Ent_SetInvenSlot(int slot, int val)
 	return(oval);
 }
 
+BTEIFGL_API int Bt2Ent_ClearInven(void)
+{
+	int i;
+	for(i=0; i<(8*16); i++)
+		bt2ent_invslot[i]=0;
+	return(0);
+}
+
 BTEIFGL_API s64 Bt2Ent_GetTokenSlot(int slot)
 {
 	if((slot<0) || (slot>=1024))
@@ -181,6 +189,11 @@ BTEIFGL_API int Bt2Ent_GetNumToken(void)
 	return(bt2ent_ntoken);
 }
 
+BTEIFGL_API int Bt2Ent_ClearTokens(void)
+{
+	bt2ent_ntoken=0;
+	return(0);
+}
 
 BTEIFGL_API void Bt2Ent_GiveItem(int item)
 {

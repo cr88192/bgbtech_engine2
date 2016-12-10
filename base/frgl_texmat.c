@@ -8,6 +8,8 @@ float frgl_texmat_expose=1.0;
 
 int frgl_texmat_normdfl;
 
+bool bgbdt_voxel_noshader;
+
 int frgl_texmat_init()
 {
 	static int init=0;
@@ -19,6 +21,26 @@ int frgl_texmat_init()
 	frgl_texmat_normdfl=Tex_LoadFile("textures/normdfl", NULL, NULL);
 
 	return(1);
+}
+
+void FRGL_TexMat_FlushMatShaders(void)
+{
+	FRGL_TextureMaterial *cur;
+	int i;
+
+	for(i=0; i<frgl_texmat_ninfos; i++)
+	{
+		cur=frgl_texmat_infos[i];
+		if(!cur)
+			continue;
+		cur->use_pgm=0;
+	}
+}
+
+BTEIFGL_API void FRGL_TexMat_FlushShaders(void)
+{
+	FRGL_TexMat_FlushMatShaders();
+	FRGL_UnloadShaders();
 }
 
 int frgl_texmat_hashname(char *name)
@@ -118,7 +140,8 @@ BTEIFGL_API int FRGL_TexMat_CheckLoadInfo(
 		if(!strcmp(a[0], "shader"))
 		{
 //			mat->alt_img=frgl_strdup(a[1]);
-			mat->use_pgm=FRGL_LoadShader(a[1]);
+			mat->shader=frgl_strdup(a[1]);
+//			mat->use_pgm=FRGL_LoadShader(a[1]);
 			continue;
 		}
 	}
@@ -249,8 +272,16 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 	else
 		{ glBindTexture(GL_TEXTURE_2D, cur->basetex); }
 
-	if(cur->use_pgm>0)
+//	if(cur->use_pgm>0)
+	if(cur->shader && !bgbdt_voxel_noshader)
 	{
+		if(cur->use_pgm<=0)
+		{
+			cur->use_pgm=FRGL_LoadShader(cur->shader);
+			if(cur->use_pgm<=0)
+				return(-1);
+		}
+	
 		FRGL_BindShader(cur->use_pgm);
 		FRGL_Uniform1i("texBase", 0);
 

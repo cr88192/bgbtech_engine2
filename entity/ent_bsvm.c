@@ -917,7 +917,7 @@ BTEIFGL_API int Bt2Ent_CheckRayEnt(
 	if(d>de)d=de;
 
 	V3F_ADDSCALE(rso, rdir, d, cpa);
-	cpd=V2F_DIST(eo2, cpa);
+	cpd=V2F_DISTP(eo2, cpa);
 	if(cpd>=erad)
 		return(0);
 

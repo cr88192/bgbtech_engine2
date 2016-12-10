@@ -609,3 +609,25 @@ BS2VM_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim)
 		return(BSVM2_EXS_RUNLIMIT);
 	return(ctx->status);
 }
+
+int BSVM2_Interp_RunDoWork(BGBDT_WorkItem *item)
+{
+	int i;
+
+	i=BSVM2_Interp_RunContext(item->data, 16384);
+	if(i==BSVM2_EXS_RUNLIMIT)
+		return(1);
+	
+	return(0);
+}
+
+BS2VM_API BGBDT_WorkItem *BSVM2_Interp_RunContextWork(BSVM2_Context *ctx)
+{
+	BGBDT_WorkItem *tmp;
+	
+	tmp=BGBDT_Work_AllocItem();
+	tmp->data=ctx;
+	tmp->DoWork=BSVM2_Interp_RunDoWork;
+	BGBDT_Work_SubmitItem(tmp);
+	return(tmp);
+}

@@ -1,4 +1,4 @@
-int BGBDT_EmitLzSTF(BGBDT_RiceContext *ctx, int sym, int *rk)
+void BGBDT_EmitLzSTF(BGBDT_RiceContext *ctx, int sym, int *rk)
 {
 	int ix0, ix1;
 	int sy0, sy1;
@@ -11,25 +11,132 @@ int BGBDT_EmitLzSTF(BGBDT_RiceContext *ctx, int sym, int *rk)
 	
 //	BGBDT_Rice_WriteAdRiceDc(ctx, ix0, rk);
 	ctx->WriteAdRiceLL(ctx, ix0, rk);
-	return(0);
+//	return(0);
+}
+
+void BGBDT_EmitLzSTF3(BGBDT_RiceContext *ctx, int sym, int *rk)
+{
+	int ix0, ix1;
+	int sy0, sy1;
+
+//	ctx->lzstat[sym]++;
+	
+	ix0=ctx->lzidx[sym];
+	ix1=(ix0*(57344-ix0*68))>>16;
+	sy0=ctx->lzwin[ix0];	sy1=ctx->lzwin[ix1];
+	ctx->lzwin[ix0]=sy1;	ctx->lzwin[ix1]=sy0;
+	ctx->lzidx[sy0]=ix1;	ctx->lzidx[sy1]=ix0;
+	
+	ctx->WriteAdRiceLL(ctx, ix0, rk);
+}
+
+void BGBDT_EmitLzSMTF2(BGBDT_RiceContext *ctx, int sym, int *rk)
+{
+	int ix0, ix1, ix2, ix3;
+	int sy0, sy1;
+
+	ix0=ctx->lzidx[sym];
+	ix0=(byte)(ix0-ctx->lzwpos);
+	
+	if(ix0<72)
+	{
+		ix1=(ix0*(57344-ix0*72))>>16;
+		ix2=(byte)(ix0+ctx->lzwpos);
+		ix3=(byte)(ix1+ctx->lzwpos);
+	}else
+	{
+		ix1=-1;
+		ix2=(byte)(ix0+ctx->lzwpos);
+		ix3=(byte)(ix1+ctx->lzwpos);
+		ctx->lzwpos--;
+	}
+
+	sy0=ctx->lzwin[ix2];	sy1=ctx->lzwin[ix3];
+	ctx->lzwin[ix2]=sy1;	ctx->lzwin[ix3]=sy0;
+	ctx->lzidx[sy0]=ix3;	ctx->lzidx[sy1]=ix2;
+	
+	ctx->WriteAdRiceLL(ctx, ix0, rk);
+}
+
+void BGBDT_ChunkLzHashChi(BGBDT_RiceContext *ctx,
+	byte *ics, int *chi)
+{
+	int h;
+
+//	h=((ics[0]*251+ics[1])*251+ics[2])*251;
+	h=((ics[0]*251^ics[1])*251^ics[2])*251;
+
+#if 0
+	chi[0]=(h>>8)&1023;
+	h=h*251+31;
+	chi[1]=1024|((h>>8)&1023);
+	h=h*251+31;
+	chi[2]=1024|((h>>8)&1023);
+	h=h*251+31;
+	chi[3]=1024|((h>>8)&1023);
+#endif
+
+#if 0
+	h=(h>>9)&511;
+	chi[0]=(h<<2)|0;
+	chi[1]=(h<<2)|1;
+	chi[2]=(h<<2)|2;
+	chi[3]=(h<<2)|3;
+#endif
+
+#if 0
+	h=(h>>9)&255;
+	chi[0]=(h<<3)|0;
+	chi[1]=(h<<3)|1;
+	chi[2]=(h<<3)|2;
+	chi[3]=(h<<3)|3;
+	chi[4]=(h<<3)|4;
+	chi[5]=(h<<3)|5;
+	chi[6]=(h<<3)|6;
+	chi[7]=(h<<3)|7;
+#endif
+
+#if 1
+	h=(h>>9)&255;
+	chi[ 0]=(h<<4)| 0;
+	chi[ 1]=(h<<4)| 1;
+	chi[ 2]=(h<<4)| 2;
+	chi[ 3]=(h<<4)| 3;
+	chi[ 4]=(h<<4)| 4;
+	chi[ 5]=(h<<4)| 5;
+	chi[ 6]=(h<<4)| 6;
+	chi[ 7]=(h<<4)| 7;
+	chi[ 8]=(h<<4)| 8;
+	chi[ 9]=(h<<4)| 9;
+	chi[10]=(h<<4)|10;
+	chi[11]=(h<<4)|11;
+	chi[12]=(h<<4)|12;
+	chi[13]=(h<<4)|13;
+	chi[14]=(h<<4)|14;
+	chi[15]=(h<<4)|15;
+#endif
 }
 
 int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 	byte *ics, byte *icss, byte *icse, int *rbl, int *rbd)
 {
-	byte *s0, *s1, *se;
-	int hi, l, d, bl, bd;
+	int chi[16];
+	byte *s0, *s1, *s2, *s3, *se;
+	int hi, l, d, bl, bd, bi;
 	int i, j, k;
 
 	if((ics+5)>=icse)
 		return(0);
 	
-	hi=((ics[0]*251+ics[1])*251+ics[2])*251;
-	hi=(hi>>8)&255;
+//	hi=((ics[0]*251+ics[1])*251+ics[2])*251;
+//	hi=((ics[0]*251^ics[1])*251^ics[2])*251;
+//	hi=(hi>>8)&255;
+	
+	BGBDT_ChunkLzHashChi(ctx, ics, chi);
 	
 	bl=0; bd=0;
 	
-	for(i=1; i<4; i++)
+	for(i=1; i<6; i++)
 	{
 		s0=ics; se=s0+256;
 		if(icse<se)se=icse;
@@ -43,7 +150,8 @@ int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 		if(l>bl)
 			{ bl=l; bd=d; }
 	}
-	
+
+#if 0
 	s0=ics; se=s0+256;
 	if(icse<se)se=icse;
 	s1=ctx->lzhash[hi];
@@ -56,6 +164,29 @@ int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 		if(l>bl)
 			{ bl=l; bd=d; }
 	}
+#endif
+
+#if 1
+	bi=0;
+//	for(i=0; i<4; i++)
+//	for(i=0; i<8; i++)
+	for(i=0; i<16; i++)
+	{
+		s0=ics; se=s0+256;
+		if(icse<se)se=icse;
+//		s1=ctx->lzhash[(i<<8)|hi];
+		s1=ctx->lzhash[chi[i]];
+		if(s1)
+		{
+			while((s0<se) && (*s0==*s1))
+				{ s0++; s1++; }
+			l=s0-ics;
+			d=s0-s1;
+			if(l>bl)
+				{ bl=l; bd=d; bi=i; }
+		}
+	}
+#endif
 
 	*rbl=bl;
 	*rbd=bd;
@@ -64,15 +195,46 @@ int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 
 int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len)
 {
+	int chi[16];
 	byte *cs, *cse;
 	int hi;
 	
 	cs=ics; cse=cs+len;
 	while(cs<cse)
 	{
-		hi=((cs[0]*251+cs[1])*251+cs[2])*251;
-		hi=(hi>>8)&255;
-		ctx->lzhash[hi]=cs;
+//		hi=((cs[0]*251+cs[1])*251+cs[2])*251;
+//		hi=((cs[0]*251^cs[1])*251^cs[2])*251;
+//		hi=(hi>>8)&255;
+
+		BGBDT_ChunkLzHashChi(ctx, cs, chi);
+
+#if 1
+		ctx->lzhash[chi[15]]=ctx->lzhash[chi[14]];
+		ctx->lzhash[chi[14]]=ctx->lzhash[chi[13]];
+		ctx->lzhash[chi[13]]=ctx->lzhash[chi[12]];
+		ctx->lzhash[chi[12]]=ctx->lzhash[chi[11]];
+		ctx->lzhash[chi[11]]=ctx->lzhash[chi[10]];
+		ctx->lzhash[chi[10]]=ctx->lzhash[chi[ 9]];
+		ctx->lzhash[chi[ 9]]=ctx->lzhash[chi[ 8]];
+		ctx->lzhash[chi[ 8]]=ctx->lzhash[chi[ 7]];
+#endif
+
+#if 1
+		ctx->lzhash[chi[7]]=ctx->lzhash[chi[6]];
+		ctx->lzhash[chi[6]]=ctx->lzhash[chi[5]];
+		ctx->lzhash[chi[5]]=ctx->lzhash[chi[4]];
+		ctx->lzhash[chi[4]]=ctx->lzhash[chi[3]];
+#endif
+
+		ctx->lzhash[chi[3]]=ctx->lzhash[chi[2]];
+		ctx->lzhash[chi[2]]=ctx->lzhash[chi[1]];
+		ctx->lzhash[chi[1]]=ctx->lzhash[chi[0]];
+		ctx->lzhash[chi[0]]=cs;
+
+//		ctx->lzhash[768|hi]=ctx->lzhash[512|hi];
+//		ctx->lzhash[512|hi]=ctx->lzhash[256|hi];
+//		ctx->lzhash[256|hi]=ctx->lzhash[hi];
+//		ctx->lzhash[hi]=cs;
 		cs++;
 	}
 	return(0);
@@ -91,12 +253,27 @@ int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
 		{ ctx->lzwin[i]=i; ctx->lzidx[i]=i; }
 	ctx->lzwpos=0;
 
-	for(i=0; i<256; i++)
+//	for(i=0; i<256; i++)
+//	for(i=0; i<2048; i++)
+	for(i=0; i<4096; i++)
 		{ ctx->lzhash[i]=NULL; }
 
 	ctx->WriteAdRiceLL=BGBDT_Rice_WriteAdRiceDc;
+	ctx->WriteAdDist=BGBDT_Rice_WriteAdRiceDc;
+	ctx->WriteSym=BGBDT_EmitLzSTF;
+
 	if((ctx->lzctrl&7)!=0)
+	{
 		ctx->WriteAdRiceLL=BGBDT_Rice_WriteAdRiceLL;
+		ctx->WriteAdDist=BGBDT_Rice_WriteAdRiceLL;
+		
+		if((ctx->lzctrl&7)==2)
+		{
+			ctx->WriteAdDist=BGBDT_Rice_WriteAdExp2Rice;
+			ctx->WriteSym=BGBDT_EmitLzSMTF2;
+//			ctx->WriteSym=BGBDT_EmitLzSTF3;
+		}
+	}
 	
 	kr=4; ks=4; kl=4; kd=4; ll=-1; ld=-1;
 	cs=ibuf; cse=ibuf+ibsz; css=ibuf; csrb=cs;
@@ -109,7 +286,10 @@ int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
 //			BGBDT_Rice_WriteAdRiceDc(ctx, r, &kr);
 			ctx->WriteAdRiceLL(ctx, r, &kr);
 			for(j=0; j<r; j++)
-				BGBDT_EmitLzSTF(ctx, csrb[j], &ks);
+			{
+//				BGBDT_EmitLzSTF(ctx, csrb[j], &ks);
+				ctx->WriteSym(ctx, csrb[j], &ks);
+			}
 
 #if 0
 			if(l==ll)
@@ -129,10 +309,17 @@ int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
 			else
 				{ ctx->WriteAdRiceLL(ctx, l, &kl); }
 
+//			if(d==ld)
+//				{ ctx->WriteAdRiceLL(ctx, 0, &kd); }
+//			else
+//				{ ctx->WriteAdRiceLL(ctx, d, &kd); }
+#endif
+
+#if 1
 			if(d==ld)
-				{ ctx->WriteAdRiceLL(ctx, 0, &kd); }
+				{ ctx->WriteAdDist(ctx, 0, &kd); }
 			else
-				{ ctx->WriteAdRiceLL(ctx, d, &kd); }
+				{ ctx->WriteAdDist(ctx, d, &kd); }
 #endif
 
 			ll=l; ld=d;
@@ -152,7 +339,10 @@ int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
 //		BGBDT_Rice_WriteAdRiceDc(ctx, r, &kr);
 		ctx->WriteAdRiceLL(ctx, r, &kr);
 		for(j=0; j<r; j++)
-			BGBDT_EmitLzSTF(ctx, csrb[j], &ks);
+		{
+//			BGBDT_EmitLzSTF(ctx, csrb[j], &ks);
+			ctx->WriteSym(ctx, csrb[j], &ks);
+		}
 //		BGBDT_Rice_WriteAdRiceDc(ctx, 0, &kl);
 		ctx->WriteAdRiceLL(ctx, 0, &kl);
 	}
@@ -215,7 +405,7 @@ int BGBDT_WorldEncodeChunkBits(BGBDT_VoxWorld *world,
 
 	ctx=BGBDT_Rice_AllocContext();
 	
-	ctx->lzctrl=(ctx->lzctrl&(~7))|1;
+	ctx->lzctrl=(ctx->lzctrl&(~7))|2;
 	
 	BGBDT_Rice_SetupWrite(ctx, obuf, obsz);
 

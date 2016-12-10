@@ -381,7 +381,7 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 	float lorg[4], lorg2[4];
 	float bmin[3], bmax[3];
 	BGBDT_VoxRegion *rcur, *rnxt, *rfst, *rcur2, *rprv2;
-	double f, g, d, d2;
+	double f, g, h, d, d2;
 	float x0, y0, z0, x1, y1, z1;
 	float x2, y2, z2, x3, y3, z3;
 	float a0, a1, a2, a3;
@@ -417,8 +417,16 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 			bmax[2]=world->camorg[2]+6000;
 		
 //			frglColor4f(2,2,2,1);
-			frglColor4f(0.5,0.5,0.5,0x81/255.0);
+			if(bgbdt_voxel_noshader)
+			{
+				frglColor4f(1,1,1,1);
+			}else
+			{
+				frglColor4f(0.5,0.5,0.5,0x81/255.0);
+			}
 			FRGL_TexMat_BindMaterial(tx);
+			
+			h=1.0/8000;
 			
 			frglBegin(GL_QUADS);
 
@@ -441,9 +449,13 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 				x3=sin(a1)*f; y3=cos(a1)*f;
 				z1=sin(a3)*8000;
 
+				frglTexCoord2f(x1*h*0.5+0.5, y1*h*0.5+0.5);
 				frglVertex3f(x1, y1, z0);
+				frglTexCoord2f(x0*h*0.5+0.5, y0*h*0.5+0.5);
 				frglVertex3f(x0, y0, z0);
+				frglTexCoord2f(x2*h*0.5+0.5, y2*h*0.5+0.5);
 				frglVertex3f(x2, y2, z1);
+				frglTexCoord2f(x3*h*0.5+0.5, y3*h*0.5+0.5);
 				frglVertex3f(x3, y3, z1);
 			}
 

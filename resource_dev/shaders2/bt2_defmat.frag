@@ -61,6 +61,7 @@ float hfbayer4(vec4 v)
 	return(bayer4m[iy][ix]);
 }
 
+/*
 float hfnoise(vec4 v)
 {
 	int nx, ny, nz, nt, h;
@@ -87,6 +88,7 @@ float hfnoise(vec4 v)
 //	return(2*f-1);
 	return(f);
 }
+*/
 
 float hfign(vec4 v)
 {
@@ -95,11 +97,12 @@ float hfign(vec4 v)
 
 
 float btge_scurve(float a)
-	{ return(a*a*(3-2*a)); }
+	{ return(a*a*(3.0-2.0*a)); }
 
 void main()
 {
 	vec2 srcST, texST, baseST;
+	vec2 midST, dmidST;
 	vec2 texST1, texST2, ofsST;
 	vec3 eye, norm, aux, ldir;
 	vec4 rgba, glow, npix, spec;
@@ -109,6 +112,7 @@ void main()
 	float v, a;
 	float h1, h2, v1, v2;
 	float tsx, tbx, tsy, tby;
+	float tcx, tcy, tcw;
 	int xfval;
 
 	aux=lorg-point;
@@ -121,7 +125,7 @@ void main()
 	xfval=0;
 //	hgofs=vec4(0.0, 0.0, 0.0, 0.0);
 
-	if((npix.a>=(240/255.0)) && (npix.a<=(252/255.0)))
+	if((npix.a>=(240.0/255.0)) && (npix.a<=(252.0/255.0)))
 	{
 		xfval=int(npix.a*255.0+0.5);
 		npix=vec4(0.5, 0.5, 1.0, 0.5);
@@ -134,7 +138,7 @@ void main()
 //			h2=cos(time);
 			h1=sin(v);
 			h2=cos(v);
-			ofsST=vec2(h1, h2)*(0.2/16);
+			ofsST=vec2(h1, h2)*(0.2/16.0);
 
 //			hgofs=vec4(h1*4, h2*4, 0.0, 0.0);
 //			hgign=hfbayer4(gl_FragCoord+hgofs);
@@ -167,7 +171,14 @@ void main()
 	tsy=floor(srcST.y*16.0);
 	tbx=floor(baseST.x*16.0);
 	tby=floor(baseST.y*16.0);
-	baseST=baseST+(vec2(tsx-tbx, tsy-tby)*(1.0/16));
+	baseST=baseST+(vec2(tsx-tbx, tsy-tby)*(1.0/16.0));
+
+//	tcw=clamp(-gl_FragCoord.w, 0.0, 1.0);
+//	tcw=clamp((gl_FragCoord.z-0.99)*100.0, 0.0, 1.0);
+//	tcw=clamp((gl_FragCoord.z-0.98)*10.0, 0.0, 1.0);
+//	midST=vec2((tsx+0.5)*(1.0/16.0), (tsy+0.5)*(1.0/16.0));
+//	dmidST=midST-baseST;
+//	baseST=baseST+(dmidST*tcw);
 
 	rgba=texture2D(texBase, baseST);
 //	rgba=texture2D(texBase, srcST);

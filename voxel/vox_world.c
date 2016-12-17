@@ -728,6 +728,9 @@ int glow;
 {"brick_blk", "textures/atlas0", NULL, NULL,
 	2, 4,  2, 4,  2, 4,  0, 0x00},
 
+{"cloud", "textures/atlas0", NULL, NULL,
+	0, 3,  0, 3,  0, 3,  BGBDT_VOXFL_TRANSPARENT, 0},
+
 {NULL, NULL}
 };
 

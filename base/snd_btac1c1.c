@@ -474,6 +474,12 @@ BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockMono(
 
 	if(i<89)
 	{
+//		if(ibuf[3])
+//		{
+//			BGBDT_SndBTAC1C2_DecodeBlockMono(ibuf, obuf, len);
+//			return;
+//		}
+
 		BGBDT_MsImaAdpcm_DecodeBlockMono(ibuf, obuf, len);
 		return;
 	}
@@ -491,7 +497,9 @@ BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockMono(
 int BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(s16 *ibuf0, s16 *ibuf1, int len)
 {
 	int p0, p1;
-	double e, d;
+//	double e, d;
+	s64 e, d;
+//	int d;
 	int i, j, k;
 	
 	e=0; p0=0; p1=0;
@@ -499,12 +507,12 @@ int BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(s16 *ibuf0, s16 *ibuf1, int len)
 	{
 //		p0=(3*p0+ibuf0[i])/4;
 //		p1=(3*p1+ibuf1[i])/4;
-//		d=ibuf0[i]-ibuf1[i];
+		d=ibuf0[i]-ibuf1[i];
 
-		p0=(p0+ibuf0[i])/2;
-		p1=(p1+ibuf1[i])/2;
+//		p0=(p0+ibuf0[i])/2;
+//		p1=(p1+ibuf1[i])/2;
 
-		d=p0-p1;
+//		d=p0-p1;
 //		d=(d<<1)^(d>>31);
 //		d=d^(d>>31);
 
@@ -514,9 +522,44 @@ int BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(s16 *ibuf0, s16 *ibuf1, int len)
 		e+=d;
 	}
 	e=sqrt(e);
-	if(e>(1<<30))
+	if((e<0) || (e>(1<<30)))
 		e=(1<<30);
 //	e=e/2;
+	return(e);
+}
+
+int BGBDT_SndBTAC1C1_ErrorBlockStereoSamples(s16 *ibuf0, s16 *ibuf1, int len)
+{
+	int p0, p1, p2, p3, pc0, ps0, pc1, ps1;
+	s64 e, d, dc, ds;
+	int i, j, k;
+	
+	e=0; p0=0; p1=0;
+	for(i=0; i<len; i++)
+	{
+		p0=ibuf0[i*2+0];
+		p1=ibuf0[i*2+1];
+		p2=ibuf1[i*2+0];
+		p3=ibuf1[i*2+1];
+
+		pc0=(p0+p1)>>1;
+		ps0=p0-p1;
+
+		pc1=(p2+p3)>>1;
+		ps1=p2-p3;
+
+//		d=ibuf0[i]-ibuf1[i];
+		dc=pc0-pc1;
+		ds=ps0-ps1;
+		ds=0.25*ds;
+//		ds=0.5*ds;
+
+		d=dc*dc+ds*ds;
+		e+=d;
+	}
+	e=sqrt(e);
+	if((e<0) || (e>(1<<30)))
+		e=(1<<30);
 	return(e);
 }
 
@@ -546,6 +589,20 @@ BTEIFGL_API void BGBDT_SndBTAC1C1_EncodeBlockMono(
 	memcpy(obuf, b0buf, bsz);
 	*ridx=idx0;
 
+#if 0
+	idx1=iidx0;
+	BGBDT_SndBTAC1C2_EncodeBlockMono(ibuf, b1buf, len, &idx1);
+	BGBDT_SndBTAC1C_DecodeBlockMono(b1buf, stbuf, len);
+	e1=BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(ibuf, stbuf, len);
+	if(e1<e0)
+	{
+//		printf("BTAC1C2: Use Pfn=%d (%d -> %d)\n", b1buf[3], e0, e1);
+		memcpy(obuf, b1buf, bsz);
+		*ridx=idx1;
+		e0=e1;
+	}
+#endif
+
 	utag=-1;
 
 #if 0
@@ -574,6 +631,7 @@ BTEIFGL_API void BGBDT_SndBTAC1C1_EncodeBlockMono(
 //			*ridx=idx1;
 			*ridx=(128|idx1)|(tag<<8);
 			utag=tag;
+			e0=e1;
 		}
 	}
 #endif

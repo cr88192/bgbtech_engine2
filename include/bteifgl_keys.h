@@ -42,6 +42,9 @@
 #define	K_MOUSE2		158
 #define	K_MOUSE3		159
 
+#define	K_CAPSLOCK		160
+#define	K_SCROLL		161
+
 #define	K_FORWARD		192
 #define	K_BACKWARD		193
 #define	K_MOVELEFT		194

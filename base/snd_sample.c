@@ -569,9 +569,12 @@ int BGBDT_Snd_GetSampleMono_MADPCM(BGBDT_SndSampler *samp, int pos)
 	if(i==0)
 	{
 //		BGBDT_MsImaAdpcm_DecodeBlockMono(
-		BGBDT_SndBTAC1C_DecodeBlockMono(
+//		BGBDT_SndBTAC1C_DecodeBlockMono(
+//			samp->data+(b*samp->wf_blkalign),
+//			sb, samp->sblksz);
+		BGBDT_SndBTAC1C2_DecodeBlockMono(
 			samp->data+(b*samp->wf_blkalign),
-			sb, samp->sblksz);
+			sb, samp->sblksz, &(samp->idxst));
 		return(sb[r]);
 	}
 	
@@ -658,9 +661,12 @@ int BGBDT_Snd_GetSampleMonoI_MADPCM_2N8(BGBDT_SndSampler *samp, int pos)
 		}
 #endif
 
-		BGBDT_SndBTAC1C_DecodeBlockMonoLg2(
+//		BGBDT_SndBTAC1C_DecodeBlockMonoLg2(
+//			samp->data+(b*samp->wf_blkalign),
+//			sb, samp->cblg2);
+		BGBDT_SndBTAC1C2_DecodeBlockMonoLg2(
 			samp->data+(b*samp->wf_blkalign),
-			sb, samp->cblg2);
+			sb, samp->cblg2, &(samp->idxst));
 		
 		return(sb[r]);
 	}
@@ -740,9 +746,12 @@ int BGBDT_Snd_GetSampleMono_SADPCM_2N16(BGBDT_SndSampler *samp, int pos)
 	
 	if(i==0)
 	{
-		BGBDT_SndBTAC1C_DecodeBlockStereoLg2(
+//		BGBDT_SndBTAC1C_DecodeBlockStereoLg2(
+//			samp->data+(b*samp->wf_blkalign),
+//			sb, samp->cblg2);
+		BGBDT_SndBTAC1C2_DecodeBlockStereoLg2(
 			samp->data+(b*samp->wf_blkalign),
-			sb, samp->cblg2);
+			sb, samp->cblg2, &(samp->idxst));
 		return((sb[r*2+0]+sb[r*2+1])>>1);
 	}
 	

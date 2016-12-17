@@ -20,6 +20,18 @@
 typedef struct BGBDT_SndSampler_s BGBDT_SndSampler;
 typedef struct BGBDT_SndMixChan_s BGBDT_SndMixChan;
 typedef struct BGBDT_SndListen_s BGBDT_SndListen;
+typedef struct btac1c_idxstate_s btac1c_idxstate;
+
+struct btac1c_idxstate_s {
+u16 idx;					//step index values
+s16 lpred;					//left/center predictor value
+s16 rpred;					//right/side predictor value
+byte tag;					//last (or forced) block type
+byte bcfcn;					//center function
+byte bsfcn;					//side function
+byte usefx;					//number of FIR filters to use
+s16 firfx[4][8];			//FIR filter coeffs (8.8)
+};
 
 struct BGBDT_SndSampler_s {
 BGBDT_SndSampler *next;			//next sample
@@ -46,6 +58,8 @@ int sbrate;						//logical block sample rate
 
 int tmp_lb;
 s16 *tmp_sb;
+
+btac1c_idxstate idxst;			//BTAC1C Index State
 
 /** Get mono sample value at a specific point
   * pos: Sample number at the based frequency of the sampler.

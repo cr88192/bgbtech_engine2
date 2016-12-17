@@ -28,6 +28,7 @@
 
 #include "snd_adpcm.c"
 #include "snd_btac1c1.c"
+#include "snd_btac1c2.c"
 #include "snd_mixer.c"
 #include "snd_sample.c"
 

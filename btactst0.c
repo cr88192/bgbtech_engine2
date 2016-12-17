@@ -142,7 +142,9 @@ int BGBMID_FlattenWAV_BTAC1C(byte *obuf, void *ibuf,
 	for(i=0; i<nb; i++)
 	{
 		j=((byte *)ibuf)[i*bsz+2];
+		k=((byte *)ibuf)[i*bsz+3];
 		if(j>88)isbt=1;
+		if(k)isbt=1;
 	}
 
 	ct=obuf;
@@ -214,6 +216,7 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 	double f, g;
 	char *s, *t;
 	int len, len2, bsz, blen, blen2, blg2, blks, idx, insz;
+	btac1c_idxstate idxst;
 	int ch, sz;
 	int i, j, k;
 
@@ -266,15 +269,22 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 		bbuf=frgl_malloc(blks*bsz);
 		obuf=frgl_malloc(blks*bsz+1024);
 
+		btac1c_initstate(&idxst);
+
 		idx=0;
 		for(i=0; i<blks; i++)
 		{
 //			BGBDT_SndBTAC1C_EncodeBlockMonoLg2(sbuf+(i*blen2),
 //				bbuf+(i*bsz), blg2, &idx);
 
-			BGBDT_SndBTAC1C1_EncodeBlockMonoLg2(sbuf+(i*blen2),
-				bbuf+(i*bsz), blg2, &idx);
+//			BGBDT_SndBTAC1C1_EncodeBlockMonoLg2(sbuf+(i*blen2),
+//				bbuf+(i*bsz), blg2, &idx);
+
+			BGBDT_SndBTAC1C2_EncodeBlockMonoLg2(sbuf+(i*blen2),
+				bbuf+(i*bsz), blg2, &idxst);
 		}
+
+//		BGBDT_SndBTAC1C2_DumpStatBlocks(bbuf, bsz, blks);
 
 		sz=BGBMID_FlattenWAV_BTAC1C(obuf,
 			bbuf, 1, rate, bsz, len);
@@ -307,11 +317,16 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 		bbuf=frgl_malloc(blks*bsz);
 		obuf=frgl_malloc(blks*bsz+1024);
 
+		btac1c_initstate(&idxst);
+
 		idx=0;
 		for(i=0; i<blks; i++)
 		{
-			BGBDT_SndBTAC1C_EncodeBlockStereoLg2(sbuf+(i*2*blen2),
-				bbuf+(i*bsz), blg2, &idx);
+//			BGBDT_SndBTAC1C_EncodeBlockStereoLg2(sbuf+(i*2*blen2),
+//				bbuf+(i*bsz), blg2, &idx);
+
+			BGBDT_SndBTAC1C2_EncodeBlockStereoLg2(sbuf+(i*2*blen2),
+				bbuf+(i*bsz), blg2, &idxst);
 		}
 
 		sz=BGBMID_FlattenWAV_BTAC1C(obuf,

@@ -113,11 +113,13 @@ BTEIFGL_API void BGBDT_MsImaAdpcm_EncodeBlockMono(
 
 		if(k>=0)
 		{
-			sni=(k*4)/step;
+//			sni=(k*4)/step;
+			sni=(k*8-1)/(step*2);
 			uni=(sni>7)?7:sni;
 		}else
 		{
-			sni=(-k*4)/step;
+//			sni=(-k*4)/step;
+			sni=(-k*8-1)/(step*2);
 			uni=(sni>7)?15:(8|sni);
 		}
 
@@ -450,6 +452,26 @@ void BGBDT_SndBTAC1C_DecodeJointBlockStereo(
 	}
 }
 
+BTEIFGL_API int BGBDT_SndBTAC1C_EncodeQuantUni(
+	int tgt, int pred, int step, int lsbit)
+{
+	int uni, sni, diff;
+
+	diff=tgt-pred;
+
+	if(diff>=0)
+	{
+		sni=(diff*8-1)/(step*2);
+		uni=(sni>7)?7:sni;
+	}else
+	{
+		sni=(-diff*8-1)/(step*2);
+		uni=(sni>7)?15:(8|sni);
+	}
+
+	uni=BGBDT_SndBTAC1C_EncodeQuantUni3(uni, step, pred, tgt, lsbit);
+	return(uni);
+}
 
 BTEIFGL_API int BGBDT_SndBTAC1C_EncodeQuantUni3(
 	int uni, int step, int pred, int tgt, int lsbit)
@@ -470,7 +492,18 @@ BTEIFGL_API int BGBDT_SndBTAC1C_EncodeQuantUni3(
 
 	if(lsbit)
 	{
-		if(lsbit&1)
+		if(lsbit==4)
+		{
+			uni&=~1;
+			uni1&=~1;
+			uni2&=~1;
+//			uni|=(uni>>2)&1;
+//			uni1|=(uni1>>2)&1;
+//			uni2|=(uni2>>2)&1;
+			uni|=((uni&6)==6);
+			uni1|=((uni1&6)==6);
+			uni2|=((uni2&6)==6);
+		}else if(lsbit&1)
 			{ uni|=1; uni1|=1; uni2|=1; }
 		else
 			{ uni&=~1; uni1&=~1; uni2&=~1; }
@@ -480,26 +513,31 @@ BTEIFGL_API int BGBDT_SndBTAC1C_EncodeQuantUni3(
 	if(uni&8)diff=-diff;
 	p0=pred+diff; d0=tgt-p0;
 //	d0=d0*d0;
-	d0=(d0<<1)^(d0>>31);
+//	d0=(d0<<1)^(d0>>31);
+	d0=d0^(d0>>31);
 
 	diff=((2*(uni1&7)+1)*step)/8;
 	if(uni1&8)diff=-diff;
 	p1=pred+diff; d1=tgt-p1;
 //	d1=d1*d1;
-	d1=(d1<<1)^(d1>>31);
+//	d1=(d1<<1)^(d1>>31);
+	d1=d1^(d1>>31);
 
 	diff=((2*(uni2&7)+1)*step)/8;
 	if(uni2&8)diff=-diff;
 	p2=pred+diff; d2=tgt-p2;
 //	d2=d2*d2;
-	d2=(d2<<1)^(d2>>31);
+//	d2=(d2<<1)^(d2>>31);
+	d2=d2^(d2>>31);
 
+#if 1
 	if((p0<-32767) || (p0>32767))
 		d0+=65536;
 	if((p1<-32767) || (p1>32767))
 		d1+=65536;
 	if((p2<-32767) || (p2>32767))
 		d2+=65536;
+#endif
 	
 	if(d1<d0)uni=uni1;
 	if(d2<d0)uni=uni2;
@@ -692,18 +730,21 @@ BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockStereo(
 	if(i<89)
 	{
 		BGBDT_SndBTAC1C_DecodeStereoBlockStereo(ibuf, obuf, len);
+//		BGBDT_SndBTAC1C2_DecodeStereoBlockStereo(ibuf, obuf, len);
 		return;
 	}
 
 	if(i==89)
 	{
 		BGBDT_SndBTAC1C_DecodeMonoBlockStereo(ibuf, obuf, len);
+//		BGBDT_SndBTAC1C2_DecodeMonoBlockStereo(ibuf, obuf, len);
 		return;
 	}
 
 	if((i>=128) && (i<217))
 	{
 		BGBDT_SndBTAC1C_DecodeJointBlockStereo(ibuf, obuf, len);
+//		BGBDT_SndBTAC1C2_DecodeJointBlockStereo(ibuf, obuf, len);
 		return;
 	}
 
@@ -800,4 +841,6 @@ BTEIFGL_API void BGBDT_SndBTAC1C_EncodeBlockStereoLg2(
 	}
 	
 	BGBDT_SndBTAC1C_EncodeBlockStereoJS(stbuf, obuf, len, ridx);
+//	BGBDT_SndBTAC1C2_EncodeBlockStereoJS(stbuf, obuf, len, ridx);
+//	BGBDT_SndBTAC1C2_EncodeBlockStereo(stbuf, obuf, len, ridx);
 }

@@ -594,11 +594,13 @@ int main()
 //		"02_Rise");
 //		"02_Rise_PCM16S_22");
 //		"Skrillex_Reptile");
-		"Skrillex_Bangarang");
+//		"Skrillex_Bangarang");
 //		"Skrillex_Bangarang_PCM16S_22");
 //		"Skrillex_KillEverybody");
 //		"Skrillex_FirstOfTheYear");
 //		"Skrillex_BreaknASweat");
+//		"300K Subscribers Mix (Low)");
+		"explod0");
 
 	if(!samp)
 		return(-1);
@@ -705,6 +707,7 @@ int main()
 	}
 #endif
 
+	t0=clock();
 	for(i=0; i<blks; i++)
 	{
 		if(ch<2)
@@ -717,7 +720,12 @@ int main()
 				bbuf+(i*bsz), blg2, &idxst);
 		}
 	}
+	t1=clock();
+	t2=t1-t0;
+	printf("Encode=%dms, %d samples/sec\n",
+		t2, (int)(1000.0*(blks*blen2)/t2));
 
+	t0=clock();
 	for(i=0; i<blks; i++)
 	{
 		if(ch<2)
@@ -730,6 +738,10 @@ int main()
 				bbuf+(i*bsz), sbuf2+(i*2*blen2), blg2, &idxst);
 		}
 	}
+	t1=clock();
+	t2=t1-t0;
+	printf("Decode=%dms, %d samples/sec\n",
+		t2, (int)(1000.0*(blks*blen2)/t2));
 
 	if(ch<2)
 	{

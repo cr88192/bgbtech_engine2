@@ -20,6 +20,9 @@ BGBDT_VoxCoord bgbdt_tsexyz;	//trace ending entity xyz
 dtVal bgbdt_tent;				//trace entity
 
 dtVal bgbdt_player;				//player entity
+int bgbdt_toolslot;
+
+//char *bgbdt_toolspr[10];
 
 int voxui_active;
 int voxui_placeidx;
@@ -590,6 +593,7 @@ int main_loadplayer()
 	char *buf, *cs, *cse;
 	char *s;
 	char **a;
+	s64 li, lj;
 	int sz, b;
 	int i, j, k;
 
@@ -645,6 +649,17 @@ int main_loadplayer()
 			{
 				j=frgl_ratoi(a[i+2]);
 				Bt2Ent_SetInvenSlot(b+i, j);
+			}
+			continue;
+		}
+
+		if(!strcmp(a[0], "token"))
+		{
+			b=atoi(a[1]);
+			for(i=0; a[i+2]; i++)
+			{
+				lj=frgl_ratoi(a[i+2]);
+				Bt2Ent_SetTokenSlot(b+i, lj);
 			}
 			continue;
 		}
@@ -712,6 +727,8 @@ int main_prestart(int argc, char *argv[])
 
 	FRGL_CvarSetDefault("r_drawdist", "256");
 	FRGL_CvarSetDefault("r_noshader", "0");
+
+	FRGL_CvarSetDefault("gl_texfilter", "GL_LINEAR_MIPMAP_LINEAR");
 
 	FRGL_CvarSetDefault("g_startworld", "maretst0");
 	FRGL_CvarSetDefault("g_startwtype", "mare");
@@ -1078,6 +1095,7 @@ int main_drawvoxui()
 int main_drawvoxhud()
 {
 	BGBDT_VoxTypeInfo *tyi;
+	char *spr;
 	int x0, y0, x1, y1;
 	float s0, s1, t0, t1;
 	int wxs, wys;
@@ -1086,6 +1104,41 @@ int main_drawvoxhud()
 	
 	GfxDrv_GetWindowSize(&wxs, &wys);
 
+	if(bgbdt_toolslot)
+	{
+//		bgbdt_toolspr[4]="images/ui/chain0";
+//		spr=bgbdt_toolspr[bgbdt_toolslot];
+
+		spr=Bt2Ent_GetToolSprite();
+	
+		if(spr)
+		{
+			mat=FRGL_TexMat_GetLoadIndex(spr);
+
+			x0=-(wxs/4);	x1=x0+(wxs/2);
+			y0=-(wys/2);	y1=y0+(wys/2);
+			
+			s0=0; s1=1;
+			t0=0; t1=1;
+			
+			frglColor4f(1, 1, 1, 1);
+			
+			FRGL_TexMat_BindBasic(mat);
+			frglBegin(GL_QUADS);
+			frglTexCoord2f(s0, t0);
+			frglVertex2f(x0, y0);
+			frglTexCoord2f(s1, t0);
+			frglVertex2f(x1, y0);
+			frglTexCoord2f(s1, t1);
+			frglVertex2f(x1, y1);
+			frglTexCoord2f(s0, t1);
+			frglVertex2f(x0, y1);
+			frglEnd();
+		}
+	
+		return(0);
+	}
+	
 	if(1)
 	{
 		ix=voxui_placeidx;
@@ -1191,7 +1244,7 @@ int main_handle_input()
 	float io[3], iv[4], fw[2], pt[4], f, g, h, v;
 	float sh, ch, sg, cg;
 	float im[16], im1[16], *imv;
-	int mvsp;
+	int mvsp, imfl;
 
 	BGBDT_VoxData td;
 	int vt_air, vt_place;
@@ -1597,22 +1650,40 @@ int main_handle_input()
 //	vt_place=BGBDT_VoxelWorld_LookupTypeIndexName(bgbdt_voxworld, "stone");
 	vt_place=voxui_placeidx;
 
-	if((frgl_state->mb&1) && !(frgl_state->lmb&1))
-	{
-//		memset(&td, 0, sizeof(BGBDT_VoxData));
-//		td.vtypel=vt_place;		td.vtypeh=vt_place>>8;
-//		td.vattr=0;
-//		td.vlight=0;		td.alight=0;
-		
-		main_setplacevox(&td);
-		BGBDT_WorldSetVoxelData(
-			bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
-	}
+	imfl=0;
 
-	if((frgl_state->mb&4) && !(frgl_state->lmb&4))
+	if(bgbdt_toolslot==0)
 	{
-		if(voxui_tsvidx>1)
-			{ voxui_placeidx=voxui_tsvidx; }
+		if((frgl_state->mb&1) && !(frgl_state->lmb&1))
+		{
+	//		memset(&td, 0, sizeof(BGBDT_VoxData));
+	//		td.vtypel=vt_place;		td.vtypeh=vt_place>>8;
+	//		td.vattr=0;
+	//		td.vlight=0;		td.alight=0;
+			
+			if(voxui_tsvidx>1)
+			{
+				main_setplacevox(&td);
+				BGBDT_WorldSetVoxelData(
+					bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
+			}
+		}
+
+		if((frgl_state->mb&4) && !(frgl_state->lmb&4))
+		{
+			if(voxui_tsvidx>1)
+				{ voxui_placeidx=voxui_tsvidx; }
+		}
+	}else
+	{
+//		imfl=0;
+		if(frgl_state->mb&1)
+			imfl|=1;
+		if(frgl_state->mb&4)
+			imfl|=2;
+
+		if(FRGL_KeyDown(K_CTRL))
+			imfl|=1;
 	}
 
 	kcur=frgl_state->keys;
@@ -1624,6 +1695,16 @@ int main_handle_input()
 			FRGL_SetMenuActive("main");
 			break;
 		case K_ENTER:
+			if(bgbdt_toolslot)
+			{
+				if(!dtvNullP(bgbdt_tent))
+				{
+					Bt2Ent_CallEntityUse(bgbdt_tent, bgbdt_player);
+				}
+
+				break;
+			}
+			
 			if(voxui_active)
 			{
 				voxui_placeidx=voxui_voxui_idx;
@@ -1647,6 +1728,11 @@ int main_handle_input()
 			voxui_isedit=0;
 			break;
 		case K_DEL:
+			if(bgbdt_toolslot)
+			{
+				break;
+			}
+
 			if(voxui_tsvidx<=0)
 				break;
 		
@@ -1661,6 +1747,11 @@ int main_handle_input()
 				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
 			break;
 		case K_INS:
+			if(bgbdt_toolslot)
+			{
+				break;
+			}
+
 			if(voxui_tsvidx<=0)
 				break;
 
@@ -1674,6 +1765,11 @@ int main_handle_input()
 			break;
 
 		case '\\':		
+			if(bgbdt_toolslot)
+			{
+				break;
+			}
+
 			if(voxui_tsvidx<=0)
 				break;
 
@@ -1686,11 +1782,25 @@ int main_handle_input()
 				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
 			break;
 
+		case '0':	case '1':
+		case '2':	case '3':
+		case '4':	case '5':
+		case '6':	case '7':
+		case '8':	case '9':
+			bgbdt_toolslot=*kcur-'0';
+			Bt2Ent_ToolSet(bgbdt_toolslot);
+			break;
+
 		default:
 			break;
 		}
 		kcur++;
 	}
+	
+//	if(imfl)
+//	{
+		Bt2Ent_ToolUse(imfl);
+//	}
 
 	return(0);
 }
@@ -1749,6 +1859,8 @@ int main_body()
 
 	for(i=0; i<9; i++)
 		bgbdt_voxworld->camrot[i]=bgbdt_rot[i];
+
+	BGBDT_Part_UpdateParticles(frgl_state->dt_f);
 
 	t1=clock();
 	t2=t1-t0;
@@ -1835,6 +1947,8 @@ int main_body()
 		BGBDT_ConvVoxToLocalCoord(bgbdt_voxworld, emin, temin);
 		BGBDT_ConvVoxToLocalCoord(bgbdt_voxworld, emax, temax);
 	}
+	
+	Bt2Ent_SetToolTraceEnt(bgbdt_tent);
 
 	BGBDT_WorldGetVoxelData(bgbdt_voxworld, xyzs, &td, NULL, 0);
 	i=BGBDT_VoxLight_GetBlockLightIntensity(bgbdt_voxworld, xyzs, td);
@@ -1897,6 +2011,8 @@ int main_body()
 	BGBDT_DrawVoxWorld(bgbdt_voxworld);
 
 	Bt2Ent_DrawWorldEnts(bgbdt_voxworld);
+	
+	BGBDT_Part_DrawParticles();
 
 	glEnable(GL_CULL_FACE);
 

@@ -23,6 +23,11 @@ void *VecNF_Ralloc(int sz);
 
 #undef gcralloc
 
+static vec3d v3ftov3d(vec3 v0)
+	{ return(vec3d(v3x(v0), v3y(v0), v3z(v0))); }
+static vec3 v3dtov3f(vec3d v0)
+	{ return(vec3(v3dx(v0), v3dy(v0), v3dz(v0))); }
+
 static vec3 q_rot_v3f(quat a, vec3 b)
 	{ return(qmul(qmul(a, b), qconj(a))); }
 static vec4 q_rot_v4f(quat a, vec4 b)

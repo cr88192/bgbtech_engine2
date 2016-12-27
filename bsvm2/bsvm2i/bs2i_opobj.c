@@ -533,6 +533,40 @@ BS2VM_API void BSVM2_Op_STOSX(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	BSVM2_FrameFreeX128(frm, a);
 }
 
+
+BS2VM_API void BSVM2_Op_LDOSLX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	if(dtvNullP(frm->local[op->i0].a))
+		{ frm->ctx->status=BSVM2_EXS_NULLEX; return; }
+
+	a=BSVM2_FrameAllocX128(frm);
+	vi=op->v.p;
+	p=dtcVaGetPtr(frm->local[op->i0].a, vi->objinf);
+	*a=*(BSVM2_ValX128 *)p;
+	frm->stack[op->t0].p=a;
+}
+
+BS2VM_API void BSVM2_Op_STOSLX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	if(dtvNullP(frm->local[op->i0].a))
+		{ frm->ctx->status=BSVM2_EXS_NULLEX; return; }
+
+	a=frm->stack[op->t0].p;
+	vi=op->v.p;
+	p=dtcVaGetPtr(frm->local[op->i0].a, vi->objinf);
+	*(BSVM2_ValX128 *)p=*a;
+	BSVM2_FrameFreeX128(frm, a);
+}
+
+
 BS2VM_API void BSVM2_Op_LDTHISX(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	BSVM2_ImageGlobal *vi;

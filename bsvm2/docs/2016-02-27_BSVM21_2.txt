@@ -1239,7 +1239,10 @@ X128 Operation Type (Z)
 *  8, Int128
 *  9, UInt128
 *  A, Float128
-*  B-F
+*  B, Vec3Hf/Vec3D (V64/Y256)
+*  C, Vec4Hf/Vec4D (V64/Y256)
+*  D, Vec3Xf (3XF)
+*  E-F
 
 X128 Binary Operators
 *  Int128: Same as for other Int types.

@@ -494,6 +494,104 @@ BTEIFGL_API void BGBDT_SndBTAC1C_DecodeBlockMono(
 		obuf[i]=0;
 }
 
+#if 0
+s64 btac1c2_fakesqrt(s64 val)
+{
+	s64 v, v1;
+	int i, j;
+	if(val<0)
+		return(-btac1c2_fakesqrt(-val));
+	
+	v=val;
+	while(v>(1LL<<30))
+		{ v=v>>1; }
+	while((v*v)>val)
+		{ v=v>>1; }
+
+	for(i=1; i<17; i++)
+	{
+		v1=v+(v>>i); j=16;
+		if(v1==v)break;
+		while(((v1*v1)<=val) && (j--))
+			{ v=v1; v1=v+(v>>i); }
+	}
+	return(v);
+}
+#endif
+
+#if 1
+
+u32 btac1c2_fakesqrt32(u32 val)
+{
+	u32 v, v0, v1;
+	
+	v=val;
+	if(v>>24)	{ v=v>>8; }
+	if(v>>20)	{ v=v>>4; }
+	if(v>>18)	{ v=v>>2; }
+	if(v>>16)	{ v=v>>1; }
+
+	v0=v>>8; if((v0*v0)>val) { v=v0; }
+	v0=v>>4; if((v0*v0)>val) { v=v0; }
+	v0=v>>2; if((v0*v0)>val) { v=v0; }
+	v0=v>>1; if((v0*v0)>val) { v=v0; }
+	if((v*v)>val) { v=v>>1; }
+
+	for(v0=v>>1; v0; v0=v0>>1)
+	{
+		v1=v+v0;
+		if((v1*v1)<=val)
+		{
+			v=v1; v1=v+v0;
+			if((v1*v1)<=val)
+				{ v=v1; }
+		}
+	}
+	return(v);
+}
+
+s64 btac1c2_fakesqrt(s64 val)
+{
+	s64 v, v0, v1, v2;
+	int i, j;
+
+	if(val<0)
+		return(-btac1c2_fakesqrt(-val));
+
+	if(val==((u32)val))
+		return(btac1c2_fakesqrt32((u32)val));
+
+	v=val;
+	while(v>(1LL<<30))
+		{ v=v>>1; }
+
+//	v0=v>>4;
+//	while((v0*v0)>val)
+//		{ v=v>>4; v0=v>>4; }
+
+	while((v*v)>val)
+		{ v=v>>1; }
+
+	v0=v>>1;
+	for(i=1; i<17; i++)
+	{
+//		v1=v+(v>>i); // j=16;
+		v1=v+v0; // j=16;
+		if(v1==v)break;
+//		while(((v1*v1)<=val) && (j--))
+		v2=(v1*v1);
+		if(v2<=val)
+		{
+			v=v1;
+//			v1=v+(v>>i);
+			if(v2==val)break;
+		}
+		v0=v0>>1;
+	}
+	return(v);
+}
+#endif
+
 int BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(s16 *ibuf0, s16 *ibuf1, int len)
 {
 	int p0, p1;
@@ -521,7 +619,8 @@ int BGBDT_SndBTAC1C1_ErrorBlockMonoSamples(s16 *ibuf0, s16 *ibuf1, int len)
 		
 		e+=d;
 	}
-	e=sqrt(e);
+//	e=sqrt(e);
+	e=btac1c2_fakesqrt(e);
 	if((e<0) || (e>(1<<30)))
 		e=(1<<30);
 //	e=e/2;
@@ -551,13 +650,15 @@ int BGBDT_SndBTAC1C1_ErrorBlockStereoSamples(s16 *ibuf0, s16 *ibuf1, int len)
 //		d=ibuf0[i]-ibuf1[i];
 		dc=pc0-pc1;
 		ds=ps0-ps1;
-		ds=0.25*ds;
+		ds=ds>>2;
+//		ds=0.25*ds;
 //		ds=0.5*ds;
 
 		d=dc*dc+ds*ds;
 		e+=d;
 	}
-	e=sqrt(e);
+//	e=sqrt(e);
+	e=btac1c2_fakesqrt(e);
 	if((e<0) || (e>(1<<30)))
 		e=(1<<30);
 	return(e);

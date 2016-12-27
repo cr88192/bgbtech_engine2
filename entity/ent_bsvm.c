@@ -4,6 +4,9 @@ BSVM2_CodeImage *bt2ent_img;
 BSVM2_ImageGlobal *bt2ent_vi_update;
 BSVM2_ImageGlobal *bt2ent_vi_spawnworld;
 
+BSVM2_ImageGlobal *bt2ent_vi_toolset;
+BSVM2_ImageGlobal *bt2ent_vi_tooluse;
+
 dtcClass bt2ent_eb3d_cls;
 dtcField bt2ent_eb3d_fi_origin;
 dtcField bt2ent_eb3d_fi_velocity;
@@ -15,6 +18,7 @@ dtcField bt2ent_eb3d_fi_sprite_lf;
 dtcField bt2ent_eb3d_fi_sprite_bk;
 dtcField bt2ent_eb3d_fi_sprite_sz;
 dtcField bt2ent_eb3d_fi_flags;
+dtcField bt2ent_eb3d_fi_owner;
 
 dtcField bt2ent_eb3d_fi_spawn;
 dtcField bt2ent_eb3d_fi_touch;
@@ -259,6 +263,32 @@ BTEIFGL_API void Bt2Ent_EntSetFlags(dtVal obj, s64 val)
 	dtcVaSetL(obj, bt2ent_eb3d_fi_flags, val);
 }
 
+BTEIFGL_API dtVal Bt2Ent_EntGetOwner(dtVal obj)
+{
+	if(!bt2ent_eb3d_fi_owner)
+	{
+		bt2ent_eb3d_fi_owner=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "owner");
+		if(!bt2ent_eb3d_fi_owner)
+			return(DTV_NULL);
+	}
+
+	return(dtcVaGetA(obj, bt2ent_eb3d_fi_owner));
+}
+
+BTEIFGL_API void Bt2Ent_EntSetOwner(dtVal obj, dtVal val)
+{
+	if(!bt2ent_eb3d_fi_owner)
+	{
+		bt2ent_eb3d_fi_owner=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "owner");
+		if(!bt2ent_eb3d_fi_owner)
+			return;
+	}
+
+	dtcVaSetA(obj, bt2ent_eb3d_fi_owner, val);
+}
+
 
 BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 {
@@ -338,6 +368,11 @@ BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 	bt2ent_vi_spawnworld=BS2I_ImageLookupFunc(
 		bt2ent_img, "spawn_world");
 
+	bt2ent_vi_toolset=BS2I_ImageLookupFunc(
+		bt2ent_img, "tool_set");
+	bt2ent_vi_tooluse=BS2I_ImageLookupFunc(
+		bt2ent_img, "tool_use");
+
 
 	bt2ent_eb3d_cls=BGBDTC_LookupClassQName("EntityBase");
 	bt2ent_eb3d_fi_origin=BGBDTC_LookupClassSlotName(
@@ -356,6 +391,7 @@ BTEIFGL_API int Bt2Ent_ScriptUpdate(double dt)
 	double org[3];
 	BSVM2_Context *vctx;
 	BSVM2_Value *args;
+	int i;
 
 	if(!dtvNullP(bt2ent_voxworld->ent_player))
 	{
@@ -366,6 +402,24 @@ BTEIFGL_API int Bt2Ent_ScriptUpdate(double dt)
 			vec3d(org[0], org[1], org[2]));
 	}
 
+	Bt2Ent_SetGlobalVec3("player_reforg", vec3d(
+			bt2ent_voxworld->reforg[0],
+			bt2ent_voxworld->reforg[1],
+			bt2ent_voxworld->reforg[2]));
+
+	Bt2Ent_SetGlobalVec3("player_view_fw", vec3d(
+			bt2ent_voxworld->camrot[1*3+0],
+			bt2ent_voxworld->camrot[1*3+1],
+			bt2ent_voxworld->camrot[1*3+2]));
+	Bt2Ent_SetGlobalVec3("player_view_rt", vec3d(
+			bt2ent_voxworld->camrot[0*3+0],
+			bt2ent_voxworld->camrot[0*3+1],
+			bt2ent_voxworld->camrot[0*3+2]));
+	Bt2Ent_SetGlobalVec3("player_view_up", vec3d(
+			bt2ent_voxworld->camrot[2*3+0],
+			bt2ent_voxworld->camrot[2*3+1],
+			bt2ent_voxworld->camrot[2*3+2]));
+
 	if(!bt2ent_vi_update)
 		return(-1);
 
@@ -375,6 +429,10 @@ BTEIFGL_API int Bt2Ent_ScriptUpdate(double dt)
 //	Bt2Ent_SetGlobalA("world_entity", bt2ent_map_entarr);
 //	Bt2Ent_SetGlobalI("world_max_entity", bt2ent_map_nents);
 
+	i=Bt2Ent_GetGlobalI("world_max_entity");
+	if(i>bt2ent_voxworld->nents)
+		bt2ent_voxworld->nents=i;
+
 	Bt2Ent_SetGlobalA("world_entity", bt2ent_voxworld->entarr);
 	Bt2Ent_SetGlobalI("world_max_entity", bt2ent_voxworld->nents);
 
@@ -382,6 +440,12 @@ BTEIFGL_API int Bt2Ent_ScriptUpdate(double dt)
 	BSVM2_Interp_SetupCallVM(vctx, bt2ent_vi_update, args);
 	BSVM2_Interp_RunContext(vctx, 999999999);
 	BSVM2_Interp_FreePoolContext(vctx);
+
+	bt2ent_voxworld->entarr=Bt2Ent_GetGlobalA("world_entity");
+	i=Bt2Ent_GetGlobalI("world_max_entity");
+	if(i!=bt2ent_voxworld->nents)
+		bt2ent_voxworld->nents=i;
+
 	return(0);
 }
 
@@ -448,6 +512,50 @@ BTEIFGL_API int Bt2Ent_SpawnWorld(char *func)
 
 	Bt2Ent_SpawnPlayer();
 
+	bt2ent_voxworld->entarr=Bt2Ent_GetGlobalA("world_entity");
+	bt2ent_voxworld->nents=Bt2Ent_GetGlobalI("world_max_entity");
+
+	return(0);
+}
+
+
+BTEIFGL_API int Bt2Ent_ToolSet(int id)
+{
+	BSVM2_Value targs[4];
+	double org[3];
+	BSVM2_Context *vctx;
+	BSVM2_Value *args;
+
+	if(!bt2ent_vi_toolset)
+		return(-1);
+
+	args=targs;
+	args[0].i=id;
+
+	vctx=BSVM2_Interp_AllocPoolContext();
+	BSVM2_Interp_SetupCallVM(vctx, bt2ent_vi_toolset, args);
+	BSVM2_Interp_RunContext(vctx, 999999999);
+	BSVM2_Interp_FreePoolContext(vctx);
+	return(0);
+}
+
+BTEIFGL_API int Bt2Ent_ToolUse(int flag)
+{
+	BSVM2_Value targs[4];
+	double org[3];
+	BSVM2_Context *vctx;
+	BSVM2_Value *args;
+
+	if(!bt2ent_vi_tooluse)
+		return(-1);
+
+	args=targs;
+	args[0].i=flag;
+
+	vctx=BSVM2_Interp_AllocPoolContext();
+	BSVM2_Interp_SetupCallVM(vctx, bt2ent_vi_tooluse, args);
+	BSVM2_Interp_RunContext(vctx, 999999999);
+	BSVM2_Interp_FreePoolContext(vctx);
 	return(0);
 }
 
@@ -462,6 +570,12 @@ BTEIFGL_API dtVal Bt2Ent_SpawnPlayer(void)
 	Bt2Ent_SetGlobalA("world_player", ent);
 	bt2ent_voxworld->ent_player=ent;
 	return(ent);
+}
+
+BTEIFGL_API dtVal Bt2Ent_SpawnEntityBasicXyz(
+	char *cname, double x, double y, double z)
+{
+	return(Bt2Ent_SpawnEntityBasic(cname, vec3d(x, y, z)));
 }
 
 BTEIFGL_API dtVal Bt2Ent_SpawnEntityBasic(char *cname, vec3d org)
@@ -559,6 +673,32 @@ BTEIFGL_API int Bt2Ent_CallEntityUse(dtVal self, dtVal other)
 }
 #endif
 
+BTEIFGL_API dtVal Bt2Ent_GetGlobalA(char *cname)
+{
+	BSVM2_ImageGlobal *vi;
+	dtVal v;
+
+	vi=BS2I_ImageLookupGlobalVar(
+		bt2ent_img, cname);
+	if(!vi)return(DTV_UNDEFINED);
+	v=BSVM2_Interp_GetGlobalA(vi);
+	return(v);
+}
+
+BTEIFGL_API int Bt2Ent_GetGlobalI(char *cname)
+{
+	BSVM2_ImageGlobal *vi;
+	int i;
+
+	vi=BS2I_ImageLookupGlobalVar(
+		bt2ent_img, cname);
+	if(!vi)return(0);
+	i=BSVM2_Interp_GetGlobalI(vi);
+	return(i);
+}
+
+
+
 BTEIFGL_API int Bt2Ent_SetGlobalA(char *cname, dtVal v)
 {
 	BSVM2_ImageGlobal *vi;
@@ -581,6 +721,26 @@ BTEIFGL_API int Bt2Ent_SetGlobalI(char *cname, int v)
 	return(0);
 }
 
+BTEIFGL_API void Bt2Ent_SetGlobalVec3(char *cname, vec3d org)
+{
+	double dv[3];
+	void *p;
+	BSVM2_ImageGlobal *vi;
+
+	vi=BS2I_ImageLookupGlobalVar(
+		bt2ent_img, cname);
+	if(!vi)return;
+
+//	p=dtcVaGetPtr(obj, bt2ent_eb3d_fi_origin);
+//	p=BSVM2_Interp_GetGlobalP(vi);
+
+	vdvec3d(dv, org);
+	BSVM2_Interp_SetGlobal3Xfv(vi, dv);
+//	BSVM2_Pack3DvTo3Xf(p, dv);
+//	(*(vec2 *)p)=org;
+}
+
+
 #if 1
 int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
 	char *spr, vec3d vorg, float xs, float ys, int rang)
@@ -600,6 +760,11 @@ int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
 		{ flip=1; xs=-xs; }
 	if(ys<0)
 		{ zflip=1; ys=-ys; }
+	
+//	if((rang==1) || (rang==2) || (rang==3))
+//		flip=0;
+//	if((rang==5) || (rang==6) || (rang==7))
+//		flip=0;
 
 	V3F_ADDSCALE(org, world->camrot+0, -(xs/2), v0);
 	V3F_ADDSCALE(org, world->camrot+0,  (xs/2), v1);
@@ -630,6 +795,10 @@ int Bt2Ent_DrawSprite(BGBDT_VoxWorld *world,
 	frglEnableTexture2D();
 //	frglBindTexture2D(tex);
 	FRGL_TexMat_BindSprite(tex, rang);
+	
+	if(FRGL_TexMat_BoundSpriteIsSideP())
+		flip=0;
+	
 	if(FRGL_TexMat_BoundSpriteFlipP())
 		flip=!flip;
 
@@ -962,7 +1131,7 @@ BTEIFGL_API int Bt2Ent_BoxQueryWorldEnts(
 	BGBDT_VoxCoord min, BGBDT_VoxCoord max,
 	dtVal *robj, int *rnobj, int qflag)
 {
-	dtVal ent;
+	dtVal ent, eown;
 	int x, y, mx, my, nx, ny;
 	int i, j, k, l, n;
 
@@ -975,6 +1144,11 @@ BTEIFGL_API int Bt2Ent_BoxQueryWorldEnts(
 			continue;
 		if(dtvEqqP(ent, self))
 			continue;
+
+		eown=Bt2Ent_EntGetOwner(ent);
+		if(dtvEqqP(eown, self))
+			continue;
+
 //		if(dtvEqqP(ent, world->ent_player))
 //			continue;
 //		Bt2Ent_DrawEntity(world, ent);
@@ -1152,4 +1326,83 @@ BTEIFGL_API int Bt2Ent_EntityMoveCheckCollide(dtVal ent, void *rpos)
 
 	i=bt2ent_movetick_checkmove(ent, eorg, emin, emax);
 	return(i);
+}
+
+
+BTEIFGL_API int Bt2Ent_EmitParticleExplosionBasic(dtVal ent,
+	int cnt, int atxy, u32 clr)
+{
+	vec3d org;
+	
+	org=Bt2Ent_EntGetOrigin(ent);
+
+	BGBDT_Part_ParticleExplosionBasic(org,
+		vec3(0,0,0), vec3(25,25,25),
+		cnt, atxy, clr);
+}
+
+BTEIFGL_API int Bt2Ent_EmitParticleEffectPara(dtVal ent, dtVal args)
+{
+	float tv[4];
+	BGBDT_ParticleEmission tpara;
+	BGBDT_ParticleEmission *para;
+	dtVal n0, n1, n2, n3;
+	char *s0;
+	int i, j, k, l;
+
+	para=&tpara;
+
+	l=dtvArrayGetSize(args);
+	BGBDT_Part_ParticleInitPara(para);
+	para->org=Bt2Ent_EntGetOrigin(ent);
+
+	for(i=0; i<l; i++)
+	{
+		n0=dtvArrayGetIndexDtVal(args, i);
+		if(!BGBDT_TagStr_IsKeywordP(n0))
+			continue;
+		s0=BGBDT_TagStr_GetUtf8(n0);
+		if(!s0)continue;
+
+		i++;
+		if(i>=l)break;
+		n0=dtvArrayGetIndexDtVal(args, i);
+		
+		if(!strcmp(s0, "count"))
+			{ para->cnt=dtvUnwrapInt(n0); }
+
+		if(!strcmp(s0, "atxy"))
+			{ para->atxy=dtvUnwrapInt(n0); }
+		if(!strcmp(s0, "zacc"))
+		{
+			j=dtvUnwrapFloat(n0)*4+128;
+			if(j<0)j=0;
+			if(j>255)j=255;
+			para->zacc=j;
+		}
+
+		if(!strcmp(s0, "clr"))
+			{ para->clr=dtvUnwrapInt(n0); }
+		if(!strcmp(s0, "clrvel"))
+			{ para->clrvel=dtvUnwrapInt(n0); }
+
+		if(!strcmp(s0, "rad"))
+			{ para->rad=dtvUnwrapInt(n0); }
+		if(!strcmp(s0, "ttl"))
+			{ para->ttl=dtvUnwrapInt(n0); }
+
+		if(!strcmp(s0, "bvel"))
+		{
+			BGBDT_XV128_GetVec3fv(n0, tv);
+			para->bvel=vec3(tv[0], tv[1], tv[2]);
+		}
+
+		if(!strcmp(s0, "rvel"))
+		{
+			BGBDT_XV128_GetVec3fv(n0, tv);
+			para->rvel=vec3(tv[0], tv[1], tv[2]);
+		}
+	}
+	
+	BGBDT_Part_ParticleEmitPara(para);
 }

@@ -369,14 +369,21 @@ void BS2C_EmitOpcodeJx(BS2CC_CompileContext *ctx, int vi, int vj)
 	if((vi<128) && (vj<128))
 	{
 		k=(vi<<7)|vj;
-		BS2C_EmitOpcodeUCx(ctx, k);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+
+		BS2C_EmitByte(ctx, 0x80|(k>>8));
+		BS2C_EmitByte(ctx, k);
 		return;
 	}
 
 	if((vi<1024) && (vj<2048))
 	{
 		k=(vi<<11)|vj;
-		BS2C_EmitOpcodeUCx(ctx, k);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+
+		BS2C_EmitByte(ctx, 0xC0|(k>>16));
+		BS2C_EmitByte(ctx, k>>8);
+		BS2C_EmitByte(ctx, k);
 		return;
 	}
 }
@@ -396,21 +403,33 @@ void BS2C_EmitOpcodeLx(BS2CC_CompileContext *ctx,
 	if((vi<32) && (vj<32) && (vk<16))
 	{
 		k=(vi<<9)|(vj<<4)|vk;
-		BS2C_EmitOpcodeUCx(ctx, k);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+
+		BS2C_EmitByte(ctx, 0x80|(k>>8));
+		BS2C_EmitByte(ctx, k);
 		return;
 	}
 
 	if((vi<128) && (vj<128) && (vk<128))
 	{
 		k=(vi<<14)|(vj<<7)|vk;
-		BS2C_EmitOpcodeUCx(ctx, k);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+
+		BS2C_EmitByte(ctx, 0xC0|(k>>16));
+		BS2C_EmitByte(ctx, k>>8);
+		BS2C_EmitByte(ctx, k);
 		return;
 	}
 
 	if((vi<1024) && (vj<512) && (vk<512))
 	{
 		k=(vi<<18)|(vj<<9)|vk;
-		BS2C_EmitOpcodeUCx(ctx, k);
+//		BS2C_EmitOpcodeUCx(ctx, k);
+
+		BS2C_EmitByte(ctx, 0xE0|(k>>24));
+		BS2C_EmitByte(ctx, (k>>16)&255);
+		BS2C_EmitByte(ctx, (k>> 8)&255);
+		BS2C_EmitByte(ctx, (k    )&255);
 		return;
 	}
 }

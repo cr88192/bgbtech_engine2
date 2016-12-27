@@ -1,17 +1,19 @@
 
-BGBScript 2-1
-* Possible: Reboot of BGBScript and BGBScript 2/RT efforts.
-* Will be statically typed and performance oriented.
+BGBScript 2
+* Reboot of BGBScript and BGBScript-RT efforts.
+* Statically typed and performance oriented.
 * Will change the canonical declaration syntax.
 ** Use Java / C# style declaration syntax.
-** Support for AS3 style syntax will be retained.
+** (Drop?) Support for AS3 style syntax will be retained.
 * Will use a class/instance object system.
 * GC will be optional.
 ** For RT uses, GC may be absent.
 ** Delete is to be used to release memory.
 ** An RAII like system may also be used for memory management.
-** Additionally, reference counting may be used.
+** (Drop?) Additionally, reference counting may be used.
 
+
+== General ==
 
 Scope Levels:
 * Global
@@ -81,7 +83,7 @@ Integer types will be fixed size twos complement types.
 ** float16, 16-bit IEEE half-float
 * Vector
 ** FComplex, DComplex
-** Vec2f, Vec3f, Vec4f, Vec2d
+** Vec2f, Vec3f, Vec4f, Vec2d, Vec3xf
 ** Quatf
 
 SmallInt types will implicitly promote to int in operations. If the destination is a wider type, then the types will implicitly promote to the wider type. This promotion will happen prior to performing arithmetic operations, and may be applied recursively.
@@ -116,11 +118,16 @@ Many of the core types will be value-types, meaning they are passed around by va
 
 Many other objects will be reference types, and will be passed by identity. Classes, Interfaces, Arrays, ... will be reference types. Reference types will retain identity whether they exist in their native types or are cast to variant.
 
-The 128-bit value types are likely to be internally implemented as structs. They will behave as other numeric types, but may be a bit slower.
+(Drop) The 128-bit value types are likely to be internally implemented as structs.
+
+(New) The 128-bit types are implemented internally as 'X128' types, which are a sort of boxed value type.
+
+While 128-bit values will behave as other numeric types, they are likely to be a bit slower.
 
 Likewise, float16 is liable to be emulated, and thus slower than other FP types. It is mostly intended for large arrays.
 
 The native endianess for numbers is undefined.
+While on most common targets it is likely to be little endian, this isn't necessarily safe to assume.
 
 
 ==== Declararions ====
@@ -144,6 +151,19 @@ The native endianess for numbers is undefined.
  
  void someMethod(int x, int y) { ... }	//method
  var fn=function(int x, int y):void { ... }		//closure
+
+
+If a function argument list ends with ..., then the function will accept a variable number of arguments.
+
+ void someVarArgMethod(int x, int y, ...args) { ... }	//method
+
+Where args is the name of the arguments list, which is seen by the function as an array of variant.
+
+Named arguments may be given as "name: value", which will be expressed in a variable argument list as the name (as a keyword), followed by the value.
+
+With native/FFI calls, '...' vs '...name' will indicate whether to use C-style varargs passing, or to pass an array. Within BS2 code, only arrays may be used.
+
+Note that the array created by a varargs call is only valid within the lifetime of the called function, and will be destroyed automatically when this function returns.
 
 
 ==== Lists (Dropped) ====
@@ -295,6 +315,88 @@ Float and Double will have some builtin properties:
 ** The ssqrt operation returns a sign-folded sqrt (x>=0)?sqrt(x):-sqrt(-x).
 
 
+=== Vector Operations ===
+
+A vector in this language will consist of between 2 and 4 floating point numbers
+* vec2f: Will consist of a pair of floats with 64-bit storage.
+* vec2d: Will consist of a pair of doubles with 128-bit storage.
+* vec3f: Will consist of 3 floats with 128 bit storage (32 bits unused)
+* vec4f: Will consist of 4 floats with 128 bit storage.
+* vec3xf: Will consist of 3 extended floats with 128 bit storage.
+** Essentially it is a vec3f with additional mantissa bits.
+** The final 128 bits will be divided among the other components.
+** Logically, components will be treated as double.
+
+There will be shorthand type names:
+* vec2: Will alias to vec2d
+* vec3: Will alias to vec3xf
+* vec4: Will alias to vec4f
+
+Additionally, there will be quaternions:
+* quatf: Will consist of 4 floats representing a quaternion.
+** The 'w' component will be interpreted as the 'real' part.
+* quat: Will alias to quatf
+
+Vector Binary Operators:
+* A+B, A-B: Add/Subtract Vectors (Per Component)
+* A*B, A/B: Multiply/Divide Vectors (Per Component, Excludes Quat)
+* A*f, A/f: Multiply/Divide Vector by a Scalar.
+* A^B: Dot Product
+* A%B: Cross Product
+
+Vector Unary Operators:
+* -A: Negated value of the vector.
+
+Vector Properties:
+* len | length: Length of the vector
+* len2 | length2: Squared length of the vector
+* neg: Negated vector
+* norm | normalize: The normalized value of the vector
+* rcp: Reciprocal (Per Component)
+* rsqrt: Reciprocal Square Root (Per Component)
+* sqrt: Square Root (Per Component)
+
+Vector Members:
+* x, y, z, w: X, Y, Z, and W fields.
+** W does not exist in vec2 or vec3 types.
+** Z does not exist in vec2.
+* i, j, k, l, r: Aliases to X/Y/Z/W used for quaternions.
+** i=x, j=y, k=z, l=r=w
+* i, r: Y and X for complex numbers
+** r=x, i=y
+
+The members within a vector are read-only given a vector is a value type.
+* Vector members may be only modified using arithmetic or by creating a new vector.
+
+
+Quaternion:
+* A*B: Quaternion product
+* A/B: Quaternion divide
+** Defined as equivalent to A*(1.0/B)
+
+Example syntax:
+ vec2 v2=#[1.0, 0.0];
+ vec3 v3=#[0.0, 1.0, 0.0];
+ vec4 v4=#[0.0, 0.0, 1.0, 0.0];
+
+Vector literals are to automatically convert to the type they are assigned to, and to match with the other operand in the case of a vector operation, thus suffixes should rarely be necessary.
+
+Vectors may also be constructed dynamically using expressions.
+
+
+Vectors may be converted to other vector types.
+* If converted to a narrower type, the extra parameters are to be discarded.
+* If converted to a wider type, the added parameters are to be zeroed.
+* If a scalar is converted to a vector, its value will be used for each member.
+* If a scalar is converted to a quat, the scalar goes into W with X=Y=Z=0.
+* If a complex is converted to a quat, R/I go into W/X with Y=Z=0.
+
+Type promotions:
+* Operations between vectors of the same width will promote to higher precision
+* Operations between vectors of differing width will promote to the wider type.
+* Operations involving quat will promote to quat.
+
+
 === String/Array/Pointer Operators ===
 
 * Obj + Int, Obj - Int
@@ -389,6 +491,11 @@ Throwing this continuation will send control to the statement following the body
 As with exceptions, this may be used across multiple functions. However, a thrown continuation may not be caught. Like with exceptions, any finally blocks are to be executed in the process of unwinding.
 
 
+== Syntax ==
+
+So begins the section on language syntax.
+
+
 === Tokens ===
 
 Identifier:
@@ -430,7 +537,7 @@ Triple Quote Strings:
 * The minumum maximum length for a triple-quoted string is 65472 characters.
 
 
-=== Syntax ===
+=== Syntactic Forms ===
 
 
 PackageStatement:

@@ -63,6 +63,7 @@ BTEIFGL_SRCS=\
 	\
 	entity/ent_bsvm.c \
 	entity/ent_dialog.c \
+	entity/ent_part.c \
 	\
 	btews/btws_diode.c \
 	btews/btws_dip.c \

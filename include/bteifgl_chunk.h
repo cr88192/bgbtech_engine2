@@ -587,3 +587,36 @@ void (*WriteAdDist)(BGBDT_RiceContext *ctx, int val, int *rk);
 void (*WriteSym)(BGBDT_RiceContext *ctx, int sym, int *rk);
 
 };
+
+
+typedef struct BGBDT_Particle_s BGBDT_Particle;
+typedef struct BGBDT_ParticleEmission_s BGBDT_ParticleEmission;
+
+struct BGBDT_Particle_s {
+BGBDT_Particle *next;
+// vec3d org;		//origin
+// vec3 vel;		//velocity
+double org[3];
+float vel[3];
+float lgvel[3];
+byte atxy;		//atlas X/Y
+byte zacc;		//Z accel (Q4.4 m/s^2)
+byte rad;		//"radius" (in 1mm units).
+u32 clr;		//color
+u32 clrvel;		//color velocity
+short ttl;		//time-to-live in milliseconds
+};
+
+struct BGBDT_ParticleEmission_s {
+vec3d org;		//origin
+vec3 bvel;		//base velocity
+vec3 rvel;		//radial velocity (spherical)
+int cnt;		//number of particles to emit
+byte atxy;		//atlas position
+byte zacc;		//z acceleration
+u32 clr;		//color
+u32 clrvel;		//color velocity
+short rad;		//particle radius
+short ttl;		//time-to-live in milliseconds
+};
+

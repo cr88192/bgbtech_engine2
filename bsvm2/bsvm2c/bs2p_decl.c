@@ -904,10 +904,15 @@ dtVal BS2P_ParseFunVars(BS2CC_CompileContext *ctx)
 
 		n1=BS2P_TryParseArgDecl(ctx);
 		if(!dtvNullP(n1))
+		{
 			vars[nvars++]=n1;
-
-		BS2P_ParseExpectOptToken(ctx, "X,");
-		t0=BS2P_PeekToken(ctx, 0);
+			BS2P_ParseExpectOptToken(ctx, "X,");
+			t0=BS2P_PeekToken(ctx, 0);
+		}else
+		{
+			BS2P_ParseExpectToken(ctx, "X,");
+			t0=BS2P_PeekToken(ctx, 0);
+		}
 	}
 	
 	if(nvars<1)

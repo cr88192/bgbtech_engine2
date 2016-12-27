@@ -572,3 +572,39 @@ BS2VM_API void BSVM2_Op_UNOPX_LEN2_X4F(BSVM2_Frame *frm, BSVM2_Opcode *op)
 		((a->fx*a->fx)+(a->fy*a->fy)+(a->fz*a->fz)+(a->fw*a->fw));
 	BSVM2_FrameFreeX128(frm, a);
 }
+
+BS2VM_API void BSVM2_Op_CVTX3F2AA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].a=
+		BGBDT_XV128_WrapVec3f(a->fx, a->fy, a->fz);
+	
+}
+
+BS2VM_API void BSVM2_Op_CVTX4F2AA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].a=
+		BGBDT_XV128_WrapVec4f(a->fx, a->fy, a->fz, a->fw);
+	
+}
+
+BS2VM_API void BSVM2_Op_CVTXQF2AA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a;
+	a=frm->stack[op->t0].p;
+	frm->stack[op->t0].a=
+		BGBDT_XV128_WrapQuatf(a->fx, a->fy, a->fz, a->fw);
+	
+}
+
+BS2VM_API void BSVM2_Op_CVTAA2X3F(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ValX128 *a, *b;
+	a=frm->stack[op->t0].p;
+	b=BSVM2_FrameAllocX128(frm);
+	frm->stack[op->t0].p=b;
+	*b=*a;
+}

@@ -88,10 +88,18 @@ BS2VM_API void BSVM2_Pack3DvTo3Xf(u32 *pv, double *px)
 	pv[0]=lx>>32;
 	pv[1]=ly>>32;
 	pv[2]=lz>>32;
+//	pv[3]=
+//		(((lx>>20)&4095)    )|
+//		(((ly>>20)&4095)<<12)|
+//		(((lz>>24)& 255)<<24);
+//	pv[3]=
+//		(((lx>>21)&2047)    )|
+//		(((ly>>21)&2047)<<11)|
+//		(((lz>>22)&1023)<<22);
 	pv[3]=
-		(((lx>>20)&4095)    )|
-		(((ly>>20)&4095)<<12)|
-		(((lz>>24)& 255)<<24);
+		((lx>>21)&0x000007FF)|
+		((ly>>10)&0x003FF800)|
+		((lz    )&0xFFC00000);
 }
 
 BS2VM_API void BSVM2_Pack3DblTo3Xf(u32 *pv, double x, double y, double z)
@@ -108,9 +116,12 @@ BS2VM_API void BSVM2_Unpack3XfTo3Dv(u32 *pv, double *px)
 
 	if(pv[3])
 	{
-		lx=(((u64)pv[0])<<32)|((pv[3]&0x00000FFF)<<20);
-		ly=(((u64)pv[1])<<32)|((pv[3]&0x00FFF000)<< 8);
-		lz=(((u64)pv[2])<<32)|((pv[3]&0xFF000000)    );
+//		lx=(((u64)pv[0])<<32)|((pv[3]&0x00000FFF)<<20);
+//		ly=(((u64)pv[1])<<32)|((pv[3]&0x00FFF000)<< 8);
+//		lz=(((u64)pv[2])<<32)|((pv[3]&0xFF000000)    );
+		lx=(((u64)pv[0])<<32)|((pv[3]&0x000007FF)<<21);
+		ly=(((u64)pv[1])<<32)|((pv[3]&0x003FF800)<<10);
+		lz=(((u64)pv[2])<<32)|((pv[3]&0xFFC00000)    );
 		px[0]=BSVM2_XFloat2Double(lx);
 		px[1]=BSVM2_XFloat2Double(ly);
 		px[2]=BSVM2_XFloat2Double(lz);

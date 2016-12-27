@@ -349,13 +349,18 @@ BTEIFGL_API int FRGL_TexMat_GetLoadSprite(char *name)
 }
 
 int frgl_texmat_boundspriteflip;
+int frgl_texmat_boundspriteisside;
 
 BTEIFGL_API int FRGL_TexMat_BoundSpriteFlipP(void)
 	{ return(frgl_texmat_boundspriteflip); }
 
+BTEIFGL_API int FRGL_TexMat_BoundSpriteIsSideP(void)
+	{ return(frgl_texmat_boundspriteisside); }
+
 BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang)
 {
-	static int ftab[8]={0, 7, 6, 5,  4, 3, 2, 1};
+	static byte ftab[8]={0, 7, 6, 5,  4, 3, 2, 1};
+	static byte isang[8]={0, 1, 1, 1, 0, 1, 1, 1};
 	FRGL_TextureMaterial *cur;
 	int ra1, ra2, ra3, ra4;
 	int t0;
@@ -372,10 +377,13 @@ BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang)
 	ra3=(ftab[ra1])&7;
 	ra4=(ftab[ra2])&6;
 	
+	frgl_texmat_boundspriteisside=0;
+	
 	if(cur->spr_tex[ra1]>0)
 	{
 		frglBindTexture2D(cur->spr_tex[ra1]);
 		frgl_texmat_boundspriteflip=0;
+		frgl_texmat_boundspriteisside=isang[ra1];
 		return(0);
 	}
 
@@ -383,6 +391,7 @@ BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang)
 	{
 		frglBindTexture2D(cur->spr_tex[ra2]);
 		frgl_texmat_boundspriteflip=0;
+		frgl_texmat_boundspriteisside=isang[ra2];
 		return(0);
 	}
 
@@ -390,6 +399,7 @@ BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang)
 	{
 		frglBindTexture2D(cur->spr_tex[ra3]);
 		frgl_texmat_boundspriteflip=1;
+		frgl_texmat_boundspriteisside=isang[ra3];
 		return(0);
 	}
 
@@ -397,6 +407,7 @@ BTEIFGL_API int FRGL_TexMat_BindSprite(int idx, int rang)
 	{
 		frglBindTexture2D(cur->spr_tex[ra4]);
 		frgl_texmat_boundspriteflip=1;
+		frgl_texmat_boundspriteisside=isang[ra4];
 		return(0);
 	}
 

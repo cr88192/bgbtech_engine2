@@ -395,6 +395,9 @@ void BSVM2_Interp_SetupTopCallG(BSVM2_CodeBlock *cblk,
 	else
 		{ op->t0=cblk->stkpos; }
 
+	if(cblk->stkpos<0)
+		{ BSVM2_DBGTRAP }
+
 	if(vi->cblk)
 	{
 		op->Run=BSVM2_TrOp_CALLG;
@@ -457,6 +460,9 @@ void BSVM2_Interp_SetupTopCallV(BSVM2_CodeBlock *cblk,
 	else
 		{ op->t0=cblk->stkpos; }
 
+	if(cblk->stkpos<0)
+		{ BSVM2_DBGTRAP }
+
 	op->Run=BSVM2_TrOp_CALLV;
 	return;
 }
@@ -489,6 +495,9 @@ void BSVM2_Interp_SetupTopCallTh(BSVM2_CodeBlock *cblk,
 		{ op->t0=cblk->stkpos++; }
 	else
 		{ op->t0=cblk->stkpos; }
+
+	if(cblk->stkpos<0)
+		{ BSVM2_DBGTRAP }
 
 	op->Run=BSVM2_TrOp_CALLTH;
 	return;
@@ -527,6 +536,9 @@ void BSVM2_Interp_SetupTopCallA(BSVM2_CodeBlock *cblk,
 	else
 		{ op->t0=cblk->stkpos; }
 
+	if(cblk->stkpos<0)
+		{ BSVM2_DBGTRAP }
+
 	op->Run=BSVM2_TrOp_CALLA;
 	return;
 }
@@ -563,6 +575,9 @@ void BSVM2_Interp_SetupTopCallL(BSVM2_CodeBlock *cblk,
 		{ op->t0=cblk->stkpos++; }
 	else
 		{ op->t0=cblk->stkpos; }
+
+	if(cblk->stkpos<0)
+		{ BSVM2_DBGTRAP }
 
 	op->Run=BSVM2_TrOp_CALLL;
 	return;

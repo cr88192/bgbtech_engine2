@@ -106,15 +106,21 @@ int BGBDT_SndBTAC1C2_PredictSample(
 
 	case 12:	case 13:
 	case 14:	case 15:
-		pred=(
-			ridx->firfx[pfcn-12][0]*psamp[(i-1)&7]+
-			ridx->firfx[pfcn-12][1]*psamp[(i-2)&7]+
-			ridx->firfx[pfcn-12][2]*psamp[(i-3)&7]+
-			ridx->firfx[pfcn-12][3]*psamp[(i-4)&7]+
-			ridx->firfx[pfcn-12][4]*psamp[(i-5)&7]+
-			ridx->firfx[pfcn-12][5]*psamp[(i-6)&7]+
-			ridx->firfx[pfcn-12][6]*psamp[(i-7)&7]+
-			ridx->firfx[pfcn-12][7]*psamp[(i-8)&7])/256;
+		if(ridx)
+		{
+			pred=(
+				ridx->firfx[pfcn-12][0]*psamp[(i-1)&7]+
+				ridx->firfx[pfcn-12][1]*psamp[(i-2)&7]+
+				ridx->firfx[pfcn-12][2]*psamp[(i-3)&7]+
+				ridx->firfx[pfcn-12][3]*psamp[(i-4)&7]+
+				ridx->firfx[pfcn-12][4]*psamp[(i-5)&7]+
+				ridx->firfx[pfcn-12][5]*psamp[(i-6)&7]+
+				ridx->firfx[pfcn-12][6]*psamp[(i-7)&7]+
+				ridx->firfx[pfcn-12][7]*psamp[(i-8)&7])/256;
+		}else
+		{
+			pred=0;
+		}
 		break;
 
 	default:
@@ -122,6 +128,113 @@ int BGBDT_SndBTAC1C2_PredictSample(
 		break;
 	}
 	return(pred);
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn0(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+	{ return(psamp[(idx-1)&7]); }
+int BGBDT_SndBTAC1C2_PredictSample_Pfn1(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+	{ return(2*psamp[(idx-1)&7]-psamp[(idx-2)&7]); }
+int BGBDT_SndBTAC1C2_PredictSample_Pfn2(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+	{ return((3*psamp[(idx-1)&7]-psamp[(idx-2)&7])>>1); }
+int BGBDT_SndBTAC1C2_PredictSample_Pfn3(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+	{ return((5*psamp[(idx-1)&7]-psamp[(idx-2)&7])>>2); }
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn4(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	int p0, p1;
+	p0=(psamp[(idx-1)&7]+psamp[(idx-2)&7]);
+	p1=(psamp[(idx-2)&7]+psamp[(idx-3)&7]);
+	return(p0-(p1>>1));
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn5(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	int p0, p1;
+	p0=(psamp[(idx-1)&7]+psamp[(idx-2)&7]);
+	p1=(psamp[(idx-2)&7]+psamp[(idx-3)&7]);
+	return((3*p0-p1)>>2);
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn6(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	int p0, p1;
+	p0=(psamp[(idx-1)&7]+psamp[(idx-2)&7]);
+	p1=(psamp[(idx-2)&7]+psamp[(idx-3)&7]);
+	return((5*p0-p1)>>3);
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn7(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	return((18*psamp[(idx-1)&7]-4*psamp[(idx-2)&7]+
+			 3*psamp[(idx-3)&7]-2*psamp[(idx-4)&7]+
+			 1*psamp[(idx-5)&7])/16);
+}
+
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn8(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	return((	72*psamp[(idx-1)&7]-16*psamp[(idx-2)&7]+
+				12*psamp[(idx-3)&7]- 8*psamp[(idx-4)&7]+
+				 5*psamp[(idx-5)&7]- 3*psamp[(idx-6)&7]+
+				 3*psamp[(idx-7)&7]- 1*psamp[(idx-8)&7])/64);
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn9(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	return((	76*psamp[(idx-1)&7]-17*psamp[(idx-2)&7]+
+				10*psamp[(idx-3)&7]- 7*psamp[(idx-4)&7]+
+				 5*psamp[(idx-5)&7]- 4*psamp[(idx-6)&7]+
+				 4*psamp[(idx-7)&7]- 3*psamp[(idx-8)&7])/64);
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn10(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	int p0, p1;
+	p0=(psamp[(idx-1)&7]+psamp[(idx-2)&7]+psamp[(idx-3)&7]+psamp[(idx-4)&7]);
+	p1=(psamp[(idx-5)&7]+psamp[(idx-6)&7]+psamp[(idx-7)&7]+psamp[(idx-8)&7]);
+	return((5*p0-p1)>>3);
+}
+
+int BGBDT_SndBTAC1C2_PredictSample_Pfn11(int *psamp, int idx,
+	int pfcn, btac1c_idxstate *ridx)
+{
+	int p0, p1;
+	p0=(psamp[(idx-1)&7]+psamp[(idx-2)&7]+psamp[(idx-3)&7]+psamp[(idx-4)&7]);
+	p1=(psamp[(idx-5)&7]+psamp[(idx-6)&7]+psamp[(idx-7)&7]+psamp[(idx-8)&7]);
+	return((p0+p1)>>1);
+}
+
+void *BGBDT_SndBTAC1C2_GetPredictFunc(int pfcn)
+{
+	void *fcn;
+	switch(pfcn&15)
+	{
+	case 0: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn0; break;
+	case 1: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn1; break;
+	case 2: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn2; break;
+	case 3: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn3; break;
+	case 4: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn4; break;
+	case 5: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn5; break;
+	case 6: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn6; break;
+	case 7: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn7; break;
+	case 8: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn8; break;
+	case 9: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn9; break;
+	case 10: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn10; break;
+	case 11: fcn=BGBDT_SndBTAC1C2_PredictSample_Pfn11; break;
+	default: fcn=BGBDT_SndBTAC1C2_PredictSample; break;
+	}
+	return(fcn);
 }
 
 BTEIFGL_API void btac1c_initstate(btac1c_idxstate *ridx)
@@ -136,6 +249,8 @@ BTEIFGL_API void BGBDT_SndBTAC1C2_DecodeBlockMono(
 	byte *ibuf, s16 *obuf, int len, btac1c_idxstate *ridx)
 {
 	int psamp[8];
+	int (*pfptr)(int *psamp, int idx,
+		int pfcn, btac1c_idxstate *ridx);
 //	int p0, p1, p2, p3;
 	int pred, pfcn, index, step, diff, uni, sni;
 	int i, j;
@@ -149,14 +264,20 @@ BTEIFGL_API void BGBDT_SndBTAC1C2_DecodeBlockMono(
 	
 	step=btac1c_step_table[index&127];
 
+	pfptr=BGBDT_SndBTAC1C2_GetPredictFunc(pfcn);
+
 	for(i=0; i<len; i++)
 	{
 		j=(ibuf[4+(i>>1)]>>((i&1)*4))&15;
 		uni=j;
 		sni=(j&8)?(-(j&7)):(j&7);
 
-		if(pfcn)
-			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
+		pred=pfptr(psamp, i, pfcn, ridx);
+
+//		if(pfptr)
+//			{ pred=pfptr(psamp, i, pfcn, ridx); }
+//		else if(pfcn)
+//			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
 
 		index=index+btac1c_index_table[uni];
 		index=(index<0)?0:((index>88)?88:index);
@@ -176,6 +297,8 @@ void BGBDT_SndBTAC1C2_DecodeMonoBlockStereo(
 	btac1c_idxstate *ridx)
 {
 	int psamp[8];
+	int (*pfptr)(int *psamp, int idx,
+		int pfcn, btac1c_idxstate *ridx);
 	int pred, index, step, diff, uni, sni, ofs;
 	int lpred, rpred;
 	int pfcn;
@@ -195,12 +318,15 @@ void BGBDT_SndBTAC1C2_DecodeMonoBlockStereo(
 	
 	step=btac1c_step_table[index&127];
 
+	pfptr=BGBDT_SndBTAC1C2_GetPredictFunc(pfcn);
+
 	for(i=0; i<len; i++)
 	{
 		uni=(ibuf[8+(i>>1)]>>((i&1)*4))&15;
 
-		if(pfcn)
-			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
+		pred=pfptr(psamp, i, pfcn, ridx);
+//		if(pfcn)
+//			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
 
 		index=index+btac1c_index_table[uni];
 		index=(index<0)?0:((index>88)?88:index);
@@ -244,6 +370,8 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 	btac1c_idxstate *ridx)
 {
 	int psamp[8];
+	int (*pfptr)(int *psamp, int idx,
+		int pfcn, btac1c_idxstate *ridx);
 	int pred, index, step, diff, uni, sni, ofs;
 	int lp, rp, pfcn, ispf;
 	int p0, p1, p2, p3;
@@ -260,6 +388,7 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 	psamp[6]=pred;	psamp[7]=pred;
 	
 	ispf=(ibuf[3]!=0)|(ibuf[7]!=0);
+	pfptr=BGBDT_SndBTAC1C2_GetPredictFunc(pfcn);
 	
 	for(i=0; i<len; i++)
 	{
@@ -267,10 +396,12 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 		j=(k>>((i&3)*3))&7;
 		uni=j<<1;
 //		uni|=(uni>>2)&1;
-		uni|=((uni&6)==6)&ispf;
+//		uni|=((uni&6)==6)&ispf;
+		uni|=(uni>>1)&(uni>>2)&ispf;
 
-		if(pfcn)
-			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
+		pred=pfptr(psamp, i, pfcn, ridx);
+//		if(pfcn)
+//			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
 
 		index=index+btac1c_index_table[uni];
 		index=(index<0)?0:((index>88)?88:index);
@@ -279,7 +410,8 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 		pred=pred+diff;
 		step=btac1c_step_table[index];
 
-		pred=(pred<(-32768))?(-32768):((pred>32767)?32767:pred);
+		if(pred!=((s16)pred))
+			pred=(pred<(-32768))?(-32768):((pred>32767)?32767:pred);
 		obuf[i*2+0]=pred;
 		psamp[i&7]=pred;
 	}
@@ -295,14 +427,16 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 	psamp[2]=pred;	psamp[3]=pred;
 	psamp[4]=pred;	psamp[5]=pred;
 	psamp[6]=pred;	psamp[7]=pred;
+	pfptr=BGBDT_SndBTAC1C2_GetPredictFunc(pfcn);
 	
 	for(i=0; i<l; i++)
 	{
 		k=ibuf[8+i*2+0]|((ibuf[8+i*2+1])<<8);
 		uni=(k>>12)&15;
 
-		if(pfcn)
-			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
+		pred=pfptr(psamp, i, pfcn, ridx);
+//		if(pfcn)
+//			{ pred=BGBDT_SndBTAC1C2_PredictSample(psamp, i, pfcn, ridx); }
 
 		index=index+btac1c_index_table[uni];
 		index=(index<0)?0:((index>88)?88:index);
@@ -311,7 +445,8 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 		pred=pred+diff;
 		step=btac1c_step_table[index];
 
-		pred=(pred<(-32768))?(-32768):((pred>32767)?32767:pred);
+		if(pred!=((s16)pred))
+			pred=(pred<(-32768))?(-32768):((pred>32767)?32767:pred);
 		obuf[i*8+1]=pred;
 		psamp[i&7]=pred;
 	}
@@ -325,8 +460,11 @@ void BGBDT_SndBTAC1C2_DecodeJointBlockStereo(
 			k=(i*4+j)*2;
 			pred=obuf[k+0];
 			lp=pred+ofs; rp=lp-(ofs<<1);
-			lp=(lp<(-32768))?(-32768):((lp>32767)?32767:lp);
-			rp=(rp<(-32768))?(-32768):((rp>32767)?32767:rp);
+			if(((lp+32768)|(rp+32768))>>16)
+			{
+				lp=(lp<(-32768))?(-32768):((lp>32767)?32767:lp);
+				rp=(rp<(-32768))?(-32768):((rp>32767)?32767:rp);
+			}
 			obuf[k+0]=lp; obuf[k+1]=rp;
 		}
 	}
@@ -336,6 +474,8 @@ void BGBDT_SndBTAC1C2_DecodeStereoBlockStereoI(
 	byte *ibuf, s16 *obuf, int len, btac1c_idxstate *ridx)
 {
 	int plsamp[8], prsamp[8];
+	int (*pfptr)(int *psamp, int idx,
+		int pfcn, btac1c_idxstate *ridx);
 	int lpred, lindex, lstep, ldiff, luni, lsni;
 	int rpred, rindex, rstep, rdiff, runi, rsni;
 	int pfcn;
@@ -359,17 +499,22 @@ void BGBDT_SndBTAC1C2_DecodeStereoBlockStereoI(
 	prsamp[4]=rpred;	prsamp[5]=rpred;
 	prsamp[6]=rpred;	prsamp[7]=rpred;
 
+	pfptr=BGBDT_SndBTAC1C2_GetPredictFunc(pfcn);
+
 	for(i=0; i<len; i++)
 	{
 		k=((i>>3)*8)+((i&7)>>1);
 		luni=(ibuf[ 8+k]>>((i&1)*4))&15;
 		runi=(ibuf[12+k]>>((i&1)*4))&15;
 
-		if(pfcn)
-		{
-			lpred=BGBDT_SndBTAC1C2_PredictSample(plsamp, i, pfcn, ridx);
-			rpred=BGBDT_SndBTAC1C2_PredictSample(prsamp, i, pfcn, ridx);
-		}
+		lpred=pfptr(plsamp, i, pfcn, ridx);
+		rpred=pfptr(prsamp, i, pfcn, ridx);
+
+//		if(pfcn)
+//		{
+//			lpred=BGBDT_SndBTAC1C2_PredictSample(plsamp, i, pfcn, ridx);
+//			rpred=BGBDT_SndBTAC1C2_PredictSample(prsamp, i, pfcn, ridx);
+//		}
 
 		lindex=lindex+btac1c_index_table[luni];
 		lindex=(lindex<0)?0:((lindex>88)?88:lindex);
@@ -731,9 +876,14 @@ BTEIFGL_API int BGBDT_SndBTAC1C2_EncodeQuantUni3(
 			uni&=~1;
 			uni1&=~1;
 			uni2&=~1;
-			uni|=((uni&6)==6);
-			uni1|=((uni1&6)==6);
-			uni2|=((uni2&6)==6);
+
+			uni|=(uni>>1)&(uni>>2)&1;
+			uni1|=(uni1>>1)&(uni1>>2)&1;
+			uni2|=(uni2>>1)&(uni2>>2)&1;
+
+//			uni|=((uni&6)==6);
+//			uni1|=((uni1&6)==6);
+//			uni2|=((uni2&6)==6);
 		}else if(lsbit&1)
 			{ uni|=1; uni1|=1; uni2|=1; }
 		else
@@ -784,10 +934,30 @@ void BGBDT_SndBTAC1C2_PredictSampleMulti(
 	int *prvec)
 {
 	int fcn;
-	for(fcn=0; fcn<(12+ridx->usefx); fcn++)
+	
+	prvec[0]=BGBDT_SndBTAC1C2_PredictSample_Pfn0(psamp, idx, 0, ridx);
+	prvec[1]=BGBDT_SndBTAC1C2_PredictSample_Pfn1(psamp, idx, 1, ridx);
+	prvec[2]=BGBDT_SndBTAC1C2_PredictSample_Pfn2(psamp, idx, 2, ridx);
+	prvec[3]=BGBDT_SndBTAC1C2_PredictSample_Pfn3(psamp, idx, 3, ridx);
+	prvec[4]=BGBDT_SndBTAC1C2_PredictSample_Pfn4(psamp, idx, 4, ridx);
+	prvec[5]=BGBDT_SndBTAC1C2_PredictSample_Pfn5(psamp, idx, 5, ridx);
+	prvec[6]=BGBDT_SndBTAC1C2_PredictSample_Pfn6(psamp, idx, 6, ridx);
+	prvec[7]=BGBDT_SndBTAC1C2_PredictSample_Pfn7(psamp, idx, 7, ridx);
+	prvec[8]=BGBDT_SndBTAC1C2_PredictSample_Pfn8(psamp, idx, 8, ridx);
+	prvec[9]=BGBDT_SndBTAC1C2_PredictSample_Pfn9(psamp, idx, 9, ridx);
+	prvec[10]=BGBDT_SndBTAC1C2_PredictSample_Pfn10(psamp, idx, 10, ridx);
+	prvec[11]=BGBDT_SndBTAC1C2_PredictSample_Pfn11(psamp, idx, 11, ridx);
+	
+//	for(fcn=8; fcn<(12+ridx->usefx); fcn++)
+//	{
+//		prvec[fcn]=BGBDT_SndBTAC1C2_PredictSample(
+//			psamp, idx, fcn, ridx);
+//	}
+
+	for(fcn=0; fcn<ridx->usefx; fcn++)
 	{
 		prvec[fcn]=BGBDT_SndBTAC1C2_PredictSample(
-			psamp, idx, fcn, ridx);
+			psamp, idx, 12+fcn, ridx);
 	}
 }
 
@@ -1346,7 +1516,7 @@ void BGBDT_SndBTAC1C2_EncodeBlockStereoJS(
 	{
 		memcpy(obuf, tbuf, bsz);
 		*ridx=idx;
-		bcfcn=fcn;
+//		bcfcn=fcn;
 		be=e0;
 	}
 
@@ -1359,7 +1529,7 @@ void BGBDT_SndBTAC1C2_EncodeBlockStereoJS(
 	{
 		memcpy(obuf, tbuf, bsz);
 		*ridx=idx;
-		bcfcn=fcn;
+//		bcfcn=fcn;
 		be=e0;
 	}
 
@@ -1372,7 +1542,7 @@ void BGBDT_SndBTAC1C2_EncodeBlockStereoJS(
 	{
 		memcpy(obuf, tbuf, bsz);
 		*ridx=idx;
-		bcfcn=fcn;
+//		bcfcn=fcn;
 		be=e0;
 	}
 #endif

@@ -1379,7 +1379,7 @@ int bs2c_disasm_PrintItem(
 
 	char *pat_zv[]={
 		"v4i","v2l","v4f","v2d","v2i","v2f","v3i","v3f",
-		"ix","ux","fx","?", "v2ih", "v2fh", "?", "?"};
+		"ix","ux","fx","v3d", "v4d", "v3xf", "?", "?"};
 	char *pat_zva[]={
 		"neg","rcp","sqrt","rsqrt","len","len2","?","?",
 		"?","?","?","?", "?", "?", "?", "?"};

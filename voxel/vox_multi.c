@@ -16,3 +16,4 @@
 
 #include "../entity/ent_bsvm.c"
 #include "../entity/ent_dialog.c"
+#include "../entity/ent_part.c"

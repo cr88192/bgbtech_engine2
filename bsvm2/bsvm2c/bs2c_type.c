@@ -1593,6 +1593,38 @@ int BS2C_InferSuperType(
 				return(BS2CC_TYZ_VEC3XF);
 	}
 
+	if((lty==BS2CC_TYZ_VEC2F) ||
+		(lty==BS2CC_TYZ_VEC2D) ||
+		(lty==BS2CC_TYZ_VEC3F) ||
+		(lty==BS2CC_TYZ_VEC3XF))
+	{
+		if(	(rty==BS2CC_TYZ_VEC2F) ||
+			(rty==BS2CC_TYZ_VEC2D) ||
+			(rty==BS2CC_TYZ_VEC3F) ||
+			(rty==BS2CC_TYZ_VEC3XF))
+				return(BS2CC_TYZ_VEC3XF);
+	}
+	
+	if(	(lty==BS2CC_TYZ_VEC4F) ||
+		(lty==BS2CC_TYZ_QUATF))
+	{
+		if(	(rty==BS2CC_TYZ_VEC2F) ||
+			(rty==BS2CC_TYZ_VEC2D) ||
+			(rty==BS2CC_TYZ_VEC3F) ||
+			(rty==BS2CC_TYZ_VEC3XF))
+				return(lty);
+	}
+
+	if(	(rty==BS2CC_TYZ_VEC4F) ||
+		(rty==BS2CC_TYZ_QUATF))
+	{
+		if(	(lty==BS2CC_TYZ_VEC2F) ||
+			(lty==BS2CC_TYZ_VEC2D) ||
+			(lty==BS2CC_TYZ_VEC3F) ||
+			(lty==BS2CC_TYZ_VEC3XF))
+				return(rty);
+	}
+
 	if(BS2C_TypeVariantP(ctx, lty) ||
 		BS2C_TypeVariantP(ctx, rty))
 	{
@@ -2329,6 +2361,14 @@ int BS2C_TypeRefinedType2(
 			{ bt=BS2CC_TYZ_VEC4D; }
 		else if(!strcmp(tyn, "vec3xf"))
 			{ bt=BS2CC_TYZ_VEC3XF; }
+		else if(!strcmp(tyn, "vec2"))
+			{ bt=BS2CC_TYZ_VEC2D; }
+		else if(!strcmp(tyn, "vec3"))
+			{ bt=BS2CC_TYZ_VEC3XF; }
+		else if(!strcmp(tyn, "vec4"))
+			{ bt=BS2CC_TYZ_VEC4F; }
+		else if(!strcmp(tyn, "quat"))
+			{ bt=BS2CC_TYZ_QUATF; }
 		else
 		{
 			i=BS2C_LookupVariGlobal(ctx, vari, tyn);

@@ -860,7 +860,8 @@ dtVal BS2P_ParseExprPostfix(BS2CC_CompileContext *ctx)
 		if(!strcmp(t0, "X("))
 		{
 			BS2P_NextToken(ctx);
-			n1=BS2P_ParseExprList(ctx);
+//			n1=BS2P_ParseExprList(ctx);
+			n1=BS2P_ParseNameExprList(ctx);
 
 //			t0=BS2P_PeekToken(ctx, 0);
 //			if(!strcmp(t0, "#)"))

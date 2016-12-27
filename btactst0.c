@@ -215,7 +215,7 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 	byte *bbuf, *obuf;
 	double f, g;
 	char *s, *t;
-	int len, len2, bsz, blen, blen2, blg2, blks, idx, insz;
+	int len, len2, bsz, blen, blen2, blg2, blks, idx, insz, rt;
 	btac1c_idxstate idxst;
 	int ch, sz;
 	int i, j, k;
@@ -237,9 +237,14 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 
 	len=samp->len;
 	ch=samp->wf_chan;
+	rt=samp->wf_rate;
 
 	if(rate<=0)
-		rate=22050;
+	{
+		rate=rt;
+		if(rt>22050)
+			rate=22050;
+	}
 		
 	len=len*(((double)rate)/samp->wf_rate);
 
@@ -257,8 +262,11 @@ int BtPk_ImageAddSound(BtPak0_Image *img, char *src, int rate)
 		{
 			for(i=0; i<len; i++)
 			{
-				sbuf[i]=samp->GetSampleMonoFqClz(samp,
+				j=samp->GetSampleMonoFqClz(samp,
 					rate*16, i*16);
+				if(j<(-32768))j=-32768;
+				if(j>( 32767))j= 32767;
+				sbuf[i]=j;
 			}
 		}
 

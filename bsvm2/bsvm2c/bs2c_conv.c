@@ -89,6 +89,15 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 		if(sty==BS2CC_TYZ_FLOAT128)
 			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTXF2AA); return; }
 
+		if(sty==BS2CC_TYZ_VEC2F)
+			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTVF2AA); return; }
+		if((sty==BS2CC_TYZ_VEC3F) || (sty==BS2CC_TYZ_VEC3XF))
+			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTX3F2AA); return; }
+		if(sty==BS2CC_TYZ_VEC4F)
+			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTX4F2AA); return; }
+		if(sty==BS2CC_TYZ_QUATF)
+			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTXQF2AA); return; }
+
 		if(BS2C_TypeAddressP(ctx, sty))
 			{ return; }
 

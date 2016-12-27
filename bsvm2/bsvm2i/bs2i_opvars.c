@@ -167,6 +167,43 @@ BS2VM_API void BSVM2_Op_STGSA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {	BSVM2_ImageGlobal *vi;	vi=op->v.p;
 	vi->gvalue->a=frm->stack[op->t0].a;		}
 
+BS2VM_API void BSVM2_Op_LDGSX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	vi=op->v.p;
+	a=BSVM2_FrameAllocX128(frm);
+	p=vi->gvalue->p;
+	*a=*(BSVM2_ValX128 *)p;
+	frm->stack[op->t0].p=a;
+}
+
+BS2VM_API void BSVM2_Op_STGSX(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	BSVM2_ImageGlobal *vi;
+	BSVM2_ValX128 *a;
+	void *p;
+
+	if(dtvNullP(frm->stack[op->t0].a))
+		{ frm->ctx->status=BSVM2_EXS_NULLEX; return; }
+
+	a=frm->stack[op->t0].p;
+	vi=op->v.p;
+	p=vi->gvalue->p;
+	if(!p)
+	{
+		p=BSVM2_FrameAllocX128(frm);
+		vi->gvalue->p=p;
+	}
+
+	*(BSVM2_ValX128 *)p=*a;
+	BSVM2_FrameFreeX128(frm, a);
+
+//	vi->gvalue->a=frm->stack[op->t0].a;
+}
+
 #if 1
 BS2VM_API void BSVM2_Op_LDGS_DY(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {

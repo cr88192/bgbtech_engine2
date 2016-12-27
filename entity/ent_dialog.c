@@ -42,6 +42,30 @@ int bt2ent_invslot[8*16];
 s64 bt2ent_tokenslot[1024];
 int bt2ent_ntoken;
 
+char *bgbdt_tool_sprite;
+dtVal bt2ent_traceent;
+
+BTEIFGL_API char *Bt2Ent_GetToolSprite(void)
+{
+	return(bgbdt_tool_sprite);
+}
+
+BTEIFGL_API int Bt2Ent_SetToolSprite(char *str)
+{
+	bgbdt_tool_sprite=frgl_strdup(str);
+	return(0);
+}
+
+BTEIFGL_API dtVal Bt2Ent_GetToolTraceEnt(void)
+{
+	return(bt2ent_traceent);
+}
+
+BTEIFGL_API int Bt2Ent_SetToolTraceEnt(dtVal ent)
+{
+	bt2ent_traceent=ent;
+	return(0);
+}
 
 BTEIFGL_API int Bt2Ent_DialogActiveP(void)
 {

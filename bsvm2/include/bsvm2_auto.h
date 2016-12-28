@@ -1530,6 +1530,8 @@ BS2VM_API void BSVM2_Op_STDRAL_D(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STDRAL_A(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STDRAL_B(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STDRAL_S(BSVM2_Frame *frm, BSVM2_Opcode *op);
+BS2VM_API void BSVM2_Op_AGETI_LEN(BSVM2_Frame *frm, BSVM2_Opcode *op);
+BS2VM_API void BSVM2_Op_AGETI_OFS(BSVM2_Frame *frm, BSVM2_Opcode *op);
 //AHSRC:bsvm2/bsvm2i/bs2i_opcode.c
 BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(BSVM2_CodeBlock *cblk, int opn);
 //AHSRC:bsvm2/bsvm2i/bs2i_opcvt.c
@@ -2044,6 +2046,7 @@ BS2VM_API void BSVM2_Pack3DblTo3Xf(u32 *pv, double x, double y, double z);
 BS2VM_API void BSVM2_Pack3DvTo3Xf(u32 *pv, double *px);
 BS2VM_API void BSVM2_Pack3DvTo3Xf(u32 *pv, double *px);
 BS2VM_API void BSVM2_Pack3DblTo3Xf(u32 *pv, double x, double y, double z);
+BS2VM_API void BSVM2_Unpack3XfTo3Dv(u32 *pv, double *px);
 BS2VM_API void BSVM2_Unpack3XfTo3Dv(u32 *pv, double *px);
 BS2VM_API void BSVM2_Op_MKX3D(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDX3DA_X3D(BSVM2_Frame *frm, BSVM2_Opcode *op);

@@ -70,4 +70,9 @@ public class misc_chest extends EntityBase {
 			hasItem=0;
 		}
 	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+	}
+
 }

@@ -473,9 +473,10 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		rn=BS2P_GetAstNodeAttr(expr, "rhs");
 
 		lt=BS2C_InferExpr(ctx, ln);
-//		rt=BS2C_InferExpr(ctx, rn);
-		
 		vi=BS2C_GetTypeObject(ctx, lt);
+		
+		if(BS2C_TypeArrayP(ctx, lt))
+			vi=NULL;
 
 		if(vi && BGBDT_TagStr_IsSymbolP(rn))
 		{

@@ -22,6 +22,13 @@ native int BGBDT_Sound_ChanSetOriginF(
 	int id, float x, float y, float z);
 native int Bt2Ent_KillPlayer();
 
+native int Bt2Ent_SetToolSprite(cstring str);
+native EntityBase Bt2Ent_GetToolTraceEnt();
+
+native EntityBase Bt2Ent_SpawnEntityBasicXyz(
+	cstring cname, double x, double y, double z);
+
+
 public EntityBase[] world_entity;
 public int world_max_entity;
 
@@ -29,6 +36,11 @@ public bool world_isHostile=false;
 public EntityBase world_player;
 public double world_time;
 int world_lottery;
+
+public vec3 player_reforg;
+public vec3 player_view_fw;
+public vec3 player_view_rt;
+public vec3 player_view_up;
 
 public bool usebkg=false;
 public bool usecsbgm=false;
@@ -47,6 +59,7 @@ public class player extends EntityBase {
 		world_player=this;
 		sprite_sz=#[32, 48];
 		radius=8;
+		height=56;
 	}
 
 	public void tick()
@@ -65,9 +78,11 @@ public class player extends EntityBase {
 
 double accDt;
 double lotDt;
+double weapDt;
 
 public void update(double dt)
 {
+	EntityBase ecur;
 	int i;
 	
 	if(usebkg)
@@ -79,6 +94,8 @@ public void update(double dt)
 	accDt-=0.04;
 	world_time+=0.04;
 	lotDt+=0.04;
+
+	weapDt+=0.04;
 	
 	world_lottery=0;
 	
@@ -112,14 +129,286 @@ public void update(double dt)
 		}
 		world_isHostile=false;
 	}
-	
+
 	for(i=0; i<world_max_entity; i++)
 	{
-		world_entity[i].tick();
+		ecur=world_entity[i];
+		if(!ecur)
+			continue;
+
+//		if(((int)(ecur.flags))&ENTFL_DELETE)
+		if(ecur.flags&ENTFL_DELETE)
+		{
+			world_entity[i]=null;
+			delete ecur;
+			continue;
+		}
+		ecur.entid=i;
+	}
+
+	for(i=0; i<world_max_entity; i++)
+	{
+		ecur=world_entity[i];
+		if(!ecur)
+			continue;
+
+		ecur.tick();
+
+//		world_entity[i].tick();
 	}
 
 //	foo=3;
 //	foo(3, 4);
+}
+
+public bool entCanHurtP(EntityBase attacker, EntityBase target)
+{
+	if(!(((int)target.flags)&ENTFL_TAKEDAMAGE))
+		return(false);
+	return(true);
+}
+
+public void entRadiusDamage(
+	EntityBase attacker, EntityBase inflictor, vec3xf origin,
+	double radius, double dmgval, int dmgtype)
+{
+	EntityBase cur;
+	double dist, dmg;
+	int i;
+
+	for(i=0; i<world_max_entity; i++)
+	{
+		cur=world_entity[i];
+		if(!cur)
+			continue;
+		if(cur==attacker)
+			continue;
+		if(cur==inflictor)
+			continue;
+			
+		dist=(cur.origin-origin).len;
+		if(dist>radius)
+			continue;
+		dmg=dmgval*(dist/radius);
+		if(dmg<1)
+			continue;
+	
+		if(entCanHurtP(attacker, cur))
+		{
+			cur.hurt(attacker, dmg, dmgtype);
+		}
+	}
+}
+
+public void entAddEntityToWorld(EntityBase ent)
+{
+	EntityBase cur;
+	double dist, dmg;
+	int i;
+
+	for(i=0; i<world_max_entity; i++)
+	{
+		cur=world_entity[i];
+		if(!cur)
+		{
+			frgl_printf("entAddEntityToWorld: old %d\n", i);
+
+			world_entity[i]=ent;
+			return;
+		}
+	}
+	
+	i=world_max_entity++;
+	world_entity[i]=ent;
+	frgl_printf("entAddEntityToWorld: new %d/%d\n", i, world_max_entity);
+}
+
+public void entPlaySound(string sfx, vec3 org, int vol, int att, int flag)
+{
+	vec3 org1;
+	int i;
+	
+	org1=org-player_reforg;
+	i=BGBDT_Sound_PlaySound(sfx, vol, att, flag);
+	BGBDT_Sound_ChanSetOriginF(i,
+		org1.x, org1.y, org1.z);
+}
+
+int toolslot;
+int toolframe;
+
+public void tool_set(int id)
+{
+	toolslot=id;
+	
+	if(id==4)
+	{
+		Bt2Ent_SetToolSprite("images/ui/chain0");
+		weapDt=0;
+	}else
+	{
+		Bt2Ent_SetToolSprite(null);
+		weapDt=0;
+	}
+}
+
+public void tool_use(int imfl)
+{
+	EntityBase other;
+	string str;
+	int ntf;
+	int i;
+	
+	if(imfl&1)
+	{
+		other=Bt2Ent_GetToolTraceEnt();
+		
+		ntf=0;
+		if(weapDt>=0.1)
+		{
+			toolframe++;
+			weapDt-=0.1;
+			ntf=1;
+		}
+
+		if(toolslot==6)
+		{
+			i=toolframe&1;
+			if(i)
+				str="images/ui/plasg1";
+			else
+				str="images/ui/plasg0";
+			Bt2Ent_SetToolSprite(str);
+
+			if(ntf)
+			{
+				entPlaySound("sound/plasfire0", world_player.origin, 256, 2, 0);
+				
+				entFirePlasmaBasic(world_player,
+					world_player.origin+
+						(0.8*player_view_fw)+
+						(-0.5*player_view_up),
+					player_view_fw, 16);
+			}
+		}
+
+		if(toolslot==5)
+		{
+			if(ntf && (toolframe==1))
+			{
+				frgl_printf("FireRocket: org=(%d %d %d)\n",
+					(int)world_player.origin.x,
+					(int)world_player.origin.y,
+					(int)world_player.origin.z);
+
+				entPlaySound("sound/bang2", world_player.origin, 256, 2, 0);
+				entFireRocketBasic(world_player,
+					world_player.origin+
+						(0.8*player_view_fw)+
+						(-0.5*player_view_up),
+					player_view_fw, 16);
+			}
+			if(toolframe>8)
+				toolframe=0;
+		}
+		
+		if(toolslot==4)
+		{
+//			i=((int)(world_time*8))&1;
+//			i=((int)(world_time*10))&1;
+			i=toolframe&1;
+			if(i)
+				str="images/ui/chain1";
+			else
+				str="images/ui/chain0";
+			Bt2Ent_SetToolSprite(str);
+
+			if(ntf)
+			{
+//				i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+//				BGBDT_Sound_ChanSetOriginF(i,
+//					world_player.origin.x,
+//					world_player.origin.y,
+//					world_player.origin.z);
+				entPlaySound("sound/bang1", world_player.origin, 256, 2, 0);
+				
+				if(other && entCanHurtP(world_player, other))
+				{
+					other.hurt(world_player, 10, DMGTYPE_BULLETS);
+				}
+			}
+		}
+
+		if((toolslot==2) || (toolslot==3))
+		{
+//			i=((int)(world_time*8))&1;
+//			i=((int)(world_time*10))&1;
+//			i=toolframe&1;
+//			if(i)
+//				str="images/ui/chain1";
+//			else
+//				str="images/ui/chain0";
+//			Bt2Ent_SetToolSprite(str);
+
+			if(ntf && (toolframe==1))
+			{
+//				i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+//				BGBDT_Sound_ChanSetOriginF(i,
+//					world_player.origin.x,
+//					world_player.origin.y,
+//					world_player.origin.z);
+				entPlaySound("sound/bang1", world_player.origin, 256, 2, 0);
+				
+				if(other && entCanHurtP(world_player, other))
+				{
+					other.hurt(world_player, 10, DMGTYPE_BULLETS);
+				}
+			}
+			if(toolframe>9)
+				toolframe=0;
+		}
+	}else
+	{
+		if(toolslot==6)
+		{
+			str="images/ui/plasg0";
+			Bt2Ent_SetToolSprite(str);
+			weapDt=0;
+			toolframe=0;
+		}else
+		if(toolslot==5)
+		{
+			str="images/ui/rlaun0";
+			Bt2Ent_SetToolSprite(str);
+			weapDt=0;
+			toolframe=0;
+		}else
+		if(toolslot==4)
+		{
+			str="images/ui/chain0";
+			Bt2Ent_SetToolSprite(str);
+			weapDt=0;
+			toolframe=0;
+		}else
+		if(toolslot==3)
+		{
+			str="images/ui/shotg0";
+			Bt2Ent_SetToolSprite(str);
+			weapDt=0;
+			toolframe=0;
+		}else
+		if(toolslot==2)
+		{
+			str="images/ui/pistol0";
+			Bt2Ent_SetToolSprite(str);
+			weapDt=0;
+			toolframe=0;
+		}else
+		{
+			weapDt=0;
+			toolframe=0;
+		}
+	}
 }
 
 public void spawn_world()

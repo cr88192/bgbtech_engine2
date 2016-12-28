@@ -38,6 +38,8 @@ public class NpcDialogBox {
 		
 		if((imp>0) && optchain)
 		{
+			if(imp>optchain.length)
+				return;
 			Bt2Ent_SetDialog(optchain[imp-1]);
 		}
 	}

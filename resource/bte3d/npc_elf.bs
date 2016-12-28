@@ -128,7 +128,9 @@ Come on, it will only hurt for a moment!
 		height=64;
 		sprite="sprites/elf/elf0_1";
 		elfty=0;
-		
+
+		flags|=ENTFL_TAKEDAMAGE;
+
 		if(!(rand()&3))
 		{
 			sprite="sprites/elf/elf1_0";
@@ -275,4 +277,11 @@ Come on, it will only hurt for a moment!
 //		sprite="sprites/isotest/chest_open";
 //		isOpen=1;
 	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
+	}
+
 }

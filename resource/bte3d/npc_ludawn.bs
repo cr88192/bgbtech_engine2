@@ -125,8 +125,8 @@ Placeholder.
 
 		diag8.face1="sprites/ludawn/luface0_frcl";
 		diag8.face2="sprites/ludawn/luface0_frop";
-//		diag8.voice="sound/fem_eh0";
-		diag8.text="No... more... cookies...";
+		diag8.voice="sound/fem_eh0";
+		diag8.text="Stop That!";
 		diag8.options=["Return."];
 		diag8.optchain=[null, null, null, null, null];
 	}
@@ -141,6 +141,8 @@ Placeholder.
 		sprite="sprites/ludawn/ludawn0";
 		elfty=0;
 		angle=0;
+
+		flags|=ENTFL_TAKEDAMAGE;
 		
 //		if(!(rand()&3))
 //		{
@@ -154,6 +156,14 @@ Placeholder.
 		vec3f dir, lorg;
 		float dist;
 		int i, j, k;
+
+//		i=((int)(world_time*8))&1;
+		i=((int)(world_time*2))&1;
+
+		if(i)
+			sprite_sz=#[-32, 56];
+		else
+			sprite_sz=#[ 32, 56];
 	}
 	
 	public void touch(EntityBase other)
@@ -172,6 +182,12 @@ Placeholder.
 		}
 	
 		Bt2Ent_SetDialog(diag0);
+	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
 	}
 }
 
@@ -205,5 +221,11 @@ public class npc_ludawn2 extends npc_ludawn {
 //		}
 	
 		Bt2Ent_SetDialog(diag4);
+	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
 	}
 }

@@ -115,7 +115,7 @@ Placeholder.
 		diag8.face1="sprites/guard/face0_frcl";
 		diag8.face2="sprites/guard/face0_frop";
 //		diag8.voice="sound/fem_eh0";
-		diag8.text="No... more... cookies...";
+		diag8.text="Stop That!";
 		diag8.options=["Return."];
 		diag8.optchain=[null, null, null, null, null];
 	}
@@ -130,6 +130,8 @@ Placeholder.
 		sprite="sprites/guard/guard0";
 		elfty=0;
 		angle=0;
+
+		flags|=ENTFL_TAKEDAMAGE;
 		
 //		if(!(rand()&3))
 //		{
@@ -161,6 +163,12 @@ Placeholder.
 		}
 	
 		Bt2Ent_SetDialog(diag0);
+	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
 	}
 }
 
@@ -198,5 +206,11 @@ public class npc_guard2 extends npc_guard {
 //		}
 	
 		Bt2Ent_SetDialog(diag4);
+	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
 	}
 }

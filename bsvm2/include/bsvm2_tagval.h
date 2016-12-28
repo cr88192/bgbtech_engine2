@@ -981,6 +981,22 @@ static_inline int dtvArrayGetSize(dtVal arv)
 //	return(arr->sz-bx);
 }
 
+static_inline int dtvArrayGetOffset(dtVal arv)
+{
+	BGBDT_TagArrHead *arr;
+	byte *pv;
+	int bx;
+	
+//	arr=BGBDT_MM_GetDataPtrForObjId(arv.lo);
+	arr=DTV_GetDataPtrForObjId(arv.lo);
+	bx=arv.hi&0x0FFFFFFF;
+	return(bx>>arr->strsh);
+
+//	return((arr->scsz-bx)>>arr->strsh);
+//	return(arr->sz-(bx>>arr->strsh));
+//	return(arr->sz-bx);
+}
+
 static_inline s32 dtvArrayGetIndexInt(dtVal arv, int idx)
 	{ return(*(s32 *)dtvArrayGetIndexAddr(arv, idx)); }
 static_inline s64 dtvArrayGetIndexLong(dtVal arv, int idx)

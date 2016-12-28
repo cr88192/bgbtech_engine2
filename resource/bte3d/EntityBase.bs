@@ -1,3 +1,12 @@
+public final int DMGTYPE_UNKNOWN=0;
+public final int DMGTYPE_BULLETS=1;
+public final int DMGTYPE_ROCKET=2;
+
+public final int ENTFL_DELETE=0x0020;
+public final int ENTFL_ZFLIP=0x0010;
+public final int ENTFL_TAKEDAMAGE=0x0001;
+
+
 public class EntityBase {
 	public vec3xf origin;
 	public vec3xf velocity;
@@ -5,14 +14,24 @@ public class EntityBase {
 	public float radius;
 	public float height;
 	public string sprite;
-	public string sprite_lf;
-	public string sprite_bk;
+//	public string sprite_lf;
+//	public string sprite_bk;
 	public vec2f sprite_sz;
 	public long flags;
+	public int entid;
+	public EntityBase owner;
 	
 	/** called after entity creation */
 	public abstract void spawn();
 	public abstract void tick();
 	public abstract void touch(EntityBase other);
 	public abstract void use(EntityBase other);
+	public abstract void hurt(EntityBase other, int dmgval, int dmgtype);
+	
+	public void remove()
+	{
+		flags|=ENTFL_DELETE;
+//		world_entity[entid]=null;
+//		delete this;
+	}
 }

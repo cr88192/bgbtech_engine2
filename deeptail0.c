@@ -1515,6 +1515,23 @@ int main_handle_input()
 				{ iv[2]+=fsg*mvsp; }
 			if(FRGL_KeyDown(K_END))
 				{ iv[2]-=fsg*mvsp; }
+
+
+			if(FRGL_KeyDown('a'))
+				{ iv[0]-=mvsp*bgbdt_rot[0]; iv[1]-=mvsp*bgbdt_rot[1]; }
+			if(FRGL_KeyDown('d'))
+				{ iv[0]+=mvsp*bgbdt_rot[0]; iv[1]+=mvsp*bgbdt_rot[1]; }
+			if(FRGL_KeyDown('w'))
+				{ iv[0]+=mvsp*bgbdt_rot[3]; iv[1]+=mvsp*bgbdt_rot[4]; }
+			if(FRGL_KeyDown('s'))
+				{ iv[0]-=mvsp*bgbdt_rot[3]; iv[1]-=mvsp*bgbdt_rot[4]; }
+			if(FRGL_KeyDown(' '))
+				{ iv[2]+=fsg*mvsp; }
+
+//			if(FRGL_KeyDown('e'))
+//				{ iv[2]+=fsg*mvsp; }
+//			if(FRGL_KeyDown('q'))
+//				{ iv[2]-=fsg*mvsp; }
 		}else
 		{
 			if(FRGL_KeyDown(K_LEFTARROW))
@@ -1695,6 +1712,7 @@ int main_handle_input()
 			FRGL_SetMenuActive("main");
 			break;
 		case K_ENTER:
+		case 'e':
 			if(bgbdt_toolslot)
 			{
 				if(!dtvNullP(bgbdt_tent))
@@ -1728,6 +1746,7 @@ int main_handle_input()
 			voxui_isedit=0;
 			break;
 		case K_DEL:
+		case 'q':
 			if(bgbdt_toolslot)
 			{
 				break;
@@ -1747,6 +1766,7 @@ int main_handle_input()
 				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
 			break;
 		case K_INS:
+		case 'r':
 			if(bgbdt_toolslot)
 			{
 				break;
@@ -1765,6 +1785,7 @@ int main_handle_input()
 			break;
 
 		case '\\':		
+		case 'f':
 			if(bgbdt_toolslot)
 			{
 				break;

@@ -4100,6 +4100,9 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		lt=BS2C_InferExpr(ctx, ln);
 		vi=BS2C_GetTypeObject(ctx, lt);
 
+		if(BS2C_TypeArrayP(ctx, lt))
+			vi=NULL;
+
 		if(vi && BGBDT_TagStr_IsSymbolP(rn))
 		{
 			if((vi->vitype==BS2CC_VITYPE_STRUCT) ||

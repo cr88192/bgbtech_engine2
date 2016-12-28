@@ -1,0 +1,234 @@
+native int Bt2Ent_EmitParticleExplosionBasic(EntityBase ent,
+	int cnt, int atxy, uint clr);
+
+native int Bt2Ent_EmitParticleEffectPara(EntityBase ent, ...args);
+
+public class RocketBase extends EntityBase {
+//	EntityBase owner;
+	double blast_radius;
+	double blast_damage;
+	int explo_frame;
+	uint particle_color;
+	uint particle_color_vel;
+
+	public void detonate()
+	{
+		vec3 lvel;
+		int i;
+
+//		frgl_printf("rocket: detonate\n");
+
+		origin=origin-0.1*velocity;
+		lvel=velocity;
+
+		velocity=#[0, 0, 0];
+		radius=0;
+		height=0;
+				
+		entRadiusDamage(owner, this, origin,
+			blast_radius, blast_damage, DMGTYPE_ROCKET);
+		explo_frame=5;
+
+//		i=BGBDT_Sound_PlaySound("sound/bang1", 256, 1, 0);
+//		BGBDT_Sound_ChanSetOriginF(i,
+//			origin.x,
+//			origin.y,
+//			origin.z);
+
+//		entPlaySound("sound/explod1", origin, 256, 2, 0);
+
+//		sprite="images/explod/explo0";
+//		sprite_sz=#[48, 48];
+		setframe();
+
+		if(particle_color)
+		{
+//			Bt2Ent_EmitParticleExplosionBasic(this,
+//				1024, 0x00, particle_color);
+
+			Bt2Ent_EmitParticleEffectPara(this,
+				count: 1024,
+				atxy: 0x00,
+				clr: particle_color,
+				clrvel: particle_color_vel,
+				bvel: lvel,
+				rvel: #[15, 15, 15],
+				rad: 64,
+//				ttl: 500,
+				ttl: 2000,
+//				zacc: -9.8
+				zacc: -18.8
+				);
+		}
+
+//		Bt2Ent_EmitParticleExplosionBasic(this, 1024, 0x00, 0xBF1133AA);
+	}
+
+	public void touch(EntityBase other)
+	{
+		detonate();
+	}
+
+	public void ticki(double dt)
+	{
+		vec3 org1, org2;
+
+		org1=origin+dt*velocity;
+		if((org1-origin).len>0.33)
+		{
+			ticki(dt*0.5);
+			ticki(dt*0.5);
+			return;
+		}
+		
+		if(Bt2Ent_EntityMoveCheckCollide(this, org1))
+			{ detonate(); return; }
+		origin=org1;
+	}
+
+	public void setframe()
+	{
+		switch(explo_frame)
+		{
+		case 5:
+			entPlaySound("sound/explod1", origin, 1024, 1, 0);
+			sprite_sz=#[48, 48];
+			sprite="images/explod/explo0";
+//			particle_color=0xBF1133AA;
+//			particle_color=0xBF1177CC;
+			particle_color=0xBF11AADD;
+			particle_color_vel=0x11805555;
+			break;
+
+		case 4: sprite="images/explod/explo1"; break;
+		case 3: sprite="images/explod/explo2"; break;
+		case 2: sprite="images/explod/explo3"; break;
+		case 1: sprite="images/explod/explo4"; break;
+		case 0:
+//			frgl_printf("rocket: remove\n");
+			remove();
+			break;
+		}
+	}
+
+	public void tick()
+	{
+		vec3 org1, org2;
+		int i;
+		
+		if(explo_frame)
+		{
+			explo_frame--;
+			setframe();
+			return;
+		}
+	
+		ticki(0.1);
+	
+//		org1=origin+0.1*velocity;
+//		if(Bt2Ent_EntityMoveCheckCollide(this, org1))
+//			{ detonate(); return; }
+//		origin=org1;
+//		origin=origin+0.1*velocity;
+	}
+	
+	public RocketBase(EntityBase own,
+		vec3 org, vec3 dir, double speed,
+		double rad, double dmg,
+		string spr)
+	{
+//		frgl_printf("RocketBase: org=(%f %f %f)\n", org.x, org.y, org.z);
+//		frgl_printf("RocketBase: dir=(%f %f %f)\n", dir.x, dir.y, dir.z);
+
+//		frgl_printf("RocketBase: dir=(%d %d %d)\n",
+//			(int)dir.x, (int)dir.y, (int)dir.z);
+//		frgl_printf("RocketBase: speed=%d\n",
+//			(int)speed);
+
+		owner=own;
+		origin=org;
+		velocity=dir*speed;
+		blast_radius=rad;
+		blast_damage=dmg;
+
+//		frgl_printf("RocketBase: org=(%d %d %d)\n",
+//			(int)origin.x, (int)origin.y, (int)origin.z);
+//		frgl_printf("RocketBase: vel=(%d %d %d)\n",
+//			(int)velocity.x, (int)velocity.y, (int)velocity.z);
+
+		sprite=spr;
+		sprite_sz=#[24, 24];
+
+		radius=8;
+		height=16;
+	}
+}
+
+public class RockPlasma extends RocketBase {
+	public void setframe()
+	{
+		switch(explo_frame)
+		{
+		case 5:
+			entPlaySound("sound/lashit", origin, 256, 1, 0);
+			sprite_sz=#[48, 48];
+			sprite="images/explod/plasexp0";
+			particle_color=0xBFCC7711;
+			particle_color_vel=0x11555580;
+			break;
+
+		case 4: sprite="images/explod/plasexp1"; break;
+		case 3: sprite="images/explod/plasexp2"; break;
+		case 2: sprite="images/explod/plasexp3"; break;
+		case 1: sprite="images/explod/plasexp4"; break;
+		case 0:
+//			frgl_printf("rocket: remove\n");
+			remove();
+			break;
+		}
+	}
+
+/*
+	public RockPlasma(EntityBase owner,
+		vec3 org, vec3 dir, double speed,
+		double rad, double dmg,
+		string spr)
+	{
+		super(owner, org, dir, speed, rad, dmg, spr);
+	}
+*/
+}
+
+public void entFireRocketBasic(EntityBase owner,
+	vec3 org, vec3 dir, double speed)
+{
+	EntityBase rock;
+
+//	frgl_printf("entFireRocketBasic: org=(%d %d %d)\n",
+//		(int)org.x, (int)org.y, (int)org.z);
+//	frgl_printf("entFireRocketBasic: dir=(%d %d %d)\n",
+//		(int)dir.x, (int)dir.y, (int)dir.z);
+
+	rock=new RocketBase(
+		owner, org, dir, speed,
+		8, 50,
+		"images/explod/rock0");
+	entAddEntityToWorld(rock);
+}
+
+public void entFirePlasmaBasic(EntityBase owner,
+	vec3 org, vec3 dir, double speed)
+{
+	EntityBase rock;
+
+//	frgl_printf("entFireRocketBasic: org=(%d %d %d)\n",
+//		(int)org.x, (int)org.y, (int)org.z);
+//	frgl_printf("entFireRocketBasic: dir=(%d %d %d)\n",
+//		(int)dir.x, (int)dir.y, (int)dir.z);
+
+	rock=new RockPlasma(
+		owner, org, dir, speed,
+		3, 20,
+		"images/explod/plas0");
+	entAddEntityToWorld(rock);
+}

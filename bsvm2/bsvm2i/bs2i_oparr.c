@@ -1334,3 +1334,14 @@ BS2VM_API void BSVM2_Op_STDRAL_S(BSVM2_Frame *frm, BSVM2_Opcode *op)
 		frm->local[op->i0].a, 0,
 		frm->stack[op->t0].i);		}
 #endif
+
+
+BS2VM_API void BSVM2_Op_AGETI_LEN(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].i=dtvArrayGetSize(frm->stack[op->t0].a);
+}
+
+BS2VM_API void BSVM2_Op_AGETI_OFS(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	frm->stack[op->t0].i=dtvArrayGetOffset(frm->stack[op->t0].a);
+}

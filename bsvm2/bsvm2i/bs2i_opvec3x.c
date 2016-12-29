@@ -31,6 +31,7 @@ BS2VM_API double BSVM2_XFloat2Double(u64 lv)
 	return(*(double *)(&lv1));
 }
 
+#if 0
 BS2VM_API u64 BSVM2_Double2XFloat2(u64 lv)
 {
 	u64 lv1;
@@ -47,6 +48,28 @@ BS2VM_API u64 BSVM2_Double2XFloat2(u64 lv)
 		((lv&0x000FFFFFFFFFFFFFULL)<<3);
 	return(lv1);
 }
+#endif
+
+#if 1
+BS2VM_API u64 BSVM2_Double2XFloat2(u64 lv)
+{
+	const u64 n0=0x7FFFFFFFFFFFFFFFULL;
+	const u64 n1=0x3800000000000000ULL;
+	const u64 n2=0x8000000000000000ULL;
+	u64 m3;
+	u64 lv1;
+//	int e1;
+	
+	lv1=(lv&n0)-n1;
+//	lv1=lv1&(~(((s64)(lv1<<3))>>63));
+//	lv1=lv1&(~(((s64)lv1)>>63));
+//	lv2=lv1|(lv1<<1)|(lv1<<2);
+	m3=lv1|(lv1<<1); m3|=m3<<2;
+	m3=~(((s64)m3)>>63);
+	lv1=((lv1&m3)<<3)|(lv&n2);
+	return(lv1);
+}
+#endif
 
 #if 0
 BS2VM_API void BSVM2_Pack3DblTo3Xf(u32 *pv, double x, double y, double z)
@@ -96,6 +119,11 @@ BS2VM_API void BSVM2_Pack3DvTo3Xf(u32 *pv, double *px)
 //	lx=BSVM2_Double2XFloat(px[0]);
 //	ly=BSVM2_Double2XFloat(px[1]);
 //	lz=BSVM2_Double2XFloat(px[2]);
+
+	lx+=0x000FFFFFU;
+	ly+=0x000FFFFFU;
+	lz+=0x001FFFFFU;
+
 	pv[0]=lx>>32;
 	pv[1]=ly>>32;
 	pv[2]=lz>>32;

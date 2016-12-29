@@ -3347,6 +3347,7 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 					BSVM2_OPZ_FLOAT, BSVM2_Op_ABSF);
 				break;
 			default:
+				BSVM2_DBGTRAP
 				break;
 			}
 			break;
@@ -3390,8 +3391,48 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 					BSVM2_OPZ_FLOAT, BSVM2_Op_ABSD);
 				break;
 			default:
+				BSVM2_DBGTRAP
 				break;
 			}
+			break;
+
+		case BSVM2_OPZ_INT:
+		case BSVM2_OPZ_UINT:
+			switch(op->i0)
+			{
+			case BSVM2_OPMU_SQR:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_INT, BSVM2_Op_SQRI);
+				break;
+			case BSVM2_OPMU_ABS:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_INT, BSVM2_Op_ABSI);
+				break;
+			default:
+				BSVM2_DBGTRAP
+				break;
+			}
+			break;
+		case BSVM2_OPZ_LONG:
+		case BSVM2_OPZ_ULONG:
+			switch(op->i0)
+			{
+			case BSVM2_OPMU_SQR:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_LONG, BSVM2_Op_SQRL);
+				break;
+			case BSVM2_OPMU_ABS:
+				BSVM2_Interp_SetupOpUn(cblk, op,
+					BSVM2_OPZ_LONG, BSVM2_Op_ABSL);
+				break;
+			default:
+				BSVM2_DBGTRAP
+				break;
+			}
+			break;
+
+		default:
+			BSVM2_DBGTRAP
 			break;
 		}
 

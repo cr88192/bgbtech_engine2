@@ -295,6 +295,18 @@ BS2VM_API void BSVM2_Op_ABSF(BSVM2_Frame *frm, BSVM2_Opcode *op)
 BS2VM_API void BSVM2_Op_ABSD(BSVM2_Frame *frm, BSVM2_Opcode *op)
 	{ frm->stack[op->t0].d=bsvm2_fabs(frm->stack[op->t0].d); }
 
+s64 bsvm2_labs(s64 x)
+	{ return((x>0)?x:(-x)); }
+BS2VM_API void BSVM2_Op_ABSI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=bsvm2_labs(frm->stack[op->t0].i); }
+BS2VM_API void BSVM2_Op_ABSL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].l=bsvm2_labs(frm->stack[op->t0].l); }
+
+BS2VM_API void BSVM2_Op_SQRI(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].i=frm->stack[op->t0].i*frm->stack[op->t0].i; }
+BS2VM_API void BSVM2_Op_SQRL(BSVM2_Frame *frm, BSVM2_Opcode *op)
+	{ frm->stack[op->t0].l=frm->stack[op->t0].l*frm->stack[op->t0].l; }
+
 
 BS2VM_API void BSVM2_Op_CMPI(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {

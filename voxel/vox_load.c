@@ -1,3 +1,11 @@
+int BGBDT_WorldCheckRegionMagic(byte *buf)
+{
+	if((buf[0]!=0xE4) || (buf[4]!='R') || (buf[5]!='G') ||
+		(buf[6]!='N') || (buf[7]!='0'))
+			return(0);
+	return(1);
+}
+
 int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,
 	BGBDT_VoxRegion *rgn)
 {
@@ -13,6 +21,7 @@ int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,
 	if((cs[0]!=0xE4) || (cs[4]!='R') || (cs[5]!='G') ||
 		(cs[6]!='N') || (cs[7]!='0'))
 	{
+		FRGL_DBGBREAK
 		return(-1);
 	}
 	hsz=(cs[1]<<16)|(cs[2]<<8)|cs[3];
@@ -150,6 +159,8 @@ int BGBDT_WorldDecodeRegionData(BGBDT_VoxWorld *world,
 			cs=cs1;
 			continue;
 		}
+
+		FRGL_DBGBREAK
 	}
 	return(0);
 }
@@ -555,11 +566,14 @@ int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,
 					cs+=i;
 					continue;
 				}
+
+				FRGL_DBGBREAK
 			}
 			return(0);
 		}
 
 		printf("BGBDT_WorldDecodeChunk: Unexpected Marker Tag A\n");
+		FRGL_DBGBREAK
 		return(0);
 	}
 
@@ -579,5 +593,160 @@ int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,
 	}
 	
 	printf("BGBDT_WorldDecodeChunk: Unexpected Marker Tag B\n");
+	FRGL_DBGBREAK
+	return(0);
+}
+
+int BGBDT_VoxRgn_CheckRegionLzMagic(byte *buf)
+{
+	if((buf[0]!=0xE4) || (buf[4]!='R') || (buf[5]!='G') ||
+		(buf[6]!='L') || (buf[7]!='Z'))
+			return(0);
+	return(1);
+}
+
+/*
+ * Region LZ
+ * 0- 7: RGLZ Header Magic
+ * 8-11: Unpacked Size of Region
+ * 12-15: Header Reserved
+ *   12=Method: 4=LZ4, 8/9/10=Reserved for Deflate/BTLZH
+ *   13-15: Reserved, Zeros
+ * 0xE0 Marker for compressed data.
+ * ~ 20: Compressed Data
+ *
+ * LZ4
+ *
+ * Token:BYTE
+ *    High 4=Raw Bytes (rl)
+ *    Low 4=Match Bytes (ll)
+ * if(rl==15)
+ *    rl+=Mod255()
+ * raw_bytes:BYTE[rl] (copied to output)
+ * offset:WORD16_LE
+ * if(ll==15)
+ *    ll+=Mod255()
+ * (copy match to output)
+ *
+ * Extension: an offset of 0 is an EOB.
+ *
+ * Mod255: Value is encoded as a run of 0 or more 0xFF bytes (Q),
+ * terminated by a non-FF byte (R).
+ *   Resultant Value is (255*Q)+R
+ */
+
+int BGBDT_VoxRgn_LzMemCpyF(byte *dst, byte *src, int len)
+{
+	byte *cs, *ct, *cse;
+	
+	cs=src; cse=src+len; ct=dst;
+#if defined(X86) || defined(X86_64)
+	while(cs<cse)
+	{
+		*(u64 *)ct=*(u64 *)cs;
+		ct+=8; cs+=8;
+	}
+	return(0);
+#else
+	while(cs<cse)
+		{ *ct++=*cs++; }
+	return(0);
+#endif
+}
+
+int BGBDT_VoxRgn_UnpackLZ4(byte *ibuf, int isz, byte *obuf, int osz)
+{
+	byte *cs, *cse, *cs1, *ct, *cte;
+	int tk, rl, ll, ld;
+	int i, j, k;
+
+	cs=ibuf; cse=ibuf+isz;
+	ct=obuf; cte=obuf+osz;
+	while((cs<cse) && (ct<cte))
+	{
+		tk=*cs++;
+		rl=(tk>>4)&15;
+		if(rl==15)
+		{
+			i=*cs++;
+			while(i==0xFF)
+				{ rl+=255; i=*cs++; }
+			rl+=i;
+		}
+
+		if(((cs+rl)>cse) || ((ct+rl)>cte))
+		{
+			FRGL_DBGBREAK
+			break;
+		}
+		
+//		for(i=0; i<rl; i++)
+//			{ *ct++=*cs++; }
+		BGBDT_VoxRgn_LzMemCpyF(ct, cs, rl);
+		ct+=rl; cs+=rl;
+
+		ld=cs[0]|(cs[1]<<8); cs+=2;
+		if(!ld || (cs>=cse))
+		{
+			if(!ld)
+				break;
+			FRGL_DBGBREAK
+			break;
+		}
+
+		ll=(tk&15)+4;
+		if(ll==15)
+		{
+			i=*cs++;
+			while(i==0xFF)
+				{ ll+=255; i=*cs++; }
+			ll+=i;
+		}
+		
+		cs1=ct-ld;
+		if((cs1<obuf) || ((ct+ll)>cte))
+		{
+			FRGL_DBGBREAK
+			break;
+		}
+		BGBDT_VoxRgn_LzMemCpyF(ct, cs1, ll);
+		ct+=ll;
+//		for(i=0; i<rl; i++)
+//			{ *ct++=*cs1++; }
+	}
+	
+	return(0);
+}
+
+int BGBDT_VoxRgn_UnpackRgnLz(BGBDT_VoxWorld *world,
+	byte *ibuf, int ibsz, byte **robuf, int *rosz)
+{
+	byte *obuf;
+	byte *cs, *cse, *cs1, *ct, *cte;
+	int tsz, isz, osz;
+	int tk, rl, ll, ld;
+	int i, j, k;
+
+	if(!BGBDT_VoxRgn_CheckRegionLzMagic(ibuf))
+		return(-1);
+	if(	(ibuf[12]!=4) || (ibuf[13]!=0) ||
+		(ibuf[14]!=0) || (ibuf[15]!=0))
+		return(-1);
+	
+	tsz=(ibuf[1]<<16)|(ibuf[2]<<8)||(ibuf[3]);
+	osz=(ibuf[8]<<24)|(ibuf[9]<<16)|(ibuf[10]<<8)||(ibuf[11]);
+	obuf=frgl_malloc(osz);
+	
+	cs=ibuf+tsz;
+	if(cs[0]!=0xE0)
+		return(-1);
+	isz=(cs[1]<<16)|(cs[2]<<8)|(cs[3]);
+	cse=cs+isz;
+	cs+=4;
+
+	BGBDT_VoxRgn_UnpackLZ4(cs, cse-cs, obuf, osz);
+	
+	*robuf=obuf;
+	*rosz=osz;
 	return(0);
 }

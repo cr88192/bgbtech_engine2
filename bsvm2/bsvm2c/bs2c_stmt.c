@@ -73,7 +73,7 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 			return;
 		}
 
-		if(ctx->frm->jcleanup<=0)
+		if(ctx->frm && ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 		return;
 	}
@@ -104,7 +104,7 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 			BS2C_EmitOpcodeUCx(ctx, t0);
 		}
 
-		if(ctx->frm->jcleanup<=0)
+		if(ctx->frm && ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 		return;
 	}
@@ -124,7 +124,7 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 //		BS2C_EmitOpcodeUZx(ctx, z, sz);
 //		BS2C_CompileStoreName(ctx, name);
 
-		if(ctx->frm->jcleanup<=0)
+		if(ctx->frm && ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 
 		return;
@@ -147,7 +147,7 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 			return;
 		}
 
-		if(ctx->frm->jcleanup<=0)
+		if(ctx->frm && ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 		return;
 	}
@@ -164,7 +164,7 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 			return;
 		}
 
-		if(ctx->frm->jcleanup<=0)
+		if(ctx->frm && ctx->frm->jcleanup<=0)
 			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
 		return;
 	}

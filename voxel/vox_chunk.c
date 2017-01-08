@@ -130,8 +130,8 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 {
 	char tbuf[256];
 	BGBDT_VoxRegion *rcur;
-	byte *buf;
-	int szbuf;
+	byte *buf, *buf1;
+	int szbuf, szbuf1;
 	int bx, by, bz, bid;
 	
 	bx=xyz.x>>BGBDT_XYZ_SHR_REGION_XY;
@@ -162,6 +162,15 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 	sprintf(tbuf, "region/%s/%08X.rgn", world->worldname, bid);
 
 	buf=vf_loadfile(tbuf, &szbuf);
+
+	if(buf && BGBDT_VoxRgn_CheckRegionLzMagic(buf))
+	{
+		buf1=NULL;
+		BGBDT_VoxRgn_UnpackRgnLz(world, buf, szbuf, &buf1, &szbuf1);
+		frgl_free(buf);
+		buf=buf1;
+		szbuf=szbuf1;
+	}
 	
 	if(buf)
 	{

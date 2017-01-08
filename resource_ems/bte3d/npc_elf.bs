@@ -1,0 +1,287 @@
+public class npc_elf extends EntityBase {
+	static NpcDialogBox diag0, diag1, diag2;
+	static NpcDialogBox diag3, diag4, diag5;
+	static NpcDialogBox diag6, diag7, diag8;
+	static bool isInit=false;
+	byte elfty;
+	byte pester;
+	
+	public static void init()
+	{
+		if(isInit)
+			return;
+		isInit=true;
+		
+		frgl_printf("Elf Init\n");
+
+		diag0=new NpcDialogBox;
+		diag1=new NpcDialogBox;
+		diag2=new NpcDialogBox;
+		diag3=new NpcDialogBox;
+		diag4=new NpcDialogBox;
+		diag5=new NpcDialogBox;
+		diag6=new NpcDialogBox;
+		diag7=new NpcDialogBox;
+		diag8=new NpcDialogBox;
+
+		diag0.face1="sprites/elf/elfface0_happy0";
+		diag0.face2="sprites/elf/elfface0_cheer0";
+		diag0.text=
+"""
+Greetings! I am an Elf.
+We Elves are a common resident here.
+""";
+		diag0.options=[
+			"Ask about elves.",
+			"Ask about goats.",
+			"Goodbye."];
+		diag0.optchain=[null, diag1, diag2, null, null, null];
+
+		diag1.face1="sprites/elf/elfface0_happy0";
+		diag1.face2="sprites/elf/elfface0_cheer0";
+		diag1.text=
+"""
+We Elves are a common resident here.
+Here, being, of course, the polar region.
+The polar region is a space 'inside' of what you may think of as
+the North and South poles. In effect, here is an alternate Earth
+which occupies the same physical space as your Earth.
+""";
+		diag1.options=["Return."];
+		diag1.optchain=[diag0, diag0, null, null, null];
+
+		diag2.face1="sprites/elf/elfface0_unhappy0";
+		diag2.face2="sprites/elf/elfface0_shock0";
+		diag2.text=
+"""
+Why do you ask about goats?
+We must never speak of goats!
+Though there is Santa, we may speak of Santa.
+""";
+		diag2.options=["Return.", "Santa?"];
+		diag2.optchain=[diag0, diag0, diag3, null, null];
+
+
+		diag3.face1="sprites/elf/elfface0_happy0";
+		diag3.face2="sprites/elf/elfface0_cheer0";
+		diag3.text=
+"""
+The person you know as Santa is the one who rules over this place.
+He is the one you must find if you hope to return to your own world.
+
+Unlike Elves and Humans, Santa knows many things, and he is the one
+who is able to travel between worlds. Though make no mistake, Santa is
+neither Elf nor Human.
+""";
+		diag3.options=["Return."];
+		diag3.optchain=[diag0, diag0, null, null, null];
+
+
+		diag4.face1="sprites/elf/elfface1_happy0";
+		diag4.face2="sprites/elf/elfface1_cheer0";
+		diag4.text=
+"""
+Hurry on your way!
+Find Santa, he has everything you need!
+""";
+		diag4.options=["Return."];
+		diag4.optchain=[null, null, null, null, null];
+
+
+		diag5.face1="sprites/elf/elfface0_rshappy0";
+		diag5.face2="sprites/elf/elfface0_rscheer0";
+		diag5.text=
+"""
+Flesh! Flesh! FLESH!
+You have flesh! Come here, let me have a taste!
+Come on, it will only hurt for a moment!
+""";
+		diag5.options=["Return!"];
+		diag5.optchain=[null, null, null, null, null];
+
+
+		diag6.face1="sprites/elf/elfface0_unhappy0";
+		diag6.face2="sprites/elf/elfface0_shock0";
+		diag6.text="Don't you have something better to be doing?";
+		diag6.options=["Talk Anyways."];
+		diag6.optchain=[null, diag0, null, null, null];
+
+		diag7.face1="sprites/elf/elfface0_happy0";
+		diag7.face2="sprites/elf/elfface0_cheer0";
+		diag7.text="Cookies! NOM NOM NOM!";
+		diag7.options=["Return."];
+		diag7.optchain=[null, null, null, null, null];
+
+		diag8.face1="sprites/elf/elfface0_unhappy0";
+		diag8.face2="sprites/elf/elfface0_shock0";
+		diag8.text="No... more... cookies...";
+		diag8.options=["Return."];
+		diag8.optchain=[null, null, null, null, null];
+	}
+
+	public void spawn()
+	{
+		init();
+	
+		sprite_sz=#[32, 64];
+		radius=12;
+		height=64;
+		sprite="sprites/elf/elf0_1";
+		elfty=0;
+
+		flags|=ENTFL_TAKEDAMAGE;
+
+		if(!(rand()&3))
+		{
+			sprite="sprites/elf/elf1_0";
+			elfty=1;
+
+//			if(!(rand()&3))
+//			if(!(rand()&3) &&
+//				((origin.x>(32*64)) || (origin.y>(32*64))))
+//			if(!(rand()&3) &&
+//				(origin.x<(32*64)) && (origin.y<(32*64)))
+//			if((origin.x<(48*64)) && (origin.y<(48*64)) &&
+//				!(rand()&3))
+			if(!(rand()&3) &&
+				((origin.x>(32*64))|(origin.y>(32*64))))
+			{
+				sprite="sprites/elf/elf0_r0";
+				elfty=2;
+			}
+		}
+		
+	}
+
+	public void tick()
+	{
+		vec3f dir, lorg;
+		float dist;
+		int i, j, k;
+
+/*
+		if(elfty==2)
+		{
+			if(world_isHostile)
+			{
+				sprite_sz=#[128, 96];
+				sprite="sprites/spider/spider0_1";
+				radius=24;
+				height=96;
+				
+				if(!world_player)
+					return;
+				
+				dir=world_player.origin-this.origin;
+				dist=dir.len;
+//				dir=#[dir.x/(dist+1), dir.y/(dist+1)];
+				dir=dir/(dist+1);
+				if(dist>512)
+					return;
+				
+				if(dist<48)
+					Bt2Ent_KillPlayer();
+				
+				i=((int)(world_time*8))&1;
+//				i=i*2-1;
+				
+				sprite="sprites/spider/spider_walk0_1";
+				if(i)
+					{ sprite_sz=#[-128, 96]; }
+
+				lorg=origin;
+				origin=origin+(dir+dir+dir);
+//				if(IsoTile_CheckEntMoveCollidePos(this))
+//					{ origin=lorg; }
+
+				if(Bt2Ent_EntityMoveCheckCollide(this, origin))
+					{ origin=lorg; }
+			}else
+			{
+				sprite_sz=#[32, 64];
+				radius=8;
+				height=64;
+				sprite="sprites/elf/elf0_r0";
+			}
+		}
+*/
+
+//		if((world_lottery<world_max_entity) &&
+//			(world_entity[world_lottery]==this))
+//		{
+//			if(world_isHostile)
+//			{
+//				elfty=2;
+//			}
+//		}
+	}
+	
+	public void touch(EntityBase other)
+	{
+	}
+
+	public void use(EntityBase other)
+	{
+		int i;
+		pester++;
+	
+		if(elfty==2)
+		{
+			if(!(Bt2Ent_TakeItem(4)|Bt2Ent_TakeItem(517)))
+			{
+				i=BGBDT_Sound_PlaySound("sound/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, origin.z);
+				Bt2Ent_KillPlayer();
+				return;
+			}
+		
+			if(pester>2)
+			{
+				i=BGBDT_Sound_PlaySound("sound/chop3", 256, 2, 0);
+				BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, origin.z);
+				Bt2Ent_KillPlayer();
+				return;
+			}
+		
+			Bt2Ent_SetDialog(diag5);
+			return;
+		}
+
+		if(world_isHostile)
+		{
+			if(pester>2)
+			{
+				Bt2Ent_SetDialog(diag8);
+				return;
+			}
+
+			Bt2Ent_TakeItem((4<<8)|4);
+			Bt2Ent_TakeItem((4<<8)|5);
+			Bt2Ent_SetDialog(diag7);
+			return;
+		}
+
+		if(pester>2)
+		{
+			Bt2Ent_SetDialog(diag6);
+			return;
+		}
+
+		if(elfty==1)
+		{
+			Bt2Ent_SetDialog(diag4);
+			return;
+		}
+	
+		Bt2Ent_SetDialog(diag0);
+//		sprite="sprites/isotest/chest_open";
+//		isOpen=1;
+	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
+	}
+
+}

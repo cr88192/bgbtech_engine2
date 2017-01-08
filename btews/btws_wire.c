@@ -1427,9 +1427,9 @@ BTEIFGL_API void btews_wire_Update(BTEWS_WireNode *self, double dt)
 		}
 
 #if 1
-		self->icc=max(self->icc1, self->icc2);
-		self->watt=max(self->watt1, self->watt2);
-		self->pwatt=max(self->pwatt1, self->pwatt2);
+		self->icc=fmax(self->icc1, self->icc2);
+		self->watt=fmax(self->watt1, self->watt2);
+		self->pwatt=fmax(self->pwatt1, self->pwatt2);
 //		self->temp=(self->temp+self->watt*dt)-dt*((self->temp-25)/10.0);
 		self->temp=self->temp+((1.0/0.004)*self->watt*dt*dt)-
 			dt*((self->temp-25)/25.0);

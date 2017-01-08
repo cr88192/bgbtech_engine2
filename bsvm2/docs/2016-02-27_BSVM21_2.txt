@@ -6,9 +6,8 @@ Model:
 *  Lexical
 *  ...
 
-Like JVM, Args will be locals 1-N, with local variables following args.
-
-Alternately, could have locals first, followed by args. Reason: on average locals are used more than args, so this could lead to better code density, and deals better with variable argument lists.
+Locals come first in the locals frame, followed by function arguments.
+Reason: on average locals are accessed more often than arguments, so this can lead to better code density.
 
 Stack
 All instructions at a given location will be required to have the same stack layout (depth and types) at all possible control paths. Values may be left on the stack during jumps, provided:
@@ -127,6 +126,7 @@ IOW:
 *** vec2i/vec3i/vec4i
 *** vec2l
 *** vec2f/vec3f/vec4f
+**** vec3xf
 *** vec2d
 **** dcomplex
 ** V64
@@ -217,7 +217,7 @@ Signature Characters:
 *  Ct, symbol
 *  Cv, (IsType) null
 *  Cy, Class
-*  Cz, named vararg array
+*  Cz, named vararg array (FFI)
 
 *  Da, -
 *  Db, vec3d
@@ -1200,6 +1200,10 @@ More Array ops:
 ** (CTRLF)
 ** Rethrow exception object.
 ** Is no-op if exception is null.
+
+* / E1 F8 Ix, DFXVA			// ( => )
+** Cleanup VarArg Argument
+** This may be used to free memory associated with a
 
 
 === Two Byte Range (0x200) ===

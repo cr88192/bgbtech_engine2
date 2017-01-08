@@ -1,20 +1,31 @@
 #include <bteifgl.h>
 
-void *bgbgc_ralloc_mutex;
+void *bgbgc_ralloc_mutex=NULL;
 
 static char *frgl_strtab=NULL;
 static char *frgl_strtabe=NULL;
 static char *frgl_estrtab=NULL;
-static char **frgl_strhash;
+static char **frgl_strhash=NULL;
 
 
 // BTEIFGL_API char *frgl_strdup(char *str)
 //	{ return(strdup(str)); }
 
+#ifdef __EMSCRIPTEN__
+#define frgl_dbgprn_ems	frgl_printf
+#else
+
+#define frgl_dbgprn_ems	frgl_printf_null
+BTEIFGL_API void frgl_printf_null(char *str, ...)
+{
+}
+
+#endif
+
 BTEIFGL_API char *frgl_strdup(char *str)
 {
 	char *s, *t;
-	int i;
+	int i, l;
 
 	if(!str)
 	{
@@ -25,12 +36,15 @@ BTEIFGL_API char *frgl_strdup(char *str)
 
 	if(!frgl_strhash)
 	{
+		frgl_dbgprn_ems("frgl_strdup %d\n", sizeof(char *));
+
 		frgl_strtab=frgl_malloc(1<<20);
 //		frgl_strtab=frgl_tyalloc("frgl_strtab_t", 1<<20);
 		frgl_strtabe=frgl_strtab;
 		frgl_estrtab=frgl_strtab+(1<<20);
 
-		i=16384*sizeof(char *);
+//		i=16384*sizeof(char *);
+		i=4096*sizeof(char *);
 		frgl_strhash=frgl_malloc(i);
 		memset(frgl_strhash, 0, i);
 	}
@@ -45,8 +59,8 @@ BTEIFGL_API char *frgl_strdup(char *str)
 
 	i=0; s=str;
 	while(*s)i=i*251+(*s++);
-//	i=((i*251)>>8)&0xFFF;
-	i=((i*251)>>8)&0x3FFF;
+	i=((i*251)>>8)&0xFFF;
+//	i=((i*251)>>8)&0x3FFF;
 
 	t=frgl_strhash[i];
 	while(t)
@@ -59,8 +73,11 @@ BTEIFGL_API char *frgl_strdup(char *str)
 //	t=frgl_malloc(strlen(str)+1+sizeof(char *));
 //	t=frgl_tyalloc("frgl_string_t", strlen(str)+1+sizeof(char *));
 
+	l=strlen(str)+1+sizeof(char *);
+	l=(l+7)&(~7);
+
 	t=frgl_strtabe;
-	frgl_strtabe=t+strlen(str)+1+sizeof(char *);
+	frgl_strtabe=t+l;
 
 	s=(char *)(((char **)t)+1);
 	strcpy(s, str);
@@ -448,4 +465,26 @@ BTEIFGL_API s64 frgl_ratoi(char *str)
 	if(sg)l=-l;
 
 	return(l);
+}
+
+BTEIFGL_API int frgl_stricmp(char *s1, char *s2)
+{
+	int c1, c2;
+
+	c1=*s1; c2=*s2;
+	while(*s1 && *s2)
+	{
+		c1=*s1++;
+		c2=*s2++;
+		if((c1>='a') && (c1<='z'))
+			c1=(c1-'a')+'A';
+		if((c2>='a') && (c2<='z'))
+			c2=(c2-'a')+'A';
+		if(c1!=c2)
+			break;
+	}
+	
+	if(c1>c2)return( 1);
+	if(c2>c1)return(-1);
+	return(0);
 }

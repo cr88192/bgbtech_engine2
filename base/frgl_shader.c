@@ -69,7 +69,13 @@ void *frglGetProcAddress(char *name)
 #ifdef _WIN32
 	return(wglGetProcAddress(name));
 #else
-	return(dyllGetAddr(name));
+
+#ifdef __EMSCRIPTEN__
+	return(SDL_GL_GetProcAddress(name));
+#endif
+
+//	return(dyllGetAddr(name));
+	return(NULL);
 #endif
 }
 
@@ -357,6 +363,8 @@ BTEIFGL_API int frglGetUniformLocationF(int shader, char *name)
 	int i, hi;
 //	return(frglGetAttribLocation(frgl_shader_cur, name));
 
+	FRGL_ErrorStatusUniform("<?frglGetUniformLocationF>");
+
 //	hi=shader*4093; s=name;
 //	while(*s) { hi=(hi*4093)+(*s++); }
 
@@ -382,21 +390,32 @@ BTEIFGL_API int frglGetUniformLocationF(int shader, char *name)
 		hash_var[hi]=i;
 	}
 
+	FRGL_ErrorStatusUniform(name);
+
 	return(i);
 }
 
-BTEIFGL_API void FRGL_ErrorStatusUniform(char *name)
+BTEIFGL_API int FRGL_ErrorStatusUniform(char *name)
 {
-	int i;
+	static int lasterror=-1;
+	static int errorcnt=0;
+	int i, we;
 
-	i=glGetError();
+	i=glGetError(); we=0;
 	while(i!=GL_NO_ERROR)
 	{
-		printf("FRGL_ErrorStatusUniform: Var=%s Error 0x%04X\n", name, i);
-		__debugbreak();
+		if((i!=lasterror) && ((errorcnt++)<16))
+		{
+			printf("FRGL_ErrorStatusUniform: Var=%s Error 0x%04X\n", name, i);
+			we|=1;
+		}
+		lasterror=i;
+//		__debugbreak();
 //		*(int *)-1=-1;
 		i=glGetError();
+		we|=2;
 	}
+	return(we);
 }
 
 BTEIFGL_API int FRGL_CheckForUniform(char *name)
@@ -404,8 +423,17 @@ BTEIFGL_API int FRGL_CheckForUniform(char *name)
 	int i;
 	
 	i=frglGetUniformLocation(frgl_shader_cur, name);
+	FRGL_ErrorStatusUniform(name);
 	if(i<0)return(0);
 	return(1);
+}
+
+BTEIFGL_API int FRGL_GetUniformLocation(char *name)
+{
+	int i;
+	i=frglGetUniformLocationF(frgl_shader_cur, name);
+	FRGL_ErrorStatusUniform(name);
+	return(i);
 }
 
 BTEIFGL_API int FRGL_Uniform1f(char *name, float x)
@@ -542,6 +570,19 @@ BTEIFGL_API int FRGL_Uniform4fv(char *name, int cnt, float *pf)
 }
 
 
+BTEIFGL_API int FRGL_UniformMatrix4fv(char *name, int cnt, float *pf)
+{
+	int i;
+	if(!pglGetUniformLocation)return(-1);
+//	i=pglGetUniformLocation(frgl_shader_cur, name);
+	i=frglGetUniformLocationF(frgl_shader_cur, name);
+	if(i<0)return(0);
+	pglUniformMatrix4fv(i, cnt, 0, pf);
+	FRGL_ErrorStatusUniform(name);
+	return(1);
+}
+
+
 #if 1
 BTEIFGL_API void frglUniform1f(int var, float x)
 	{ pglUniform1f(var, x); }
@@ -571,6 +612,24 @@ BTEIFGL_API void frglUniform4fv(int var, int cnt, float *pf)
 	{ pglUniform4fv(var, cnt, pf); }
 #endif
 
+BTEIFGL_API void frglUniformMatrix2fv(int var, int cnt, float *pf)
+{
+	pglUniformMatrix2fv(var, cnt, 0, pf);
+	FRGL_ErrorStatusUniform("<?frglUniformMatrix2fv>");
+}
+
+BTEIFGL_API void frglUniformMatrix3fv(int var, int cnt, float *pf)
+{
+	pglUniformMatrix3fv(var, cnt, 0, pf);
+	FRGL_ErrorStatusUniform("<?frglUniformMatrix3fv>");
+}
+
+BTEIFGL_API void frglUniformMatrix4fv(int var, int cnt, float *pf)
+{
+	pglUniformMatrix4fv(var, cnt, 0, pf);
+	FRGL_ErrorStatusUniform("<?frglUniformMatrix4fv>");
+}
+
 BTEIFGL_API int frglVertexAttrib1f(int index, float v0)
 {
 	static PFNGLVERTEXATTRIB1FPROC fcn=NULL;
@@ -580,10 +639,12 @@ BTEIFGL_API int frglVertexAttrib1f(int index, float v0)
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glVertexAttrib1f");
+		FRGL_ErrorStatusUniform("<!frglVertexAttrib1f>");
 		if(!fcn)return(-1);
 	}
 
 	fcn(index, v0);
+	FRGL_ErrorStatusUniform("<?frglVertexAttrib1f>");
 	return(0);
 }
 
@@ -596,10 +657,12 @@ BTEIFGL_API int frglVertexAttrib2f(int index, float v0, float v1)
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glVertexAttrib2f");
+		FRGL_ErrorStatusUniform("<!frglVertexAttrib2f>");
 		if(!fcn)return(-1);
 	}
 
 	fcn(index, v0, v1);
+	FRGL_ErrorStatusUniform("<?frglVertexAttrib2f>");
 	return(0);
 }
 
@@ -706,29 +769,44 @@ BTEIFGL_API int frglGetAttribLocation(int program, char *name)
 {
 	static PFNGLGETATTRIBLOCATIONPROC fcn=NULL;
 	static int set=0;
+	int i;
 
 	if(!fcn)
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glGetAttribLocation");
+		FRGL_ErrorStatusUniform("<!frglGetAttribLocation>");
 		if(!fcn)return(-1);
 	}
 
-	return(fcn(program, name));
+	i=fcn(program, name);
+	FRGL_ErrorStatusUniform("<?frglGetAttribLocation>");
+	return(i);
 }
 
 BTEIFGL_API int FRGL_GetAttribLocation(char *name)
 {
-	return(frglGetAttribLocation(frgl_shader_cur, name));
+	int i;
+	i=frglGetAttribLocation(frgl_shader_cur, name);
+	FRGL_ErrorStatusUniform("<?FRGL_GetAttribLocation>");
+	return(i);
 }
 
 BTEIFGL_API int frglVertexAttribPointer(
 	int index, int size, int type, int normalized, int stride,
 	void *pointer)
 {
-	if(!pglVertexAttribPointer)return(-1);
+	if(!pglVertexAttribPointer)
+		return(-1);
 	pglVertexAttribPointer(index, size, type,
 		normalized, stride, pointer);
+	if(FRGL_ErrorStatusUniform("<?frglVertexAttribPointer>")&1)
+	{
+		printf("sdr=%d,idx=%04X sz=%d ty=%04X norm=%d str=%d ptr=%p\n",
+			frgl_shader_cur, index,
+			size, type, normalized,
+			stride, pointer);
+	}
 	return(0);
 }
 
@@ -745,6 +823,7 @@ BTEIFGL_API int frglEnableVertexAttribArray(int idx)
 	}
 
 	fcn(idx);
+	FRGL_ErrorStatusUniform("<?frglEnableVertexAttribArray>");
 	return(0);
 }
 
@@ -761,6 +840,7 @@ BTEIFGL_API int frglDisableVertexAttribArray(int idx)
 	}
 
 	fcn(idx);
+	FRGL_ErrorStatusUniform("<?frglDisableVertexAttribArray>");
 	return(0);
 }
 
@@ -777,6 +857,7 @@ BTEIFGL_API int frglActiveTexture(int idx)
 	}
 
 	fcn(GL_TEXTURE0+idx);
+	FRGL_ErrorStatusUniform("<?frglActiveTexture>");
 	return(0);
 }
 
@@ -793,6 +874,7 @@ BTEIFGL_API int frglMultiTexCoord1f(int idx, float s)
 	}
 
 	fcn(GL_TEXTURE0+idx, s);
+	FRGL_ErrorStatusUniform("<?frglMultiTexCoord1f>");
 	return(0);
 }
 
@@ -987,7 +1069,7 @@ BTEIFGL_API int frglGenFramebuffers(int n, int *ids)
 		if(!fcn)return(-1);
 	}
 
-	fcn(n, ids);
+	fcn(n, (GLuint *)ids);
 	return(0);
 }
 
@@ -1003,7 +1085,7 @@ BTEIFGL_API int frglGenRenderbuffers(int n, int *ids)
 		if(!fcn)return(-1);
 	}
 
-	fcn(n, ids);
+	fcn(n, (GLuint *)ids);
 	return(0);
 }
 
@@ -1119,7 +1201,7 @@ BTEIFGL_API int frglDrawBuffers(int n, int *ids)
 		if(!fcn)return(-1);
 	}
 
-	fcn(n, ids);
+	fcn(n, (GLenum *)ids);
 	return(0);
 }
 
@@ -1133,10 +1215,14 @@ BTEIFGL_API int frglGenBuffers(int n, int *ids)
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glGenBuffers");
-		if(!fcn)return(-1);
+		if(!fcn)
+		{
+			ids=0;
+			return(-1);
+		}
 	}
 
-	fcn(n, ids);
+	fcn(n, (GLuint *)ids);
 	return(0);
 }
 
@@ -1152,7 +1238,7 @@ BTEIFGL_API int frglDeleteBuffers(int n, int *ids)
 		if(!fcn)return(-1);
 	}
 
-	fcn(n, ids);
+	fcn(n, (GLuint *)ids);
 	return(0);
 }
 

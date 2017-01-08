@@ -136,6 +136,7 @@ int main_handle_input()
 int main_updateGraphSetPinValue(int pin, int val)
 {
 	graph_chcnts[pin]=val>>1;
+	return(0);
 }
 
 int main_updateGraphBits(int bits)
@@ -154,7 +155,7 @@ int main_updateGraphBits(int bits)
 			if(bits&(1<<i))
 				graph_chcnts[i]++;
 		}
-		return;
+		return(0);
 	}
 	
 	ct=(int *)(graph_buf+(graph_rov*512*4));
@@ -237,6 +238,7 @@ int main_updateGraphBits(int bits)
 		ct[i]=c;
 	
 //	graph_tex=Tex_LoadTexture2(512, 512, graph_buf, 0, graph_tex, 0);
+	return(0);
 }
 
 int main_body()

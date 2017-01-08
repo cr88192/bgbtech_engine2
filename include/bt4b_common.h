@@ -75,10 +75,10 @@ typedef unsigned int uint;
 #define default_inline __inline
 #endif
 
-#ifdef __GNUC__
-#define force_inline inline
-#define default_inline inline
-#endif
+// #ifdef __GNUC__
+// #define force_inline inline
+// #define default_inline inline
+// #endif
 
 #ifndef force_inline
 #define force_inline
@@ -173,18 +173,21 @@ default_inline u32 btic4b_getu32le(byte *ptr)
 	{ return(ptr[0]|(ptr[1]<<8)|(ptr[2]<<16)|(ptr[3]<<24)); }
 default_inline u64 btic4b_getu64le(byte *ptr)
 	{ return(btic4b_getu32le(ptr)|(((u64)btic4b_getu32le(ptr+4))<<32)); }
+
 default_inline s16 btic4b_gets16le(byte *ptr)
 	{ return(ptr[0]|(ptr[1]<<8)); }
 default_inline s32 btic4b_gets32le(byte *ptr)
 	{ return(ptr[0]|(ptr[1]<<8)|(ptr[2]<<16)|(ptr[3]<<24)); }
 default_inline s64 btic4b_gets64le(byte *ptr)
 	{ return(btic4b_getu32le(ptr)|(((s64)btic4b_gets32le(ptr+4))<<32)); }
+
 default_inline void btic4b_setu16le(byte *ptr, u16 val)
 	{ ptr[0]=val; ptr[1]=val>>8; }
 default_inline void btic4b_setu32le(byte *ptr, u32 val)
 	{ ptr[0]=val; ptr[1]=val>>8; ptr[2]=val>>16; ptr[3]=val>>24; }
 default_inline void btic4b_setu64le(byte *ptr, u64 val)
 	{ btic4b_setu32le(ptr, val); btic4b_setu32le(ptr+4, val>>32); }
+
 default_inline void btic4b_sets16le(byte *ptr, s16 val)
 	{ btic4b_setu16le(ptr, (u16)val); }
 default_inline void btic4b_sets32le(byte *ptr, s32 val)

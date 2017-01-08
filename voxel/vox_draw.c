@@ -8,19 +8,37 @@ bool bgbdt_voxel_novbo=0;
 void BGBDT_CalcCoordLocalOrigin(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, float *vec)
 {
+	BGBDT_VoxCoord ref;
 //	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER);
 //	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER);
 //	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER);
 
-	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0]);
-	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1]);
-	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2]);
+//	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0])+0.001;
+//	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1])+0.001;
+//	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2])+0.001;
+	
+	ref.x=world->reforg[0]*BGBDT_XYZ_SCALE_FROMMETER;
+	ref.y=world->reforg[1]*BGBDT_XYZ_SCALE_FROMMETER;
+	ref.z=world->reforg[2]*BGBDT_XYZ_SCALE_FROMMETER;
+	vec[0]=((xyz.x-ref.x)*BGBDT_XYZ_SCALE_TOMETER);
+	vec[1]=((xyz.y-ref.y)*BGBDT_XYZ_SCALE_TOMETER);
+	vec[2]=((xyz.z-ref.z)*BGBDT_XYZ_SCALE_TOMETER);
+}
+
+BTEIFGL_API void BGBDT_ConvVoxToLocalCoord(
+	BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, float *vec)
+{
+//	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0])+0.001;
+//	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1])+0.001;
+//	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2])+0.001;
+	BGBDT_CalcCoordLocalOrigin(world, xyz, vec);
 }
 
 float BGBDT_CalcCameraChunkMeshDistance(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunkMesh *mesh)
 {
 	BGBDT_VoxCoord xyz;
+	float lorg[4];
 	float dx, dy, dz, d;
 
 	xyz=BGBDT_WorldGetRegionChunkCoord(world, mesh->rgn,
@@ -29,9 +47,14 @@ float BGBDT_CalcCameraChunkMeshDistance(BGBDT_VoxWorld *world,
 	xyz.y+=8<<BGBDT_XYZ_SHR_VOXEL;
 	xyz.z+=8<<BGBDT_XYZ_SHR_VOXEL;
 	
-	dx=((xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->camorg[0]+world->reforg[0]));
-	dy=((xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->camorg[1]+world->reforg[1]));
-	dz=((xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->camorg[2]+world->reforg[2]));
+//	dx=((xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->camorg[0]+world->reforg[0]));
+//	dy=((xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->camorg[1]+world->reforg[1]));
+//	dz=((xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->camorg[2]+world->reforg[2]));
+
+	BGBDT_CalcCoordLocalOrigin(world, xyz, lorg);
+	dx=lorg[0]-world->camorg[0];
+	dy=lorg[1]-world->camorg[1];
+	dz=lorg[2]-world->camorg[2];
 	
 	d=sqrt(dx*dx+dy*dy+dz*dz)-14;
 	return(d);
@@ -48,10 +71,11 @@ void BGBDT_CalcChunkMeshLocalCenter(BGBDT_VoxWorld *world,
 	xyz.y+=8<<BGBDT_XYZ_SHR_VOXEL;
 	xyz.z+=8<<BGBDT_XYZ_SHR_VOXEL;
 
-	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0]);
-	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1]);
-	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2]);
-	vec[3]=14;
+//	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0])+0.001;
+//	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1])+0.001;
+//	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2])+0.001;
+	BGBDT_CalcCoordLocalOrigin(world, xyz, vec);
+	vec[3]=14.0;
 }
 
 void BGBDT_CalcChunkMeshViewCenter(BGBDT_VoxWorld *world,
@@ -80,10 +104,11 @@ void BGBDT_CalcChunkLocalCenter(BGBDT_VoxWorld *world,
 	xyz.y+=8<<BGBDT_XYZ_SHR_VOXEL;
 	xyz.z+=8<<BGBDT_XYZ_SHR_VOXEL;
 
-	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0]);
-	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1]);
-	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2]);
-	vec[3]=14;
+//	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0])+0.001;
+//	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1])+0.001;
+//	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2])+0.001;
+	BGBDT_CalcCoordLocalOrigin(world, xyz, vec);
+	vec[3]=14.0;
 }
 
 void BGBDT_CalcRegionBlockLocalCenter(BGBDT_VoxWorld *world,
@@ -97,10 +122,20 @@ void BGBDT_CalcRegionBlockLocalCenter(BGBDT_VoxWorld *world,
 	xyz.y+=8<<BGBDT_XYZ_SHR_VOXEL;
 	xyz.z+=8<<BGBDT_XYZ_SHR_VOXEL;
 
-	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0]);
-	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1]);
-	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2]);
-	vec[3]=14;
+//	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0])+0.001;
+//	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1])+0.001;
+//	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2])+0.001;
+	BGBDT_CalcCoordLocalOrigin(world, xyz, vec);
+	vec[3]=14.0;
+}
+
+void BGBDT_CalcRegionLocalOrigin(BGBDT_VoxWorld *world,
+	BGBDT_VoxRegion *rgn, float *vec)
+{
+	BGBDT_VoxCoord xyz;
+
+	xyz=BGBDT_WorldGetRegionVoxelCoord(world, rgn, 0, 0, 0);
+	BGBDT_CalcCoordLocalOrigin(world, xyz, vec);
 }
 
 BTEIFGL_API BGBDT_VoxCoord BGBDT_ConvLocalToVoxCoord(
@@ -108,19 +143,19 @@ BTEIFGL_API BGBDT_VoxCoord BGBDT_ConvLocalToVoxCoord(
 {
 	BGBDT_VoxCoord xyz;
 	
-	xyz.x=(vec[0]+world->reforg[0])/BGBDT_XYZ_SCALE_TOMETER+0.5;
-	xyz.y=(vec[1]+world->reforg[1])/BGBDT_XYZ_SCALE_TOMETER+0.5;
-	xyz.z=(vec[2]+world->reforg[2])/BGBDT_XYZ_SCALE_TOMETER+0.5;
+//	xyz.x=(vec[0]+world->reforg[0])/BGBDT_XYZ_SCALE_TOMETER+0.5;
+//	xyz.y=(vec[1]+world->reforg[1])/BGBDT_XYZ_SCALE_TOMETER+0.5;
+//	xyz.z=(vec[2]+world->reforg[2])/BGBDT_XYZ_SCALE_TOMETER+0.5;
+
+//	xyz.x=(vec[0]+world->reforg[0])*BGBDT_XYZ_SCALE_FROMMETER+0.5;
+//	xyz.y=(vec[1]+world->reforg[1])*BGBDT_XYZ_SCALE_FROMMETER+0.5;
+//	xyz.z=(vec[2]+world->reforg[2])*BGBDT_XYZ_SCALE_FROMMETER+0.5;
+
+	xyz.x=(s64)((vec[0]+world->reforg[0])*BGBDT_XYZ_SCALE_FROMMETER+0.5);
+	xyz.y=(s64)((vec[1]+world->reforg[1])*BGBDT_XYZ_SCALE_FROMMETER+0.5);
+	xyz.z=(s64)((vec[2]+world->reforg[2])*BGBDT_XYZ_SCALE_FROMMETER+0.5);
 	
 	return(xyz);
-}
-
-BTEIFGL_API void BGBDT_ConvVoxToLocalCoord(
-	BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, float *vec)
-{
-	vec[0]=(xyz.x*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[0]);
-	vec[1]=(xyz.y*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[1]);
-	vec[2]=(xyz.z*BGBDT_XYZ_SCALE_TOMETER)-(world->reforg[2]);
 }
 
 void BGBDT_CalcChunkMeshFrustumCenter(BGBDT_VoxWorld *world,
@@ -153,6 +188,7 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 {
 	int i, j, k;
 
+#ifndef __EMSCRIPTEN__
 	if(!(mesh->flags&BGBDT_MESHFL_QINHIBIT))
 	{
 		if(mesh->vistick)
@@ -163,7 +199,7 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 
 		if(mesh->flags&BGBDT_MESHFL_QLIVE)
 		{
-			frglGetQueryObjectuiv(mesh->oqm_id, GL_QUERY_RESULT, &i);
+			frglGetQueryObjectuiv(mesh->oqm_id, GL_QUERY_RESULT, (u32 *)(&i));
 			if(i<=0)
 			{
 				mesh->flags&=~BGBDT_MESHFL_QLIVE;
@@ -174,21 +210,65 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 
 		frglBeginQuery(GL_SAMPLES_PASSED, mesh->oqm_id);
 	}
+#endif
 
+//#ifndef __EMSCRIPTEN__
+#if 1
 	if(mesh->vbo_id>0)
+	{
 		frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
 
+//#ifdef __EMSCRIPTEN__
+#if 0
+		if((mesh->flags&BGBDT_MESHFL_DRAW1) &&
+			!(mesh->flags&BGBDT_MESHFL_RELOAD1))
+		{
+			frglBufferData(GL_ARRAY_BUFFER,
+				mesh->sz_vabuf, mesh->vabuf, GL_STATIC_DRAW);
+			mesh->flags|=BGBDT_MESHFL_RELOAD1;
+		}
+#endif
+	}
+#endif
+
+//	i=0;
+//	if(1)
 	for(i=0; i<mesh->va_nmesh; i++)
 	{
+//#ifdef __EMSCRIPTEN__
+#if 0
+		if(mesh->vbo_id>0)
+			frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
+#endif
+
 		FRGL_TexMat_BindMaterial(mesh->va_mesh[i*4+2]);
 
+#ifdef FRGL_VOX_USEFLOAT
+		if(mesh->vbo_id>0)
+		{
+			FRGL_DrawPrim_DrawArraysNormalTexRGB(
+				GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
+				3, GL_FLOAT, 3*4, (void *)(nlint)(mesh->ofs_xyz),
+				2, GL_FLOAT, 2*4, (void *)(nlint)(mesh->ofs_st),
+				3, GL_BYTE, 4, (void *)(nlint)(mesh->ofs_norm),
+				4, GL_UNSIGNED_BYTE, 4, (void *)(nlint)(mesh->ofs_rgba));
+		}else
+		{
+			FRGL_DrawPrim_DrawArraysNormalTexRGB(
+				GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
+				3, GL_FLOAT, 3*4, mesh->va_xyz,
+				2, GL_FLOAT, 2*4, mesh->va_st,
+				3, GL_BYTE, 4, mesh->va_norm,
+				4, GL_UNSIGNED_BYTE, 4, mesh->va_rgba);
+		}
+#else
 		if(mesh->vbo_id>0)
 		{
 			FRGL_DrawPrim_DrawArraysNormalTexRGB(
 				GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
 				3, GL_SHORT, 3*2, (void *)(nlint)(mesh->ofs_xyz),
 				2, GL_HALF_FLOAT, 2*2, (void *)(nlint)(mesh->ofs_st),
-				3, GL_BYTE, 3, (void *)(nlint)(mesh->ofs_norm),
+				3, GL_BYTE, 4, (void *)(nlint)(mesh->ofs_norm),
 				4, GL_UNSIGNED_BYTE, 4, (void *)(nlint)(mesh->ofs_rgba));
 		}else
 		{
@@ -196,9 +276,11 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 				GL_TRIANGLES, mesh->va_mesh[i*4+0], mesh->va_mesh[i*4+1],
 				3, GL_SHORT, 3*2, mesh->va_xyz,
 				2, GL_HALF_FLOAT, 2*2, mesh->va_st,
-				3, GL_BYTE, 3, mesh->va_norm,
+				3, GL_BYTE, 4, mesh->va_norm,
 				4, GL_UNSIGNED_BYTE, 4, mesh->va_rgba);
 		}
+#endif
+
 #if 0
 		FRGL_DrawPrim_DrawElementsNormalTexRGB(
 			GL_TRIANGLES, mesh->va_mesh[i*4+0],
@@ -221,11 +303,15 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 	}
 //	frglBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	mesh->flags|=BGBDT_MESHFL_DRAW1;
+
+#ifndef __EMSCRIPTEN__
 	if(!(mesh->flags&BGBDT_MESHFL_QINHIBIT))
 	{
 		frglEndQuery(GL_SAMPLES_PASSED);
 		mesh->flags|=BGBDT_MESHFL_QLIVE;
 	}
+#endif
 }
 
 void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
@@ -260,6 +346,7 @@ void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
 //			{ mcur=mcur->pvsnext; continue; }
 //		if((fabs(lvorg[1])-lvorg[3])>2)
 
+#if 1
 		if(	((lvorg[2]+lvorg[7])<0) ||
 			((fabs(lvorg[0])-lvorg[3])>2.25) ||
 			((fabs(lvorg[1])-lvorg[3])>2) )
@@ -277,6 +364,7 @@ void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
 		{
 			mcur->flags&=~BGBDT_MESHFL_QINHIBIT;
 		}
+#endif
 
 //		world->vischk_tot++;
 //		world->vischk_tris+=mcur->ntris;
@@ -325,24 +413,32 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 //	BGBDT_TickVoxRegion(world, rgn);
 	BGBDT_UpdateVoxRegionCVS(world, rgn);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+//	glMatrixMode(GL_MODELVIEW);
+	frglModelviewMatrix();
+	frglPushMatrix();
 	
 	glEnable(GL_ALPHA_TEST);
-	
-//	glTranslatef(rgn->bx*256, rgn->by*256, rgn->bz*256);
-	glTranslatef(
-		(rgn->bx*256.0)-(world->reforg[0]),
-		(rgn->by*256.0)-(world->reforg[1]),
-		(rgn->bz*256.0)-(world->reforg[2]));
-	
-//	glScalef(1.0/128, 1.0/128, 1.0/128);
+//	glDisable(GL_CULL_FACE);
 
-//	glScalef(
+	BGBDT_CalcRegionLocalOrigin(world, rgn, lorg);
+
+//	frglTranslatef(rgn->bx*256, rgn->by*256, rgn->bz*256);
+//	frglTranslatef(
+//		(rgn->bx*256.0)-(world->reforg[0]),
+//		(rgn->by*256.0)-(world->reforg[1]),
+//		(rgn->bz*256.0)-(world->reforg[2]));
+
+	frglTranslatef(lorg[0], lorg[1], lorg[2]);
+	
+#ifndef FRGL_VOX_USEFLOAT
+//	frglScalef(1.0/128, 1.0/128, 1.0/128);
+
+//	frglScalef(
 //		(1.0/128)*(32768.0/32767.0),
 //		(1.0/128)*(32768.0/32767.0),
 //		(1.0/128)*(32768.0/32767.0));
-	glScalef(1.0/127.996, 1.0/127.996, 1.0/127.996);
+	frglScalef(1.0/127.996, 1.0/127.996, 1.0/127.996);
+#endif
 
 #if 1
 	mesh=rgn->cvs;
@@ -373,7 +469,7 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 
 	glDisable(GL_ALPHA_TEST);
 
-	glPopMatrix();
+	frglPopMatrix();
 }
 
 BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
@@ -397,6 +493,7 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 	FRGL_TexMat_BindMaterial(0);
 
 	if(world->insky && (world->insky<4))
+//	if(0)
 	{
 		switch(world->insky)
 		{

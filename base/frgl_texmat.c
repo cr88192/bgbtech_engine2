@@ -10,6 +10,15 @@ int frgl_texmat_normdfl;
 
 bool bgbdt_voxel_noshader;
 
+int frgl_shader_pgl_ModelViewMatrix;
+int frgl_shader_pgl_ProjectionMatrix;
+int frgl_shader_pgl_Color;
+int frgl_shader_pgl_SecondaryColor;
+int frgl_shader_pgl_Normal;
+int frgl_shader_pgl_Vertex;
+int frgl_shader_pgl_TexCoord;
+int frgl_shader_pgl_TexBase;
+
 int frgl_texmat_init()
 {
 	static int init=0;
@@ -259,8 +268,11 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 		return(-1);
 	}
 	
+//#ifndef __EMSCRIPTEN__
+#if 1
 	if(cur==frgl_texmat_current)
 		return(0);
+#endif
 	
 	FRGL_TexMat_CheckTeardown(frgl_texmat_current);
 	frgl_texmat_current=cur;
@@ -278,12 +290,57 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 		if(cur->use_pgm<=0)
 		{
 			cur->use_pgm=FRGL_LoadShader(cur->shader);
+			printf("FRGL_TexMat_BindMaterial: Load Shader %s->%d\n",
+				cur->shader, cur->use_pgm);
 			if(cur->use_pgm<=0)
 				return(-1);
 		}
-	
+
 		FRGL_BindShader(cur->use_pgm);
+
+		frgl_shader_pgl_ModelViewMatrix=
+			FRGL_GetUniformLocation("pgl_ModelViewMatrix");
+		frgl_shader_pgl_ProjectionMatrix=
+			FRGL_GetUniformLocation("pgl_ProjectionMatrix");
+
+		frgl_shader_pgl_Vertex=-1;
+
+#if 0
+		frgl_shader_pgl_Color=
+			FRGL_GetAttribLocation("pgl_Color");
+//		frgl_shader_pgl_SecondaryColor=
+//			FRGL_GetAttribLocation("pgl_SecondaryColor");
+		frgl_shader_pgl_Normal=
+			FRGL_GetAttribLocation("pgl_Normal");
+		frgl_shader_pgl_Vertex=
+			FRGL_GetAttribLocation("pgl_Vertex");
+		frgl_shader_pgl_TexCoord=
+			FRGL_GetAttribLocation("pgl_TexCoord");
+#endif
+
+#if 0
+		frgl_shader_pgl_Color=
+			FRGL_GetAttribLocation("gl_Color");
+//		frgl_shader_pgl_SecondaryColor=
+//			FRGL_GetAttribLocation("gl_SecondaryColor");
+		frgl_shader_pgl_Normal=
+			FRGL_GetAttribLocation("gl_Normal");
+		frgl_shader_pgl_Vertex=
+			FRGL_GetAttribLocation("gl_Vertex");
+		frgl_shader_pgl_TexCoord=
+			FRGL_GetAttribLocation("gl_TexCoord");
+#endif
+
+		frgl_shader_pgl_TexBase=
+			FRGL_GetUniformLocation("texBase");
+
+//		frglUniform1i(frgl_shader_pgl_TexBase, 0);
 		FRGL_Uniform1i("texBase", 0);
+
+		if(cur->alt_tex>0)
+			{ glBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
+		else
+			{ glBindTexture(GL_TEXTURE_2D, cur->basetex); }
 
 		frglActiveTexture(1);
 		glEnable(GL_TEXTURE_2D);

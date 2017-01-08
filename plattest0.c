@@ -66,6 +66,10 @@ double isotest_worldtime;
 int isotest_invopen;
 int isotest_invslot[8*16];
 
+int IsoTile_CallDiagSetup(dtVal self);
+int IsoTile_SetGlobalA(char *cname, dtVal v);
+int IsoTile_SetGlobalI(char *cname, int v);
+
 
 MAIN_EXPORT void IsoTest_SetDialog(dtVal dbox)
 {
@@ -577,10 +581,10 @@ int main_loadscript(char *def)
 
 	tbuf=frgl_malloc(1<<20);
 
-	i=BS2C_FlattenImage(ctx, tbuf, 1<<20);
+	i=BS2C_FlattenImage(ctx, (byte *)tbuf, 1<<20);
 	vf_storefile("plattest0.bsi", tbuf, i);
 
-	isotest_img=BS2I_DecodeImageBuffer(tbuf, i);
+	isotest_img=BS2I_DecodeImageBuffer((byte *)tbuf, i);
 	vi=BS2I_ImageGetMain(isotest_img, NULL);
 
 	frgl_free(tbuf);
@@ -2051,7 +2055,7 @@ void isotest_loadmap(char *mapinf)
 		V4F_CONST(sclr, 1);
 		V4F_CONST(wclr, 1);
 		
-		cs=itbuf; cse=cs+sz;
+		cs=(char *)itbuf; cse=cs+sz;
 		while(*cs && (cs<cse))
 		{
 			cs=frgl_rsgets(tb, 255, cs);

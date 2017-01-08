@@ -774,7 +774,7 @@ int BtPak_ImageLookupDirName(BtPak0_Image *img,
 				return(i);
 		}else
 		{
-			if(!strncmp(de->name, name, 40))
+			if(!strncmp((const char *)de->name, name, 40))
 				return(i);
 		}
 				
@@ -845,7 +845,7 @@ int BtPak_ImageGetDirName(BtPak0_Image *img,
 				return(i);
 		}else
 		{
-			if(!strncmp(de->name, name, 40))
+			if(!strncmp((const char *)de->name, name, 40))
 				return(i);
 		}
 
@@ -865,7 +865,7 @@ int BtPak_ImageGetDirName(BtPak0_Image *img,
 
 		if(l<=40)
 		{
-			strncpy(de->name, name, 40);
+			strncpy((char *)de->name, name, 40);
 		}else
 		{
 		}
@@ -880,7 +880,7 @@ int BtPak_ImageGetDirName(BtPak0_Image *img,
 
 		if(l<=40)
 		{
-			strncpy(de->name, name, 40);
+			strncpy((char *)de->name, name, 40);
 		}else
 		{
 		}
@@ -893,7 +893,7 @@ int BtPak_ImageGetDirName(BtPak0_Image *img,
 
 		if(l<=40)
 		{
-			strncpy(de->name, name, 40);
+			strncpy((char *)de->name, name, 40);
 		}else
 		{
 		}
@@ -1214,15 +1214,16 @@ BTEIFGL_API int BtPak_FileRead(
 	int i, j, n;
 
 	sz=sz1*sz2;	
-	if((fd->pos>=0) && ((fd->pos+sz)<=fd->szData))
+//	if((fd->pos>=0) && ((fd->pos+sz)<=fd->szData))
+	if((fd->pos+sz)<=fd->szData)
 	{
 		memcpy(buf, fd->data+fd->pos, sz);
 		fd->pos+=sz;
 		return(sz2);
 	}
 	
-	if(fd->pos<0)
-		return(0);
+//	if(fd->pos<0)
+//		return(0);
 	
 	ct=buf;
 	for(i=0; i<sz2; i++)

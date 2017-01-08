@@ -350,11 +350,16 @@ BTEIFGL_API BGBDT_VoxChunk *BGBDT_GetRegionChunk(
 			return(NULL);
 
 		bid=bgbdt_xyz2rgnid(rgn->bx, rgn->by, rgn->bz);
-		printf("BGBDT_GetRegionChunk: Null Chunk %d,%d,%d RGN=%08X\n",
-			bx, by, bz, bid);
+
+		if(!(rgn->flags&BGBDT_RGNFL_NEWRGN))
+		{
+			printf("BGBDT_GetRegionChunk: Null Chunk %d,%d,%d RGN=%08X\n",
+				bx, by, bz, bid);
+		}
 		
 		chk=BGBDT_GetRegionChunk(world, rgn, bx, by, bz,
 			accfl|BGBDT_ACCFL_ENNEWCHK);
+		rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
 		return(chk);
 	}
 
@@ -914,7 +919,7 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 	bz=(xyz.z>>BGBDT_XYZ_SHR_VOXEL)&BGBDT_XYZ_MASK_CHKVOX;
 	if((bx|by|bz)>>4)
 	{
-		__debugbreak();
+		FRGL_DBGBREAK
 	}
 	
 	bn=(bz*BGBDT_XYZ_TSZ_CHK_XY)+(by*BGBDT_XYZ_SZ_CHUNK_XYZ)+bx;

@@ -410,6 +410,8 @@ void GfxDrv_InitGL()
 	glDisable(GL_ALPHA_TEST);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glShadeModel(GL_SMOOTH);
 }
 
 void GfxDrv_InitGL2()

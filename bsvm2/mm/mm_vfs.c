@@ -144,6 +144,7 @@ BS2VM_API void *bgbdt_mm_loadfile(char *name, int *rsz)
 	int sz;
 
 	bgbdt_mm_initvfs();
+
 	fd=bgbdt_mm_fopen(name, "rb");
 	if(!fd)return(NULL);
 
@@ -155,7 +156,9 @@ BS2VM_API void *bgbdt_mm_loadfile(char *name, int *rsz)
 	memset(buf, 0, sz+16);
 	bgbdt_mm_fread(buf, 1, sz, fd);
 
+#ifndef __EMSCRIPTEN__
 	bgbdt_mm_fclose(fd);
+#endif
 
 	if(rsz)*rsz=sz;
 	return(buf);

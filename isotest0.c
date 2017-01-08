@@ -493,6 +493,29 @@ int maim_setupvm()
 }
 #endif
 
+int IsoTile_SetGlobalA(char *cname, dtVal v)
+{
+	BSVM2_ImageGlobal *vi;
+
+	vi=BS2I_ImageLookupGlobalVar(
+		isotest_img, cname);
+	if(!vi)return(-1);
+	BSVM2_Interp_SetGlobalA(vi, v);
+	return(0);
+}
+
+int IsoTile_SetGlobalI(char *cname, int v)
+{
+	BSVM2_ImageGlobal *vi;
+
+	vi=BS2I_ImageLookupGlobalVar(
+		isotest_img, cname);
+	if(!vi)return(-1);
+	BSVM2_Interp_SetGlobalI(vi, v);
+	return(0);
+}
+
+
 int main_loadscript(char *def)
 {
 //	static char *mods[]={
@@ -563,10 +586,10 @@ int main_loadscript(char *def)
 
 	tbuf=frgl_malloc(1<<20);
 
-	i=BS2C_FlattenImage(ctx, tbuf, 1<<20);
+	i=BS2C_FlattenImage(ctx, (byte *)tbuf, 1<<20);
 	vf_storefile("isotest0.bsi", tbuf, i);
 
-	isotest_img=BS2I_DecodeImageBuffer(tbuf, i);
+	isotest_img=BS2I_DecodeImageBuffer((byte *)tbuf, i);
 	vi=BS2I_ImageGetMain(isotest_img, NULL);
 
 	frgl_free(tbuf);
@@ -729,28 +752,6 @@ int IsoTile_CallDiagImpulse(dtVal self, int imp)
 	i=BSVM2_Interp_CallCacheMethodVM(self, &fi, targs,
 		"NpcDialogBox", "impulse", NULL, 999999999);
 	if(i)printf("IsoTile_CallDiagImpulse: Status=%d\n", i);
-	return(0);
-}
-
-int IsoTile_SetGlobalA(char *cname, dtVal v)
-{
-	BSVM2_ImageGlobal *vi;
-
-	vi=BS2I_ImageLookupGlobalVar(
-		isotest_img, cname);
-	if(!vi)return(-1);
-	BSVM2_Interp_SetGlobalA(vi, v);
-	return(0);
-}
-
-int IsoTile_SetGlobalI(char *cname, int v)
-{
-	BSVM2_ImageGlobal *vi;
-
-	vi=BS2I_ImageLookupGlobalVar(
-		isotest_img, cname);
-	if(!vi)return(-1);
-	BSVM2_Interp_SetGlobalI(vi, v);
 	return(0);
 }
 

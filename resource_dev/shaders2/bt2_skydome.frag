@@ -1,6 +1,6 @@
 // uniform vec2 scaleBias;
 uniform sampler2D texBase;
-// uniform sampler2D texNorm;
+uniform sampler2D texNorm;
 // uniform sampler2D texGloss;
 // uniform sampler2D texGlow;
 
@@ -15,7 +15,7 @@ varying vec4 extColor;
 
 float spow(float x, float y)
 {
-	if(x<0)
+	if(x<0.0)
 		return -pow(-x, y);
 	return(pow(x, y));
 }

@@ -950,7 +950,10 @@ s64 runcnt;				//execution count
 
 BSVM2_Trace *ctrace;	//call trace
 byte brty;				//base return type (functions)
+union {
+s64 batl[4];
 byte baty[32];			//base arg type (functions)
+};
 
 BSVM2_Value *gvalue;	//global value
 void *objinf;			//object info

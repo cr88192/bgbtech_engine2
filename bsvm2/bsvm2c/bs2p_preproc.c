@@ -765,7 +765,7 @@ char *BS2PP_LoadInclude(BS2CC_CompileContext *ctx, char *name, int *rsz)
 	char *buf;
 	int i, sz;
 
-	if(BS2PP_CheckIncludeCache(name, &buf, &sz)>0)
+	if(BS2PP_CheckIncludeCache(name, (byte **)(&buf), &sz)>0)
 	{
 		if(rsz)*rsz=sz;
 		return(buf);
@@ -791,7 +791,7 @@ char *BS2PP_LoadInclude(BS2CC_CompileContext *ctx, char *name, int *rsz)
 
 	if(buf)
 	{
-		BS2PP_AddIncludeCache(name, buf, sz);
+		BS2PP_AddIncludeCache(name, (byte *)buf, sz);
 		if(rsz)*rsz=sz;
 		return(buf);
 	}
@@ -1920,7 +1920,7 @@ int BS2PP_Buffer(BS2CC_CompileContext *ctx, char *ibuf)
 				s++;
 			}
 			while(*s && (*s<=' '))
-				{ *s++; }
+				{ s++; }
 			bs2pp_obuf=t; *t=0;
 			continue;
 		}

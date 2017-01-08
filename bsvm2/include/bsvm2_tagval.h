@@ -204,7 +204,7 @@ static_inline dtVal DTV_MagicNull(void)
 	return(val);
 }
 
-#if defined(X86) || defined(ARM)
+#if defined(X86) || defined(ARM) || defined(__EMSCRIPTEN__)
 //static_inline void *DTV_GetPtrForObjId(int objid)
 //	{ return((void *)(objid)); }
 //static_inline int DTV_GetObjIdForPtr(void *ptr)
@@ -229,7 +229,8 @@ static_inline dtVal DTV_MagicNull(void)
 #define DTV_GetDataPtrForObjId(objid)	BGBDT_MM_GetDataPtrForObjId(objid)
 #endif
 
-#if defined(X86) || defined(ARM)
+#if defined(X86) || defined(ARM) || defined(__EMSCRIPTEN__)
+#define DTV_UNWRAP_PTR_P
 
 static_inline void *dtvUnwrapPtrF(dtVal val)
 	{ return((void *)val.lo); }
@@ -257,6 +258,7 @@ static_inline void *dtvUnwrapPtr60F(dtVal val)
 #endif
 
 #if defined(X86_64) || defined(ARM64)
+#define DTV_UNWRAP_PTR_P
 static_inline void *dtvUnwrapPtrF(dtVal val)
 {
 	s64 h;
@@ -293,6 +295,53 @@ static_inline dtVal dtvWrapTagPtrF(void *ptr, int tag)
 //	*(u64 *)(&val)=pi;
 //	val.lo=(u32)pi;
 //	val.hi=(pi>>32)&0xFFFF;
+	return(val);
+}
+
+static_inline dtVal dtvWrapTyTagPtrF(void *ptr, int tag)
+{
+	dtVal val;
+	u64 pi;
+	pi=(u64)ptr;
+	pi=(pi<<16)>>16;
+	pi|=((u64)(0xE000|(tag&4095)))<<48;
+	val.vi=pi;
+	return(val);
+}
+
+static_inline void *dtvUnwrapPtr60F(dtVal val)
+{
+	return((void *)((((s64)val.vi)<<4)>>4));
+}
+#endif
+
+#ifndef DTV_UNWRAP_PTR_P
+static_inline void *dtvUnwrapPtrF(dtVal val)
+{
+	s64 h;
+	h=val.vi;
+	h=(h<<16)>>16;
+	return((void *)h);
+}
+
+static_inline dtVal dtvWrapPtrF(void *ptr)
+{
+	dtVal val;
+	u64 pint;
+	pint=(u64)ptr;
+	pint=(pint<<16)>>16;
+	val.vi=pint;
+	return(val);
+}
+
+static_inline dtVal dtvWrapTagPtrF(void *ptr, int tag)
+{
+	dtVal val;
+	u64 pi;
+	pi=(u64)ptr;
+	pi=(pi<<16)>>16;
+	pi|=((u64)(tag&4095))<<48;
+	val.vi=pi;
 	return(val);
 }
 

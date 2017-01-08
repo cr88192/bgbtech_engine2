@@ -2,7 +2,8 @@
 
 #include <bgbnet.h>
 
-#ifdef linux
+// #ifdef linux
+#if defined(linux) || defined(__EMSCRIPTEN__)
 
 #include <sys/types.h>
 #include <sys/socket.h>

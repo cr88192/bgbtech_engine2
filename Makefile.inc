@@ -127,7 +127,7 @@ DEP_HDRS=\
 	$(BSVM2_BASE)include/basm/bgbasm_auto.h \
 	$(BSVM2_BASE)include/bsvm2_auto.h
 
-all: libs apps
+# all: libs apps
 
 FORCE:
 
@@ -139,6 +139,8 @@ apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) \
 	btewiresim0$(EXESUF) msptst0$(EXESUF) \
 	isotest0$(EXESUF) btactst0$(EXESUF) \
 	plattest0$(EXESUF) btactst1$(EXESUF)
+
+apps2: deeptail0$(EXESUF)
 
 includes: $(DEP_HDRS)
 

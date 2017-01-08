@@ -127,6 +127,8 @@ int BGBDT_VoxTg_SetupGenerate(
 	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "water");
 	voxtg_td_water.vtypel=vty;
 	voxtg_td_water.vtypeh=vty>>8;
+
+	return(0);
 }
 
 int bgbdt_voxtg_seed;
@@ -142,6 +144,7 @@ int bgbdt_voxtg_vxrand()
 int bgbdt_voxtg_vxsrand(int seed)
 {
 	bgbdt_voxtg_seed=seed;
+	return(0);
 }
 
 int BGBDT_VoxTgMare_GenerateTree(
@@ -218,6 +221,8 @@ int BGBDT_VoxTgMare_GenerateTree(
 
 		BGBDT_WorldSetVoxelData(world, xyz0, voxtg_td_log, 0);
 	}
+
+	return(0);
 }
  
 int BGBDT_VoxTgMare_GenerateChunkBasic(

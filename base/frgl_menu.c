@@ -176,12 +176,14 @@ BTEIFGL_API int FRGL_MenuHandleKeys(u16 *keys)
 		{
 		case K_DEL:
 		case K_ESC:
+		case 'a':
 			BGBDT_Sound_PlaySound("sound/hitwood0", 128, 0, 0);
 //			FRGL_SetMenuActive(menu->back);
 			FRGL_SetMenuActive(NULL);
 //			isotest_diagbox=DTV_NULL;
 			break;		
 		case K_ENTER:
+		case 'd':
 			BGBDT_Sound_PlaySound("sound/hitwood0", 128, 0, 0);
 			mitm=menu->item[frgl_menu_activepos];
 			
@@ -209,12 +211,14 @@ BTEIFGL_API int FRGL_MenuHandleKeys(u16 *keys)
 //			hituse=1+(*kcur-'0');
 			break;
 		case K_UPARROW:
+		case 'w':
 			frgl_menu_activepos--;
 			if(frgl_menu_activepos<0)
 				frgl_menu_activepos=menu->n_item-1;
 			BGBDT_Sound_PlaySound("sound/hitwood0", 128, 0, 0);
 			break;
 		case K_DOWNARROW:
+		case 's':
 			frgl_menu_activepos++;
 			if(frgl_menu_activepos>=menu->n_item)
 				frgl_menu_activepos=0;

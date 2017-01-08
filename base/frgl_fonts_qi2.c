@@ -34,6 +34,9 @@ BTEIFGL_API void FRGL_TextVBO_Upload(FRGL_TextVBO *ctx)
 	ctx->sz_st=ctx->n_xyz*2*sizeof(float);
 	ctx->sz_rgba=ctx->n_xyz*4*sizeof(byte);
 	
+	if(FRGL_CvarGetInt("r_novbo")>0)
+		return;
+	
 	ctx->ofs_xyz=0;
 	ctx->ofs_st=(ctx->ofs_xyz+ctx->sz_xyz+15)&(~15);
 	ctx->ofs_rgba=(ctx->ofs_st+ctx->sz_st+15)&(~15);
@@ -85,17 +88,33 @@ BTEIFGL_API void FRGL_TextVBO_Draw(FRGL_TextVBO *ctx)
 	glDisable (GL_CULL_FACE);
 	frglEnableTexture2D();
 
-	frglBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
-	for(i=0; i<ctx->n_prim; i++)
+//	frglDisableTexture2D();
+
+	if(ctx->vbo>0)
 	{
-		glBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
-		FRGL_DrawPrim_DrawArraysTexRGB(
-			ctx->prim[i*4+2], ctx->prim[i*4+0], ctx->prim[i*4+1],
-			3, GL_FLOAT, 0, (byte *)(nlint)ctx->ofs_xyz,
-			2, GL_FLOAT, 0, (byte *)(nlint)ctx->ofs_st,
-			4, GL_UNSIGNED_BYTE, 0, (byte *)(nlint)ctx->ofs_rgba);
+		frglBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
+		for(i=0; i<ctx->n_prim; i++)
+		{
+			glBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
+			FRGL_DrawPrim_DrawArraysTexRGB(
+				ctx->prim[i*4+2], ctx->prim[i*4+0], ctx->prim[i*4+1],
+				3, GL_FLOAT, 12, (byte *)(nlint)ctx->ofs_xyz,
+				2, GL_FLOAT, 8, (byte *)(nlint)ctx->ofs_st,
+				4, GL_UNSIGNED_BYTE, 4, (byte *)(nlint)ctx->ofs_rgba);
+		}
+		frglBindBuffer(GL_ARRAY_BUFFER, 0);
+	}else
+	{
+		for(i=0; i<ctx->n_prim; i++)
+		{
+			glBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
+			FRGL_DrawPrim_DrawArraysTexRGB(
+				ctx->prim[i*4+2], ctx->prim[i*4+0], ctx->prim[i*4+1],
+				3, GL_FLOAT, 12, (byte *)(nlint)ctx->xyz,
+				2, GL_FLOAT, 8, (byte *)(nlint)ctx->st,
+				4, GL_UNSIGNED_BYTE, 4, (byte *)(nlint)ctx->rgba);
+		}
 	}
-	frglBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 BTEIFGL_API void FRGL_TextVBO_Color4fv(FRGL_TextVBO *ctx, float *fv)
@@ -159,19 +178,19 @@ BTEIFGL_API void FRGL_TextVBO_Vertex3fv(FRGL_TextVBO *ctx, float *fv)
 	FRGL_TextVBO_VertexCheckExpand(ctx);
 	
 	i=ctx->n_xyz++;
-//	V3F_COPY(fv, ctx->xyz+i*3);
-//	V2F_COPY(ctx->cur_st, ctx->st+i*2);
-//	V4F_COPY(ctx->cur_clr, ctx->rgba+i*4);
+	V3F_COPY(fv, ctx->xyz+i*3);
+	V2F_COPY(ctx->cur_st, ctx->st+i*2);
+	V4F_COPY(ctx->cur_clr, ctx->rgba+i*4);
 
-	fv[0]=ctx->xyz[i*3+0];
-	fv[1]=ctx->xyz[i*3+1];
-	fv[2]=ctx->xyz[i*3+2];
-	ctx->cur_st[0]=ctx->st[i*2+0];
-	ctx->cur_st[1]=ctx->st[i*2+1];
-	ctx->cur_clr[0]=ctx->rgba[i*4+0];
-	ctx->cur_clr[1]=ctx->rgba[i*4+1];
-	ctx->cur_clr[2]=ctx->rgba[i*4+2];
-	ctx->cur_clr[3]=ctx->rgba[i*4+3];
+//	fv[0]=ctx->xyz[i*3+0];
+//	fv[1]=ctx->xyz[i*3+1];
+//	fv[2]=ctx->xyz[i*3+2];
+//	ctx->cur_st[0]=ctx->st[i*2+0];
+//	ctx->cur_st[1]=ctx->st[i*2+1];
+//	ctx->cur_clr[0]=ctx->rgba[i*4+0];
+//	ctx->cur_clr[1]=ctx->rgba[i*4+1];
+//	ctx->cur_clr[2]=ctx->rgba[i*4+2];
+//	ctx->cur_clr[3]=ctx->rgba[i*4+3];
 }
 
 BTEIFGL_API void FRGL_TextVBO_Vertex2f(FRGL_TextVBO *ctx, float x, float y)

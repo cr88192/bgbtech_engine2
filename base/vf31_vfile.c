@@ -295,8 +295,11 @@ BTEIFGL_API int VfInitVfs(void)
 	vf31_btpk_init();
 	
 	VfMount(".", "/", "dir", "");
+#ifdef __EMSCRIPTEN__
+	VfMount("resource_ems", "/", "dir", "");
+#else
 	VfMount("resource", "/", "dir", "");
-	
+#endif	
 	vf_setupvm();
 
 	return(1);

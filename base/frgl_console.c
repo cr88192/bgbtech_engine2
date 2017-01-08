@@ -331,7 +331,7 @@ BTEIFGL_API int Con_Init()
 		con_info->CmdHandler=Con_DefaultHandler;
 		con_info->CmdComplete=Con_DefaultComplete;
 
-//		con_info->Render=Con_RenderInfo2;
+		con_info->Render=Con_RenderInfo2;
 	}
 
 //	con_info=FRGL_Console_AllocConsoleInfo();
@@ -469,7 +469,7 @@ BTEIFGL_API int Con_RenderInfo(FRGL_ConsoleInfo *con)
 //	GfxFont_SetFont("fixed", 0);
 	GfxFont_SetFontSize("fixed", 0, con->chys);
 
-//	glDisable(GL_ALPHA_TEST);
+	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_TEXTURE_2D);
 
@@ -646,7 +646,7 @@ BTEIFGL_API int Con_RenderTextVBO(
 
 	if(con_down)
 	{
-		i=Tex_LoadFile("textures/effects/white", NULL, NULL);
+		i=Tex_LoadFile("textures/scene/white", NULL, NULL);
 		FRGL_TextVBO_BindTexture(vbo, i);
 		Con_RenderBackgroundVBO(con, vbo);
 	}
@@ -752,7 +752,7 @@ BTEIFGL_API int Con_RenderInfo2(FRGL_ConsoleInfo *con)
 		dirty=1;
 	}
 
-	i=(clock()*1000)/CLOCKS_PER_SEC;
+	i=(frgl_clock()*1000)/CLOCKS_PER_SEC;
 	i=(i/250)&1;
 
 	if(i && !(con->flags&CON_FLAG_BLINKSTATE))
@@ -774,6 +774,10 @@ BTEIFGL_API int Con_RenderInfo2(FRGL_ConsoleInfo *con)
 		dirty=0;
 	}
 
+	glDisable(GL_ALPHA_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_TEXTURE_2D);
+
 	FRGL_TextVBO_Draw(vbo);
 	return(0);
 }
@@ -781,14 +785,14 @@ BTEIFGL_API int Con_RenderInfo2(FRGL_ConsoleInfo *con)
 void cb_scrollup()
 	{ Con_ScrollUpInfo(con_info); }
 
-void con_memcpy(short *dst, short *src, int cnt)
+void con_memcpy(u16 *dst, u16 *src, int cnt)
 {
 	int i;
 	for(i=0; i<cnt; i++)
 		dst[i]=src[i];
 }
 
-void con_memcpy2(short *dst, short *src, int cnt)
+void con_memcpy2(u16 *dst, u16 *src, int cnt)
 {
 	int i, j;
 	for(i=0; i<cnt; i++)
@@ -800,14 +804,14 @@ void con_memcpy2(short *dst, short *src, int cnt)
 	}
 }
 
-void con_memset(short *dst, int val, int cnt)
+void con_memset(u16 *dst, int val, int cnt)
 {
 	int i;
 	for(i=0; i<cnt; i++)
 		dst[i]=val;
 }
 
-void con_memset2(short *dst, int val, int cnt)
+void con_memset2(u16 *dst, int val, int cnt)
 {
 	int i;
 	for(i=0; i<cnt; i++)
@@ -818,9 +822,9 @@ void con_memset2(short *dst, int val, int cnt)
 	}
 }
 
-void con_strcpy(short *dst, short *src)
+void con_strcpy(u16 *dst, u16 *src)
 {
-	short *s, *t;
+	u16 *s, *t;
 	int i;
 	
 	s=src; t=dst;
@@ -828,16 +832,16 @@ void con_strcpy(short *dst, short *src)
 	*t++=0;
 }
 
-int con_strlen(short *src)
+int con_strlen(u16 *src)
 {
 	int i;
 	for(i=0; src[i]; i++);
 	return(i);
 }
 
-void con_strcpy16to8(char *dst, short *src)
+void con_strcpy16to8(char *dst, u16 *src)
 {
-	short *s;
+	u16 *s;
 	char *t;
 	int i;
 
@@ -856,10 +860,10 @@ void con_strcpy16to8(char *dst, short *src)
 	*t++=0;
 }
 
-void con_strcpy8to16(short *dst, char *src)
+void con_strcpy8to16(u16 *dst, char *src)
 {
 	char *s;
-	short *t;
+	u16 *t;
 	int i;
 //	for(i=0; src[i]; i++)
 //		dst[i]=src[i];
@@ -1067,6 +1071,16 @@ BTEIFGL_API int Con_HandleKey(int num, int down)
 {
 	if(!down)return(0);
 
+#ifdef __EMSCRIPTEN__
+	if((num=='~') || (num=='`'))
+	{
+		con_down++;
+		con_down%=con_modes+1;
+		con_info->flags|=CON_FLAG_DIRTY;
+		return(0);
+	}
+#else
+
 //	if(((num=='~') || (num=='`')) && FRGL_KeyDown(K_CTRL))
 	if(((num=='~') || (num=='`')) && FRGL_KeyDown(K_ALT))
 	{
@@ -1094,6 +1108,7 @@ BTEIFGL_API int Con_HandleKey(int num, int down)
 			return(0);
 		}
 	}
+#endif
 
 	if(con_info->HandleKey)
 		con_info->HandleKey(con_info, num, down);

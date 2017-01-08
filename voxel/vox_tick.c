@@ -567,7 +567,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 	int t0, t1, t2;
 	int bx, by, bz, bi;
 	int cx, cy, cz;
-	int cvx, cvy, cvz;
+	int cvx, cvy, cvz, zchk;
 	int i, j;
 
 	t0=frgl_clock();
@@ -612,7 +612,9 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 
 	if(rgn->flags&BGBDT_RGNFL_NEWRGN)
 	{
+#if 0
 		printf("BGBDT_TickVoxRegion: New Region\n");
+
 		for(bz=0; bz<16; bz++)
 			for(by=0; by<16; by++)
 				for(bx=0; bx<16; bx++)
@@ -620,7 +622,10 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 			chk=BGBDT_GetRegionChunk(world, rgn,
 				bx, by, bz, BGBDT_ACCFL_ENNEWCHK);
 		}
-		rgn->flags&=~BGBDT_RGNFL_NEWRGN;
+#endif
+
+//		rgn->flags&=~BGBDT_RGNFL_NEWRGN;
+		rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
 		return;
 	}
 
@@ -653,6 +658,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 		BGBDT_RandomTickRegion(world, rgn, xyz);
 	}
 
+//	zchk=0;
 //	for(bz=0; bz<8; bz++)
 //		for(by=0; by<16; by++)
 //			for(bx=0; bx<16; bx++)
@@ -681,11 +687,13 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 				BGBDT_CalcRegionBlockLocalCenter(world,
 		//			rgn, bx*16+8, by*16+8, bz*16+8, lorg);
 					rgn, cx*16+8, cy*16+8, cz*16+8, lorg);
-					
+
+#if 1
 //				if(V3F_DIST(world->camorg, lorg)>256)
 				if(V3F_DIST2I(world->camorg, lorg)>(256*256))
 //					continue;
 					break;
+#endif
 
 #if 0
 				bi=((cz*BGBDT_XYZ_SZ_REGION_XY)+cy)*BGBDT_XYZ_SZ_REGION_XY+cx;
@@ -699,6 +707,9 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 				chk=BGBDT_GetRegionChunk(world, rgn,
 		//			bx, by, bz, 0);
 					cx, cy, cz, 0);
+
+//				if(!chk)
+//					zchk++;
 
 				if(chk)
 				{
@@ -724,7 +735,9 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 		rgn->tby=0;
 	}
 	rgn->tbz=0;
-	
+
+	rgn->flags&=~BGBDT_RGNFL_NEWRGN;
+
 	if(rgn->flags&BGBDT_RGNFL_RGNDIRTY)
 	{
 //		printf("Save Region %p\n", rgn);
@@ -1022,6 +1035,7 @@ BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world)
 	
 	bgbdt_voxel_drawdist=FRGL_CvarGetNum("r_drawdist");
 	bgbdt_voxel_noshader=FRGL_CvarGetNum("r_noshader");
+	bgbdt_voxel_novbo=FRGL_CvarGetNum("r_novbo");
 
 	world->tickstart=frgl_clock();
 	rcur=world->region;

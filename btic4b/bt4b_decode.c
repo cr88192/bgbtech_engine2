@@ -1,6 +1,7 @@
 // #define BTIC4B_BYTES
 
-#ifdef BTIC4B_BYTES
+// #ifdef BTIC4B_BYTES
+#if 0
 int BTIC4B_DecodeUVLI(BTIC4B_Context *ctx)
 {
 	int i;
@@ -1422,7 +1423,8 @@ int BTIC4B_DecImgBlocks(BTIC4B_Context *ctx,
 
 	BTIC4B_SetupContextQf(ctx, 100);
 
-#ifdef BTIC4B_BYTES
+// #ifdef BTIC4B_BYTES
+#if 0
 	ctx->cs=cbuf; cse=cbuf+cbsz;
 #else
 	BTIC4B_InitScTables();
@@ -1675,7 +1677,8 @@ int BTIC4B_DecImgAlphaBlocks(BTIC4B_Context *ctx,
 
 	BTIC4B_SetupContextQf(ctx, 100);
 
-#ifdef BTIC4B_BYTES
+// #ifdef BTIC4B_BYTES
+#if 0
 	ctx->cs=cbuf; cse=cbuf+cbsz;
 #else
 	BTIC4B_InitScTables();
@@ -2005,6 +2008,11 @@ BTIC4B_API int BTIC4B_DecodeImgBufferCtx(BTIC4B_Context *ctx,
 	return(0);
 }
 
+//u32 btic4b_getu32le(byte *buf)
+//{
+//	return(buf[0]|(buf[1]<<8)|(buf[2]<<16)|(buf[3]<<24));
+//}
+
 BTIC4B_API byte *BTIC4B_BufBmpGetImg(byte *buf,
 	int *rxs, int *rys,
 	u32 *rfcc, int *risz)
@@ -2014,11 +2022,18 @@ BTIC4B_API byte *BTIC4B_BufBmpGetImg(byte *buf,
 	if((buf[0]!='B') || (buf[1]!='M'))
 		return(NULL);
 
-	ofs=*(u32 *)(buf+0x0A);
-	*rxs=*(u32 *)(buf+0x12);
-	*rys=*(u32 *)(buf+0x16);
-	*rfcc=*(u32 *)(buf+0x1E);
-	*risz=*(u32 *)(buf+0x22);
+//	ofs=*(u32 *)(buf+0x0A);
+//	*rxs=*(u32 *)(buf+0x12);
+//	*rys=*(u32 *)(buf+0x16);
+//	*rfcc=*(u32 *)(buf+0x1E);
+//	*risz=*(u32 *)(buf+0x22);
+
+	ofs=btic4b_getu32le(buf+0x0A);
+	*rxs=btic4b_getu32le(buf+0x12);
+	*rys=btic4b_getu32le(buf+0x16);
+	*rfcc=btic4b_getu32le(buf+0x1E);
+	*risz=btic4b_getu32le(buf+0x22);
+
 	return(buf+ofs);
 }
 

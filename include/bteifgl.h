@@ -14,6 +14,26 @@
 
 #include <bteifgl_conf.h>
 
+// #define FRGL_VOX_USEFLOAT
+#define FRGL_WRAP_IMM_GL
+
+#ifdef __EMSCRIPTEN__
+
+// #include <emscripten.h>
+#include <SDL/SDL.h>
+
+// #include <SDL/SDL_mouse.h>
+// #include <SDL/SDL_keyboard.h>
+
+#include <SDL/SDL_opengl.h>
+
+#define FRGL_VOX_USEFLOAT
+
+#define FRGL_SMALLHEAP
+#define FRGL_NOSOUND
+
+#else
+
 #ifndef GLES
 
 #include <GL/gl.h>
@@ -21,6 +41,8 @@
 
 #ifdef _WIN32
 #include <GL_3/wglext.h>
+#endif
+
 #endif
 
 #endif
@@ -83,7 +105,11 @@
 #define FRGL_QUAD_STRIP					8
 #define FRGL_POLYGON					9
 
+#ifdef _MSC_VER
 #define FRGL_DBGBREAK			__debugbreak();
+#else
+#define FRGL_DBGBREAK			*(int *)-1=-1;
+#endif
 
 #define	BGBBTJ_JPG_RGBA			0	//RGBA(32)
 #define	BGBBTJ_JPG_RGB			1	//RGB(24)

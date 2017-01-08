@@ -467,7 +467,7 @@ byte *BGBDT_MM_AllocObjectInner(int size)
 	
 	sz=size+16;
 	
-	if((sz+BGBDT_MM_SOBJ_CELMSK)<=16384)
+	if((sz+BGBDT_MM_SOBJ_CELMSK)<=BGBDT_MM_SOBJ_OBJLIM)
 	{
 		nc=(sz+BGBDT_MM_SOBJ_CELMSK)>>BGBDT_MM_SOBJ_CELSHL;
 		
@@ -484,7 +484,7 @@ byte *BGBDT_MM_AllocObjectInner(int size)
 		return(ptr);
 	}
 
-	if((sz+BGBDT_MM_MOBJ_CELMSK)<=(1<<20))
+	if((sz+BGBDT_MM_MOBJ_CELMSK)<=BGBDT_MM_MOBJ_OBJLIM)
 	{
 		nc=(sz+BGBDT_MM_MOBJ_CELMSK)>>BGBDT_MM_MOBJ_CELSHL;
 
@@ -516,7 +516,7 @@ void BGBDT_MM_FreeObjectInner(byte *ptr)
 	if(*(u32 *)ptr==BGBDT_MM_CHKMAG1)
 		{ BSVM2_DBGTRAP }
 	
-	if((sz+BGBDT_MM_MOBJ_CELMSK)<=16384)
+	if((sz+BGBDT_MM_SOBJ_CELMSK)<=BGBDT_MM_SOBJ_OBJLIM)
 	{
 		nc=(sz+BGBDT_MM_SOBJ_CELMSK)>>BGBDT_MM_SOBJ_CELSHL;
 		if(nc>>10)
@@ -526,7 +526,7 @@ void BGBDT_MM_FreeObjectInner(byte *ptr)
 		return;
 	}
 
-	if((sz+BGBDT_MM_MOBJ_CELMSK)<=(1<<20))
+	if((sz+BGBDT_MM_MOBJ_CELMSK)<=BGBDT_MM_MOBJ_OBJLIM)
 	{
 		nc=(sz+BGBDT_MM_MOBJ_CELMSK)>>BGBDT_MM_MOBJ_CELSHL;
 		if(nc>>12)

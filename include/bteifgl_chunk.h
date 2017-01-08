@@ -281,6 +281,10 @@ Each cell is 64 bytes.
 
 #define BGBDT_MESHFL_VISALL		0x0007	//query clipped
 
+#define BGBDT_MESHFL_NANFAIL	0x0010	//query inhibited
+#define BGBDT_MESHFL_DRAW1		0x0020	//drawn
+#define BGBDT_MESHFL_RELOAD1	0x0040	//drawn
+
 
 typedef struct BGBDT_VoxCoord_s BGBDT_VoxCoord;
 typedef struct BGBDT_VoxVertex_s BGBDT_VoxVertex;
@@ -366,6 +370,7 @@ int *mat;					//material triangle chains
 int nmat, mmat;				//number of materials
 
 int xyzh[64];
+int tmat[16*2];
 
 float *va_xyz;				//XYZ
 float *va_st;				//ST

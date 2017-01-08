@@ -70,12 +70,15 @@ BTEIFGL_API BGBDT_SndSampler *BGBDT_Snd_GetLoadSampler(char *name)
 {
 	BGBDT_SndSampler *cur;
 	char tb[1024];
-	
+
+#ifndef FRGL_NOSOUND
 	sprintf(tb, "%s.wav", name);
 	cur=BGBDT_Snd_GetLoadSamplerWAV(tb);
 	if(cur)return(cur);
 	
 	printf("BGBDT_Snd_GetLoadSampler: Failed Load %s\n", name);
+#endif
+
 	return(NULL);
 }
 

@@ -24,7 +24,7 @@ THE SOFTWARE.
 char *bsvm2_natcall_nhashn[4096];
 void *bsvm2_natcall_nhashv[4096];
 
-void *BSVM2_NatCall_GetProcAddress(char *name)
+BS2VM_API void *BSVM2_NatCall_GetProcAddress(char *name)
 {
 	char *s;
 	void *p;
@@ -51,15 +51,27 @@ void *BSVM2_NatCall_GetProcAddress(char *name)
 	if(i<256)
 	{
 		p=BIPRO_LookupLabel(name);
+
+		printf("BSVM2_NatCall_GetProcAddress: %s %p\n", name, p);
+
 		bsvm2_natcall_nhashn[j]=bgbdt_mm_strdup(name);
 		bsvm2_natcall_nhashv[j]=p;
 		return(p);
 	}
 
 	p=BIPRO_LookupLabel(name);
+	
+	printf("BSVM2_NatCall_GetProcAddress: %s %p\n", name, p);
+	
 	return(p);
 
 //	return(NULL);
+}
+
+BS2VM_API int BSVM2_NatCall_RegisterProcAddress(char *name, void *addr)
+{
+	BIPRO_AddSym(name, addr);
+	return(0);
 }
 
 void BSVM2_NatCall_Call_0_V(void *fptr,
@@ -371,14 +383,38 @@ void BSVM2_NatCall_Call_N(void *fcn, int nc,
 		BSCM2_NC_CASTCALL2C(1)
 		BSCM2_NC_CASTCALL3D(1)
 		BSCM2_NC_CASTCALL4E(1)
+		default:
+			BSVM2_DBGTRAP
+			break;
 	}
 }
 
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_NatCallG0(
 	BSVM2_Frame *frm, BSVM2_TailOpcode *op)
 {
+	static int rec=0;
+	
+	if(op->i0!=99)
+	{
+		printf("BSVM2_TrOp_NatCallG0: %p ix=%d\n", op->v.p, op->i1);
+		op->i0=99;
+	}
+
+	if(rec>=16)
+	{
+		printf("BSVM2_TrOp_NatCallG0: Recursion Limit\n");
+		return(op->nexttrace);
+	}
+	
+	if(rec>0)
+	{
+		printf("BSVM2_TrOp_NatCallG0: Rec %d\n", rec);
+	}
+	
+	rec++;
 	BSVM2_NatCall_Call_N(op->v.p, op->i1,
 		frm->stack+op->t0, frm->stack+op->t1);
+	rec--;
 	return(op->nexttrace);
 }
 

@@ -2316,7 +2316,7 @@ BASM_API int BASM_LookupOpcodeARMCC(BASM_Context *ctx, char *str)
 
 	s0=s;
 	fl=BASM_CheckARMCC(ctx, &s);
-	if((s==s0) && (*(s-1)=='s') || (*(s-1)=='S'))
+	if((s==s0) && ((*(s-1)=='s') || (*(s-1)=='S')))
 	{
 		s--; *s=0;
 		s0=s;

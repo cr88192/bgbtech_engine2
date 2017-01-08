@@ -1,3 +1,6 @@
+// uniform mat4 pgl_ModelViewMatrix;
+// uniform mat4 pgl_ProjectionMatrix;
+
 // uniform vec2 scaleBias;
 uniform sampler2D texBase;
 uniform sampler2D texNorm;
@@ -11,6 +14,7 @@ uniform float exposure;
 varying vec3 lorg, eyeOrg, eyeVec;
 varying vec4 extColor;
 // varying vec4 position;
+varying vec2 texCoord;
 
 varying vec3 point, normal, normal_x, normal_y;
 varying vec3 eye_x, eye_y, eye_z;
@@ -53,6 +57,7 @@ float spow(float x, float y)
 	return(pow(x, y));
 }
 
+/*
 float hfbayer4(vec4 v)
 {
 	int ix, iy;
@@ -60,6 +65,7 @@ float hfbayer4(vec4 v)
 	iy=(int(v.y))&3;
 	return(bayer4m[iy][ix]);
 }
+*/
 
 /*
 float hfnoise(vec4 v)
@@ -119,7 +125,8 @@ void main()
 	dist=length(aux);
 	ldir=aux/dist;
 
-	srcST=gl_TexCoord[0].xy;
+//	srcST=gl_TexCoord[0].xy;
+	srcST=texCoord;
 
 	npix=texture2D(texNorm, srcST);
 	xfval=0;
@@ -184,6 +191,8 @@ void main()
 //	rgba=texture2D(texBase, srcST);
 //	glow=texture2D(texGlow, texST);
 
+//	rgba=vec4(0.5, 0.5, 0.5, 1.0);
+
 	norm=
 		normal_x*(2.0*npix.r-1.0) +
 		normal_y*(2.0*npix.g-1.0) +
@@ -239,6 +248,9 @@ void main()
 //		a=((hgign+(rgba.a*1.05))-1.0)*1000.0;
 		a=clamp(a, 0.0, 1.0);
 	}
+
+	if(a<0.5)
+		discard;
 
 	gl_FragColor=vec4((extColor*(rgba*ndotl+spec*spe)).xyz, a);
 

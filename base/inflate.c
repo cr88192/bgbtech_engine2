@@ -693,7 +693,7 @@ int PDUNZ_DecodeRun(int sym)
 		0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
 		3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 16, 0, 0, 0};
 	int *lbase, *lextra;
-	char *s, *se;
+	byte *s, *se;
 	int i, j, k;
 
 	if(pdunz_flags&BGBBTJ_ZFL_DEFLATE64)

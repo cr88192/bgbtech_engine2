@@ -318,7 +318,7 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 			ct1=ct+r;
 			if(ct1>cte)
 			{
-				__debugbreak();
+				FRGL_DBGBREAK
 				break;
 			}
 			while(ct<ct1)
@@ -345,7 +345,7 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 		{
 			if(l==2)
 			{
-				__debugbreak();
+				FRGL_DBGBREAK
 				//special
 				break;
 			}
@@ -356,13 +356,13 @@ int BGBDT_DecodeChunkLZ(BGBDT_RiceContext *ctx,
 		ll=l; ld=d;
 		if((ct+l)>cte)
 		{
-			__debugbreak();
+			FRGL_DBGBREAK
 			break;
 		}
 		cs=ct-d; cse=cs+l;
 		if(cs<obuf)
 		{
-			__debugbreak();
+			FRGL_DBGBREAK
 			break;
 		}
 		while(cs<cse)
@@ -485,7 +485,7 @@ int BGBDT_WorldDecodeChunkBits(BGBDT_VoxWorld *world,
 			continue;
 		}
 		
-		__debugbreak();
+		FRGL_DBGBREAK
 		break;
 	}
 

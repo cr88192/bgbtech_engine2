@@ -17,3 +17,7 @@
 #ifdef linux
 #include <bteifgl_main_lnx.h>
 #endif
+
+#ifdef __EMSCRIPTEN__
+#include <bteifgl_main_ems.h>
+#endif

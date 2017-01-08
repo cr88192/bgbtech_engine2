@@ -1,4 +1,5 @@
-#ifdef linux
+// #ifdef linux
+#if defined(linux) || defined(__EMSCRIPTEN__)
 #define _GNU_SOURCE
 #define __USE_GNU
 #include <link.h>
@@ -8,7 +9,8 @@
 // #include <bgblink.h>
 // #include <bgbasm.h>
 
-#ifdef linux
+// #ifdef linux
+#if defined(linux) || defined(__EMSCRIPTEN__)
 
 void *blnk_hmodule;
 
@@ -70,6 +72,7 @@ int BLNK_InitDllsOS()
 	init=1;
 
 	dl_iterate_phdr(blnk_phdr_callback, NULL);
+	return(0);
 }
 
 BASM_API int BLNK_GetModuleListOS(char **buf, int max)

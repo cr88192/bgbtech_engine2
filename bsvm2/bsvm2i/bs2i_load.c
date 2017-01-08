@@ -572,13 +572,13 @@ int BS2I_ImageDecodeGlobalFunc(
 			
 			if(tag==BS2CC_I1CC_NAME)
 			{
-				gbl->name=img->strtab+v;
+				gbl->name=(char *)(img->strtab+v);
 				continue;
 			}
 
 			if(tag==BS2CC_I1CC_QNAME)
 			{
-				gbl->qname=img->strtab+v;
+				gbl->qname=(char *)(img->strtab+v);
 				continue;
 			}
 			
@@ -596,13 +596,13 @@ int BS2I_ImageDecodeGlobalFunc(
 			
 			if(tag==BS2CC_I1CC_SIG)
 			{
-				gbl->sig=img->strtab+v;
+				gbl->sig=(char *)(img->strtab+v);
 				continue;
 			}
 			
 			if(tag==BS2CC_I1CC_FLAGS)
 			{
-				gbl->flagstr=img->strtab+v;
+				gbl->flagstr=(char *)(img->strtab+v);
 				continue;
 			}
 
@@ -871,13 +871,13 @@ int BS2I_ImageDecodeGlobalVar(
 			
 			if(tag==BS2CC_I1CC_NAME)
 			{
-				gbl->name=img->strtab+v;
+				gbl->name=(char *)(img->strtab+v);
 				continue;
 			}
 
 			if(tag==BS2CC_I1CC_QNAME)
 			{
-				gbl->qname=img->strtab+v;
+				gbl->qname=(char *)(img->strtab+v);
 				continue;
 			}
 
@@ -895,13 +895,13 @@ int BS2I_ImageDecodeGlobalVar(
 			
 			if(tag==BS2CC_I1CC_SIG)
 			{
-				gbl->sig=img->strtab+v;
+				gbl->sig=(char *)(img->strtab+v);
 				continue;
 			}
 			
 			if(tag==BS2CC_I1CC_FLAGS)
 			{
-				gbl->flagstr=img->strtab+v;
+				gbl->flagstr=(char *)(img->strtab+v);
 				gbl->flags=BS2I_FlagsFromFlagstr(img, gbl->flagstr);
 				continue;
 			}
@@ -1233,24 +1233,24 @@ dtVal BS2I_ImageDecodeTagIndexAddr(
 	switch(i&15)
 	{
 	case BSVM2_OPZY_STRU8:
-		s=img->strtab+j;
+		s=(char *)(img->strtab+j);
 		v=BGBDT_TagStr_String(s);
 		break;
 	case BSVM2_OPZY_STRU16:
-		s=img->strtab+j;
-		v=BGBDT_TagStr_String16u8(s);
+		s=(char *)(img->strtab+j);
+		v=BGBDT_TagStr_String16u8((byte *)s);
 		break;
 	case BSVM2_OPZY_STRASC:
-		s=img->strtab+j;
+		s=(char *)(img->strtab+j);
 		v=BGBDT_TagStr_StringAsc(s);
 		break;
 
 	case BSVM2_OPZY_STRSYM:
-		s=img->strtab+j;
+		s=(char *)(img->strtab+j);
 		v=BGBDT_TagStr_Symbol(s);
 		break;
 	case BSVM2_OPZY_STRKEY:
-		s=img->strtab+j;
+		s=(char *)(img->strtab+j);
 		v=BGBDT_TagStr_Keyword(s);
 		break;
 
@@ -1301,7 +1301,7 @@ int BS2I_ImageDecodeGlobalArray(
 	cs=data;
 	if(isv)
 	{
-		cs=BS2I_ReadUVLI(cs, &uli);
+		cs=BS2I_ReadUVLI(cs, (s64 *)(&uli));
 		l=uli;
 		na=dtvNewArray(l, z);
 		ct=dtvArrayGetIndexAddrB1(na, 0);
@@ -1319,7 +1319,7 @@ int BS2I_ImageDecodeGlobalArray(
 			case BSVM2_OPZ_UINT:	case BSVM2_OPZ_ULONG:
 			case BSVM2_OPZ_UBYTE:	case BSVM2_OPZ_USHORT:
 			case BSVM2_OPZ_ADDRESS:
-				cs=BS2I_ReadUVLI(cs, &uli);
+				cs=BS2I_ReadUVLI(cs, (s64 *)(&uli));
 				li=uli;
 				j=uli;
 				break;

@@ -403,24 +403,24 @@ dtVal BSVM2_Interp_DecodeOpAddrConst(BSVM2_CodeBlock *cblk, int ix)
 	switch(i&15)
 	{
 	case BSVM2_OPZY_STRU8:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		v=BGBDT_TagStr_String(s);
 		break;
 	case BSVM2_OPZY_STRU16:
-		s=cblk->img->strtab+j;
-		v=BGBDT_TagStr_String16u8(s);
+		s=(char *)(cblk->img->strtab+j);
+		v=BGBDT_TagStr_String16u8((byte *)s);
 		break;
 	case BSVM2_OPZY_STRASC:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		v=BGBDT_TagStr_StringAsc(s);
 		break;
 
 	case BSVM2_OPZY_STRSYM:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		v=BGBDT_TagStr_Symbol(s);
 		break;
 	case BSVM2_OPZY_STRKEY:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		v=BGBDT_TagStr_Keyword(s);
 		break;
 
@@ -467,24 +467,24 @@ void *BSVM2_Interp_DecodeOpAddrPtr(BSVM2_CodeBlock *cblk, int ix)
 	switch(i&15)
 	{
 	case BSVM2_OPZY_STRU8:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		p=BGBDT_TagStr_Strdup(s);
 		break;
 	case BSVM2_OPZY_STRU16:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		p=BGBDT_TagStr_Strdup16u8(s);
 		break;
 	case BSVM2_OPZY_STRASC:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		p=BGBDT_TagStr_StrdupL1(s);
 		break;
 
 	case BSVM2_OPZY_STRSYM:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		p=BGBDT_TagStr_StrSymbol(s);
 		break;
 	case BSVM2_OPZY_STRKEY:
-		s=cblk->img->strtab+j;
+		s=(char *)(cblk->img->strtab+j);
 		p=BGBDT_TagStr_StrKeyword(s);
 		break;
 
@@ -829,15 +829,15 @@ void BSVM2_Interp_DecodeOpZy(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op)
 		break;
 
 	case BSVM2_OPZ_SBYTE:
-		op->v.a=BGBDT_TagStr_StringAsc(cblk->img->strtab+op->v.i);
+		op->v.a=BGBDT_TagStr_StringAsc((char *)(cblk->img->strtab+op->v.i));
 		break;
 	case BSVM2_OPZ_UBYTE:
-		op->v.a=BGBDT_TagStr_String(cblk->img->strtab+op->v.i);
+		op->v.a=BGBDT_TagStr_String((char *)(cblk->img->strtab+op->v.i));
 		break;
 
 	case BSVM2_OPZ_USHORT:
 	case BSVM2_OPZ_SHORT:
-		op->v.a=BGBDT_TagStr_String16u8(cblk->img->strtab+op->v.i);
+		op->v.a=BGBDT_TagStr_String16u8((byte *)(cblk->img->strtab+op->v.i));
 		break;
 
 	case BSVM2_OPZ_ADDRESS:

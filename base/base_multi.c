@@ -43,3 +43,6 @@
 #include "w32_guid.c"
 #include "w32_net.c"
 #include "w32_udpip.c"
+
+#include "ems_glw.c"
+#include "ems_sound.c"

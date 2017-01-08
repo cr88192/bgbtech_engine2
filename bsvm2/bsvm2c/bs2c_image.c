@@ -1610,7 +1610,7 @@ BS2VM_API int BS2C_FlattenImage(
 //	ct=BS2C_Image_EmitTag(ct, BS2CC_IFCC_BS2I, 0x0FFFFFF0);
 
 	ct=BS2C_Image_EmitTagData(ct, BS2CC_IFCC_STRS,
-		ctx->strct-ctx->strtab, ctx->strtab);
+		ctx->strct-ctx->strtab, (byte *)(ctx->strtab));
 
 	ct=BS2C_Image_FlattenGlobals(ctx, ct, tgix);
 	ct=BS2C_Image_FlattenGixArray(ctx, ct, tgix);

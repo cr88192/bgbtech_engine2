@@ -4,7 +4,8 @@
 # include <mach/mach_time.h>
 #endif
 
-#if defined(__arm__) || defined(__mips__) || defined(__linux__)
+#if defined(__arm__) || defined(__mips__) || \
+	defined(__linux__) || defined(__EMSCRIPTEN__)
 #include <sys/time.h>
 #endif
 
@@ -17,6 +18,12 @@ s64 gpio_rdtsc_cyclespersecond=700000000LL;
 int bgbrpi_sched_loopCyclesPerUsec;
 int bgbrpi_sched_usleep_happy;
 int bgbrpi_sched_dummyVar;
+
+#ifdef __EMSCRIPTEN__
+void usleep(int us)	//AH:ignore
+{
+}
+#endif
 
 void BGBRPI_Sched_DoSomeNops()
 {
@@ -261,7 +268,16 @@ s64 GPIO_Rdtsc()
 	return (s64)((tv.tv_sec + tv.tv_usec * 0.000001) *
 		GPIO_CyclesPerSecond());
 #else
+
+#ifdef __EMSCRIPTEN__
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (s64)((tv.tv_sec + tv.tv_usec * 0.000001) *
+		GPIO_CyclesPerSecond());
+#else
 #error GPIO_Rdtsc: Unhandled Target
+#endif
+
 #endif
 
 #endif
@@ -341,7 +357,15 @@ BTEIFGL_API double GPIO_GetTimeRtcUS()
 //	if(!init)init=t;
 //	return((unsigned int)(t-init));
 #else
+
+#ifdef __EMSCRIPTEN__
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (s64)((tv.tv_sec*1000000LL + tv.tv_usec));
+#else
 #error GPIO_GetTimeRtcUS: Unhandled Target
+#endif
+
 #endif
 #endif
 }

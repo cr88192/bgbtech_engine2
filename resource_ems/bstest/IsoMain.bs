@@ -1,0 +1,114 @@
+native int frgl_printf(cstring str, ...);
+native int clock();
+native int rand();
+native void IsoTest_GiveItem(int item);
+native int IsoTest_TakeItem(int item);
+native int IsoTest_CheckItem(int item);
+native int IsoTest_SetBgm(cstring bgm);
+
+native void IsoTest_SetApplyWorldFlags(int flag);
+native void IsoTest_SetClearWorldFlags(int flag);
+native int IsoTile_CheckEntMoveCollidePos(EntityBase2D self);
+
+native int BGBDT_Sound_PlaySound(
+	cstring name, int vol, int att, int flag);
+native int BGBDT_Sound_ChanSetOriginF(
+	int id, float x, float y, float z);
+native int IsoTest_KillPlayer();
+
+public EntityBase2D[] world_entity;
+public int world_max_entity;
+
+public bool world_isHostile=false;
+public EntityBase2D world_player;
+public double world_time;
+int world_lottery;
+
+public bool usebkg=false;
+public bool usecsbgm=false;
+
+
+public class player extends EntityBase2D {
+	public void spawn()
+	{
+		world_player=this;
+		sprite_sz=#[32, 48];
+		radius=8;
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+
+double accDt;
+double lotDt;
+
+public void update(double dt)
+{
+	int i;
+	
+	if(usebkg)
+		return;
+	
+	accDt=accDt+dt;
+	if(accDt<0.04)
+		return;
+	accDt-=0.04;
+	world_time+=0.04;
+	lotDt+=0.4;
+	
+	world_lottery=0;
+	
+	if(lotDt>1.0)
+	{
+		world_lottery=rand()&16383;
+		lotDt-=1.0;
+	}
+	
+//	if(IsoTest_CheckItem((63<<8)|4) ||
+//		IsoTest_CheckItem((63<<8)|5))
+	if(IsoTest_CheckItem((63<<8)|4) ||
+		IsoTest_CheckItem((63<<8)|5) ||
+		(world_time>(8*60)))
+	{
+		IsoTest_SetApplyWorldFlags(1);
+		if(!usecsbgm)
+			IsoTest_SetBgm("sound/pi0_amb1");
+		world_isHostile=true;
+	}else
+	{
+		IsoTest_SetClearWorldFlags(1);
+//		IsoTest_SetBgm("sound/pi0_amb0");
+		if(!usecsbgm)
+			IsoTest_SetBgm("sound/Noise0");
+		world_isHostile=false;
+	}
+	
+	for(i=0; i<world_max_entity; i++)
+	{
+		world_entity[i].tick();
+	}
+
+//	foo=3;
+//	foo(3, 4);
+}
+
+public void spawn_world()
+{
+	world_time=0;
+}
+
+public int main(string[] args)
+{
+	frgl_printf("IsoMain\n");
+}

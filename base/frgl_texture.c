@@ -11,6 +11,10 @@
 
 #endif
 
+#ifndef __EMSCRIPTEN__
+#define FRGL_USE_ANISTROPIC
+#endif
+
 //allows small textures to be grouped into bigger ones
 #define TEXBLOCKS	16
 #define TEXBLOCK_SZ	1024
@@ -125,6 +129,13 @@ BTEIFGL_API int Tex_AllocTexnum()
 {
 	int i;
 
+//#ifdef __EMSCRIPTEN__
+#if 1
+	glGenTextures(1, (GLuint *)(&i));
+	return(i);
+#endif
+
+#if 0
 	i=lasttexture+1;
 
 //	glGenTextures(1, &i);
@@ -146,24 +157,25 @@ BTEIFGL_API int Tex_AllocTexnum()
 		if(i==lasttexture)
 			return(-1);
 	}
+#endif
 }
 
 BTEIFGL_API int Tex_FreeTexnum(int n)
 {
-	texturebm[n>>3]&=~(1<<(n&7));
+//	texturebm[n>>3]&=~(1<<(n&7));
 	return(0);
 }
 
 BTEIFGL_API int Tex_MarkTexnum(int n)
 {
-	texturebm[n>>3]|=(1<<(n&7));
+//	texturebm[n>>3]|=(1<<(n&7));
 	return(0);
 }
 
 BTEIFGL_API int Tex_DeleteTexture(int n)
 {
-	glDeleteTextures(1, &n);
-	texturebm[n>>3]&=~(1<<(n&7));
+	glDeleteTextures(1, (GLuint *)(&n));
+//	texturebm[n>>3]&=~(1<<(n&7));
 	return(0);
 }
 
@@ -1541,6 +1553,10 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 
 //	if(!resampbuf)resampbuf=malloc(2048*2048*4);
 
+//#ifdef __EMSCRIPTEN__
+//	calcmip=0;
+//#endif
+
 	tw=1;
 	th=1;
 	while((tw<<1)<=w)tw<<=1;
@@ -1585,9 +1601,9 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 
 #ifdef WIN32
 //	cmp=(calcmip&16)?4:GL_COMPRESSED_RGBA;
-	cmp=4;
+	cmp=GL_RGBA;
 #else
-	cmp=4;
+	cmp=GL_RGBA;
 #endif
 
 	glTexImage2D(GL_TEXTURE_2D, 0, cmp,
@@ -1597,8 +1613,8 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 	{
 		Tex_GetModeinfo(&min, &mag);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
 	}else if((calcmip&15)==2)
 	{
 		tl=0;
@@ -1615,11 +1631,14 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 				tw, th, 0, GL_RGBA, GL_UNSIGNED_BYTE, resampbuf);
 		}
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 			GL_NEAREST_MIPMAP_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}else
 	{
 //		printf("tex: mipmap\n");
@@ -1639,10 +1658,13 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 
 		Tex_GetModeinfo(&min, &mag);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}
 
 	free(resampbuf);
@@ -1662,6 +1684,10 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 //	tex_lock();
 
 //	if(!resampbuf)resampbuf=malloc(2048*2048*4);
+
+//#ifdef __EMSCRIPTEN__
+//	mip=0;
+//#endif
 
 	tw=1;
 	th=1;
@@ -1706,17 +1732,20 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 	if(!mip)
 	{
 //		printf("tex: nonmip\n");
-		glTexImage2D(GL_TEXTURE_2D, 0, 4, tw, th, 0,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, resampbuf);
 		Tex_GetModeinfo(&min, &mag);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}else if(mip==2)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, 4, tw, th, 0,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, resampbuf);
 
 		tl=0;
@@ -1727,7 +1756,7 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 			tw>>=1;
 			th>>=1;
 			tl++;
-			glTexImage2D(GL_TEXTURE_2D, tl, 4, tw, th, 0,
+			glTexImage2D(GL_TEXTURE_2D, tl, GL_RGBA, tw, th, 0,
 				GL_RGBA, GL_UNSIGNED_BYTE, resampbuf);
 		}
 
@@ -1741,10 +1770,13 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 //		mag=GL_LINEAR;
 		mag=GL_NEAREST;
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}else
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, 4, tw, th, 0,
@@ -1758,16 +1790,19 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 			tw>>=1;
 			th>>=1;
 			tl++;
-			glTexImage2D(GL_TEXTURE_2D, tl, 4, tw, th, 0,
+			glTexImage2D(GL_TEXTURE_2D, tl, GL_RGBA, tw, th, 0,
 				GL_RGBA, GL_UNSIGNED_BYTE, resampbuf);
 		}
 
 		Tex_GetModeinfo(&min, &mag);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}
 
 	free(resampbuf);
@@ -1803,6 +1838,7 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 
 //	tex_lock();
 
+#ifndef __EMSCRIPTEN__
 	switch(clrs)
 	{
 	case BTIC1H_PXF_BC1:
@@ -1834,6 +1870,10 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
 	}
+#else
+	cmp=GL_RGBA;
+	blksz=16;
+#endif
 
 	tw=*wp;
 	th=*hp;
@@ -2046,8 +2086,11 @@ BTEIFGL_API int Tex_LoadTexture3C(
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}else if(mip==2)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, ipfmt, tw, th, 0,
@@ -2069,8 +2112,11 @@ BTEIFGL_API int Tex_LoadTexture3C(
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}else
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, ipfmt, tw, th, 0,
@@ -2091,8 +2137,11 @@ BTEIFGL_API int Tex_LoadTexture3C(
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
 		glTexParameterf(GL_TEXTURE_2D,
 			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 	}
 
 	free(resampbuf);
@@ -2562,6 +2611,8 @@ BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h, int *rtxc)
 	}
 
 	clrs=BTIC4B_CLRS_RGBA;
+
+#ifndef __EMSCRIPTEN__
 	if(rtxc && ((imgt==BTIC4B_IMGT_HDR16) || (imgt==BTIC4B_IMGT_HDR12)))
 	{
 		clrs=BTIC4B_CLRS_RGB11F;
@@ -2578,6 +2629,7 @@ BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h, int *rtxc)
 		clrs=BTIC4B_CLRS_BC7MIP;
 		*rtxc=BTIC1H_PXF_BC7;
 	}
+#endif
 
 	xs1=(xs+7)&(~7);
 	ys1=(ys+7)&(~7);
@@ -2970,6 +3022,7 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 		ct=resampbuf_cmp+((tw+3)/4)*((th+3)/4)*16;
 	}
 
+#ifndef __EMSCRIPTEN__
 	switch(fmt)
 	{
 	case BTIC1H_PXF_BC1:
@@ -3002,6 +3055,10 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
 	}
+#else
+	cmp=4;
+	blksz=16;
+#endif
 
 	sz=((tw+3)/4)*((th+3)/4)*blksz;
 	ct=resampbuf_cmp+sz;
@@ -3359,7 +3416,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	buf=NULL; txc=0;
 
 #if 0
-	if(!stricmp(t, "bpx"))
+	if(!frgl_stricmp(t, "bpx"))
 	{
 //		printf("load bmp %s\n", name);
 		buf=Img_LoadBPX(fd, w, h, &txc);
@@ -3368,14 +3425,14 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	}
 #endif
 
-	if(!stricmp(t, "tga"))
+	if(!frgl_stricmp(t, "tga"))
 	{
 //		printf("load tga %s\n", name);
 		buf=Img_LoadTGA(fd, w, h);
 		vfclose(fd);
 		fd=NULL;
 	}
-	if(!stricmp(t, "bmp"))
+	if(!frgl_stricmp(t, "bmp"))
 	{
 //		printf("load bmp %s\n", name);
 		buf=Img_LoadBMP(fd, w, h, &txc);
@@ -3384,7 +3441,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	}
 
 #if 0
-	if(!stricmp(t, "pcx"))
+	if(!frgl_stricmp(t, "pcx"))
 	{
 //		printf("load pcx %s\n", name);
 		buf=PCX_Load32(fd, w, h);
@@ -3394,7 +3451,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 #endif
 
 #if 1
-	if(!stricmp(t, "png"))
+	if(!frgl_stricmp(t, "png"))
 	{
 //		printf("load png %s\n", name);
 //		buf=PDPNG_LoadN(fd, w, h, name);
@@ -3405,7 +3462,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 #endif
 
 #if 1
-	if(!stricmp(t, "jpg") || !stricmp(t, "jpeg"))
+	if(!frgl_stricmp(t, "jpg") || !frgl_stricmp(t, "jpeg"))
 	{
 //		printf("load jpeg %s\n", name);
 //		buf=PDJPG_Load(fd, w, h);
@@ -3416,7 +3473,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 #endif
 
 #if 1
-	if(!stricmp(t, "hdr"))
+	if(!frgl_stricmp(t, "hdr"))
 	{
 		buf=Img_LoadHDR(fd, w, h, &txc);
 		vfclose(fd);
@@ -3500,13 +3557,13 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 	if(*t=='.')t++;
 
 	buf=NULL;
-	if(!stricmp(t, "tga"))
+	if(!frgl_stricmp(t, "tga"))
 	{
 //		printf("load tga raw %s\n", name);
 		buf=Img_LoadTGA(fd, w, h);
 		vfclose(fd);
 	}
-	if(!stricmp(t, "bmp"))
+	if(!frgl_stricmp(t, "bmp"))
 	{
 //		printf("load bmp raw %s\n", name);
 		buf=Img_LoadBMP(fd, w, h, NULL);
@@ -3514,7 +3571,7 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 	}
 
 #if 0
-	if(!stricmp(t, "pcx"))
+	if(!frgl_stricmp(t, "pcx"))
 	{
 //		printf("load pcx raw %s\n", name);
 		buf=PCX_Load32(fd, w, h);
@@ -3523,7 +3580,7 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 #endif
 
 #if 1
-	if(!stricmp(t, "png"))
+	if(!frgl_stricmp(t, "png"))
 	{
 //		printf("load png %s\n", name);
 //		buf=PDPNG_Load(fd, w, h);
@@ -3533,7 +3590,7 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 #endif
 
 #if 1
-	if(!stricmp(t, "jpg") || !stricmp(t, "jpeg"))
+	if(!frgl_stricmp(t, "jpg") || !frgl_stricmp(t, "jpeg"))
 	{
 //		printf("load jpeg %s\n", name);
 //		buf=PDJPG_Load(fd, w, h);
@@ -3543,7 +3600,7 @@ BTEIFGL_API byte *Tex_LoadFileRaw(char *name, int *w, int *h)
 #endif
 
 #if 1
-	if(!stricmp(t, "hdr"))
+	if(!frgl_stricmp(t, "hdr"))
 	{
 		buf=Img_LoadHDR(fd, w, h, NULL);
 		vfclose(fd);
@@ -3796,7 +3853,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 	t=type;
 
 #if 0
-	if(!stricmp(type, "jpg") || !stricmp(type, "jpeg"))
+	if(!frgl_stricmp(type, "jpg") || !frgl_stricmp(type, "jpeg"))
 	{
 //		printf("load jpeg %s\n", name);
 		buf=PDJPG_Decode(imgbuf, imgsz, rw, rh);
@@ -3804,7 +3861,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 #endif
 
 #if 0
-	if(!stricmp(t, "tga"))
+	if(!frgl_stricmp(t, "tga"))
 	{
 //		printf("load tga raw %s\n", name);
 		buf=Img_LoadTGA(fd, w, h);
@@ -3813,7 +3870,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 #endif
 
 #if 0
-	if(!stricmp(t, "bmp"))
+	if(!frgl_stricmp(t, "bmp"))
 	{
 //		printf("load bmp raw %s\n", name);
 		buf=Img_LoadBMP(fd, w, h, NULL);
@@ -3822,7 +3879,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 #endif
 
 #if 0
-	if(!stricmp(t, "pcx"))
+	if(!frgl_stricmp(t, "pcx"))
 	{
 //		printf("load pcx raw %s\n", name);
 		buf=PCX_Load32(fd, w, h);
@@ -3831,7 +3888,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 #endif
 
 #if 1
-	if(!stricmp(type, "png"))
+	if(!frgl_stricmp(type, "png"))
 	{
 //		printf("load png %s\n", name);
 //		buf=PDPNG_Load(fd, w, h);
@@ -3842,7 +3899,7 @@ BTEIFGL_API byte *Tex_LoadImageBufferRaw(char *name, char *type,
 #endif
 
 #if 0
-	if(!stricmp(t, "jpg") || !stricmp(t, "jpeg"))
+	if(!frgl_stricmp(t, "jpg") || !frgl_stricmp(t, "jpeg"))
 	{
 //		printf("load jpeg %s\n", name);
 		buf=PDJPG_Load(fd, w, h);
@@ -3867,14 +3924,14 @@ BTEIFGL_API int Tex_StoreFile(char *name, byte *buf, int w, int h)
 	while((t>name) && (*t!='.'))t--;
 	if(*t=='.')t++;
 
-	if(!stricmp(t, "tga"))
+	if(!frgl_stricmp(t, "tga"))
 	{
 		Img_StoreTGA(fd, buf, w, h);
 		vfclose(fd);
 	}
 
 #if 0
-	if(!stricmp(t, "bmp"))
+	if(!frgl_stricmp(t, "bmp"))
 	{
 		Img_StoreBMP(fd, buf, w, h);
 		vfclose(fd);
@@ -3882,14 +3939,14 @@ BTEIFGL_API int Tex_StoreFile(char *name, byte *buf, int w, int h)
 #endif
 
 #if 0
-	if(!stricmp(t, "png"))
+	if(!frgl_stricmp(t, "png"))
 	{
 		printf("store png %s\n", name);
 		PDPNG_Store(fd, buf, w, h);
 		vfclose(fd);
 	}
 
-	if(!stricmp(t, "jpg") || !stricmp(t, "jpeg"))
+	if(!frgl_stricmp(t, "jpg") || !frgl_stricmp(t, "jpeg"))
 	{
 		PDJPG_Store(fd, buf, w, h, 85);
 		vfclose(fd);

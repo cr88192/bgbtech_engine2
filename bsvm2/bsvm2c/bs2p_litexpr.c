@@ -58,8 +58,8 @@ dtVal BS2P_ParseWrapStringL(BS2CC_CompileContext *ctx, char *str)
 		s=BS2P_ReadUtf8(s, &i);
 		if(i>=65536)
 		{
-			*t++=0xD800|(i>>10)&1023;
-			*t++=0xDC00|(i    )&1023;
+			*t++=0xD800|((i>>10)&1023);
+			*t++=0xDC00|((i    )&1023);
 			continue;
 		}
 		*t++=i;

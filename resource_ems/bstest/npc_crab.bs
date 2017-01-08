@@ -1,0 +1,174 @@
+public class npc_crab extends EntityBase2D {
+	public void spawn()
+	{
+		sprite_sz=#[64, 32];
+		radius=8;
+		sprite="sprites/npc_crab/crabbod0_1";
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+
+		sprite=null;
+		radius=-1;
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+public class npc_wasp extends EntityBase2D {
+	public void spawn()
+	{
+		sprite_sz=#[64, 32];
+		radius=8;
+		sprite="sprites/npc_crab/wasp0_1";
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+
+		sprite=null;
+		radius=-1;
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+public class npc_motob extends EntityBase2D {
+	public void spawn()
+	{
+		sprite_sz=#[64, 32];
+		radius=8;
+		sprite="sprites/npc_crab/motob0";
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+
+		sprite=null;
+		radius=-1;
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+public class npc_fish extends EntityBase2D {
+	public vec2f org0, org1;
+	
+	public void spawn()
+	{
+		org0=origin;
+		sprite_sz=#[64, 32];
+		radius=8;
+		sprite="sprites/npc_crab/fish0";
+	}
+
+	public void tick()
+	{
+		origin=org0+#[0, (world_time+org0.x).sin.abs*32*8];
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+
+		sprite=null;
+		radius=-1;
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+public class npc_gecko extends EntityBase2D {
+	public void spawn()
+	{
+		sprite_sz=#[64, 32];
+		radius=8;
+		sprite="sprites/npc_crab/fish0";
+	}
+
+	public void tick()
+	{
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/bang1", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+
+		sprite=null;
+		radius=-1;
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}
+
+public class misc_ring extends EntityBase2D {
+	public void spawn()
+	{
+		sprite_sz=#[16, 16];
+		radius=8;
+		sprite="sprites/npc_crab/ring0";
+	}
+
+	public void tick()
+	{
+//		sprite="sprites/npc_crab/ring0";
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/tink1", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+
+		sprite=null;
+		radius=-1;
+		
+		IsoTest_GiveItem(2);
+	}
+
+	public void use(EntityBase2D other)
+	{
+	}
+}

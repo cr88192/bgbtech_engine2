@@ -493,7 +493,7 @@ int BGBDT_RegionCellGetTag(BGBDT_VoxRegion *rgn, int idx)
 	int i, j, k;
 	
 	if((idx<0) || (idx>=rgn->nrgncell))
-		__debugbreak();
+		FRGL_DBGBREAK
 	
 	i=(rgn->rgnmap[idx>>2]>>((idx&3)<<1))&3;
 	return(i);
@@ -504,7 +504,7 @@ int BGBDT_RegionCellSetTag(BGBDT_VoxRegion *rgn, int idx, int val)
 	int i, j, k;
 
 	if((idx<0) || (idx>=rgn->nrgncell))
-		__debugbreak();
+		FRGL_DBGBREAK
 
 	rgn->rgnmap[idx>>2]&=~(3<<((idx&3)<<1));
 	rgn->rgnmap[idx>>2]|=(val&3)<<((idx&3)<<1);

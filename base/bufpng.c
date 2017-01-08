@@ -47,7 +47,7 @@ u32 BGBBTJ_BufPNG_DataAdler32(void *buf, int sz, u32 lcrc)
 #endif
 
 #if 1
-void BGBBTJ_BufPNG_DataAdler32_Step16(byte *buf, int *rs1, int *rs2)
+void BGBBTJ_BufPNG_DataAdler32_Step16(byte *buf, u32 *rs1, u32 *rs2)
 {
 	byte *cs;
 	int s1, s2;

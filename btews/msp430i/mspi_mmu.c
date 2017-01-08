@@ -464,7 +464,7 @@ int MSP430_VaWriteWord(MSP430_Context *ctx, int addr, int val)
 			case 3:		ctx->wdtRstCnt=64;		break;
 			}
 			if(val&0x80)
-				{ ctx->wdtRstCnt=(1<<31)-1; }
+				{ ctx->wdtRstCnt=(int)((1LL<<31)-1); }
 			ctx->wdtCycles=ctx->wdtRstCnt;
 
 			break;

@@ -337,7 +337,7 @@ BS2VM_API BGBDTC_X128 BGBDT_XD128_MulX(BGBDTC_X128 a, BGBDTC_X128 b)
 			td[8]-=9;
 		}
 
-		while(tc[7]<=999)
+		while(td[7]<=999)
 		{
 			td[7]=(td[7]*1000)+(td[6]/1000000);
 			td[6]=((td[6]%1000000)*1000)+(td[5]/1000000);
@@ -360,7 +360,7 @@ BS2VM_API BGBDTC_X128 BGBDT_XD128_MulX(BGBDTC_X128 a, BGBDTC_X128 b)
 			td[8]-=9;
 		}
 
-		while(tc[7]>=999999000)
+		while(td[7]>=999999000)
 		{
 			td[7]=(td[7]*1000)+(td[6]/1000000);
 			td[6]=((td[6]%1000000)*1000)+(td[5]/1000000);

@@ -47,6 +47,11 @@ BTEIFGL_API void Mat4F_MatMult(float *a, float *b, float *c)
 	c[15]=a[12]*b[3] + a[13]*b[7] + a[14]*b[11] + a[15]*b[15];
 }
 
+BTEIFGL_API void Mat4F_MatMultT(float *a, float *b, float *c)
+{
+	Mat4F_MatMult(b, a, c);
+}
+
 BTEIFGL_API void Mat4F_Transpose(float *a, float *b)
 {
 	b[0]=a[0];  b[1]=a[4];  b[2]=a[8];   b[3]=a[12];
@@ -316,6 +321,33 @@ BTEIFGL_API void Mat4F_AxisTo4Matrix(float *a, float th, float *b)
 	b[ 8]=  2*(xz+yv);	b[ 9]=  2*(yz-xv);	b[10]=1-2*(xx+yy);
 }
 
+BTEIFGL_API void Mat4F_AxisTo4MatrixT(float *a, float th, float *b)
+{
+	float xx, xy, xz, xw, xv, yy, yz, yw, yv, zz, zw, zv, ww, wv;
+	float v[5];
+	float sa, ca;
+	int i;
+
+	sa=sin(th/2);
+	ca=cos(th/2);
+	V4F_NORMALIZE(a, v);
+
+	for(i=0; i<16; i++)b[i]=0;
+	for(i=0; i<4; i++)b[(i*4)+i]=1;
+
+	v[0]=v[0]*sa; v[1]=v[1]*sa; v[2]=v[2]*sa; v[3]=v[3]*sa; v[4]=ca;
+
+	xx=v[0]*v[0];	xy=v[0]*v[1];	xz=v[0]*v[2];
+					xw=v[0]*v[3];	xv=v[0]*v[4];
+	yy=v[1]*v[1];	yz=v[1]*v[2];	yw=v[1]*v[3];	yv=v[1]*v[4];
+	zz=v[2]*v[2];	zw=v[2]*v[3];	zv=v[2]*v[4];
+	ww=v[2]*v[3];	wv=v[3]*v[4];
+
+	b[ 0]=1-2*(yy+zz);	b[ 4]=  2*(xy+zv);	b[ 8]=  2*(xz-yv);
+	b[ 1]=  2*(xy-zv);	b[ 5]=1-2*(xx+zz);	b[ 9]=  2*(yz+xv);
+	b[ 2]=  2*(xz+yv);	b[ 6]=  2*(yz-xv);	b[10]=1-2*(xx+yy);
+}
+
 BTEIFGL_API void Mat4F_Filter4Matrix(float *a, float *b)
 {
 	float v0[4], v1[4], v2[4], v3[4];
@@ -436,3 +468,43 @@ BTEIFGL_API void Mat4F_Rotate4MatrixAngles(float *a, float *ang, float *b)
 	Mat4F_Copy(b, r);
 }
 
+
+void Mat4F_SetupFrustum(float *mat,
+	float left, float right,
+	float bottom, float top,
+	float nearval, float farval)
+{
+	float x, y, a, b, c, d;
+
+	x=(2.0F*nearval) / (right-left);
+	y=(2.0F*nearval) / (top-bottom);
+	a=(right+left) / (right-left);
+	b=(top+bottom) / (top-bottom);
+	c=-(farval+nearval) / ( farval-nearval);
+	d=-(2.0F*farval*nearval) / (farval-nearval);
+
+	mat[0+4*0]=   x; mat[0+4*1]=0.0F; mat[0+4*2]=    a; mat[0+4*3]=0.0F;
+	mat[1+4*0]=0.0F; mat[1+4*1]=   y; mat[1+4*2]=    b; mat[1+4*3]=0.0F;
+	mat[2+4*0]=0.0F; mat[2+4*1]=0.0F; mat[2+4*2]=    c; mat[2+4*3]=   d;
+	mat[3+4*0]=0.0F; mat[3+4*1]=0.0F; mat[3+4*2]=-1.0F; mat[3+4*3]=0.0F;
+}
+
+void Mat4F_SetupOrtho(float *mat,
+	float left, float right,
+	float bottom, float top,
+	float nearval, float farval)
+{
+	float x, y, a, b, c, d;
+
+	x=2.0F / (right-left);
+	y=2.0F / (top-bottom);
+	a=-(right+left) / (right-left);
+	b=-(top+bottom) / (top-bottom);
+	c=-2.0F / (farval-nearval);
+	d=-(farval+nearval) / (farval-nearval);
+
+	mat[0+4*0]=   x; mat[0+4*1]=0.0F; mat[0+4*2]=0.0F; mat[0+4*3]=   a;
+	mat[1+4*0]=0.0F; mat[1+4*1]=   y; mat[1+4*2]=0.0F; mat[1+4*3]=   b;
+	mat[2+4*0]=0.0F; mat[2+4*1]=0.0F; mat[2+4*2]=   c; mat[2+4*3]=   d;
+	mat[3+4*0]=0.0F; mat[3+4*1]=0.0F; mat[3+4*2]=0.0F; mat[3+4*3]=1.0F;
+}

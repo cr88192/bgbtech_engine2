@@ -20,11 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-static const byte btic1h_rice_ntab[16]={
+const byte btic1h_rice_ntab[16]={
 	0, 0, 0, 0, 0, 0, 0, 0,
 	1, 1, 1, 1, 2, 2, 3, 4};
 
-static const byte btic1h_rice_ntab2[256]={
+const byte btic1h_rice_ntab2[256]={
 	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 00-0F */
 	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 10-1F */
 	0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,	/* 20-2F */
@@ -43,7 +43,28 @@ static const byte btic1h_rice_ntab2[256]={
 	4, 4, 4, 4, 4, 4, 4, 4,  5, 5, 5, 5, 6, 6, 7, 8};	/* F0-FF */
 
 // static int btic1h_rice_valtab[16][256];
-static u16 btic1h_rice_valtab[16][256];
+u16 btic1h_rice_valtab[16][256];
+
+default_inline int BTIC1H_Rice_NextByte(BTIC1H_Context *ctx)
+	{ return(ctx->NextByte(ctx)); }
+default_inline int BTIC1H_Rice_ReadNBits(BTIC1H_Context *ctx, int n)
+	{ return(ctx->ReadNBits(ctx, n)); }
+default_inline int BTIC1H_Rice_Read8Bits(BTIC1H_Context *ctx)
+	{ return(ctx->Read8Bits(ctx)); }
+default_inline int BTIC1H_Rice_Read16Bits(BTIC1H_Context *ctx)
+	{ return(ctx->Read16Bits(ctx)); }
+default_inline void BTIC1H_Rice_SkipNBits(BTIC1H_Context *ctx, int n)
+	{ ctx->SkipNBits(ctx, n); }
+
+default_inline int BTIC1H_Rice_ReadAdRice(BTIC1H_Context *ctx, int *rk)
+	{ return(ctx->ReadAdRice(ctx, rk)); }
+default_inline int BTIC1H_Rice_ReadAdSRice(BTIC1H_Context *ctx, int *rk)
+	{ return(ctx->ReadAdSRice(ctx, rk)); }
+
+default_inline int BTIC1H_Rice_ReadAdRiceDc(BTIC1H_Context *ctx, int *rk)
+	{ return(ctx->ReadAdRiceDc(ctx, rk)); }
+default_inline int BTIC1H_Rice_ReadAdSRiceDc(BTIC1H_Context *ctx, int *rk)
+	{ return(ctx->ReadAdSRiceDc(ctx, rk)); }
 
 int BTIC1H_Rice_InitTables()
 {
@@ -138,27 +159,6 @@ int BTIC1H_Rice_SetupRead(BTIC1H_Context *ctx, byte *buf, int szbuf)
 
 	return(0);
 }
-
-default_inline int BTIC1H_Rice_NextByte(BTIC1H_Context *ctx)
-	{ return(ctx->NextByte(ctx)); }
-default_inline int BTIC1H_Rice_ReadNBits(BTIC1H_Context *ctx, int n)
-	{ return(ctx->ReadNBits(ctx, n)); }
-default_inline int BTIC1H_Rice_Read8Bits(BTIC1H_Context *ctx)
-	{ return(ctx->Read8Bits(ctx)); }
-default_inline int BTIC1H_Rice_Read16Bits(BTIC1H_Context *ctx)
-	{ return(ctx->Read16Bits(ctx)); }
-default_inline void BTIC1H_Rice_SkipNBits(BTIC1H_Context *ctx, int n)
-	{ ctx->SkipNBits(ctx, n); }
-
-default_inline int BTIC1H_Rice_ReadAdRice(BTIC1H_Context *ctx, int *rk)
-	{ return(ctx->ReadAdRice(ctx, rk)); }
-default_inline int BTIC1H_Rice_ReadAdSRice(BTIC1H_Context *ctx, int *rk)
-	{ return(ctx->ReadAdSRice(ctx, rk)); }
-
-default_inline int BTIC1H_Rice_ReadAdRiceDc(BTIC1H_Context *ctx, int *rk)
-	{ return(ctx->ReadAdRiceDc(ctx, rk)); }
-default_inline int BTIC1H_Rice_ReadAdSRiceDc(BTIC1H_Context *ctx, int *rk)
-	{ return(ctx->ReadAdSRiceDc(ctx, rk)); }
 
 int BTIC1H_Rice_ReadBit(BTIC1H_Context *ctx)
 {

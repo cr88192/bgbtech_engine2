@@ -29,6 +29,201 @@ dtcClass bt2ent_npcdiag_cls;
 // dtVal bt2ent_map_entarr;
 // int bt2ent_map_nents;
 
+struct {
+char *name;
+void *fptr;
+}bt2ent_expnames[]={
+{"rand",								rand},
+// {"frgl_printf",							frgl_printf},
+{"frgl_printf",							bt2ent_frgl_printf},
+{"clock",								frgl_clock},
+{"rand",								rand},
+
+{"Bt2Ent_SetDialog",					Bt2Ent_SetDialog},
+
+#if 1
+{"Bt2Ent_GiveItem",						Bt2Ent_GiveItem},
+{"Bt2Ent_TakeItem",						Bt2Ent_TakeItem},
+{"Bt2Ent_CheckItem",					Bt2Ent_CheckItem},
+{"Bt2Ent_SetBgm",						Bt2Ent_SetBgm},
+{"Bt2Ent_GiveToken",					Bt2Ent_GiveToken},
+{"Bt2Ent_TakeToken",					Bt2Ent_TakeToken},
+{"Bt2Ent_CheckToken",					Bt2Ent_CheckToken},
+{"Bt2Ent_SetApplyWorldFlags",			Bt2Ent_SetApplyWorldFlags},
+{"Bt2Ent_SetClearWorldFlags",			Bt2Ent_SetClearWorldFlags},
+// {"Bt2Ent_CheckEntMoveCollidePos", Bt2Ent_CheckEntMoveCollidePos},
+{"Bt2Ent_EntityMoveCheckCollide",		Bt2Ent_EntityMoveCheckCollide},
+#endif
+
+#if 1
+{"BGBDT_Sound_PlaySound",				BGBDT_Sound_PlaySound},
+{"BGBDT_Sound_ChanSetOriginF",			BGBDT_Sound_ChanSetOriginF},
+// {"Bt2Ent_KillPlayer",				Bt2Ent_KillPlayer},
+{"Bt2Ent_SetToolSprite",				Bt2Ent_SetToolSprite},
+{"Bt2Ent_GetToolTraceEnt",				Bt2Ent_GetToolTraceEnt},
+{"Bt2Ent_SpawnEntityBasicXyz",			Bt2Ent_SpawnEntityBasicXyz},
+
+{"BGBDT_TagParse_ParseValueFromLoadFile",	
+	BGBDT_TagParse_ParseValueFromLoadFile},
+{"Bt2Ent_SetUseBackground",				Bt2Ent_SetUseBackground},
+{"Bt2Ent_EmitParticleExplosionBasic",	Bt2Ent_EmitParticleExplosionBasic},
+{"Bt2Ent_EmitParticleEffectPara",		Bt2Ent_EmitParticleEffectPara},
+#endif
+
+{NULL, NULL}
+};
+
+int bt2ent_frgl_printf(dtVal str, dtVal va)
+{
+	char tb[1024];
+	char *str1, *s0;
+	char *s, *t;
+	dtVal vn;
+	double f;
+	s64 li;
+	int fl, w, pr;
+	int i, j, k, n;
+
+	str1=BGBDT_TagStr_GetUtf8(str);
+	
+	s=str1; t=tb; n=0;
+	while(*s)
+	{
+		if(*s!='%')
+		{
+			*t++=*s++;
+			continue;
+		}
+		
+		s++;
+		if(*s=='%')
+		{
+			*t++=*s++;
+			continue;
+		}
+		
+		if(dtvIsArrayP(va))
+			{ vn=dtvArrayGetIndexDtVal(va, n++); }
+		else
+			{ vn=va; }
+		
+		fl=0; w=0; pr=0;
+		
+		if(*s=='-') { fl|=1; s++; }
+		if(*s=='+') { fl|=2; s++; }
+		if(*s=='0') { fl|=4; s++; }
+		if(*s==' ') { fl|=8; s++; }
+		if(*s=='#') { fl|=16; s++; }
+		if(*s=='\'') { fl|=32; s++; }
+		
+		if((*s>='1') && (*s<='9'))
+		{
+			i=0;
+			while((*s>='0') && (*s<='9'))
+				{ i=(i*10)+((*s++)-'0'); }
+			w=i;
+		}
+		
+		if(*s=='.')
+		{
+			s++;
+			i=0;
+			while((*s>='0') && (*s<='9'))
+				{ i=(i*10)+((*s++)-'0'); }
+			pr=i;
+		}
+		
+		if(*s=='h')
+		{
+			s++;
+			if(*s=='h')s++;
+		}
+		if(*s=='l')
+		{
+			s++;
+			if(*s=='l')s++;
+		}
+		if(*s=='L')s++;
+		if(*s=='q')s++;
+		
+		if(*s=='f')
+		{
+			f=dtvUnwrapDouble(vn);
+			sprintf(t, "%f", f);
+			s++; t+=strlen(t);
+			continue;
+		}
+
+		if((*s=='d') || (*s=='i'))
+		{
+			li=dtvUnwrapLong(vn);
+			if(w)	sprintf(t, "%*lld", w, li);
+			else	sprintf(t, "%lld", li);
+			s++; t+=strlen(t);
+			continue;
+		}
+
+		if((*s=='x') || (*s=='X'))
+		{
+			li=dtvUnwrapLong(vn);
+			if(w)	sprintf(t, "%0*llX", w, li);
+			else	sprintf(t, "%llX", li);
+			s++; t+=strlen(t);
+			continue;
+		}
+		
+		if(*s=='c')
+		{
+			i=dtvUnwrapInt(vn);
+			*t++=i;
+			s++;
+			continue;
+		}
+
+		if(*s=='s')
+		{
+			s0=BGBDT_TagStr_GetUtf8(vn);
+			if(w)
+			{
+				if(fl&1)
+					sprintf(t, "%-*s", w, s0);
+				else
+					sprintf(t, "%*s", w, s0);
+			}
+			else
+				{ sprintf(t, "%s", s0); }
+			s++; t+=strlen(t);
+			continue;
+		}
+
+		s++;
+		*t++='?';
+		continue;
+	}
+	*t++=0;
+	
+//	fputs(tb, stdout);
+	frgl_puts(tb);
+	
+	return(0);
+}
+
+void Bt2Ent_RegisterNames()
+{
+	static int init=0;
+	int i;
+	
+	if(init)return;
+	init=1;
+	
+	for(i=0; bt2ent_expnames[i].name; i++)
+	{
+		BSVM2_NatCall_RegisterProcAddress(
+			bt2ent_expnames[i].name,
+			bt2ent_expnames[i].fptr);
+	}
+}
+
 BTEIFGL_API vec3d Bt2Ent_EntGetOrigin(dtVal obj)
 {
 	double dv[3];
@@ -307,6 +502,14 @@ BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 	int tsz;
 	int i, j, k;
 
+// #ifdef __EMSCRIPTEN__
+//	return(0);
+// #endif
+
+//	printf("Bt2Ent_LoadScript: A\n");
+
+	Bt2Ent_RegisterNames();
+
 	tbuf=vf_loadfile(def, &tsz);
 	if(!tbuf)
 	{
@@ -335,10 +538,14 @@ BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 	vf_freefdbuf(tbuf);
 	mods[nmods]=0;
 
+//	printf("Bt2Ent_LoadScript: B\n");
+
 	ctx=BS2CC_AllocCompileContext();
 
+#ifndef __EMSCRIPTEN__
 	prn=BGBDT_MM_NewConsolePrinter();
 	ctx->dbgprn=prn;
+#endif
 
 	BS2C_CompileModuleList(ctx, NULL, mods);
 
@@ -347,21 +554,27 @@ BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 		return(-1);
 	}
 
+//	printf("Bt2Ent_LoadScript: C\n");
+
 	tbuf=frgl_malloc(1<<20);
 
-	i=BS2C_FlattenImage(ctx, tbuf, 1<<20);
+	i=BS2C_FlattenImage(ctx, (byte *)tbuf, 1<<20);
 	vf_storefile(imgname, tbuf, i);
 
-	bt2ent_img=BS2I_DecodeImageBuffer(tbuf, i);
+	bt2ent_img=BS2I_DecodeImageBuffer((byte *)tbuf, i);
 	vi=BS2I_ImageGetMain(bt2ent_img, NULL);
 
 	frgl_free(tbuf);
 	BS2P_FreeCompileContext(ctx);
 
+//	printf("Bt2Ent_LoadScript: D\n");
+
 	vctx=BSVM2_Interp_AllocPoolContext();
 	BSVM2_Interp_SetupCallVM(vctx, vi, NULL);
 	BSVM2_Interp_RunContext(vctx, 999999999);
 	BSVM2_Interp_FreePoolContext(vctx);
+
+//	printf("Bt2Ent_LoadScript: E\n");
 
 	bt2ent_vi_update=BS2I_ImageLookupFunc(
 		bt2ent_img, "update");
@@ -374,6 +587,8 @@ BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 		bt2ent_img, "tool_use");
 
 
+//	printf("Bt2Ent_LoadScript: F\n");
+
 	bt2ent_eb3d_cls=BGBDTC_LookupClassQName("EntityBase");
 	bt2ent_eb3d_fi_origin=BGBDTC_LookupClassSlotName(
 		bt2ent_eb3d_cls, "origin");
@@ -381,6 +596,8 @@ BTEIFGL_API int Bt2Ent_LoadScript(char *def, char *imgname)
 		bt2ent_eb3d_cls, "angle");
 
 	bt2ent_npcdiag_cls=BGBDTC_LookupClassQName("NpcDialogBox");
+
+//	printf("Bt2Ent_LoadScript: G\n");
 
 	return(0);
 }
@@ -1252,12 +1469,19 @@ int bt2ent_movetick_checkmove(dtVal ent, double *porg,
 	pomax[1]=porg[1]+relmax[1];
 	pomax[2]=porg[2]+relmax[2];
 
-	min.x=pomin[0]*BGBDT_XYZ_SCALE_FROMMETER;
-	min.y=pomin[1]*BGBDT_XYZ_SCALE_FROMMETER;
-	min.z=pomin[2]*BGBDT_XYZ_SCALE_FROMMETER;
-	max.x=pomax[0]*BGBDT_XYZ_SCALE_FROMMETER;
-	max.y=pomax[1]*BGBDT_XYZ_SCALE_FROMMETER;
-	max.z=pomax[2]*BGBDT_XYZ_SCALE_FROMMETER;
+//	min.x=pomin[0]*BGBDT_XYZ_SCALE_FROMMETER;
+//	min.y=pomin[1]*BGBDT_XYZ_SCALE_FROMMETER;
+//	min.z=pomin[2]*BGBDT_XYZ_SCALE_FROMMETER;
+//	max.x=pomax[0]*BGBDT_XYZ_SCALE_FROMMETER;
+//	max.y=pomax[1]*BGBDT_XYZ_SCALE_FROMMETER;
+//	max.z=pomax[2]*BGBDT_XYZ_SCALE_FROMMETER;
+
+	min.x=(s64)(pomin[0]*BGBDT_XYZ_SCALE_FROMMETER);
+	min.y=(s64)(pomin[1]*BGBDT_XYZ_SCALE_FROMMETER);
+	min.z=(s64)(pomin[2]*BGBDT_XYZ_SCALE_FROMMETER);
+	max.x=(s64)(pomax[0]*BGBDT_XYZ_SCALE_FROMMETER);
+	max.y=(s64)(pomax[1]*BGBDT_XYZ_SCALE_FROMMETER);
+	max.z=(s64)(pomax[2]*BGBDT_XYZ_SCALE_FROMMETER);
 
 //	i=BGBDT_BoxQueryVoxel(bgbdt_voxworld, min, max, pos, td, &nvox,
 //		BGBDT_TRFL_NOLOAD|BGBDT_TRFL_NONEMPTY);
@@ -1309,6 +1533,15 @@ BTEIFGL_API int Bt2Ent_EntityMoveCheckCollide(dtVal ent, void *rpos)
 
 	BSVM2_Unpack3XfTo3Dv(rpos, eorg);
 
+#if 0
+	if(eorg[0]>( 524287))		eorg[0]-=1048576;
+	if(eorg[1]>( 524287))		eorg[1]-=1048576;
+	if(eorg[2]>( 524287))		eorg[2]-=1048576;
+	if(eorg[0]<(-524288))		eorg[0]+=1048576;
+	if(eorg[1]<(-524288))		eorg[1]+=1048576;
+	if(eorg[2]<(-524288))		eorg[2]+=1048576;
+#endif
+
 	emin[0]=0-erad;
 	emin[1]=0-erad;
 	emax[0]=0+erad;
@@ -1339,6 +1572,8 @@ BTEIFGL_API int Bt2Ent_EmitParticleExplosionBasic(dtVal ent,
 	BGBDT_Part_ParticleExplosionBasic(org,
 		vec3(0,0,0), vec3(25,25,25),
 		cnt, atxy, clr);
+
+	return(0);
 }
 
 BTEIFGL_API int Bt2Ent_EmitParticleEffectPara(dtVal ent, dtVal args)
@@ -1405,4 +1640,6 @@ BTEIFGL_API int Bt2Ent_EmitParticleEffectPara(dtVal ent, dtVal args)
 	}
 	
 	BGBDT_Part_ParticleEmitPara(para);
+
+	return(0);
 }

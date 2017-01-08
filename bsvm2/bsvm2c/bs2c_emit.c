@@ -195,12 +195,12 @@ void BS2C_EmitOpcodeIdx(BS2CC_CompileContext *ctx, int ix)
 
 void BS2C_EmitOpcodeUCx(BS2CC_CompileContext *ctx, u64 ix)
 {
-	if(ix<0)
-	{
-		BSVM2_DBGTRAP
-		BS2C_EmitByte(ctx, 0);
-		return;
-	}
+//	if(ix<0)
+//	{
+//		BSVM2_DBGTRAP
+//		BS2C_EmitByte(ctx, 0);
+//		return;
+//	}
 
 	if(ix<0x80)
 	{
@@ -785,7 +785,7 @@ void BS2C_EmitOpcodeZxD(BS2CC_CompileContext *ctx, double f)
 	int e;
 
 	g=f; er=f-g;
-	if(fabs(er<0.0000001))
+	if(fabs(er)<0.0000001)
 	{
 		BS2C_EmitOpcodeZxFI(ctx, f, BSVM2_OPZ_DOUBLE);
 		return;

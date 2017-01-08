@@ -1177,7 +1177,8 @@ BS2VM_API BSVM2_Trace *BS2I_ImageGetMainTrace(BSVM2_CodeImage *img, char *qnpkg)
 BS2VM_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz);
 BS2VM_API BSVM2_ImageGlobal *BS2I_GlobalLookupGlobalVar(char *qname);
 //AHSRC:bsvm2/bsvm2i/bs2i_natcall.c
-void *BSVM2_NatCall_GetProcAddress(char *name);
+BS2VM_API void *BSVM2_NatCall_GetProcAddress(char *name);
+BS2VM_API int BSVM2_NatCall_RegisterProcAddress(char *name, void *addr);
 void BSVM2_NatCall_Call_0_V(void *fptr,BSVM2_Value *rv, BSVM2_Value *av);
 void BSVM2_NatCall_Call_0_I(void *fptr,BSVM2_Value *rv, BSVM2_Value *av);
 void BSVM2_NatCall_Call_0_L(void *fptr,BSVM2_Value *rv, BSVM2_Value *av);

@@ -136,7 +136,7 @@ extern "C" {
 #define V3F_LEN(a)		(sqrt(V3F_DOT(a, a)))
 #define V4F_LEN(a)		(sqrt(V4F_DOT(a, a)))
 
-static INLINE V2F_DIST2I(float *a, float *b)
+static INLINE float V2F_DIST2I(float *a, float *b)
 {
 	float d, dx, dy;
 	dx=a[0]-b[0];
@@ -145,7 +145,7 @@ static INLINE V2F_DIST2I(float *a, float *b)
 	return(d);
 }
 
-static INLINE V3F_DIST2I(float *a, float *b)
+static INLINE float V3F_DIST2I(float *a, float *b)
 {
 	float d, dx, dy, dz;
 	dx=a[0]-b[0];
@@ -155,7 +155,7 @@ static INLINE V3F_DIST2I(float *a, float *b)
 	return(d);
 }
 
-static INLINE V4F_DIST2I(float *a, float *b)
+static INLINE float V4F_DIST2I(float *a, float *b)
 {
 	float d, dx, dy, dz, dw;
 	dx=a[0]-b[0];

@@ -131,10 +131,10 @@ int main()
 
 	printf("%s\n", tb);
 
-	i=BS2C_FlattenImage(ctx, tb, 1<<18);
+	i=BS2C_FlattenImage(ctx, (byte *)tb, 1<<18);
 	vf_storefile("bstest0.bsi", tb, i);
 
-	img=BS2I_DecodeImageBuffer(tb, i);
+	img=BS2I_DecodeImageBuffer((byte *)tb, i);
 	vi=BS2I_ImageGetMain(img, NULL);
 //	BS2I_ImageGetMainTrace(img, NULL);
 

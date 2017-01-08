@@ -1,7 +1,8 @@
 #include <bteifgl.h>
 
-FRGL_FontInfo *font_root, *font_cur;
-FRGL_FontFrag *font_freefrags;
+FRGL_FontInfo *font_root=NULL;
+FRGL_FontInfo *font_cur=NULL;
+FRGL_FontFrag *font_freefrags=NULL;
 
 int font_mode, font_time, font_size;
 char *font_name;
@@ -31,12 +32,14 @@ byte mouse_16x16[32]={
 };
 
 BTEIFGL_API int GfxFont_Register(
-	char *name, char *buf, int w, int h, int s, int e)
+	char *name, byte *buf, int w, int h, int s, int e)
 {
 	FRGL_FontInfo *tmp;
 
 	tmp=frgl_talloc("frgl_fontinfo_t", sizeof(FRGL_FontInfo));
+//	tmp=frgl_malloc(sizeof(FRGL_FontInfo));
 	tmp->name=frgl_strdup(name);
+//	tmp->name=strdup(name);
 	tmp->buf=buf;
 	tmp->w=w;
 	tmp->h=h;
@@ -479,8 +482,8 @@ BTEIFGL_API int GfxFont_DrawCharMode(int c,
 BTEIFGL_API int GfxFont_DrawCharModeQI(int c,
 	int x, int y, int w, int h, int r, int g, int b, int a, int m)
 {
-	static int texn;
-	static int qb;
+	static int texn=-1;
+	static int qb=0;
 	int cw, ch, n, tm;
 	float s1, t1, s2, t2;
 	FRGL_FontFrag *frag;
@@ -968,8 +971,13 @@ BTEIFGL_API int GfxFont_SetFontSize(char *name, int mode, int size)
 	}
 	if(!font)font=GfxFont_FindFont(name);
 
-	if(font)font_cur=font;
-		else printf("no font '%s'\n", name);
+	if(font)
+	{
+		font_cur=font;
+	}else
+	{
+		printf("GfxFont_SetFontSize: No font '%s'\n", name);
+	}
 	return(0);
 }
 
@@ -1025,13 +1033,16 @@ BTEIFGL_API int GfxFont_LoadFontBase(char *name, char *fname, int base)
 
 		if(!s && !e)break;
 
-//		printf("chunk %d-%d\n", s, e);
+//		printf("GfxFont_LoadFontBase: Chunk %d-%d\n", s, e);
 
 		buf=malloc(((e-s)+1)*((cw*ch+7)/8));
 		vfread(buf, (e-s)+1, ((cw*ch+7)/8), fd);
 
 		tmp=frgl_talloc("frgl_fontinfo_t", sizeof(FRGL_FontInfo));
 		tmp->name=frgl_strdup(name);
+//		tmp=frgl_malloc(sizeof(FRGL_FontInfo));
+//		tmp->name=frgl_strdup(name);
+//		tmp->name=strdup(name);
 		tmp->buf=buf;
 		tmp->w=cw;
 		tmp->h=ch;
@@ -1097,8 +1108,11 @@ BTEIFGL_API int GfxFont_Init()
 //	GfxFont_LoadFont("fixed_16px", "fonts/fixed_32px.bfn");
 //	GfxFont_LoadFont("fixed_16px", "fonts/fixed_16px.bfn");
 	GfxFont_LoadFont("fixed_16px", "fonts/fixed_cp437_16px.bfn");
+
+#ifndef FRGL_SMALLHEAP
 	GfxFont_LoadFont("fixed_32px", "fonts/fixed_32px.bfn");
 	GfxFont_LoadFont("fixed_64px", "fonts/fixed_64px.bfn");
+#endif
 
 	GfxFont_LoadFont("fixed",			"fonts/fixed_cp437_8px.bfn");
 	GfxFont_LoadFont("fixed_cp437_8px", "fonts/fixed_cp437_8px.bfn");

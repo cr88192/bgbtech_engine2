@@ -484,7 +484,7 @@ int main()
 	char tb[1024];
 	BtPak0_Image *img;
 	BGBDT_SndSampler *samp;
-	byte *inbuf, *cs, *cse;
+	char *inbuf, *cs, *cse;
 	s16 *sbuf, *sbuf2, *sbuf3;
 	byte *bbuf;
 	char **a;

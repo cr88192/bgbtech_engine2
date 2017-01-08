@@ -14,7 +14,8 @@
 #include <dbghelp.h>
 #endif
 
-#ifdef linux
+// #ifdef linux
+#if defined(linux) || defined(__EMSCRIPTEN__)
 #include <unistd.h>
 #include <pthread.h>
 #endif
@@ -81,7 +82,7 @@ char *bipro_thread_tlsname[1024];
 HANDLE bipro_thread_ptrevent;
 #endif
 
-#if defined(linux) || defined(NATIVECLIENT)
+#if defined(linux) || defined(NATIVECLIENT) || defined(__EMSCRIPTEN__)
 pthread_key_t bipro_threadctx_tls2;
 
 pthread_mutex_t bipro_threadptr_mutex=PTHREAD_MUTEX_INITIALIZER;
@@ -159,7 +160,7 @@ void bipro_thread_init()
 		NULL, TRUE, FALSE, TEXT("PointerEvent")); 
 #endif
 
-#if defined(linux) || defined(NATIVECLIENT)
+#if defined(linux) || defined(NATIVECLIENT) || defined(__EMSCRIPTEN__)
 	pthread_key_create(&bipro_threadctx_tls2, NULL);
 	pthread_mutex_init(&bipro_threadptr_mutex, NULL);
 	pthread_cond_init(&bipro_threadptr_cond, NULL);
@@ -222,6 +223,7 @@ void *thGetTlsPtr(int idx)
 	inf=thGetContext();
 	return(&(inf->tls[idx]));
 }
+
 
 #ifdef _WIN32
 DWORD WINAPI BIPRO_ThreadProc(LPVOID lpParam) 
@@ -645,7 +647,7 @@ void thSignalPtr(void *ptr)
 
 #endif
 
-#if defined(linux)
+#if defined(linux) || defined(__EMSCRIPTEN__)
 
 void BIPRO_SuspendThreads()
 {
@@ -743,8 +745,9 @@ void thLockMutex(void *p)
 
 int thTryLockMutex(void *p)
 {
-	if(!p)return;
+	if(!p)return(-1);
 	pthread_mutex_trylock((pthread_mutex_t *)p);
+	return(0);
 }
 
 void thUnlockMutex(void *p)
@@ -765,7 +768,7 @@ void *thFastMutex()
 void thLockFastMutex(void *p)
 	{ thLockMutex(p); }
 int thTryLockFastMutex(void *p)
-	{ thTryLockMutex(p); }
+	{ return(thTryLockMutex(p)); }
 void thUnlockFastMutex(void *p)
 	{ thUnlockMutex(p); }
 void thFreeFastMutex(void *p)
@@ -1602,7 +1605,8 @@ int BIPRO_ProcessEXE(char *name)
 
 #endif
 
-#ifdef linux
+// #ifdef linux
+#if defined(linux) || defined(__EMSCRIPTEN__)
 
 #ifndef HAS_LOOKUPLABELOS
 #define HAS_LOOKUPLABELOS

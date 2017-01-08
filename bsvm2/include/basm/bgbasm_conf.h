@@ -136,6 +136,6 @@ typedef s64 nlint;
 #endif
 #endif
 
-#if defined(ARM) || defined(ANDROID)
+#if defined(ARM) || defined(ANDROID) || defined(__EMSCRIPTEN__)
 #define BASM_SHAVEMEM
 #endif

@@ -708,10 +708,10 @@ void PDJHUFF_StatBlock(short *buf, int *dcstat, int *acstat)
 #endif
 
 #if 1
-void PDJPG_GetImgBlk(char *blk, int xo, int yo, byte *img, int xs, int ys)
+void PDJPG_GetImgBlk(byte *blk, int xo, int yo, byte *img, int xs, int ys)
 {
 	byte *cs;
-	char *ct;
+	byte *ct;
 	int i, j, k;
 
 	cs=img+(yo*xs+xo); ct=blk;
@@ -729,7 +729,7 @@ void PDJPG_GetImgBlk(char *blk, int xo, int yo, byte *img, int xs, int ys)
 void PDJPG_FilterImageDCT(byte *ibuf, short *obuf, int xs, int ys)
 {
 	short tblk[DCTSZ2], tblk2[DCTSZ2];
-	char blk[DCTSZ2];
+	byte blk[DCTSZ2];
 	int i, j, k, l;
 
 	k=0;
@@ -978,7 +978,7 @@ void PDJPG_MakeQuantTabInput_AA(
 
 	for(i=0; i<cnt; i++)
 		for(j=0; j<DCTSZ2; j++)
-			deltas[j]+=fabs(in[i*DCTSZ2+j]);
+			deltas[j]+=fabs((double)(in[i*DCTSZ2+j]));
 	for(j=0; j<DCTSZ2; j++)
 		deltas[j]/=cnt;
 

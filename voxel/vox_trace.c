@@ -461,6 +461,20 @@ BTEIFGL_API int BGBDT_BoxQueryVoxel(BGBDT_VoxWorld *world,
 	nx=(max.x+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
 	ny=(max.y+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
 	nz=(max.z+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+
+//	nx=bx+(((max.x-min.x)+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL);
+//	ny=by+(((max.y-min.y)+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL);
+//	nz=bz+(((max.z-min.z)+BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL);
+	
+	if((nx<bx) || (ny<by) || (nz<bz))
+	{
+		nx=(((s64)min.x)+(max.x-min.x)+
+			BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+		ny=(((s64)min.y)+(max.y-min.y)+
+			BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+		nz=(((s64)min.z)+(max.z-min.z)+
+			BGBDT_XYZ_MASK_VOXEL)>>BGBDT_XYZ_SHR_VOXEL;
+	}
 	
 	accfl=0;
 	if(tracefl&BGBDT_TRFL_NOLOAD)

@@ -4,6 +4,8 @@
 // #include <stdarg.h>
 // #include <bsvm2_bsvm21.h>
 
+#if defined(X86) || defined(X86_64)
+
 #ifdef X86
 
 #define SZ_PTR	4
@@ -1965,3 +1967,14 @@ BASM_API void *BASM_MakeBufferCallStub(void *fcn, char *sig)
 }
 #endif
 
+#else
+
+void BASM_InitSig()
+{
+}
+
+BASM_API void *BASM_MakeBufferCallStub(void *fcn, char *sig)
+{
+	return(NULL);
+}
+#endif

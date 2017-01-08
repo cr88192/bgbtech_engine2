@@ -69,6 +69,9 @@ void BS2C_CompileSetupVarInfo(
 		if(!vi->vitype)
 			vi->vitype=BS2CC_VITYPE_LCLVAR;
 
+		if(ctx->frm->jcleanup<=0)
+			ctx->frm->jcleanup=BS2C_GenTempLabel(ctx);
+
 		return;
 	}
 

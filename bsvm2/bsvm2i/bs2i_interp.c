@@ -258,6 +258,8 @@ BS2VM_API void BSVM2_Interp_FreePoolContext(BSVM2_Context *ctx)
 //		*(int *)-1=-1;
 
 	ctx->tstackref=0;
+	ctx->status=0;
+
 	ctx->next=bsvm2_interp_freepoolctx;
 	bsvm2_interp_freepoolctx=ctx;
 }

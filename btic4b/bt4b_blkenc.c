@@ -1143,19 +1143,19 @@ force_inline int btic4f_hftob(int v)
 //	return((x<0)?0:((x>1)?1:x));
 //}
 
-static const int lqtvq_sat1_tab[8]=
+const int lqtvq_sat1_tab[8]=
 		{0,0,0,0, 1,1,1,1};
 #define BTIC4B_SAT1(x)	lqtvq_sat1_tab[(x)+3]
 
-static const int lqtvq_sat2_tab[8]=
+const int lqtvq_sat2_tab[8]=
 		{0,0,0,1, 2,3,3,3};
 #define BTIC4B_SAT2(x)	lqtvq_sat2_tab[(x)+2]
 
-static const int lqtvq_sat3_tab[16]=
+const int lqtvq_sat3_tab[16]=
 		{0,0,0,0, 0,1,2,3, 4,5,6,7, 7,7,7,7};
 #define BTIC4B_SAT3(x)	lqtvq_sat3_tab[(x)+4]
 
-static const int lqtvq_sat4_tab[32]=
+const int lqtvq_sat4_tab[32]=
 		{0, 0, 0, 0, 0, 0, 0, 0,
 		 0, 1, 2, 3, 4, 5, 6, 7,
 		 8, 9,10,11,12,13,14,15,

@@ -29,7 +29,7 @@ BS2VM_API void bgbdt_mm_free(void *ptr)
 BS2VM_API char *bgbdt_mm_strdup(char *str)
 {
 	char *s, *t;
-	int i;
+	int i, l;
 
 	if(!str)
 	{
@@ -73,8 +73,10 @@ BS2VM_API char *bgbdt_mm_strdup(char *str)
 //	t=bgbdt_mm_malloc(strlen(str)+1+sizeof(char *));
 //	t=bgbdt_mm_tyalloc("bgbdt_mm_string_t", strlen(str)+1+sizeof(char *));
 
+	l=strlen(str)+1+sizeof(char *);
+	l=(l+7)&(~7);
 	t=bgbdt_mm_strtabe;
-	bgbdt_mm_strtabe=t+strlen(str)+1+sizeof(char *);
+	bgbdt_mm_strtabe=t+l;
 
 	s=(char *)(((char **)t)+1);
 	strcpy(s, str);

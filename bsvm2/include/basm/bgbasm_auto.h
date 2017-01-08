@@ -1,4 +1,4 @@
-//AHSRC:bgbasm3/front/basm_api.c
+//AHSRC:bsvm2/bgbasm3/front/basm_api.c
 BASM_API char *BASM_CPUID_String();
 BASM_API u32 BASM_CPUID_Version();
 BASM_API u32 BASM_CPUID_Unit();
@@ -66,13 +66,13 @@ BASM_API int BASM_AssembleFile(char *iname, char *oname);
 BASM_API int BASM_ProcessEXE(char *name);
 BASM_API void BASM_ThreadLocalInit();
 BASM_API void BASM_Init();
-//AHSRC:bgbasm3/front/basm_rand.c
+//AHSRC:bsvm2/bgbasm3/front/basm_rand.c
 int basm_genseed();
 void BASM_InitRand();
 u32 basm_rand();
 char *basm_rand_key12();
 char *basm_rand_key18();
-//AHSRC:bgbasm3/front/basm_callsig.c
+//AHSRC:bsvm2/bgbasm3/front/basm_callsig.c
 int BASM_LenSig(char *sig, char **esig);
 int BASM_LenSig(char *sig, char **esig);
 BASM_API void BASM_CallSig(void *fcn, char *sig, void *buf, void *ret);
@@ -92,7 +92,9 @@ BASM_API void *BASM_CreateStubGC(void *fcn, void *data, char *sig);
 void BASM_InitSig();
 BASM_API void *BASM_MakeBufferCallStub(void *fcn, char *sig);
 BASM_API void *BASM_MakeBufferCallStub(void *fcn, char *sig);
-//AHSRC:bgbasm3/front/basm_vfs.c
+void BASM_InitSig();
+BASM_API void *BASM_MakeBufferCallStub(void *fcn, char *sig);
+//AHSRC:bsvm2/bgbasm3/front/basm_vfs.c
 s64 basm_tell_tmp(void *fd);
 int basm_seek_tmp(void *fd, s64 pos, int rel);
 BGBASM_IOFuncs_t *basm_getio();
@@ -109,7 +111,7 @@ void basm_fputc(int c, void *fd);
 void *basm_loadfile(char *name, int *rsz);
 int basm_storefile(char *name, void *buf, int sz);
 int basm_storetextfile(char *name, char *buf);
-//AHSRC:bgbasm3/front/basm_preproc.c
+//AHSRC:bsvm2/bgbasm3/front/basm_preproc.c
 void *basm_loadfile(char *name, int *rsz);
 int BASM_PP_AddIncludePathFront(char *str);
 int BASM_PP_AddIncludePathBack(char *str);
@@ -143,7 +145,7 @@ int BASM_PP_Line(char *str);
 char *BASM_PP_ParseLine(char *s, char *b);
 void BASM_PP_Buffer(char *ibuf);
 int BASM_PP_Filter(char *ibuf, char *obuf);
-//AHSRC:bgbasm3/asm/basm_core.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_core.c
 void BASM_SetCPU(BASM_Context *ctx, int cpu);
 void basm_warning(char *str, ...);
 void basm_error(char *str, ...);
@@ -255,7 +257,7 @@ BASM_API void BASM_EmitGoto(BASM_Context *ctx, char *name, int ty);
 BASM_API void BASM_EmitConst(BASM_Context *ctx, char *name, long long val);
 BASM_API int BASM_PredictPos(BASM_Context *ctx, char *name);
 BASM_API int BASM_PredictDisp(BASM_Context *ctx, char *name);
-//AHSRC:bgbasm3/asm/basm_parse.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_parse.c
 BASM_API char *BASM_ComposeLinkMetaName(char *name, char **args);
 BASM_API char *BASM_ComposeLinkNotifyName(char *name, char **args);
 BASM_API void BASM_RegisterSpecialOp(char *name,char *(*fcn)(BASM_Context *ctx, char *op, char **str));
@@ -298,10 +300,10 @@ char *BASM_ParseOpcodeInner(BASM_Context *ctx, char *str,char *opname, int opnum
 BASM_API char *BASM_ParseOpcode(BASM_Context *ctx, char *str);
 BASM_API char *BASM_ParseOpcode(BASM_Context *ctx, char *str);
 BASM_API char *BASM_ParseOpcodeList(BASM_Context *ctx, char *str);
-//AHSRC:bgbasm3/asm/basm_insns_x86.c
-//AHSRC:bgbasm3/asm/basm_insns_arm.c
-//AHSRC:bgbasm3/asm/basm_insns_thumb.c
-//AHSRC:bgbasm3/asm/basm_disasm.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_insns_x86.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_insns_arm.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_insns_thumb.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_disasm.c
 BASM_API char *BASM_GetPtrName(void *ptr);
 int BDISASM_CheckOpStr(byte **rip, char **str, int *rfl, int op);
 byte *BDISASM_PrintModRM_RM16(byte *ip, int op, int fl, int w, int ar);
@@ -316,7 +318,7 @@ void BDISASM_PrintFixRegSF(int i);
 BASM_API byte *BDISASM_PrintOpcode(byte *ip, int *rfl);
 BASM_API int BDISASM_PrintOpcodes(byte *ip, int fl, int sz);
 BASM_API int BDISASM_HexDump(byte *ip, int sz);
-//AHSRC:bgbasm3/asm/basm_coff.c
+//AHSRC:bsvm2/bgbasm3/asm/basm_coff.c
 int BASM_COFF_ResolveRelocs(BASM_Context *ctx, BASM_COFF_Info *inf, int sec,int offs, int cnt);
 BASM_Context *BASM_COFF_LoadObjectBuf(char *name, byte *buf, int sz);
 BASM_Context *BASM_COFF_LoadObject(char *name);
@@ -330,12 +332,12 @@ int basm_coff_idxstr2(char *strs, char *str, int fl);
 BASM_API int BASM_COFF_StoreObjectBuf(BASM_Context *ctx,byte *buf, int msz);
 int BASM_COFF_StoreObject(char *name, BASM_Context *ctx);
 BASM_API byte *BASM_COFF_EncodeObject(BASM_Context *ctx, int *rsz);
-//AHSRC:bgbasm3/link/link_context.c
+//AHSRC:bsvm2/bgbasm3/link/link_context.c
 BLNK_Object *BLNK_NewContext();
 int BLNK_DestroyContext(BLNK_Object *ctx);
 void BLNK_EmitLabelPos(BLNK_Object *ctx, char *name, int pos);
 void BLNK_EmitGotoPos(BLNK_Object *ctx, char *name, int ty, int pos);
-//AHSRC:bgbasm3/link/link_core.c
+//AHSRC:bsvm2/bgbasm3/link/link_core.c
 BASM_API BLNK_GCFuncs_t *BLNK_GetGCFuncs();
 BASM_API void BLNK_SetScanRange(int (*fcn)(void **p, int cnt));
 void BLNK_ScanRange(void **p, int cnt);
@@ -416,7 +418,7 @@ char *BLNK_GetLastNamePtr(void *ptr, void **rbp);
 int BLNK_EnumUndefSyms(char **lst, int max);
 void BLNK_AddSymArray(char **name, void **ptr, int cnt);
 BASM_API int BLNK_LoadLibrary(char *name);
-//AHSRC:bgbasm3/link/link_thunk.c
+//AHSRC:bsvm2/bgbasm3/link/link_thunk.c
 BASM_API BLNK_Scope *BLNK_NewScope(BLNK_Scope *super);
 BASM_API void BLNK_FreeScope(BLNK_Scope *scope);
 BASM_API int BLNK_IndexScopeSym(BLNK_Scope *scope, char *name);
@@ -430,7 +432,7 @@ BASM_API BLNK_Thunk *BLNK_LinkModuleThunk(BLNK_Object *ctx, BLNK_Scope *scope);
 BASM_API byte *BLNK_LinkThunkInline(BLNK_Object *ctx, BLNK_Scope *scope);
 BASM_API BLNK_Thunk *BLNK_LinkModuleThunkObj(BLNK_Scope *scope, void *buf, int sz);
 BASM_API byte *BLNK_LinkModuleThunkInlineObj(BLNK_Scope *scope, void *buf, int sz);
-//AHSRC:bgbasm3/link/link_lnx.c
+//AHSRC:bsvm2/bgbasm3/link/link_lnx.c
 int BLNK_InitDllsOS();
 BASM_API int BLNK_GetModuleListOS(char **buf, int max);
 BASM_API char **BLNK_GetEnvironOS();
@@ -443,7 +445,7 @@ void *BLNK_LoadFileRawOS(char *name, int *rsz);
 BASM_API void *BLNK_LoadModuleFileDataOS(char *name, int *rsz);
 BASM_API void *BLNK_LoadModuleWadDataOS(char *name, int *rsz);
 BASM_API void BLNK_FreeModuleDataOS(void *buf);
-//AHSRC:bgbasm3/link/link_w32.c
+//AHSRC:bsvm2/bgbasm3/link/link_w32.c
 BASM_API int BLNK_GetModuleListOS(char **buf, int max);
 BASM_API char **BLNK_GetEnvironOS();
 void BLNK_ProbeTst(byte *buf, int sz);
@@ -461,7 +463,7 @@ int BLNK_InitDbgHelpOS();
 char *BLNK_LookupAddrNameOS(void *addr, void **addr2);
 int BLNK_ProcessMAP(char *name);
 int BLNK_ProcessEXE(char *name);
-//AHSRC:bgbasm3/link/link_vfs.c
+//AHSRC:bsvm2/bgbasm3/link/link_vfs.c
 void *blnk_fopen_tmp(char *name, char *mode);
 s64 blnk_tell_tmp(void *fd);
 int blnk_seek_tmp(void *fd, s64 pos, int rel);
@@ -480,7 +482,7 @@ void blnk_fputc(int c, void *fd);
 void *blnk_loadfile(char *name, int *rsz);
 int blnk_storefile(char *name, void *buf, int sz);
 int blnk_storetextfile(char *name, char *buf);
-//AHSRC:bgbasm3/link/bldr_coff.c
+//AHSRC:bsvm2/bgbasm3/link/bldr_coff.c
 int BLNK_COFF_ResolveRelocs(BLNK_Object *ctx, BLNK_COFF_Info *inf, int sec,int offs, int cnt);
 BLNK_Object *BLNK_COFF_LoadObjectBuf(char *name, byte *buf, int sz);
 BLNK_Object *BLNK_COFF_LoadObject(char *name);
@@ -496,5 +498,5 @@ int blnk_coff_idxstr2(char *strs, char *str, int fl);
 int BLNK_COFF_StoreObjectBuf(BLNK_Object *ctx, byte *buf, int msz);
 int BLNK_COFF_StoreObject(char *name, BLNK_Object *ctx);
 byte *BLNK_COFF_EncodeObject(BLNK_Object *ctx, int *rsz);
-//AHSRC:bgbasm3/link/bldr_elf.c
+//AHSRC:bsvm2/bgbasm3/link/bldr_elf.c
 BLNK_Object *BLNK_ELF_LoadObjectBuf(char *name, byte *buf, int sz);

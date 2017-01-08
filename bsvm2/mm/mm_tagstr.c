@@ -31,7 +31,7 @@ void BGBDT_TagStr_InitTypes(void)
 char *BGBDT_TagStr_TabStrdup(BGBDT_TagStrTab *tab, char *str)
 {
 	char *s, *t;
-	int i;
+	int i, l;
 
 	if(!str)
 	{
@@ -48,7 +48,7 @@ char *BGBDT_TagStr_TabStrdup(BGBDT_TagStrTab *tab, char *str)
 //		tab->strtab=bgbdt_mm_malloc(1<<20);
 //		tab->strtab=bgbdt_mm_tyalloc("bgbdt_mm_strtab_t", 1<<20);
 		tab->strtab=dtmAlloc(tab->strtyn, 1<<20);
-		tab->strtabe=tab->strtab+1;
+		tab->strtabe=tab->strtab+8;
 		tab->estrtab=tab->strtab+(1<<20);
 
 		tab->pstrtab[0]=tab->strtab;
@@ -86,8 +86,11 @@ char *BGBDT_TagStr_TabStrdup(BGBDT_TagStrTab *tab, char *str)
 		if(!strcmp(s, str))return(s);
 	}
 
+	l=strlen(str)+1+sizeof(char *);
+	l=(l+7)&(~7);
+
 	t=tab->strtabe;
-	tab->strtabe=t+strlen(str)+1+sizeof(char *);
+	tab->strtabe=t+l;
 
 	s=(char *)(((char **)t)+1);
 	strcpy(s, str);
@@ -130,7 +133,7 @@ void bgbdt_strcpy16(u16 *sdst, u16 *ssrc)
 u16 *BGBDT_TagStr_TabStrdup16(BGBDT_TagStrTab16 *tab, u16 *str)
 {
 	u16 *s, *t;
-	int i;
+	int i, l;
 
 	if(!str)
 	{
@@ -183,8 +186,10 @@ u16 *BGBDT_TagStr_TabStrdup16(BGBDT_TagStrTab16 *tab, u16 *str)
 		if(!bgbdt_strcmp16(s, str))return(s);
 	}
 
+	l=bgbdt_strlen16(str)+1+sizeof(u16 *);
+	l=(l+7)&(~7);
 	t=tab->strtabe;
-	tab->strtabe=t+bgbdt_strlen16(str)+1+sizeof(u16 *);
+	tab->strtabe=t+l;
 
 	s=(u16 *)(((u16 **)t)+1);
 	bgbdt_strcpy16(s, str);
@@ -288,7 +293,7 @@ BS2VM_API dtVal BGBDT_TagStr_String16(u16 *str)
 
 BS2VM_API dtVal BGBDT_TagStr_String16u8(byte *str)
 {
-	return(dtvWrapPtr(BGBDT_TagStr_Strdup16u8(str)));
+	return(dtvWrapPtr(BGBDT_TagStr_Strdup16u8((char *)str)));
 }
 
 BS2VM_API dtVal BGBDT_TagStr_Symbol(char *str)
@@ -325,7 +330,7 @@ BS2VM_API int BGBDT_TagStr_IsSymbolP(dtVal val)
 {
 	int tag;
 	tag=dtvGetPtrTagF(val);
-	if((tag==objty_tagsym))
+	if(tag==objty_tagsym)
 			return(1);
 	return(0);
 }
@@ -334,7 +339,7 @@ BS2VM_API int BGBDT_TagStr_IsKeywordP(dtVal val)
 {
 	int tag;
 	tag=dtvGetPtrTagF(val);
-	if((tag==objty_tagkeyw))
+	if(tag==objty_tagkeyw)
 			return(1);
 	return(0);
 }
@@ -429,7 +434,7 @@ BS2VM_API int BGBDT_TagStr_SymbolIsP(dtVal val, char *name)
 	int tag;
 
 	tag=dtvGetPtrTagF(val);
-	if((tag==objty_tagsym))
+	if(tag==objty_tagsym)
 	{
 		str=dtvUnwrapPtrF(val);
 		if(!strcmp(str, name))

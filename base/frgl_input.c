@@ -2,7 +2,10 @@
 
 #include <stdarg.h>
 #include <time.h>
-// #include <sys/time.h>
+
+#if defined(linux) || defined(__EMSCRIPTEN__)
+#include <sys/time.h>
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -537,10 +540,10 @@ void FRGL_EndInputFrame()
 	memcpy(frgl_lkeymap, frgl_keymap, 32);
 }
 
-BTEIFGL_API short *FRGL_GetKeybuf()
+BTEIFGL_API u16 *FRGL_GetKeybuf()
 {
-	static short frgl_keybuf3[64];
-	short *buf;
+	static u16 frgl_keybuf3[64];
+	u16 *buf;
 
 //	memset(frgl_lkeymap, frgl_keymap, 32);
 
@@ -570,6 +573,16 @@ BTEIFGL_API int FRGL_TimeMS()
 
 	return((unsigned int)(t-init));
 #else
+
+#ifdef __EMSCRIPTEN__
+	struct timeval	tp;
+	static int      secbase; 
+
+	gettimeofday(&tp, NULL);  
+	if(!secbase)secbase=tp.tv_sec;
+	return(((tp.tv_sec-secbase)*1000)+tp.tv_usec/1000);
+#endif
+
 #ifndef linux
 	static int init;
 	int t;

@@ -1,0 +1,72 @@
+public class misc_chest extends EntityBase2D {
+	int isOpen;
+	int hasItem;
+
+	public void spawn()
+	{
+		sprite_sz=#[32, 32];
+		radius=8;
+//		if(rand()&1)
+		if(1)
+		{
+			isOpen=0;
+			sprite="sprites/isotest/chest_closed";
+
+//			if(!(rand()&3))
+			if(1)
+			{
+//				hasItem=1;
+//				hasItem=(rand()&3)+((rand()&7)<<8);
+				hasItem=(rand()%6)+((rand()&7)<<8);
+			}
+		}else
+		{
+			isOpen=1;
+			sprite="sprites/isotest/chest_open";
+		}
+	}
+
+	public void tick()
+	{
+		if((world_lottery<world_max_entity) &&
+			(world_entity[world_lottery]==this))
+		{
+			if(isOpen)
+			{
+				isOpen=0;
+				sprite="sprites/isotest/chest_closed";
+				hasItem=(rand()%6)+((rand()&7)<<8);
+			}
+		}
+	}
+	
+	public void touch(EntityBase2D other)
+	{
+	}
+
+	public void use(EntityBase2D other)
+	{
+		int i;
+		
+		i=BGBDT_Sound_PlaySound("sound/woodcreak", 256, 2, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+		BGBDT_Sound_ChanSetOriginF(i, origin.x, origin.y, 0);
+	
+//		isOpen=!isOpen;
+		if(isOpen)
+		{
+			sprite="sprites/isotest/chest_closed";
+			isOpen=0;
+			return;
+		}
+
+		sprite="sprites/isotest/chest_open";
+		isOpen=1;
+		
+		if(hasItem)
+		{
+			IsoTest_GiveItem(hasItem);
+			hasItem=0;
+		}
+	}
+}

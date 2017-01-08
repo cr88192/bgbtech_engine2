@@ -437,6 +437,15 @@ void BS2C_CompileFuncBodyCleanupVar(
 		BS2C_EmitOpcodeUCx(ctx, ix);
 		return;
 	}
+	
+	if(bty==BS2CC_TYZ_VARARG)
+	{
+		BS2C_CompileExprResvPush(ctx, 1);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_LDA);
+		BS2C_EmitOpcodeUCx(ctx, ix);
+		BS2C_EmitOpcode(ctx, BSVM2_OP_DELNGBL);
+		return;
+	}
 }
 
 /** Generate code for initializing a variable. */
@@ -549,7 +558,7 @@ void BS2C_CompileFuncBody(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func)
 //	if(func->body)
 	if(0)
 	{
-		frm->func->body;
+//		frm->func->body;
 		frm->nlocals=0;
 		frm->ntrlc=0;
 		frm->ntlbl=0;
@@ -1104,7 +1113,7 @@ BS2VM_API int BS2C_CompileModuleList(
 		}
 
 		ctx->srcfn=bgbdt_mm_strdup(tb);
-		v0=BS2P_ParseBuffer(ctx, tbuf, tsz);
+		v0=BS2P_ParseBuffer(ctx, (char *)tbuf, tsz);
 		
 		if(ctx->dbgprn)
 			{ BGBDT_MM_FormatValue(ctx->dbgprn, v0); }
@@ -1192,7 +1201,7 @@ BS2VM_API int BS2C_CompileImageDef(char *img, char *def)
 
 	tbuf=bgbdt_mm_malloc(1<<20);
 
-	i=BS2C_FlattenImage(ctx, tbuf, 1<<20);
+	i=BS2C_FlattenImage(ctx, (byte *)tbuf, 1<<20);
 	if(i>=0)
 	{
 		bgbdt_mm_storefile(img, tbuf, i);

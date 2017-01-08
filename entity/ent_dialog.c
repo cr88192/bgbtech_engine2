@@ -29,6 +29,7 @@ dtVal bt2ent_diagbox;
 int bt2ent_diag_pchars;
 int bt2ent_diag_lpchars;
 int bt2ent_diag_sndid;
+byte bt2ent_diag_pnewdiag;
 
 int bt2ent_snd_bgmid;
 char *bt2ent_usebkg;
@@ -120,7 +121,7 @@ BTEIFGL_API int Bt2Ent_InvenSetActive(int val)
 	return(0);
 }
 
-BTEIFGL_API void Bt2Ent_SetDialog(dtVal dbox)
+BTEIFGL_API int Bt2Ent_SetDialog(dtVal dbox)
 {
 	if(bt2ent_diag_sndid>0)
 	{
@@ -131,12 +132,14 @@ BTEIFGL_API void Bt2Ent_SetDialog(dtVal dbox)
 	bt2ent_diagbox=dbox;
 	bt2ent_diag_pchars=0;
 	bt2ent_diag_ptime=frgl_state->time_f;
+	bt2ent_diag_pnewdiag=1;
 	
-	if(dtvTrueP(dbox))
-		{ Bt2Ent_CallDiagSetup(dbox); }
+//	if(dtvTrueP(dbox))
+//		{ Bt2Ent_CallDiagSetup(dbox); }
+	return(0);
 }
 
-BTEIFGL_API void Bt2Ent_SetUseBackground(char *bkg)
+BTEIFGL_API int Bt2Ent_SetUseBackground(char *bkg)
 {
 //	bt2ent_diagbox=dbox;
 //	bt2ent_diag_pchars=0;
@@ -144,20 +147,23 @@ BTEIFGL_API void Bt2Ent_SetUseBackground(char *bkg)
 	if(!bkg)
 	{
 		bt2ent_usebkg=NULL;
-		return;
+		return(0);
 	}
 
 	bt2ent_usebkg=frgl_strdup(bkg);
+	return(0);
 }
 
-BTEIFGL_API void Bt2Ent_SetApplyWorldFlags(int flag)
+BTEIFGL_API int Bt2Ent_SetApplyWorldFlags(int flag)
 {
 	bt2ent_wrlflag|=flag;
+	return(0);
 }
 
-BTEIFGL_API void Bt2Ent_SetClearWorldFlags(int flag)
+BTEIFGL_API int Bt2Ent_SetClearWorldFlags(int flag)
 {
 	bt2ent_wrlflag&=~flag;
+	return(0);
 }
 
 BTEIFGL_API int Bt2Ent_GetInvenSlot(int slot)
@@ -219,13 +225,13 @@ BTEIFGL_API int Bt2Ent_ClearTokens(void)
 	return(0);
 }
 
-BTEIFGL_API void Bt2Ent_GiveItem(int item)
+BTEIFGL_API int Bt2Ent_GiveItem(int item)
 {
 	int i0, i1, i2, i3;
 	int i, j, k;
 
 	if(!(item&255))
-		return;
+		return(0);
 
 	for(i=0; i<6*16; i++)
 	{
@@ -264,7 +270,7 @@ BTEIFGL_API void Bt2Ent_GiveItem(int item)
 	}
 	
 	if(!item)
-		return;
+		return(1);
 
 	for(i=0; i<6*16; i++)
 	{
@@ -277,9 +283,10 @@ BTEIFGL_API void Bt2Ent_GiveItem(int item)
 	}
 
 	if(!item)
-		return;
+		return(1);
 
 	/* drop item */
+	return(0);
 }
 
 
@@ -399,13 +406,13 @@ BTEIFGL_API int Bt2Ent_CheckItem(int item)
 
 
 #if 1
-BTEIFGL_API void Bt2Ent_GiveToken(s64 item)
+BTEIFGL_API int Bt2Ent_GiveToken(int item)
 {
 	int i0, i1, i2, i3;
 	int i, j, k;
 
 	if(!(item&255))
-		return;
+		return(0);
 
 	for(i=0; i<bt2ent_ntoken; i++)
 	{
@@ -443,7 +450,7 @@ BTEIFGL_API void Bt2Ent_GiveToken(s64 item)
 	}
 	
 	if(!item)
-		return;
+		return(1);
 
 	for(i=0; i<bt2ent_ntoken; i++)
 	{
@@ -456,16 +463,17 @@ BTEIFGL_API void Bt2Ent_GiveToken(s64 item)
 	}
 
 	if(!item)
-		return;
+		return(0);
 
 	i=bt2ent_ntoken++;
 	bt2ent_tokenslot[i]=item;
 
 	/* drop item */
+	return(0);
 }
 
 
-BTEIFGL_API int Bt2Ent_TakeToken(s64 item)
+BTEIFGL_API int Bt2Ent_TakeToken(int item)
 {
 	int i0, i1, i2, i3;
 	int i, j, k;
@@ -521,7 +529,7 @@ BTEIFGL_API int Bt2Ent_TakeToken(s64 item)
 	return(0);
 }
 
-BTEIFGL_API int Bt2Ent_CheckToken(s64 item)
+BTEIFGL_API int Bt2Ent_CheckToken(int item)
 {
 	int i0, i1, i2, i3;
 	int i, j, k;
@@ -579,6 +587,7 @@ BTEIFGL_API int Bt2Ent_SetBgm(char *bgm)
 	char tb[256];
 	BGBDT_SndMixChan *chn;
 
+#ifndef FRGL_SMALLHEAP
 	chn=BGBDT_Sound_LookupMixChan(bt2ent_snd_bgmid);
 	if(chn && !strcmp(chn->samp->name, bgm))
 		return(0);
@@ -592,6 +601,8 @@ BTEIFGL_API int Bt2Ent_SetBgm(char *bgm)
 	BGBDT_Sound_DeleteMixChan(bt2ent_snd_bgmid);
 	bt2ent_snd_bgmid=BGBDT_Sound_PlaySound(bgm,
 		64, BGBDT_SNDATT_NONE, BGBDT_SNDFL_LOOP);
+#endif
+
 	return(1);
 }
 
@@ -718,6 +729,13 @@ int Bt2Ent_DrawDialogBox(dtVal dbox)
 //	x0=tile->x*64; x1=x0+64; x2=x0+32;
 //	y0=tile->y*64; y1=y0+64; y2=y0+32;
 //	z0=0; z1=64;
+
+//	if(dtvTrueP(dbox))
+	if(bt2ent_diag_pnewdiag)
+	{
+		Bt2Ent_CallDiagSetup(dbox);
+		bt2ent_diag_pnewdiag=0;
+	}
 
 	face1=Bt2Ent_DiagGetFace1(dbox);
 	face2=Bt2Ent_DiagGetFace2(dbox);

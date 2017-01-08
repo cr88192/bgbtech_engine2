@@ -24,18 +24,46 @@ LObj managed via AVL Trees.
 #define UNDEFINED ((void *)(-1))
 #endif
 
+// #define BGBDT_MM_SMALLHEAP
+
+#ifdef __EMSCRIPTEN__
+#ifndef BGBDT_MM_SMALLHEAP
+#define BGBDT_MM_SMALLHEAP
+#endif
+#endif
+
 #define BGBDT_MM_CHKMAG1		0x31415927
 #define BGBDT_MM_CHKMAG2		0x72951413
+
+#ifndef BGBDT_MM_SMALLHEAP
 
 #define BGBDT_MM_SOBJ_CHKSHL	20
 #define BGBDT_MM_SOBJ_CELSHL	 4
 #define BGBDT_MM_SOBJ_TOTSHL	24
 #define BGBDT_MM_SOBJ_CELMSK	15
+#define BGBDT_MM_SOBJ_OBJLIM	(1<<14)
 
 #define BGBDT_MM_MOBJ_CHKSHL	16
 #define BGBDT_MM_MOBJ_CELSHL	 8
 #define BGBDT_MM_MOBJ_TOTSHL	24
 #define BGBDT_MM_MOBJ_CELMSK	255
+#define BGBDT_MM_MOBJ_OBJLIM	(1<<20)
+
+#else
+
+#define BGBDT_MM_SOBJ_CHKSHL	18
+#define BGBDT_MM_SOBJ_CELSHL	 4
+#define BGBDT_MM_SOBJ_TOTSHL	22
+#define BGBDT_MM_SOBJ_CELMSK	15
+#define BGBDT_MM_SOBJ_OBJLIM	(1<<14)
+
+#define BGBDT_MM_MOBJ_CHKSHL	14
+#define BGBDT_MM_MOBJ_CELSHL	 8
+#define BGBDT_MM_MOBJ_TOTSHL	22
+#define BGBDT_MM_MOBJ_CELMSK	255
+#define BGBDT_MM_MOBJ_OBJLIM	(1<<18)
+
+#endif
 
 #define dtmAlloc(ty, sz)				\
 	BGBDT_MM_AllocLLn(ty, sz, __FILE__, __LINE__)

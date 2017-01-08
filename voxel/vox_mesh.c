@@ -124,6 +124,8 @@ int BGBDT_VoxMesh_IndexVertex(BGBDT_VoxChunkMesh *mesh,
 		return(i);
 	}
 	
+	printf("BGBDT_VoxMesh_IndexVertex: Realloc Vertex\n");
+	
 	k=mesh->mxyz; k=k+(k>>1);
 	mesh->xyz=BGBDT_WorldReallocVoxelTemp(
 		mesh->rgn->world, mesh->xyz,
@@ -149,7 +151,8 @@ int BGBDT_VoxMesh_IndexTriangle(BGBDT_VoxChunkMesh *mesh,
 	
 	if(!mesh->tris)
 	{
-		k=2048;
+//		k=4096;
+		k=3072;
 		mesh->tris=BGBDT_WorldAllocVoxelTemp(mesh->rgn->world,
 			k*sizeof(BGBDT_VoxTriangle));
 		mesh->ntris=0;
@@ -170,6 +173,8 @@ int BGBDT_VoxMesh_IndexTriangle(BGBDT_VoxChunkMesh *mesh,
 		return(i);
 	}
 	
+	printf("BGBDT_VoxMesh_IndexVertex: Realloc Tris\n");
+
 	k=mesh->mtris; k=k+(k>>1);
 	mesh->tris=BGBDT_WorldReallocVoxelTemp(
 		mesh->rgn->world, mesh->tris,
@@ -190,8 +195,9 @@ int BGBDT_VoxMesh_IndexMaterial(BGBDT_VoxChunkMesh *mesh, int mat)
 	if(!mesh->mat)
 	{
 		k=16;
-		mesh->mat=BGBDT_WorldAllocVoxelTemp(mesh->rgn->world,
-			k*2*sizeof(int));
+//		mesh->mat=BGBDT_WorldAllocVoxelTemp(mesh->rgn->world,
+//			k*2*sizeof(int));
+		mesh->mat=mesh->tmat;
 		mesh->nmat=0;
 		mesh->mmat=k;
 	}
@@ -200,6 +206,13 @@ int BGBDT_VoxMesh_IndexMaterial(BGBDT_VoxChunkMesh *mesh, int mat)
 	{
 		if(mesh->mat[i*2+0]==mat)
 			return(i);
+	}
+	
+	if((mesh->nmat+1)>=mesh->mmat)
+	{
+		printf("BGBDT_VoxMesh_IndexMaterial: Limit\n");
+		i=mesh->nmat-1;
+		return(i);
 	}
 	
 	i=mesh->nmat++;
@@ -257,6 +270,7 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyzm, xyzn, xyzc;
 	BGBDT_VoxTypeInfo *tyi;
 	int tix, atxys, atxyt, atxyb;
+	int mat_t, mat_s, mat_b;
 	int vxfl, fmfl, vty;
 	int i, j, k;
 
@@ -349,6 +363,19 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	
 //	fmfl=0;
 	
+	mat_t=tyi->mat_top;
+	mat_s=tyi->mat_side;
+	mat_b=tyi->mat_bot;
+
+#if 0
+	if(tyi->flags&BGBDT_VOXFL_TRANSPARENT)
+	{
+		mat_t|=0x01000000;
+		mat_s|=0x01000000;
+		mat_b|=0x01000000;
+	}
+#endif
+	
 	li[0]=tds.adjlit[0];	li[1]=tds.adjlit[1];
 	li[2]=tds.adjlit[2];	li[3]=tds.adjlit[3];
 	li[4]=tds.adjlit[4];	li[5]=tds.adjlit[5];
@@ -356,14 +383,14 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	if(tyi->flags&BGBDT_VOXFL_CROSSSPR)
 	{
 		BGBDT_VoxMesh_EmitQuad(mesh, v08, v09, v11, v10,
-			tyi->mat_side, atxys, li[5]);
+			mat_s, atxys, li[5]);
 		BGBDT_VoxMesh_EmitQuad(mesh, v09, v08, v10, v11,
-			tyi->mat_side, atxys, li[5]);
+			mat_s, atxys, li[5]);
 
 		BGBDT_VoxMesh_EmitQuad(mesh, v12, v13, v15, v14,
-			tyi->mat_side, atxys, li[5]);
+			mat_s, atxys, li[5]);
 		BGBDT_VoxMesh_EmitQuad(mesh, v13, v12, v14, v15,
-			tyi->mat_side, atxys, li[5]);
+			mat_s, atxys, li[5]);
 
 		return(0);
 	}
@@ -373,32 +400,32 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	{
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NX))
 			BGBDT_VoxMesh_EmitQuad(mesh, v4, v5, v2, v0,
-				tyi->mat_side, atxys, li[0]);
+				mat_s, atxys, li[0]);
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PX))
 			BGBDT_VoxMesh_EmitQuad(mesh, v7, v5, v1, v3,
-				tyi->mat_side, atxys, li[1]);
+				mat_s, atxys, li[1]);
 
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NY))
 			BGBDT_VoxMesh_EmitQuad(mesh, v5, v4, v0, v1,
-				tyi->mat_side, atxys, li[2]);
+				mat_s, atxys, li[2]);
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PY))
 			BGBDT_VoxMesh_EmitQuad(mesh, v6, v7, v3, v2,
-				tyi->mat_side, atxys, li[3]);
+				mat_s, atxys, li[3]);
 
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NZ))
 			BGBDT_VoxMesh_EmitQuad(mesh, v2, v3, v1, v0,
-				tyi->mat_bot, atxyt, li[4]);
+				mat_b, atxyt, li[4]);
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PZ))
 			BGBDT_VoxMesh_EmitQuad(mesh, v7, v6, v4, v5,
-				tyi->mat_top, atxyb, li[5]);
+				mat_t, atxyb, li[5]);
 	}
 
 	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NX))
 		BGBDT_VoxMesh_EmitQuad(mesh, v0, v2, v6, v4,
-			tyi->mat_side, atxys, li[0]);
+			mat_s, atxys, li[0]);
 	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PX))
 		BGBDT_VoxMesh_EmitQuad(mesh, v3, v1, v5, v7,
-			tyi->mat_side, atxys, li[1]);
+			mat_s, atxys, li[1]);
 
 //	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NY))
 //		BGBDT_VoxMesh_EmitQuad(mesh, v0, v1, v5, v4,
@@ -409,10 +436,10 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 
 	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NY))
 		BGBDT_VoxMesh_EmitQuad(mesh, v1, v0, v4, v5,
-			tyi->mat_side, atxys, li[2]);
+			mat_s, atxys, li[2]);
 	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PY))
 		BGBDT_VoxMesh_EmitQuad(mesh, v2, v3, v7, v6,
-			tyi->mat_side, atxys, li[3]);
+			mat_s, atxys, li[3]);
 
 //	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NZ))
 //		BGBDT_VoxMesh_EmitQuad(mesh, v1, v0, v2, v3,
@@ -423,10 +450,10 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 
 	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NZ))
 		BGBDT_VoxMesh_EmitQuad(mesh, v0, v1, v3, v2,
-			tyi->mat_bot, atxyt, li[4]);
+			mat_b, atxyt, li[4]);
 	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PZ))
 		BGBDT_VoxMesh_EmitQuad(mesh, v5, v4, v6, v7,
-			tyi->mat_top, atxyb, li[5]);
+			mat_t, atxyb, li[5]);
 
 	return(0);
 }
@@ -531,7 +558,7 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 
 	BGBDT_WorldUpdateChunkSolid(world, chk);
 
-//	if(chk->flags&BGBDT_CHKFL_ONLYAIR)
+	if(chk->flags&BGBDT_CHKFL_ONLYAIR)
 	if(chk->flags&(BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_NOVISFACE))
 		return(0);
 
@@ -562,8 +589,12 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 	
 	for(z=0; z<16; z++)
 		for(y=0; y<16; y++)
+//		for(y=1; y<16; y++)
 			for(x=0; x<16; x++)
 	{
+//		if(y==14)
+//			continue;
+	
 		BGBDT_WorldGetChunkVoxelData(world,
 			x, y, z, chk, &td, &tds,
 			BGBDT_ACCFL_CHKADJ);
@@ -589,7 +620,8 @@ int BGBDT_VoxMesh_EmitChunkFaces(BGBDT_VoxWorld *world,
 	return(0);
 }
 
-#if 0
+// #if 0
+#ifdef FRGL_VOX_USEFLOAT
 int BGBDT_VoxMesh_IndexVaVertex(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunkMesh *mesh,
 	float *xyz, float *st,
@@ -597,6 +629,7 @@ int BGBDT_VoxMesh_IndexVaVertex(BGBDT_VoxWorld *world,
 {
 	u16 *up;
 	byte *bp;
+	double f, g;
 	float *fp;
 	int i, j, k;
 	
@@ -632,24 +665,50 @@ int BGBDT_VoxMesh_IndexVaVertex(BGBDT_VoxWorld *world,
 
 	i=mesh->va_nvec++;
 
-	fp=mesh->va_xyz+i*3;
-	fp[0]=xyz[0]; fp[1]=xyz[1]; fp[2]=xyz[2];
-	fp=mesh->va_st+i*2;
+	fp=((float *)mesh->va_xyz)+(i*3);
+	fp[0]=xyz[0];
+	fp[1]=xyz[1];
+	fp[2]=xyz[2];
+
+#if 0
+	f=V3F_DOT(xyz, xyz);
+	g=V3F_DOT(fp, fp);
+	if(f!=f)
+		printf("BGBDT_VoxMesh_IndexVaVertex: NaN A\n");
+	if(g!=g)
+		printf("BGBDT_VoxMesh_IndexVaVertex: NaN B\n");
+#endif
+
+#if 0
+	j=(fp[0]<(-1))||(fp[0]>257);
+	j|=(fp[1]<(-1))||(fp[1]>257);
+	j|=(fp[2]<(-1))||(fp[2]>257);
+	if(j)
+		printf("BGBDT_VoxMesh_IndexVaVertex: NaN B\n");
+	j=(xyz[0]<(-1))||(xyz[0]>257);
+	j|=(xyz[1]<(-1))||(xyz[1]>257);
+	j|=(xyz[2]<(-1))||(xyz[2]>257);
+	if(j)
+		printf("BGBDT_VoxMesh_IndexVaVertex: NaN A\n");
+#endif
+
+	fp=((float *)mesh->va_st)+(i*2);
 	fp[0]=st[0]; fp[1]=st[1];
 
-	bp=mesh->va_rgba+i*4;
+	bp=mesh->va_rgba+(i*4);
 	bp[0]=rgba[0]; bp[1]=rgba[1];
 	bp[2]=rgba[2]; bp[3]=rgba[3];
 
-	bp=mesh->va_norm+i*3;
+//	bp=mesh->va_norm+(i*3);
+	bp=mesh->va_norm+(i*4);
 	bp[0]=norm[0]; bp[1]=norm[1];
-	bp[2]=norm[2];
-	
+	bp[2]=norm[2]; bp[3]=0;
+		
 	return(i);
 }
 #endif
 
-#if 1
+#ifndef FRGL_VOX_USEFLOAT
 u16 bgbdt_float2hf(float f)
 {
 	u16 hf;
@@ -712,15 +771,16 @@ int BGBDT_VoxMesh_IndexVaVertex(BGBDT_VoxWorld *world,
 //	fp=mesh->va_st+i*2;
 //	fp[0]=st[0]; fp[1]=st[1];
 
-	up=((u16 *)mesh->va_st)+i*2;
+	up=((u16 *)mesh->va_st)+(i*2);
 	up[0]=bgbdt_float2hf(st[0]);
 	up[1]=bgbdt_float2hf(st[1]);
 
-	bp=mesh->va_rgba+i*4;
+	bp=mesh->va_rgba+(i*4);
 	bp[0]=rgba[0]; bp[1]=rgba[1];
 	bp[2]=rgba[2]; bp[3]=rgba[3];
 
-	bp=mesh->va_norm+i*3;
+//	bp=mesh->va_norm+i*3;
+	bp=mesh->va_norm+(i*4);
 	bp[0]=norm[0]; bp[1]=norm[1];
 	bp[2]=norm[2];
 	
@@ -732,6 +792,7 @@ float bgbdt_clamp01(float v)
 {
 	if(v<0.0)return(0.0);
 	if(v>1.0)return(1.0);
+	if(v!=v)return(0.0);
 	return(v);
 }
 
@@ -745,6 +806,9 @@ void bgbdt_voxmesh_clrclamp(byte *clr, float cr, float cg, float cb)
 		clr[0]=bgbdt_clamp01(cr)*255.0;
 		clr[1]=bgbdt_clamp01(cg)*255.0;
 		clr[2]=bgbdt_clamp01(cb)*255.0;
+//		clr[0]=bgbdt_clamp01(cr)*239.0+15;
+//		clr[1]=bgbdt_clamp01(cg)*239.0+15;
+//		clr[2]=bgbdt_clamp01(cb)*239.0+15;
 		clr[3]=255;
 		
 		return;
@@ -762,10 +826,7 @@ void bgbdt_voxmesh_clrclamp(byte *clr, float cr, float cg, float cb)
 	clr[3]=te;
 }
 
-int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
-	BGBDT_VoxChunkMesh *mesh, BGBDT_VoxTriangle *tri)
-{
-	static float clrt[16][3]={
+float bgbdt_voxmesh_clrt[16][3]={
 	  {255/441.7, 255/441.7, 255/441.7},	//0
 	  { 64/270.6,  64/270.6, 255/270.6},	//1
 	  { 64/270.6, 255/270.6,  64/270.6},	//2
@@ -783,13 +844,19 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 	  {255/409.7, 255/409.7, 192/409.7},	//14
 	  {255/255.0, 255/255.0, 255/255.0},	//15
 	};
-	static byte clrtab[256*4];
-	static int iclrt=0;
-	float xyz[3][3];
-	float dv[3][3];
-	float st[3][2];
-	float tv[3];
-	byte rgba[4][4];
+
+byte bgbdt_voxmesh_clrtab[256*4];
+int bgbdt_voxmesh_iclrt=0;
+
+int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
+	BGBDT_VoxChunkMesh *mesh, BGBDT_VoxTriangle *tri)
+{
+	float xyz[4*3];
+	float dv[4*3];
+	float st[4*2];
+
+	float tv[4];
+	byte rgba[4*4];
 	byte norm[4];
 	int i0, i1, i2;
 	float la, lb, lk;
@@ -797,19 +864,21 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 	int ax, atx, aty;
 	int i, j, k;
 	
-	if(!iclrt)
+	if(!bgbdt_voxmesh_iclrt)
 	{
-		iclrt=1;
+		bgbdt_voxmesh_iclrt=1;
+
 		for(i=0; i<16; i++)
 		{
-			la=V3F_LEN(clrt[i]);
+			la=V3F_LEN(bgbdt_voxmesh_clrt[i]);
 			lb=1.732/la;
-			V3F_SCALE(clrt[i], lb, clrt[i]);
+			V3F_SCALE(bgbdt_voxmesh_clrt[i], lb, bgbdt_voxmesh_clrt[i]);
 		}
 
 		for(i=0; i<256; i++)
 		{
-			lb=((i>>4)&15)/15.0;
+//			lb=((i>>4)&15)/15.0;
+			lb=((i>>4)&15)*(1.0/15.0)+0.01;
 			k=i&15;
 
 		//	lk=0.032;
@@ -818,248 +887,203 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 //			clrtab[i*4+1]=bgbdt_clamp01(lk+lb*clrt[k][1])*255.0;
 //			clrtab[i*4+2]=bgbdt_clamp01(lk+lb*clrt[k][2])*255.0;
 //			clrtab[i*4+3]=255;
-			bgbdt_voxmesh_clrclamp(clrtab+i*4,
-				lk+lb*clrt[k][0],
-				lk+lb*clrt[k][1],
-				lk+lb*clrt[k][2]);
+			bgbdt_voxmesh_clrclamp(bgbdt_voxmesh_clrtab+i*4,
+				lk+lb*bgbdt_voxmesh_clrt[k][0],
+				lk+lb*bgbdt_voxmesh_clrt[k][1],
+				lk+lb*bgbdt_voxmesh_clrt[k][2]);
 		}
 	}
 	
 #if 0
-	xyz[0][0]=mesh->xyz[tri->v0].x*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[0][1]=mesh->xyz[tri->v0].y*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[0][2]=mesh->xyz[tri->v0].z*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[1][0]=mesh->xyz[tri->v1].x*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[1][1]=mesh->xyz[tri->v1].y*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[1][2]=mesh->xyz[tri->v1].z*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[2][0]=mesh->xyz[tri->v2].x*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[2][1]=mesh->xyz[tri->v2].y*BGBDT_XYZ_SCALE_TOMETER;
-	xyz[2][2]=mesh->xyz[tri->v2].z*BGBDT_XYZ_SCALE_TOMETER;
+	xyz[0*3+0]=(mesh->xyz[tri->v0].x&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+	xyz[0*3+1]=(mesh->xyz[tri->v0].y&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+	xyz[0*3+2]=(mesh->xyz[tri->v0].z&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+
+	xyz[1*3+0]=(mesh->xyz[tri->v1].x&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+	xyz[1*3+1]=(mesh->xyz[tri->v1].y&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+	xyz[1*3+2]=(mesh->xyz[tri->v1].z&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+
+	xyz[2*3+0]=(mesh->xyz[tri->v2].x&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+	xyz[2*3+1]=(mesh->xyz[tri->v2].y&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
+	xyz[2*3+2]=(mesh->xyz[tri->v2].z&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER-0.001;
 #endif
 
 #if 1
-	xyz[0][0]=(mesh->xyz[tri->v0].x&BGBDT_XYZ_MASK_REGION)*
+	xyz[0*3+0]=(mesh->xyz[tri->v0].x&BGBDT_XYZ_MASK_REGION)*
 		BGBDT_XYZ_SCALE_TOMETER;
-	xyz[0][1]=(mesh->xyz[tri->v0].y&BGBDT_XYZ_MASK_REGION)*
+	xyz[0*3+1]=(mesh->xyz[tri->v0].y&BGBDT_XYZ_MASK_REGION)*
 		BGBDT_XYZ_SCALE_TOMETER;
-	xyz[0][2]=(mesh->xyz[tri->v0].z&BGBDT_XYZ_MASK_REGION)*
-		BGBDT_XYZ_SCALE_TOMETER;
-
-	xyz[1][0]=(mesh->xyz[tri->v1].x&BGBDT_XYZ_MASK_REGION)*
-		BGBDT_XYZ_SCALE_TOMETER;
-	xyz[1][1]=(mesh->xyz[tri->v1].y&BGBDT_XYZ_MASK_REGION)*
-		BGBDT_XYZ_SCALE_TOMETER;
-	xyz[1][2]=(mesh->xyz[tri->v1].z&BGBDT_XYZ_MASK_REGION)*
+	xyz[0*3+2]=(mesh->xyz[tri->v0].z&BGBDT_XYZ_MASK_REGION)*
 		BGBDT_XYZ_SCALE_TOMETER;
 
-	xyz[2][0]=(mesh->xyz[tri->v2].x&BGBDT_XYZ_MASK_REGION)*
+	xyz[1*3+0]=(mesh->xyz[tri->v1].x&BGBDT_XYZ_MASK_REGION)*
 		BGBDT_XYZ_SCALE_TOMETER;
-	xyz[2][1]=(mesh->xyz[tri->v2].y&BGBDT_XYZ_MASK_REGION)*
+	xyz[1*3+1]=(mesh->xyz[tri->v1].y&BGBDT_XYZ_MASK_REGION)*
 		BGBDT_XYZ_SCALE_TOMETER;
-	xyz[2][2]=(mesh->xyz[tri->v2].z&BGBDT_XYZ_MASK_REGION)*
+	xyz[1*3+2]=(mesh->xyz[tri->v1].z&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER;
+
+	xyz[2*3+0]=(mesh->xyz[tri->v2].x&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER;
+	xyz[2*3+1]=(mesh->xyz[tri->v2].y&BGBDT_XYZ_MASK_REGION)*
+		BGBDT_XYZ_SCALE_TOMETER;
+	xyz[2*3+2]=(mesh->xyz[tri->v2].z&BGBDT_XYZ_MASK_REGION)*
 		BGBDT_XYZ_SCALE_TOMETER;
 #endif
 	
-	V3F_SUB(xyz[1], xyz[0], dv[0]);
-	V3F_SUB(xyz[2], xyz[1], dv[1]);
+	V3F_SUB(xyz+1*3, xyz+0*3, dv+0*3);
+	V3F_SUB(xyz+2*3, xyz+1*3, dv+1*3);
 
-//	V3F_NORMALIZE(dv[0], dv[0]);
-//	V3F_NORMALIZE(dv[1], dv[1]);
-
-//	V3F_CROSS(dv[0], dv[1], dv[2]);
-	V3F_CROSS(dv[1], dv[0], dv[2]);
-	V3F_NORMALIZE(dv[2], dv[2]);
+	V3F_CROSS(dv+1*3, dv+0*3, dv+2*3);
+	V3F_NORMALIZE(dv+2*3, dv+2*3);
 	
 //	norm[0]=dv[2][0]*127+128;
 //	norm[1]=dv[2][1]*127+128;
 //	norm[2]=dv[2][2]*127+128;
 
-	norm[0]=dv[2][0]*127.5;
-	norm[1]=dv[2][1]*127.5;
-	norm[2]=dv[2][2]*127.5;
+//	norm[0]=dv[2][0]*127.5;
+//	norm[1]=dv[2][1]*127.5;
+//	norm[2]=dv[2][2]*127.5;
+
+	norm[0]=(int)(dv[2*3+0]*127.5);
+	norm[1]=(int)(dv[2*3+1]*127.5);
+	norm[2]=(int)(dv[2*3+2]*127.5);
+	norm[3]=0;
 
 //	if((tri->light>>8)&255)
 	if(tri->light>>8)
 	{
-//		la=((tri->light>>8)&255)/255.0;
-		la=((tri->light>>8)&255)/128.0;
-		lb=((tri->light>>4)&15)/15.0;
+		la=((tri->light>>8)&248)*(1.0/127.0)+0.01;
+		lb=((tri->light>>4)&15)*(1.0/15.0)+0.01;
 		k=tri->light&15;
 
-	//	lk=0.032;
 		lk=0.064;
-//		rgba[0][0]=bgbdt_clamp01(lk+la+lb*clrt[k][0])*255.0;
-//		rgba[0][1]=bgbdt_clamp01(lk+la+lb*clrt[k][1])*255.0;
-//		rgba[0][2]=bgbdt_clamp01(lk+la+lb*clrt[k][2])*255.0;
-//		rgba[0][3]=255;
-		bgbdt_voxmesh_clrclamp(rgba[0],
-			lk+la+lb*clrt[k][0],
-			lk+la+lb*clrt[k][1],
-			lk+la+lb*clrt[k][2]);
+		bgbdt_voxmesh_clrclamp(rgba+0,
+			lk+la+lb*bgbdt_voxmesh_clrt[k][0],
+			lk+la+lb*bgbdt_voxmesh_clrt[k][1],
+			lk+la+lb*bgbdt_voxmesh_clrt[k][2]);
 	}else
 	{
 		i=tri->light&255;
-		rgba[0][0]=clrtab[i*4+0];
-		rgba[0][1]=clrtab[i*4+1];
-		rgba[0][2]=clrtab[i*4+2];
-		rgba[0][3]=clrtab[i*4+3];
+		rgba[0*4+0]=bgbdt_voxmesh_clrtab[i*4+0];
+		rgba[0*4+1]=bgbdt_voxmesh_clrtab[i*4+1];
+		rgba[0*4+2]=bgbdt_voxmesh_clrtab[i*4+2];
+		rgba[0*4+3]=bgbdt_voxmesh_clrtab[i*4+3];
 	}
 
-	rgba[1][0]=rgba[0][0];	rgba[1][1]=rgba[0][1];
-	rgba[1][2]=rgba[0][2];	rgba[1][3]=rgba[0][3];
-	rgba[2][0]=rgba[0][0];	rgba[2][1]=rgba[0][1];
-	rgba[2][2]=rgba[0][2];	rgba[2][3]=rgba[0][3];
-
-//	rgba[0][0]=255;	rgba[0][1]=255;
-//	rgba[0][2]=255;	rgba[0][3]=255;
-//	rgba[1][0]=255;	rgba[1][1]=255;
-//	rgba[1][2]=255;	rgba[1][3]=255;
-//	rgba[2][0]=255;	rgba[2][1]=255;
-//	rgba[2][2]=255;	rgba[2][3]=255;
+	rgba[1*4+0]=rgba[0*4+0];	rgba[1*4+1]=rgba[0*4+1];
+	rgba[1*4+2]=rgba[0*4+2];	rgba[1*4+3]=rgba[0*4+3];
+	rgba[2*4+0]=rgba[0*4+0];	rgba[2*4+1]=rgba[0*4+1];
+	rgba[2*4+2]=rgba[0*4+2];	rgba[2*4+3]=rgba[0*4+3];
 
 #if 1
-	tv[0]=dv[2][0]*dv[2][0];
-	tv[1]=dv[2][1]*dv[2][1];
-	tv[2]=dv[2][2]*dv[2][2];
+	tv[0]=dv[2*3+0]*dv[2*3+0];
+	tv[1]=dv[2*3+1]*dv[2*3+1];
+	tv[2]=dv[2*3+2]*dv[2*3+2];
 	if(tv[0]>tv[1])
 	{
 //		if(tv[0]>tv[2])		{ ax=0; }
 //		else				{ ax=2; }
-		if(tv[0]>=tv[2])		{ ax=(dv[0]>=0)?0:4; }
-		else				{ ax=(dv[2]>=0)?2:6; }
+//		if(tv[0]>=tv[2])		{ ax=(dv[2*3+0]>=0)?0:4; }
+//		else				{ ax=(dv[2*3+2]>=0)?2:6; }
+
+		if(tv[0]>=tv[2])	{ ax=0; }
+		else				{ ax=2; }
 	}else
 	{
 //		if(tv[1]>tv[2])		{ ax=1; }
 //		else				{ ax=2; }
-		if(tv[1]>=tv[2])		{ ax=(dv[1]>=0)?1:5; }
-		else				{ ax=(dv[2]>=0)?2:6; }
+//		if(tv[1]>=tv[2])		{ ax=(dv[2*3+1]>=0)?1:5; }
+//		else				{ ax=(dv[2*3+2]>=0)?2:6; }
+
+		if(tv[1]>=tv[2])	{ ax=1; }
+		else				{ ax=2; }
 	}
 #endif
-	
-#if 0
-	if(dv[2][0]>dv[2][1])
-	{
-		if(dv[2][0]>dv[2][2])
-			{ ax=0; }
-		else
-			{ ax=2; }
-	}else
-	{
-		if(dv[2][1]>dv[2][2])
-			{ ax=1; }
-		else
-			{ ax=2; }
-	}
-#endif
-	
+
+#if 1
 	switch(ax)
 	{
 	case 0:
-		st[0][0]=xyz[0][1];		st[0][1]=xyz[0][2];
-		st[1][0]=xyz[1][1];		st[1][1]=xyz[1][2];
-		st[2][0]=xyz[2][1];		st[2][1]=xyz[2][2];
+		st[0*2+0]=xyz[0*3+1];	st[0*2+1]=xyz[0*3+2];
+		st[1*2+0]=xyz[1*3+1];	st[1*2+1]=xyz[1*3+2];
+		st[2*2+0]=xyz[2*3+1];	st[2*2+1]=xyz[2*3+2];
 		break;
 	case 1:
-		st[0][0]=xyz[0][0];		st[0][1]=xyz[0][2];
-		st[1][0]=xyz[1][0];		st[1][1]=xyz[1][2];
-		st[2][0]=xyz[2][0];		st[2][1]=xyz[2][2];
+		st[0*2+0]=xyz[0*3+0];	st[0*2+1]=xyz[0*3+2];
+		st[1*2+0]=xyz[1*3+0];	st[1*2+1]=xyz[1*3+2];
+		st[2*2+0]=xyz[2*3+0];	st[2*2+1]=xyz[2*3+2];
 		break;
 	case 2:
-		st[0][0]=xyz[0][0];		st[0][1]=xyz[0][1];
-		st[1][0]=xyz[1][0];		st[1][1]=xyz[1][1];
-		st[2][0]=xyz[2][0];		st[2][1]=xyz[2][1];
+		st[0*2+0]=xyz[0*3+0];	st[0*2+1]=xyz[0*3+1];
+		st[1*2+0]=xyz[1*3+0];	st[1*2+1]=xyz[1*3+1];
+		st[2*2+0]=xyz[2*3+0];	st[2*2+1]=xyz[2*3+1];
 		break;
 
 	case 4:
-		st[0][0]=-xyz[0][1];	st[0][1]=xyz[0][2];
-		st[1][0]=-xyz[1][1];	st[1][1]=xyz[1][2];
-		st[2][0]=-xyz[2][1];	st[2][1]=xyz[2][2];
+		st[0*2+0]=-xyz[0*3+1];	st[0*2+1]=xyz[0*3+2];
+		st[1*2+0]=-xyz[1*3+1];	st[1*2+1]=xyz[1*3+2];
+		st[2*2+0]=-xyz[2*3+1];	st[2*2+1]=xyz[2*3+2];
 		break;
 	case 5:
-		st[0][0]=-xyz[0][0];	st[0][1]=xyz[0][2];
-		st[1][0]=-xyz[1][0];	st[1][1]=xyz[1][2];
-		st[2][0]=-xyz[2][0];	st[2][1]=xyz[2][2];
+		st[0*2+0]=-xyz[0*3+0];	st[0*2+1]=xyz[0*3+2];
+		st[1*2+0]=-xyz[1*3+0];	st[1*2+1]=xyz[1*3+2];
+		st[2*2+0]=-xyz[2*3+0];	st[2*2+1]=xyz[2*3+2];
 		break;
 	case 6:
-		st[0][0]=-xyz[0][0];	st[0][1]=xyz[0][1];
-		st[1][0]=-xyz[1][0];	st[1][1]=xyz[1][1];
-		st[2][0]=-xyz[2][0];	st[2][1]=xyz[2][1];
+		st[0*2+0]=-xyz[0*3+0];	st[0*2+1]=xyz[0*3+1];
+		st[1*2+0]=-xyz[1*3+0];	st[1*2+1]=xyz[1*3+1];
+		st[2*2+0]=-xyz[2*3+0];	st[2*2+1]=xyz[2*3+1];
 		break;
 
 	default:
-		st[0][0]=xyz[0][0];		st[0][1]=xyz[0][1];
-		st[1][0]=xyz[1][0];		st[1][1]=xyz[1][1];
-		st[2][0]=xyz[2][0];		st[2][1]=xyz[2][1];
+		st[0*2+0]=xyz[0*3+0];	st[0*2+1]=xyz[0*3+1];
+		st[1*2+0]=xyz[1*3+0];	st[1*2+1]=xyz[1*3+1];
+		st[2*2+0]=xyz[2*3+0];	st[2*2+1]=xyz[2*3+1];
 		break;
 	}
 	
-	ms=st[0][0]; ns=st[0][0];
-	mt=st[0][1]; nt=st[0][1];
-	if(st[1][0]<ms)ms=st[1][0];
-	if(st[1][0]>ns)ns=st[1][0];
-	if(st[1][1]<mt)mt=st[1][1];
-	if(st[1][1]>nt)nt=st[1][1];
-	if(st[2][0]<ms)ms=st[2][0];
-	if(st[2][0]>ns)ns=st[2][0];
-	if(st[2][1]<mt)mt=st[2][1];
-	if(st[2][1]>nt)nt=st[2][1];
+	ms=st[0*2+0]; ns=st[0*2+0];
+	mt=st[0*2+1]; nt=st[0*2+1];
+	if(st[1*2+0]<ms)ms=st[1*2+0];
+	if(st[1*2+0]>ns)ns=st[1*2+0];
+	if(st[1*2+1]<mt)mt=st[1*2+1];
+	if(st[1*2+1]>nt)nt=st[1*2+1];
+	if(st[2*2+0]<ms)ms=st[2*2+0];
+	if(st[2*2+0]>ns)ns=st[2*2+0];
+	if(st[2*2+1]<mt)mt=st[2*2+1];
+	if(st[2*2+1]>nt)nt=st[2*2+1];
+#endif
 
 #if 1
 	i=((int)ms);
-	ms-=i; ns-=i; st[0][0]-=i; st[1][0]-=i; st[2][0]-=i;
+	ms-=i; ns-=i; st[0*2+0]-=i; st[1*2+0]-=i; st[2*2+0]-=i;
 	i=((int)mt);
-	mt-=i; nt-=i; st[0][1]-=i; st[1][1]-=i; st[2][1]-=i;
+	mt-=i; nt-=i; st[0*2+1]-=i; st[1*2+1]-=i; st[2*2+1]-=i;
 
 	i=((int)ns)-1;
-	ms-=i; ns-=i; st[0][0]-=i; st[1][0]-=i; st[2][0]-=i;
+	ms-=i; ns-=i; st[0*2+0]-=i; st[1*2+0]-=i; st[2*2+0]-=i;
 	i=((int)nt)-1;
-	mt-=i; nt-=i; st[0][1]-=i; st[1][1]-=i; st[2][1]-=i;
+	mt-=i; nt-=i; st[0*2+1]-=i; st[1*2+1]-=i; st[2*2+1]-=i;
 
 	if(ms<(-0.00))
-		{ ms+=1.0; ns+=1.0; st[0][0]+=1.0; st[1][0]+=1.0; st[2][0]+=1.0; }
+		{ ms+=1.0; ns+=1.0; st[0*2+0]+=1.0; st[1*2+0]+=1.0; st[2*2+0]+=1.0; }
 	if(ns>( 1.00))
-		{ ms-=1.0; ns-=1.0; st[0][0]-=1.0; st[1][0]-=1.0; st[2][0]-=1.0; }
+		{ ms-=1.0; ns-=1.0; st[0*2+0]-=1.0; st[1*2+0]-=1.0; st[2*2+0]-=1.0; }
 
 	if(mt<(-0.00))
-		{ mt+=1.0; nt+=1.0; st[0][1]+=1.0; st[1][1]+=1.0; st[2][1]+=1.0; }
+		{ mt+=1.0; nt+=1.0; st[0*2+1]+=1.0; st[1*2+1]+=1.0; st[2*2+1]+=1.0; }
 	if(nt>( 1.00))
-		{ mt-=1.0; nt-=1.0; st[0][1]-=1.0; st[1][1]-=1.0; st[2][1]-=1.0; }
-#endif
-
-#if 0
-	if(ns<(-3))
-	{
-		i=((int)(-ns))-1;
-		ms+=i; ns+=i; st[0][0]+=i; st[1][0]+=i; st[2][0]+=i;
-	}
-
-	if(nt<(-3))
-	{
-		i=((int)(-nt))-1;
-		mt+=i; nt+=i; st[0][1]+=i; st[1][1]+=i; st[2][1]+=i;
-	}
-
-	if(ns>3)
-	{
-		i=((int)ns)-1;
-		ms-=i; ns-=i; st[0][0]-=i; st[1][0]-=i; st[2][0]-=i;
-	}
-
-	if(nt>3)
-	{
-		i=((int)nt)-1;
-		mt-=i; nt-=i; st[0][1]-=i; st[1][1]-=i; st[2][1]-=i;
-	}
-	
-	while(ms<(-1.5))
-		{ ms+=1.0; ns+=1.0; st[0][0]+=1.0; st[1][0]+=1.0; st[2][0]+=1.0; }
-	while(ns>(1.5))
-		{ ms-=1.0; ns-=1.0; st[0][0]-=1.0; st[1][0]-=1.0; st[2][0]-=1.0; }
-
-	while(mt<(-1.5))
-		{ mt+=1.0; nt+=1.0; st[0][1]+=1.0; st[1][1]+=1.0; st[2][1]+=1.0; }
-	while(nt>(1.5))
-		{ mt-=1.0; nt-=1.0; st[0][1]-=1.0; st[1][1]-=1.0; st[2][1]-=1.0; }
+		{ mt-=1.0; nt-=1.0; st[0*2+1]-=1.0; st[1*2+1]-=1.0; st[2*2+1]-=1.0; }
 #endif
 	
 	if(tri->atxy)
@@ -1067,35 +1091,20 @@ int BGBDT_VoxMesh_EmitVaTriangle(BGBDT_VoxWorld *world,
 		atx=tri->atxy&15;
 		aty=15-(tri->atxy>>4)&15;
 	
-		st[0][0]=bgbdt_clamp01(st[0][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
-		st[0][1]=bgbdt_clamp01(st[0][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
-		st[1][0]=bgbdt_clamp01(st[1][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
-		st[1][1]=bgbdt_clamp01(st[1][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
-		st[2][0]=bgbdt_clamp01(st[2][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
-		st[2][1]=bgbdt_clamp01(st[2][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
-
-//		st[0][0]=(st[0][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
-//		st[0][1]=(st[0][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
-//		st[1][0]=(st[1][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
-//		st[1][1]=(st[1][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
-//		st[2][0]=(st[2][0])*(1.0/16-0.001)+(atx/16.0+0.0005);
-//		st[2][1]=(st[2][1])*(1.0/16-0.001)+(aty/16.0+0.0005);
+		st[0*2+0]=bgbdt_clamp01(st[0*2+0])*(1.0/16-0.001)+(atx/16.0+0.0005);
+		st[0*2+1]=bgbdt_clamp01(st[0*2+1])*(1.0/16-0.001)+(aty/16.0+0.0005);
+		st[1*2+0]=bgbdt_clamp01(st[1*2+0])*(1.0/16-0.001)+(atx/16.0+0.0005);
+		st[1*2+1]=bgbdt_clamp01(st[1*2+1])*(1.0/16-0.001)+(aty/16.0+0.0005);
+		st[2*2+0]=bgbdt_clamp01(st[2*2+0])*(1.0/16-0.001)+(atx/16.0+0.0005);
+		st[2*2+1]=bgbdt_clamp01(st[2*2+1])*(1.0/16-0.001)+(aty/16.0+0.0005);
 	}
-	
-	i0=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
-		xyz[0], st[0], rgba[0], norm);
-	i1=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
-		xyz[1], st[1], rgba[1], norm);
-	i2=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
-		xyz[2], st[2], rgba[2], norm);
 
-#if 0
-	i=mesh->va_nelem;
-	mesh->va_nelem+=3;
-	mesh->va_elem[i+0]=i0;
-	mesh->va_elem[i+1]=i1;
-	mesh->va_elem[i+2]=i2;
-#endif
+	i0=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
+		xyz+0*3, st+0*2, rgba+0*4, norm);
+	i1=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
+		xyz+1*3, st+1*2, rgba+1*4, norm);
+	i2=BGBDT_VoxMesh_IndexVaVertex(world, mesh,
+		xyz+2*3, st+2*2, rgba+2*4, norm);
 
 	return(0);
 }
@@ -1107,6 +1116,9 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 	BGBDT_VoxTriangle *tri;
 	byte *tbuf, *tbuf2;
 //	byte *cs, *ct;
+	int tvam[16*4];
+	float *fp;
+	double f;
 	int nv, ne, nm, c, sz, szt, id;
 	int i0, i1, i2;
 	int i, j, k;
@@ -1145,19 +1157,36 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 	tbuf=frgl_malloc(szt);
 	
 	sz=0;
+
+#ifdef FRGL_VOX_USEFLOAT
+	mesh->va_xyz=(float *)(tbuf+sz);
+	sz+=nv*3*sizeof(float);
+	sz=(sz+15)&(~15);
+	mesh->va_st=(float *)(tbuf+sz);	
+	sz+=nv*2*sizeof(float);
+	sz=(sz+15)&(~15);
+#else
 	mesh->va_xyz=(float *)(tbuf+sz);
 //	sz+=nv*3*sizeof(float);
 	sz+=nv*3*sizeof(u16);	sz=(sz+3)&(~3);
 	mesh->va_st=(float *)(tbuf+sz);	
 //	sz+=nv*2*sizeof(float);
 	sz+=nv*2*sizeof(u16);	sz=(sz+3)&(~3);
+#endif
+
 	mesh->va_rgba=(tbuf+sz);
 	sz+=nv*4*sizeof(byte);	sz=(sz+3)&(~3);
 	mesh->va_norm=(tbuf+sz);
-	sz+=nv*3*sizeof(byte); sz=(sz+3)&(~3);
+//	sz+=nv*3*sizeof(byte); sz=(sz+3)&(~3);
+	sz+=nv*4*sizeof(byte); sz=(sz+3)&(~3);
 	mesh->va_elem=(int *)(tbuf+sz);
 	sz+=nv*sizeof(int);
+	sz=(sz+3)&(~3);
 	mesh->va_mesh=(int *)(tbuf+sz);
+	
+	mesh->va_nvec=0;
+	mesh->va_nelem=0;
+	mesh->va_nmesh=0;
 	
 	for(i=0; i<mesh->nmat; i++)
 	{
@@ -1177,11 +1206,31 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 		i2=mesh->mat[i*2+0];
 		
 		j=mesh->va_nmesh++;
+
+#if 1
 		mesh->va_mesh[j*4+0]=i0;
 		mesh->va_mesh[j*4+1]=i1-i0;
-		mesh->va_mesh[j*4+2]=i2;
+		mesh->va_mesh[j*4+2]=i2&0x00FFFFFF;
 		mesh->va_mesh[j*4+3]=0;
+#endif
+
+#if 1
+		tvam[j*4+0]=i0;
+		tvam[j*4+1]=i1-i0;
+		tvam[j*4+2]=i2&0x00FFFFFF;
+		tvam[j*4+3]=0;
+#endif
 	}
+	
+//	memcpy(mesh->va_mesh, tvam,
+//		mesh->va_nmesh*4*sizeof(int));
+
+	if((tvam[0]!=mesh->va_mesh[0]) ||
+		(tvam[1]!=mesh->va_mesh[1]))
+	{
+		printf("BGBDT_VoxMesh_RebuildArrays: TVAM Mismatch\n");
+	}
+
 	
 	sz=0; nv=mesh->va_nvec; ne=mesh->va_nelem; nm=mesh->va_nmesh;
 //	mesh->ofs_xyz=sz;	sz+=nv*3*sizeof(float);	sz=(sz+15)&(~15);
@@ -1191,16 +1240,26 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 //	mesh->ofs_elem=sz;	sz+=ne  *sizeof(int);		sz=(sz+15)&(~15);
 //	mesh->ofs_mesh=sz;	sz+=nm*4*sizeof(int);		sz=(sz+15)&(~15);
 
+#ifdef FRGL_VOX_USEFLOAT
+	mesh->ofs_xyz=sz;	sz+=nv*3*sizeof(float);	sz=(sz+15)&(~15);
+	mesh->ofs_st=sz;	sz+=nv*2*sizeof(float);	sz=(sz+15)&(~15);
+#else
 	mesh->ofs_xyz=sz;	sz+=nv*3*sizeof(u16);		sz=(sz+3)&(~3);
 	mesh->ofs_st=sz;	sz+=nv*2*sizeof(u16);		sz=(sz+3)&(~3);
+#endif
 	mesh->ofs_rgba=sz;	sz+=nv*4*sizeof(byte);		sz=(sz+3)&(~3);
-	mesh->ofs_norm=sz;	sz+=nv*3*sizeof(byte);		sz=(sz+3)&(~3);
+//	mesh->ofs_norm=sz;	sz+=nv*3*sizeof(byte);		sz=(sz+3)&(~3);
+	mesh->ofs_norm=sz;	sz+=nv*4*sizeof(byte);		sz=(sz+3)&(~3);
 	mesh->ofs_mesh=sz;	sz+=nm*4*sizeof(int);		sz=(sz+3)&(~3);
 	
 //	sz+=1024;
 //	sz+=65536;
+
+//	sz=(sz+255)&(~255);
 	
 	tbuf2=BGBDT_WorldAllocVoxelTemp(world, sz);
+	memset(tbuf2, 0, sz);
+
 //	memcpy(tbuf2+mesh->ofs_xyz , mesh->va_xyz , nv*3*sizeof(float));
 //	memcpy(tbuf2+mesh->ofs_st  , mesh->va_st  , nv*2*sizeof(float));
 //	memcpy(tbuf2+mesh->ofs_rgba, mesh->va_rgba, nv*4*sizeof(byte));
@@ -1208,10 +1267,17 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 //	memcpy(tbuf2+mesh->ofs_elem, mesh->va_elem, ne  *sizeof(int));
 //	memcpy(tbuf2+mesh->ofs_mesh, mesh->va_mesh, nm*4*sizeof(int));
 
+#ifdef FRGL_VOX_USEFLOAT
+	memcpy(tbuf2+mesh->ofs_xyz , mesh->va_xyz , nv*3*sizeof(float));
+	memcpy(tbuf2+mesh->ofs_st  , mesh->va_st  , nv*2*sizeof(float));
+#else
 	memcpy(tbuf2+mesh->ofs_xyz , mesh->va_xyz , nv*3*sizeof(u16));
 	memcpy(tbuf2+mesh->ofs_st  , mesh->va_st  , nv*2*sizeof(u16));
+#endif
+
 	memcpy(tbuf2+mesh->ofs_rgba, mesh->va_rgba, nv*4*sizeof(byte));
-	memcpy(tbuf2+mesh->ofs_norm, mesh->va_norm, nv*3*sizeof(byte));
+//	memcpy(tbuf2+mesh->ofs_norm, mesh->va_norm, nv*3*sizeof(byte));
+	memcpy(tbuf2+mesh->ofs_norm, mesh->va_norm, nv*4*sizeof(byte));
 	memcpy(tbuf2+mesh->ofs_mesh, mesh->va_mesh, nm*4*sizeof(int));
 	
 	frgl_free(tbuf);
@@ -1229,6 +1295,7 @@ int BGBDT_VoxMesh_RebuildArrays(BGBDT_VoxWorld *world,
 	{
 		if(mesh->vbo_id<=0)
 		{
+			id=0;
 			frglGenBuffers(1, &id);
 			frglBindBuffer(GL_ARRAY_BUFFER, id);
 			frglBufferData(GL_ARRAY_BUFFER,
@@ -1359,7 +1426,7 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 	int i;
 
 	if((bx|by|bz)>>4)
-		__debugbreak();
+		FRGL_DBGBREAK
 
 //	bi=((bz*BGBDT_XYZ_SZ_REGION_XY)+by)*BGBDT_XYZ_SZ_REGION_XY+bx;
 	bi=(((bz<<4)|by)<<4)|bx;
@@ -1450,6 +1517,16 @@ BGBDT_VoxChunkMesh *BGBDT_GetRegionChunkMesh(
 	if(chk)
 	{
 		BGBDT_VoxMesh_RebuildChunkMesh(world, mesh, chk);
+
+		if(mesh->flags&BGBDT_MESHFL_NANFAIL)
+		{
+			printf("BGBDT_GetRegionChunkMesh: NaN Fail, %p\n", chk);
+//			rgn->chkmesh[bi]=NULL;
+//			chk->flags|=BGBDT_CHKFL_MESHDIRTY;
+//			BGBDT_FreeChunkMesh(world, mesh);
+//			return(NULL);
+		}
+
 		rgn->chkmesh[bi]=mesh;
 		return(mesh);
 	}

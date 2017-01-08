@@ -276,7 +276,7 @@ BTEIFGL_API int MSP430_LoadIHex(MSP430_Context *ctx, char *fname)
 	if(!buf)
 		return(-1);
 
-	i=MSP430_DecodeIHex(ctx, buf, fsz);
+	i=MSP430_DecodeIHex(ctx, (char *)buf, fsz);
 	frgl_free(buf);
 	return(i);
 }
@@ -354,12 +354,12 @@ BTEIFGL_API int MSP430_DecodeMap(MSP430_Context *ctx, char *ibuf, int szBuf)
 		if((i>=0) && (cs1[0]==' ') && (cs1[1]==' ') && (cs1[2]!=' '))
 		{
 			cs1+=2;
-			ct=buf;
+			ct=(char *)buf;
 			while((cs1<cse) && (*cs1>' '))
 				*ct++=*cs1++;
 			*ct++=0;
 			
-			MSP430_AddMapSymbol(ctx, buf, i);
+			MSP430_AddMapSymbol(ctx, (char *)buf, i);
 
 			cs=cs1;
 			while((cs<cse) && (*cs!='\n'))
@@ -391,7 +391,7 @@ BTEIFGL_API int MSP430_LoadMap(MSP430_Context *ctx, char *fname)
 	if(!buf)
 		return(-1);
 
-	i=MSP430_DecodeMap(ctx, buf, fsz);
+	i=MSP430_DecodeMap(ctx, (char *)buf, fsz);
 	frgl_free(buf);
 	return(i);
 }
@@ -694,8 +694,8 @@ BTEIFGL_API int MSP430_UpdatePeri(MSP430_Context *ctx)
 		}
 	}else
 	{
-		ctx->wdtCycles=(1<<31)-1;
-		ctx->wdtRstCnt=(1<<31)-1;
+		ctx->wdtCycles=(int)((1LL<<31)-1);
+		ctx->wdtRstCnt=(int)((1LL<<31)-1);
 	}
 
 	return(0);

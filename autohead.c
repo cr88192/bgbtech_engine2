@@ -117,9 +117,27 @@ void prx_def(char *buf)
 	printf("%s\n", tb);
 }
 
+int isapiline(char *buf, char *api)
+{
+	char *s;
+
+	if(!strncmp(buf, api, strlen(api)))
+		return(strlen(api));
+
+	s=buf;
+	while(*s && *s>' ')s++;
+	if((s-buf)>4)
+	{
+		if(!strncmp(s-4, "_API", 4))
+			return(s-buf);
+	}
+	
+	return(0);
+}
+
 int main(int argc, char *argv[])
 {
-	int i, j, l, isapi;
+	int i, j, k, l, isapi;
 	FILE *fd;
 	char *buf, *buf2, *buf3, *buf4;
 	char *s, *s2, *t;
@@ -289,11 +307,14 @@ int main(int argc, char *argv[])
 
 			if(api)
 			{
-				if(!strncmp(s, api, strlen(api)))
+				k=isapiline(s, api);
+//				if(!strncmp(s, api, strlen(api)))
+				if(k>0)
 				{
 					if(amod==2)continue;
 
-					s+=strlen(api);
+//					s+=strlen(api);
+					s+=k;
 					while(*s && (*s<=' '))s++;
 					isapi=1;
 				}else

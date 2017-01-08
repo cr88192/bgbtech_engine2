@@ -1058,6 +1058,7 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 			BSVM2_OPZ_ADDR, BSVM2_Op_NEWOBJ);
 		break;
 	case BSVM2_OP_DELETE:
+	case BSVM2_OP_DELNGBL:
 		BSVM2_Interp_SetupOpPopUn(cblk, op,
 			BSVM2_Op_DELOBJ);
 		break;

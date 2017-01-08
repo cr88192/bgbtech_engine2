@@ -42,14 +42,14 @@ BTEIFGL_API void btews_transistor_Update(BTEWS_WireNode *self, double dt)
 	self->inx=ic;	self->ipx=ic;
 	self->iny=ic;	self->ipy=ic;
 	
-	if( ((self->cty==BTEWS_CTY_NPN) ||
+	if( (((self->cty==BTEWS_CTY_NPN) ||
 			(self->cty==BTEWS_CTY_NPNDAR) ||
 			(self->cty==BTEWS_CTY_NMOS)) &&
-			(npy->vny>(nny->vpy+0.8)) ||
-		((self->cty==BTEWS_CTY_PNP) ||
+			(npy->vny>(nny->vpy+0.8))) ||
+		(((self->cty==BTEWS_CTY_PNP) ||
 			(self->cty==BTEWS_CTY_PNPDAR) ||
 			(self->cty==BTEWS_CTY_PMOS)) &&
-			(npy->vny<(nny->vpy-0.8))
+			(npy->vny<(nny->vpy-0.8)))
 			)
 	{
 		v0=(v+nny->vpy)*0.5;

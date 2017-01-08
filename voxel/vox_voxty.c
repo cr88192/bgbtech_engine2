@@ -236,7 +236,7 @@ int BGBDT_WorldRegionLookupString(BGBDT_VoxWorld *world,
 			rgn->strix_ofs[i]=0;
 			continue;
 		}
-		s0=rgn->strtab_buf+j;
+		s0=(char *)(rgn->strtab_buf+j);
 		if(!strcmp(s0, str))
 			return(i);
 	}
@@ -286,7 +286,7 @@ int BGBDT_WorldRegionGetString(BGBDT_VoxWorld *world,
 		rgn->strtab_msz=k;
 	}
 
-	s0=rgn->strtab_buf; se=s0+rgn->strtab_nsz;
+	s0=(char *)rgn->strtab_buf; se=s0+rgn->strtab_nsz;
 	while(s0<se)
 	{
 		if(!strcmp(s0, str))
@@ -303,7 +303,7 @@ int BGBDT_WorldRegionGetString(BGBDT_VoxWorld *world,
 		}
 		if(i>=rgn->strix_num)
 			i=rgn->strix_num++;
-		rgn->strix_ofs[i]=s0-rgn->strtab_buf;
+		rgn->strix_ofs[i]=((byte *)s0)-rgn->strtab_buf;
 		return(i);
 	}
 
@@ -318,7 +318,7 @@ int BGBDT_WorldRegionGetString(BGBDT_VoxWorld *world,
 		rgn->strtab_msz=k;
 	}
 	
-	s0=rgn->strtab_buf+rgn->strtab_nsz;
+	s0=(char *)(rgn->strtab_buf+rgn->strtab_nsz);
 	rgn->strtab_nsz+=l;
 	strcpy(s0, str);
 
@@ -330,7 +330,7 @@ int BGBDT_WorldRegionGetString(BGBDT_VoxWorld *world,
 	if(i>=rgn->strix_num)
 		i=rgn->strix_num++;
 
-	rgn->strix_ofs[i]=s0-rgn->strtab_buf;
+	rgn->strix_ofs[i]=s0-((char *)rgn->strtab_buf);
 	return(i);
 }
 
@@ -352,5 +352,5 @@ char *BGBDT_WorldRegionStringForIndex(BGBDT_VoxWorld *world,
 		rgn->strix_ofs[idx]=0;
 		return(NULL);
 	}
-	return(rgn->strtab_buf+j);
+	return((char *)(rgn->strtab_buf+j));
 }

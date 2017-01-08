@@ -1,5 +1,22 @@
 #include <bteifgl.h>
 
+#if defined(linux) || defined(__EMSCRIPTEN__)
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/param.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN	64
+#endif
+
+#endif
+
+
 // #define MAXMSG 512
 #define MAXMSG 1472
 

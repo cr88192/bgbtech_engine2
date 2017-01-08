@@ -25,3 +25,10 @@ resource_dev2/**/*.*
 *.ilk
 *.exp
 !resource/*.dll
+
+*.data
+*.js
+*.wasm
+*.html
+*.html.mem
+*.bc

@@ -568,8 +568,10 @@ void BLNK_InitLink()
 
 	blnk_nmod=0;
 
+#ifndef __EMSCRIPTEN__
 	BLNK_AllocTextChunk(BLNK_SZCHUNK);
 	BLNK_AllocDataChunk(BLNK_SZCHUNK);
+#endif
 }
 
 #if 1

@@ -1,7 +1,65 @@
-// #include <btlzazip.h>
+#include <btlzazip.h>
+
+u32 btlza_dbase[64]=
+{
+	    0,     1,     2,     3,
+	    4,     6,     8,    12,
+	   16,    24,    32,    48,
+	   64,    96,   128,   192,
+	  256,   384,   512,   768,
+	 1024,  1536,  2048,  3072,
+	 4096,  6144,  8192, 12288,
+	16384, 24576, 32768, 49152,
+	0x00010000, 0x00018000, 0x00020000, 0x00030000, 
+	0x00040000, 0x00060000, 0x00080000, 0x000C0000, 
+	0x00100000, 0x00180000, 0x00200000, 0x00300000, 
+	0x00400000, 0x00600000, 0x00800000, 0x00C00000, 
+	0x01000000, 0x01800000, 0x02000000, 0x03000000, 
+	0x04000000, 0x06000000, 0x08000000, 0x0C000000, 
+	0x10000000, 0x18000000, 0x20000000, 0x30000000, 
+	0x40000000, 0x60000000, 0x80000000, 0xC0000000
+};
+
+int btlza_dextra[64]=
+{
+	 0,  0,  0,  0,	 1,  1,  2,  2,
+	 3,  3,  4,  4,	 5,  5,  6,  6,
+	 7,  7,  8,  8,	 9,  9, 10, 10,
+	11, 11, 12, 12,	13, 13, 14, 14,
+	15, 15, 16, 16, 17, 17, 18, 18,
+	19, 19, 20, 20, 21, 21, 22, 22,
+	23, 23, 24, 24, 25, 25, 26, 26,
+	27, 27, 28, 28, 29, 29, 30, 30
+};
+
+int btlza_lbase[64]=
+{
+	  3,   4,   5,   6,   7,   8,   9,  10,
+	 11,  13,  15,  17,  19,  23,  27,  31,
+	 35,  43,  51,  59,  67,  83,  99, 115,
+	131, 163, 195, 227,
+	0x0103, 0x0143, 0x0183, 0x01C3,
+	0x0203, 0x0283, 0x0303, 0x0383,
+	0x0403, 0x0503, 0x0603, 0x0703,
+	0x0803, 0x0A03, 0x0C03, 0x0E03,
+	0x1003, 0x1403, 0x1803, 0x1C03,
+	0x2003, 0x2803, 0x3003, 0x3803,
+	0x4003, 0x5003, 0x6003, 0x7003,
+	0x8003, 0xA003, 0xC003, 0xE003,
+	0x0000, 0x0000, 0x0000, 0x0000
+};
+
+int btlza_lextra[64]=
+{
+	 0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  2,  2,  2,  2,
+	 3,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  5,
+	 6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  8,  9,  9,  9,  9,
+	10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13,
+	 0,  0,  0,  0
+};
 
 #if 0
-int BTLZA_Decode_DecodeDistance(BTLZA_Context *ctx)
+int BTLZA_Decode_DecodeDistance(BGBBTJ_BTLZA_Context *ctx)
 {
 
 	int i, j, k;
@@ -15,7 +73,7 @@ int BTLZA_Decode_DecodeDistance(BTLZA_Context *ctx)
 	return(k);
 }
 
-int BTLZA_Decode_DecodeRun(BTLZA_Context *ctx, int sym)
+int BTLZA_Decode_DecodeRun(BGBBTJ_BTLZA_Context *ctx, int sym)
 {
 	char *s;
 	int i, j, k;
@@ -40,13 +98,13 @@ int BTLZA_Decode_DecodeRun(BTLZA_Context *ctx, int sym)
 	return(0);
 }
 
-int BTLZA_Decode_DecodeSymbol(BTLZA_Context *ctx)
+int BTLZA_Decode_DecodeSymbol(BGBBTJ_BTLZA_Context *ctx)
 {
 	return(BTLZA_BitArith_DecodeSymbol9(
 		ctx, ctx->mdl_lit, ctx->ctxmask));
 }
 
-int BTLZA_Decode_DecodeBlockData(BTLZA_Context *ctx)
+int BTLZA_Decode_DecodeBlockData(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 
@@ -68,7 +126,7 @@ int BTLZA_Decode_DecodeBlockData(BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_Decode_DecodeBlock(BTLZA_Context *ctx)
+int BTLZA_Decode_DecodeBlock(BGBBTJ_BTLZA_Context *ctx)
 {
 	int fi, ty, l, nl, fl;
 	int i;
@@ -117,10 +175,10 @@ int BTLZA_Decode_DecodeBlock(BTLZA_Context *ctx)
 	return(0);
 }
 
-BTEIFGL_API int BTLZA_Decode_DecodeStreamSz(byte *ibuf, byte *obuf, int isz,
+BGBBTJ_API int BTLZA_Decode_DecodeStreamSz(byte *ibuf, byte *obuf, int isz,
 	int osz, int *rosz, int flags)
 {
-	BTLZA_Context *ctx;
+	BGBBTJ_BTLZA_Context *ctx;
 	int i, ws;
 
 	ctx=BTLZA_AllocContext();
@@ -147,10 +205,10 @@ BTEIFGL_API int BTLZA_Decode_DecodeStreamSz(byte *ibuf, byte *obuf, int isz,
 }
 #endif
 
-BTEIFGL_API int BTLZA_DecodeStreamSzZl(byte *ibuf, byte *obuf, int isz,
+BGBBTJ_API int BTLZA_DecodeStreamSzZl(byte *ibuf, byte *obuf, int isz,
 	int osz, int *rosz, int flags)
 {
-	BTLZA_Context *ctx;
+	BGBBTJ_BTLZA_Context *ctx;
 	byte *cs, *cse;
 	int i, j, cm;
 	
@@ -234,7 +292,7 @@ BTEIFGL_API int BTLZA_DecodeStreamSzZl(byte *ibuf, byte *obuf, int isz,
 	return(-3);
 }
 
-BTEIFGL_API int BTLZA_DecodeStreamZl(byte *ibuf, byte *obuf, int isz, int osz)
+BGBBTJ_API int BTLZA_DecodeStreamZl(byte *ibuf, byte *obuf, int isz, int osz)
 {
 	return(BTLZA_DecodeStreamSzZl(ibuf, obuf, isz, osz, NULL, 0));
 }

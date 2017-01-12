@@ -1,5 +1,5 @@
-// #include <btlzazip.h>
-// #include <time.h>
+#include <btlzazip.h>
+#include <time.h>
 
 #if 1
 void BGBBTJ_BufPNG_DataAdler32_Step16(byte *buf, int *rs1, int *rs2)

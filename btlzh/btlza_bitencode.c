@@ -1,4 +1,4 @@
-// #include <btlzazip.h>
+#include <btlzazip.h>
 
 int btlza_dbase1[64];
 int btlza_dextra1[64];
@@ -191,8 +191,7 @@ int BTLZA_BitEnc_BuildLengthsAdjust(int *stat, int nc, byte *cl, int ml)
 	{
 		j=BTLZA_BitEnc_BuildLengths(stat, nc, cl, ml);
 		if(j<0)
-			fprintf(stderr, "BTLZA_BitEnc_BuildLengthsAdjust: "
-				"Huff Fail %d\n", j);
+			fprintf(stderr, "BTLZA_BitEnc_BuildLengthsAdjust: Huff Fail %d\n");
 
 		for(i=0; i<nc; i++)
 			if(stat[i] && !cl[i])
@@ -207,7 +206,7 @@ int BTLZA_BitEnc_BuildLengthsAdjust(int *stat, int nc, byte *cl, int ml)
 	return(0);
 }
 
-void BTLZA_BitEnc_StatLZRun(BTLZA_Context *ctx,
+void BTLZA_BitEnc_StatLZRun(BGBBTJ_BTLZA_Context *ctx,
 	byte *cs, int *lstat, int *dstat)
 {
 	int l, d;
@@ -256,7 +255,7 @@ void BTLZA_BitEnc_StatLZRun(BTLZA_Context *ctx,
 	}
 }
 
-void BTLZA_BitEnc_StatLZBuffer(BTLZA_Context *ctx,
+void BTLZA_BitEnc_StatLZBuffer(BGBBTJ_BTLZA_Context *ctx,
 	byte *tbuf, byte *mbuf, int n,
 	int *lstat, int *dstat)
 {
@@ -283,7 +282,7 @@ void BTLZA_BitEnc_StatLZBuffer(BTLZA_Context *ctx,
 	lstat[256]++;
 }
 
-void BTLZA_BitEnc_StatLengths(BTLZA_Context *ctx,
+void BTLZA_BitEnc_StatLengths(BGBBTJ_BTLZA_Context *ctx,
 	byte *cl, int nc, int *stat)
 {
 	int i, j, l;
@@ -305,7 +304,7 @@ void BTLZA_BitEnc_StatLengths(BTLZA_Context *ctx,
 	}
 }
 
-void BTLZA_BitEnc_StatLengthsRh(BTLZA_Context *ctx,
+void BTLZA_BitEnc_StatLengthsRh(BGBBTJ_BTLZA_Context *ctx,
 	byte *cl, byte *lcl, int nc, int *stat)
 {
 	int i, j, l;
@@ -337,22 +336,22 @@ void BTLZA_BitEnc_StatLengthsRh(BTLZA_Context *ctx,
 	}
 }
 
-void BTLZA_BitEnc_EncodeSymbol(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_EncodeSymbol(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	ctx->BS_EncodeSymbol(ctx, v);
 }
 
-void BTLZA_BitEnc_EncodeDistanceSymbol(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_EncodeDistanceSymbol(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	ctx->BS_EncodeDistanceSymbol(ctx, v);
 }
 
-void BTLZA_BitEnc_EncodeClSymbol(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_EncodeClSymbol(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	ctx->BS_EncodeClSymbol(ctx, v);
 }
 
-void BTLZA_BitEnc_EncodeSymbolBasic(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_EncodeSymbolBasic(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	if(!ctx->bs_ltab_len[v])
 		fprintf(stderr, "BTLZA_BitEnc_EncodeSymbolBasic: No Symbol %d\n", v);
@@ -362,7 +361,7 @@ void BTLZA_BitEnc_EncodeSymbolBasic(BTLZA_Context *ctx, int v)
 }
 
 void BTLZA_BitEnc_EncodeDistanceSymbolBasic(
-	BTLZA_Context *ctx, int v)
+	BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	if(!ctx->bs_dtab_len[v])
 		fprintf(stderr, "BTLZA_BitEnc_EncodeDistanceSymbol: "
@@ -373,7 +372,7 @@ void BTLZA_BitEnc_EncodeDistanceSymbolBasic(
 }
 
 void BTLZA_BitEnc_EncodeSymbolRingHuff(
-	BTLZA_Context *ctx, int v)
+	BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	int rh;
 
@@ -388,7 +387,7 @@ void BTLZA_BitEnc_EncodeSymbolRingHuff(
 }
 
 void BTLZA_BitEnc_EncodeDistanceSymbolRingHuff(
-	BTLZA_Context *ctx, int v)
+	BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	int rh;
 
@@ -402,7 +401,7 @@ void BTLZA_BitEnc_EncodeDistanceSymbolRingHuff(
 		ctx->bs_dtab_len2[rh][v]);
 }
 
-void BTLZA_BitEnc_EncodeLengths(BTLZA_Context *ctx, byte *cl, int nc)
+void BTLZA_BitEnc_EncodeLengths(BGBBTJ_BTLZA_Context *ctx, byte *cl, int nc)
 {
 	int i, j, l;
 
@@ -456,7 +455,7 @@ void BTLZA_BitEnc_EncodeLengths(BTLZA_Context *ctx, byte *cl, int nc)
 }
 
 void BTLZA_BitEnc_EncodeLengthsRh(
-	BTLZA_Context *ctx, byte *cl, byte *lcl, int nc)
+	BGBBTJ_BTLZA_Context *ctx, byte *cl, byte *lcl, int nc)
 {
 	int i, j, l;
 
@@ -524,7 +523,7 @@ void BTLZA_BitEnc_EncodeLengthsRh(
 //	fprintf(stderr, "\n");
 }
 
-void BTLZA_BitEnc_EncodeLZRun(BTLZA_Context *ctx, byte *cs)
+void BTLZA_BitEnc_EncodeLZRun(BGBBTJ_BTLZA_Context *ctx, byte *cs)
 {
 	int rh;
 	int l, d;
@@ -584,7 +583,7 @@ void BTLZA_BitEnc_EncodeLZRun(BTLZA_Context *ctx, byte *cs)
 	}
 }
 
-void BTLZA_BitEnc_EncodeLZBuffer(BTLZA_Context *ctx,
+void BTLZA_BitEnc_EncodeLZBuffer(BGBBTJ_BTLZA_Context *ctx,
 	byte *tbuf, byte *mbuf, int n)
 {
 	byte *s;
@@ -606,7 +605,7 @@ void BTLZA_BitEnc_EncodeLZBuffer(BTLZA_Context *ctx,
 	BTLZA_BitEnc_EncodeSymbol(ctx, 256);
 }
 
-int BTLZA_BitEnc_EncodeBlockStatic(BTLZA_Context *ctx,
+int BTLZA_BitEnc_EncodeBlockStatic(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, int isz, int last)
 {
 	int n;
@@ -628,7 +627,7 @@ int BTLZA_BitEnc_EncodeBlockStatic(BTLZA_Context *ctx,
 	return(0);
 }
 
-int BTLZA_BitEnc_EncodeBlock(BTLZA_Context *ctx,
+int BTLZA_BitEnc_EncodeBlock(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, int isz, int last)
 {
 	int i;
@@ -636,11 +635,11 @@ int BTLZA_BitEnc_EncodeBlock(BTLZA_Context *ctx,
 	i=isz;
 	if(!ctx->lz_tbuf || (isz>ctx->lz_tsz))
 	{
-		if(ctx->lz_tbuf)frgl_free(ctx->lz_tbuf);
-		if(ctx->lz_mbuf)frgl_free(ctx->lz_mbuf);
+		if(ctx->lz_tbuf)btlza_free(ctx->lz_tbuf);
+		if(ctx->lz_mbuf)btlza_free(ctx->lz_mbuf);
 		ctx->lz_tsz=i; ctx->lz_msz=(i+7)/8;
-		ctx->lz_tbuf=frgl_malloc(ctx->lz_tsz);
-		ctx->lz_mbuf=frgl_malloc(ctx->lz_msz);
+		ctx->lz_tbuf=btlza_malloc(ctx->lz_tsz);
+		ctx->lz_mbuf=btlza_malloc(ctx->lz_msz);
 	}
 
 	if(ctx->lz_maxdist>65536)
@@ -657,7 +656,7 @@ int BTLZA_BitEnc_EncodeBlock(BTLZA_Context *ctx,
 	}
 }
 
-int BTLZA_BitEnc_EncodeBlockDynamic(BTLZA_Context *ctx,
+int BTLZA_BitEnc_EncodeBlockDynamic(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, int isz, int last)
 {
 	static int lorder[]={
@@ -804,7 +803,7 @@ int bgbrasw_exp2f12(int val)
 	return(k);
 }
 
-int BTLZA_BitEnc_EncodeBlockBTLZH(BTLZA_Context *ctx,
+int BTLZA_BitEnc_EncodeBlockBTLZH(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, int isz, int last)
 {
 	static int lorder[]={
@@ -1133,7 +1132,7 @@ int BTLZA_BitEnc_EncodeBlockBTLZH(BTLZA_Context *ctx,
 	return(0);
 }
 
-int BTLZA_BitEnc_EncodeBeginArithmetic(BTLZA_Context *ctx)
+int BTLZA_BitEnc_EncodeBeginArithmetic(BGBBTJ_BTLZA_Context *ctx)
 {
 	BTLZA_BitEnc_WriteBit(ctx, 0);
 	BTLZA_BitEnc_Write2Bits(ctx, 3);
@@ -1152,7 +1151,7 @@ int BTLZA_BitEnc_EncodeBeginArithmetic(BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitEnc_EncodeStream_I(BTLZA_Context *ctx,
+int BTLZA_BitEnc_EncodeStream_I(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, byte *obuf, int isz, int osz)
 {
 	byte *s;
@@ -1234,7 +1233,7 @@ int BTLZA_BitEnc_EncodeStream_I(BTLZA_Context *ctx,
 	return(ctx->ct-obuf);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStream32Lvl(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStream32Lvl(
 	byte *ibuf, byte *obuf, int isz, int osz, int l)
 {
 	static int sd[10]=
@@ -1242,7 +1241,7 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStream32Lvl(
 	static int md[10]=
 		{1, 4096, 8192, 4096, 8192, 8192, 16384, 16384, 32768, 32768};
 
-	BTLZA_Context *ctx;
+	BGBBTJ_BTLZA_Context *ctx;
 	int i;
 
 	ctx=BTLZA_AllocContext();
@@ -1258,13 +1257,13 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStream32Lvl(
 	return(i);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStream64Lvl(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStream64Lvl(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {
 	static int sd[10]=
 		{0, 1, 4, 16, 64, 256, 256, 1024, 4096, 16384};
-	BTLZA_Context *ctx;
+	BGBBTJ_BTLZA_Context *ctx;
 	int i;
 
 	ctx=BTLZA_AllocContext();
@@ -1290,16 +1289,16 @@ static int btlza_xlvl_wsz[10]={
 	1<<12, 1<<14, 1<<15, 1<<15, 1<<17,
 	1<<18, 1<<19, 1<<19, 1<<20, 1<<20};
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeXLvlWinSize(int lvl)
+BGBBTJ_API int BTLZA_BitEnc_EncodeXLvlWinSize(int lvl)
 {
 	return(btlza_xlvl_wsz[lvl&15]);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvl(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStreamXLvl(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {
-	BTLZA_Context *ctx;
+	BGBBTJ_BTLZA_Context *ctx;
 	int i;
 
 	if((lvl>>8)&BGBBTJ_ZFL_FASTENC)
@@ -1332,7 +1331,7 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvl(
 	return(i);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStream32LvlZl(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStream32LvlZl(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {
@@ -1355,7 +1354,7 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStream32LvlZl(
 	return(j);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStream64LvlZl(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStream64LvlZl(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {
@@ -1378,7 +1377,7 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStream64LvlZl(
 	return(j);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvlZl(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStreamXLvlZl(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {
@@ -1401,7 +1400,7 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvlZl(
 	return(j);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvlZlc(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStreamXLvlZlc(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {
@@ -1418,7 +1417,7 @@ BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvlZlc(
 	return(j+1);
 }
 
-BTEIFGL_API int BTLZA_BitEnc_EncodeStreamXLvlZlTest(
+BGBBTJ_API int BTLZA_BitEnc_EncodeStreamXLvlZlTest(
 	byte *ibuf, byte *obuf,
 	int isz, int osz, int lvl)
 {

@@ -1,11 +1,11 @@
-// #include <btlzazip.h>
+#include <btlzazip.h>
 
-void BTLZA_BitEnc_WriteByteBasic(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_WriteByteBasic(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	*ctx->ct++=v;
 }
 
-void BTLZA_BitEnc_WriteByteEscape(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_WriteByteEscape(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	if(v==255)
 	{
@@ -17,14 +17,14 @@ void BTLZA_BitEnc_WriteByteEscape(BTLZA_Context *ctx, int v)
 	*ctx->ct++=v;
 }
 
-void BTLZA_BitDec_WriteByteArithLE(BTLZA_Context *ctx, int v)
+void BTLZA_BitDec_WriteByteArithLE(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	BTLZA_BitArith_EncodeSymbol8LE(ctx,
 		v, ctx->mdl_rbits, ctx->ctxmask_raw);
 //	return(*ctx->cs++);
 }
 
-void BTLZA_BitDec_WriteByteArithBE(BTLZA_Context *ctx, int v)
+void BTLZA_BitDec_WriteByteArithBE(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	BTLZA_BitArith_EncodeSymbol8(ctx,
 		v, ctx->mdl_rbits, ctx->ctxmask_raw);
@@ -32,10 +32,10 @@ void BTLZA_BitDec_WriteByteArithBE(BTLZA_Context *ctx, int v)
 }
 
 
-void BTLZA_BitEnc_WriteByte(BTLZA_Context *ctx, int v)
+void BTLZA_BitEnc_WriteByte(BGBBTJ_BTLZA_Context *ctx, int v)
 	{ ctx->BS_WriteByte(ctx, v); }
 
-void BTLZA_BitEnc_WriteBit(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_WriteBit(BGBBTJ_BTLZA_Context *ctx, int i)
 {
 	i&=1;
 	ctx->bs_win|=i<<ctx->bs_pos;
@@ -49,7 +49,7 @@ void BTLZA_BitEnc_WriteBit(BTLZA_Context *ctx, int i)
 }
 
 #if 0
-void BTLZA_BitEnc_Write2Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write2Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 {
 	i&=3;
 	ctx->bs_win|=i<<ctx->bs_pos;
@@ -62,7 +62,7 @@ void BTLZA_BitEnc_Write2Bits(BTLZA_Context *ctx, int i)
 	}
 }
 
-void BTLZA_BitEnc_Write3Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write3Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 {
 	i&=7;
 	ctx->bs_win|=i<<ctx->bs_pos;
@@ -75,7 +75,7 @@ void BTLZA_BitEnc_Write3Bits(BTLZA_Context *ctx, int i)
 	}
 }
 
-void BTLZA_BitEnc_Write4Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write4Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 {
 	i&=15;
 	ctx->bs_win|=i<<ctx->bs_pos;
@@ -88,7 +88,7 @@ void BTLZA_BitEnc_Write4Bits(BTLZA_Context *ctx, int i)
 	}
 }
 
-void BTLZA_BitEnc_Write5Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write5Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 {
 	i&=31;
 	ctx->bs_win|=i<<ctx->bs_pos;
@@ -101,26 +101,26 @@ void BTLZA_BitEnc_Write5Bits(BTLZA_Context *ctx, int i)
 	}
 }
 
-void BTLZA_BitEnc_Write6Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write6Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 6); }
-void BTLZA_BitEnc_Write7Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write7Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 7); }
 #endif
 
-void BTLZA_BitEnc_Write2Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write2Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 2); }
-void BTLZA_BitEnc_Write3Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write3Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 3); }
-void BTLZA_BitEnc_Write4Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write4Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 4); }
-void BTLZA_BitEnc_Write5Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write5Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 5); }
-void BTLZA_BitEnc_Write6Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write6Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 6); }
-void BTLZA_BitEnc_Write7Bits(BTLZA_Context *ctx, int i)
+void BTLZA_BitEnc_Write7Bits(BGBBTJ_BTLZA_Context *ctx, int i)
 	{ BTLZA_BitEnc_WriteNBits(ctx, i, 7); }
 
-void BTLZA_BitEnc_WriteNBits(BTLZA_Context *ctx, int i, int n)
+void BTLZA_BitEnc_WriteNBits(BGBBTJ_BTLZA_Context *ctx, int i, int n)
 {
 	i&=((1<<n)-1);
 	ctx->bs_win|=i<<ctx->bs_pos;
@@ -157,7 +157,7 @@ void BTLZA_BitEnc_WriteNBits(BTLZA_Context *ctx, int i, int n)
 #endif
 }
 
-void BTLZA_BitEnc_FlushBits(BTLZA_Context *ctx)
+void BTLZA_BitEnc_FlushBits(BGBBTJ_BTLZA_Context *ctx)
 {
 	while(ctx->bs_pos>0)
 	{
@@ -174,12 +174,12 @@ void BTLZA_BitEnc_FlushBits(BTLZA_Context *ctx)
 	}
 }
 
-int BTLZA_BitDec_ReadByteBasic(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadByteBasic(BGBBTJ_BTLZA_Context *ctx)
 {
 	return(*ctx->cs++);
 }
 
-int BTLZA_BitDec_ReadByteEscape(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadByteEscape(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j;
 
@@ -195,21 +195,21 @@ int BTLZA_BitDec_ReadByteEscape(BTLZA_Context *ctx)
 	return(i);
 }
 
-int BTLZA_BitDec_ReadByteArithLE(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadByteArithLE(BGBBTJ_BTLZA_Context *ctx)
 {
 	return(BTLZA_BitArith_DecodeSymbol8LE(ctx,
 		ctx->mdl_rbits, ctx->ctxmask_raw));
 //	return(*ctx->cs++);
 }
 
-int BTLZA_BitDec_ReadByteArithBE(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadByteArithBE(BGBBTJ_BTLZA_Context *ctx)
 {
 	return(BTLZA_BitArith_DecodeSymbol8(ctx,
 		ctx->mdl_rbits, ctx->ctxmask_raw));
 //	return(*ctx->cs++);
 }
 
-int BTLZA_BitDec_ReadBitBasic(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadBitBasic(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 
@@ -224,7 +224,7 @@ int BTLZA_BitDec_ReadBitBasic(BTLZA_Context *ctx)
 }
 
 #if 0
-int BTLZA_BitDec_Read2Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read2Bits(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=(ctx->bs_win>>ctx->bs_pos)&3;
@@ -237,7 +237,7 @@ int BTLZA_BitDec_Read2Bits(BTLZA_Context *ctx)
 	return(i);
 }
 
-int BTLZA_BitDec_Read3Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read3Bits(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=(ctx->bs_win>>ctx->bs_pos)&7;
@@ -250,7 +250,7 @@ int BTLZA_BitDec_Read3Bits(BTLZA_Context *ctx)
 	return(i);
 }
 
-int BTLZA_BitDec_Read4Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read4Bits(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=(ctx->bs_win>>ctx->bs_pos)&15;
@@ -263,7 +263,7 @@ int BTLZA_BitDec_Read4Bits(BTLZA_Context *ctx)
 	return(i);
 }
 
-int BTLZA_BitDec_Read5Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read5Bits(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=(ctx->bs_win>>ctx->bs_pos)&31;
@@ -277,7 +277,7 @@ int BTLZA_BitDec_Read5Bits(BTLZA_Context *ctx)
 }
 #endif
 
-void BTLZA_BitDec_ReadAdjust(BTLZA_Context *ctx)
+void BTLZA_BitDec_ReadAdjust(BGBBTJ_BTLZA_Context *ctx)
 {
 	while(ctx->bs_pos>=8)
 	{
@@ -286,7 +286,7 @@ void BTLZA_BitDec_ReadAdjust(BTLZA_Context *ctx)
 	}
 }
 
-int BTLZA_BitDec_ReadNBitsBasic(BTLZA_Context *ctx, int n)
+int BTLZA_BitDec_ReadNBitsBasic(BGBBTJ_BTLZA_Context *ctx, int n)
 {
 	int i;
 	i=(ctx->bs_win>>ctx->bs_pos)&((1<<n)-1);
@@ -309,7 +309,7 @@ int BTLZA_BitDec_ReadNBitsBasic(BTLZA_Context *ctx, int n)
 	return(i);
 }
 
-void BTLZA_BitDec_SkipNBitsBasic(BTLZA_Context *ctx, int n)
+void BTLZA_BitDec_SkipNBitsBasic(BGBBTJ_BTLZA_Context *ctx, int n)
 {
 	ctx->bs_pos+=n;
 	if(ctx->bs_pos>=8)
@@ -329,41 +329,41 @@ void BTLZA_BitDec_SkipNBitsBasic(BTLZA_Context *ctx, int n)
 	}
 }
 
-int BTLZA_BitDec_ReadByte(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadByte(BGBBTJ_BTLZA_Context *ctx)
 	{ return(ctx->BS_ReadByte(ctx)); }
 
-int BTLZA_BitDec_ReadBit(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadBit(BGBBTJ_BTLZA_Context *ctx)
 	{ return(ctx->BS_ReadBit(ctx)); }
 
-int BTLZA_BitDec_ReadNBits(BTLZA_Context *ctx, int n)
+int BTLZA_BitDec_ReadNBits(BGBBTJ_BTLZA_Context *ctx, int n)
 	{ return(ctx->BS_ReadNBits(ctx, n)); }
 
-void BTLZA_BitDec_SkipNBits(BTLZA_Context *ctx, int n)
+void BTLZA_BitDec_SkipNBits(BGBBTJ_BTLZA_Context *ctx, int n)
 	{ ctx->BS_SkipNBits(ctx, n); }
 
-int BTLZA_BitDec_Read2Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read2Bits(BGBBTJ_BTLZA_Context *ctx)
 	{ return(BTLZA_BitDec_ReadNBits(ctx, 2)); }
 
-int BTLZA_BitDec_Read3Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read3Bits(BGBBTJ_BTLZA_Context *ctx)
 	{ return(BTLZA_BitDec_ReadNBits(ctx, 3)); }
 
-int BTLZA_BitDec_Read4Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read4Bits(BGBBTJ_BTLZA_Context *ctx)
 	{ return(BTLZA_BitDec_ReadNBits(ctx, 4)); }
 
-int BTLZA_BitDec_Read5Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read5Bits(BGBBTJ_BTLZA_Context *ctx)
 	{ return(BTLZA_BitDec_ReadNBits(ctx, 5)); }
 
-int BTLZA_BitDec_Read6Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read6Bits(BGBBTJ_BTLZA_Context *ctx)
 	{ return(BTLZA_BitDec_ReadNBits(ctx, 6)); }
 
-int BTLZA_BitDec_Read7Bits(BTLZA_Context *ctx)
+int BTLZA_BitDec_Read7Bits(BGBBTJ_BTLZA_Context *ctx)
 	{ return(BTLZA_BitDec_ReadNBits(ctx, 7)); }
 
-int BTLZA_BitDec_ReadExtraNBits(BTLZA_Context *ctx, int n)
+int BTLZA_BitDec_ReadExtraNBits(BGBBTJ_BTLZA_Context *ctx, int n)
 	{ return(ctx->BS_ReadExtraNBits(ctx, n)); }
 
 
-int BTLZA_BitDec_ReadRawNBits(BTLZA_Context *ctx, int n)
+int BTLZA_BitDec_ReadRawNBits(BGBBTJ_BTLZA_Context *ctx, int n)
 {
 	int v;
 	v=BTLZA_BitArith_InputContextModelBitsLE(ctx,
@@ -371,10 +371,10 @@ int BTLZA_BitDec_ReadRawNBits(BTLZA_Context *ctx, int n)
 	return(v);
 }
 
-int BTLZA_BitDec_ReadExtraNBitsBasic(BTLZA_Context *ctx, int n)
+int BTLZA_BitDec_ReadExtraNBitsBasic(BGBBTJ_BTLZA_Context *ctx, int n)
 	{ return(BTLZA_BitDec_ReadNBitsBasic(ctx, n)); }
 
-int BTLZA_BitArith_ReadExtraNBitsModel(BTLZA_Context *ctx, int n)
+int BTLZA_BitArith_ReadExtraNBitsModel(BGBBTJ_BTLZA_Context *ctx, int n)
 {
 	int i, j;
 	int v;
@@ -394,7 +394,7 @@ int BTLZA_BitArith_ReadExtraNBitsModel(BTLZA_Context *ctx, int n)
 }
 
 
-int BTLZA_BitDec_ReadLiteralBit(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadLiteralBit(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k;
 	
@@ -407,7 +407,7 @@ int BTLZA_BitDec_ReadLiteralBit(BTLZA_Context *ctx)
 //	return(BTLZA_BitDec_ReadBit(ctx));
 }
 
-int BTLZA_BitDec_ReadDistanceBit(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadDistanceBit(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k;
 	
@@ -420,7 +420,7 @@ int BTLZA_BitDec_ReadDistanceBit(BTLZA_Context *ctx)
 //	return(BTLZA_BitDec_ReadBit(ctx));
 }
 
-int BTLZA_BitDec_ReadRawBit(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadRawBit(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k;
 	
@@ -433,14 +433,14 @@ int BTLZA_BitDec_ReadRawBit(BTLZA_Context *ctx)
 //	return(BTLZA_BitDec_ReadBit(ctx));
 }
 
-int BTLZA_BitDec_PeekWord(BTLZA_Context *ctx)
+int BTLZA_BitDec_PeekWord(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=(ctx->bs_win>>ctx->bs_pos)&65535;
 	return(i);
 }
 
-void BTLZA_BitDec_AlignByte(BTLZA_Context *ctx)
+void BTLZA_BitDec_AlignByte(BGBBTJ_BTLZA_Context *ctx)
 {
 	while(ctx->bs_pos>0)
 	{
@@ -450,7 +450,7 @@ void BTLZA_BitDec_AlignByte(BTLZA_Context *ctx)
 	ctx->bs_pos=0;
 }
 
-int BTLZA_BitDec_ReadAlignedByte(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadAlignedByte(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=ctx->bs_win&0xFF;
@@ -458,7 +458,7 @@ int BTLZA_BitDec_ReadAlignedByte(BTLZA_Context *ctx)
 	return(i);
 }
 
-int BTLZA_BitDec_ReadAlignedWord(BTLZA_Context *ctx)
+int BTLZA_BitDec_ReadAlignedWord(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i;
 	i=ctx->bs_win&0xFFFF;

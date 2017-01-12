@@ -1,11 +1,11 @@
-// #include <btlzazip.h>
+#include <btlzazip.h>
 
-// extern u32 btlza_dbase[64];
-// extern int btlza_dextra[64];
-// extern u32 btlza_lbase[64];
-// extern int btlza_lextra[64];
+extern u32 btlza_dbase[64];
+extern int btlza_dextra[64];
+extern u32 btlza_lbase[64];
+extern int btlza_lextra[64];
 
-void BTLZA_Encode_UpdateWindowByte(BTLZA_Context *ctx,
+void BTLZA_Encode_UpdateWindowByte(BGBBTJ_BTLZA_Context *ctx,
 	byte *s)
 {
 	int h;
@@ -20,7 +20,7 @@ void BTLZA_Encode_UpdateWindowByte(BTLZA_Context *ctx,
 	ctx->lz_wpos=(ctx->lz_wpos+1)&ctx->lz_wmask;
 }
 
-void BTLZA_Encode_UpdateWindowString(BTLZA_Context *ctx,
+void BTLZA_Encode_UpdateWindowString(BGBBTJ_BTLZA_Context *ctx,
 	byte *s, int l)
 {
 	int h;
@@ -38,7 +38,7 @@ void BTLZA_Encode_UpdateWindowString(BTLZA_Context *ctx,
 	}
 }
 
-int BTLZA_Encode_LookupString(BTLZA_Context *ctx,
+int BTLZA_Encode_LookupString(BGBBTJ_BTLZA_Context *ctx,
 	byte *cs, byte *ce, int *rl, int *rd)
 {
 	byte *s, *t, *se;
@@ -123,7 +123,7 @@ int BTLZA_Encode_LookupString(BTLZA_Context *ctx,
 	return(0);
 }
 
-int BTLZA_Encode_LZCompressBuffer(BTLZA_Context *ctx,
+int BTLZA_Encode_LZCompressBuffer(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, byte *obuf, byte *mbuf, int sz)
 {
 	byte *cs, *ce, *ct, *mt;
@@ -218,7 +218,7 @@ int BTLZA_Encode_LZCompressBuffer(BTLZA_Context *ctx,
 	return(n);
 }
 
-int BTLZA_Encode_LZCompressBufferRLE(BTLZA_Context *ctx,
+int BTLZA_Encode_LZCompressBufferRLE(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, byte *obuf, byte *mbuf, int sz)
 {
 	byte *cs, *ce, *ct, *mt;
@@ -284,7 +284,7 @@ int BTLZA_Encode_LZCompressBufferRLE(BTLZA_Context *ctx,
 	return(n);
 }
 
-void BTLZA_Encode_StatLZRun(BTLZA_Context *ctx,
+void BTLZA_Encode_StatLZRun(BGBBTJ_BTLZA_Context *ctx,
 	byte *cs, int *lstat, int *dstat)
 {
 	int i, j, k;
@@ -318,7 +318,7 @@ void BTLZA_Encode_StatLZRun(BTLZA_Context *ctx,
 	}
 }
 
-void BTLZA_Encode_StatLZBuffer(BTLZA_Context *ctx,
+void BTLZA_Encode_StatLZBuffer(BGBBTJ_BTLZA_Context *ctx,
 	byte *tbuf, byte *mbuf, int n,
 	int *lstat, int *dstat)
 {
@@ -346,17 +346,17 @@ void BTLZA_Encode_StatLZBuffer(BTLZA_Context *ctx,
 }
 
 #if 0
-void BTLZA_Encode_EncodeSymbol(BTLZA_Context *ctx, int v)
+void BTLZA_Encode_EncodeSymbol(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	BTLZA_BitArith_EncodeSymbol9(ctx, v, ctx->mdl_lit, ctx->ctxmask);
 }
 
-void BTLZA_Encode_EncodeDistSymbol(BTLZA_Context *ctx, int v)
+void BTLZA_Encode_EncodeDistSymbol(BGBBTJ_BTLZA_Context *ctx, int v)
 {
 	BTLZA_BitArith_EncodeSymbol6(ctx, v, ctx->mdl_dist, 4095);
 }
 
-void BTLZA_Encode_EncodeLZRun(BTLZA_Context *ctx, byte *cs)
+void BTLZA_Encode_EncodeLZRun(BGBBTJ_BTLZA_Context *ctx, byte *cs)
 {
 	int l, d;
 	int i, j, k;
@@ -406,7 +406,7 @@ void BTLZA_Encode_EncodeLZRun(BTLZA_Context *ctx, byte *cs)
 	ctx->wctx=0;
 }
 
-void BTLZA_Encode_EncodeLZBuffer(BTLZA_Context *ctx,
+void BTLZA_Encode_EncodeLZBuffer(BGBBTJ_BTLZA_Context *ctx,
 	byte *tbuf, byte *mbuf, int n)
 {
 	byte *s;
@@ -428,7 +428,7 @@ void BTLZA_Encode_EncodeLZBuffer(BTLZA_Context *ctx,
 	BTLZA_Encode_EncodeSymbol(ctx, 256);
 }
 
-int BTLZA_Encode_EncodeBlock(BTLZA_Context *ctx,
+int BTLZA_Encode_EncodeBlock(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, int isz)
 {
 	static int lorder[]={
@@ -446,11 +446,11 @@ int BTLZA_Encode_EncodeBlock(BTLZA_Context *ctx,
 	i=isz;
 	if(!ctx->lz_tbuf || (isz>ctx->lz_tsz))
 	{
-		if(ctx->lz_tbuf)frgl_free(ctx->lz_tbuf);
-		if(ctx->lz_mbuf)frgl_free(ctx->lz_mbuf);
+		if(ctx->lz_tbuf)btlza_free(ctx->lz_tbuf);
+		if(ctx->lz_mbuf)btlza_free(ctx->lz_mbuf);
 		ctx->lz_tsz=i; ctx->lz_msz=(i+7)/8;
-		ctx->lz_tbuf=frgl_malloc(ctx->lz_tsz);
-		ctx->lz_mbuf=frgl_malloc(ctx->lz_msz);
+		ctx->lz_tbuf=btlza_malloc(ctx->lz_tsz);
+		ctx->lz_mbuf=btlza_malloc(ctx->lz_msz);
 	}
 
 	n=BTLZA_Encode_LZCompressBuffer(ctx,
@@ -550,7 +550,7 @@ int BTLZA_Encode_EncodeBlock(BTLZA_Context *ctx,
 }
 #endif
 
-int BTLZA_Encode_CheckAllocWindow(BTLZA_Context *ctx)
+int BTLZA_Encode_CheckAllocWindow(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k;
 
@@ -559,12 +559,12 @@ int BTLZA_Encode_CheckAllocWindow(BTLZA_Context *ctx)
 	ctx->lz_wmask=ctx->lz_wsize-1;
 
 	if(!ctx->lz_wbuf)
-		{ ctx->lz_wbuf=frgl_malloc(ctx->lz_wsize); }
+		{ ctx->lz_wbuf=btlza_malloc(ctx->lz_wsize); }
 	if(!ctx->lz_lbuf)
-		{ ctx->lz_lbuf=frgl_malloc(ctx->lz_wsize*sizeof(int)); }
+		{ ctx->lz_lbuf=btlza_malloc(ctx->lz_wsize*sizeof(int)); }
 	if(!ctx->lz_hash)
-//		{ ctx->lz_hash=frgl_malloc(4096*sizeof(int)); }
-		{ ctx->lz_hash=frgl_malloc(16384*sizeof(int)); }
+//		{ ctx->lz_hash=btlza_malloc(4096*sizeof(int)); }
+		{ ctx->lz_hash=btlza_malloc(16384*sizeof(int)); }
 	
 	memset(ctx->lz_wbuf, 0, ctx->lz_wsize);
 
@@ -577,7 +577,7 @@ int BTLZA_Encode_CheckAllocWindow(BTLZA_Context *ctx)
 }
 
 #if 0
-int BTLZA_Encode_EncodeStream_I(BTLZA_Context *ctx,
+int BTLZA_Encode_EncodeStream_I(BGBBTJ_BTLZA_Context *ctx,
 	byte *ibuf, byte *obuf, int isz, int osz)
 {
 	byte *s;
@@ -638,7 +638,7 @@ int BTLZA_Encode_EncodeStreamLvl(byte *ibuf, byte *obuf,
 	static int ml[10]=
 		{256, 256, 256, 256, 256, 1024, 4096, 16384, 65536};
 
-	BTLZA_Context *ctx;
+	BGBBTJ_BTLZA_Context *ctx;
 	int i, ws;
 
 	ctx=BTLZA_AllocContext();
@@ -647,8 +647,8 @@ int BTLZA_Encode_EncodeStreamLvl(byte *ibuf, byte *obuf,
 	{
 		if(ctx->lz_wbuf && (ctx->lz_wsize!=65536))
 		{
-			frgl_free(ctx->lz_wbuf);
-			frgl_free(ctx->lz_lbuf);
+			btlza_free(ctx->lz_wbuf);
+			btlza_free(ctx->lz_lbuf);
 			ctx->lz_wbuf=NULL;
 			ctx->lz_lbuf=NULL;
 		}
@@ -661,8 +661,8 @@ int BTLZA_Encode_EncodeStreamLvl(byte *ibuf, byte *obuf,
 	{
 		if(ctx->lz_wbuf && (ctx->lz_wsize!=md[l]))
 		{
-			frgl_free(ctx->lz_wbuf);
-			frgl_free(ctx->lz_lbuf);
+			btlza_free(ctx->lz_wbuf);
+			btlza_free(ctx->lz_lbuf);
 			ctx->lz_wbuf=NULL;
 			ctx->lz_lbuf=NULL;
 		}

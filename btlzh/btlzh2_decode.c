@@ -72,7 +72,7 @@ int btlzh2_vextra[256]=
 };
 
 force_inline int BTLZH2_Dec_ReadNBits(
-	BTLZA_Context *ctx, int n)
+	BGBBTJ_BTLZA_Context *ctx, int n)
 {
 	int i, j;
 
@@ -98,7 +98,7 @@ force_inline int BTLZH2_Dec_ReadNBits(
 }
 
 force_inline void BTLZH2_Dec_SkipNBits(
-	BTLZA_Context *ctx, int n)
+	BGBBTJ_BTLZA_Context *ctx, int n)
 {
 	int i;
 
@@ -121,7 +121,7 @@ force_inline void BTLZH2_Dec_SkipNBits(
 	}
 }
 
-int BTLZH2_Dec_DecodeLzSymbol(BTLZA_Context *ctx)
+int BTLZH2_Dec_DecodeLzSymbol(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k, j2, l, l2;
 
@@ -143,7 +143,7 @@ int BTLZH2_Dec_DecodeLzSymbol(BTLZA_Context *ctx)
 	return(j);
 }
 
-int BTLZH2_Dec_DecodeDistanceSymbol(BTLZA_Context *ctx)
+int BTLZH2_Dec_DecodeDistanceSymbol(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k, l;
 
@@ -166,7 +166,7 @@ int BTLZH2_Dec_DecodeDistanceSymbol(BTLZA_Context *ctx)
 }
 
 
-int BTLZH2_Dec_DecodeRawSymbol(BTLZA_Context *ctx)
+int BTLZH2_Dec_DecodeRawSymbol(BGBBTJ_BTLZA_Context *ctx)
 {
 	int i, j, k, j2, l, l2;
 
@@ -189,7 +189,7 @@ int BTLZH2_Dec_DecodeRawSymbol(BTLZA_Context *ctx)
 }
 
 int BTLZH2_Dec_TryDecodeRawSymbolPair(
-	BTLZA_Context *ctx, byte *symab)
+	BGBBTJ_BTLZA_Context *ctx, byte *symab)
 {
 	int i, j, k, j2, l, l2;
 
@@ -224,7 +224,7 @@ int BTLZH2_Dec_TryDecodeRawSymbolPair(
 }
 
 int BTLZH2_Dec_DecodeRawSymbolPair(
-	BTLZA_Context *ctx, byte *symab)
+	BGBBTJ_BTLZA_Context *ctx, byte *symab)
 {
 	int i;
 	i=BTLZH2_Dec_TryDecodeRawSymbolPair(ctx, symab);
@@ -234,7 +234,7 @@ int BTLZH2_Dec_DecodeRawSymbolPair(
 }
 
 int BTLZH2_Dec_TryDecodeRawSymbolQuad(
-	BTLZA_Context *ctx, byte *symab)
+	BGBBTJ_BTLZA_Context *ctx, byte *symab)
 {
 	int i;
 	i=BTLZH2_Dec_TryDecodeRawSymbolPair(ctx, symab);
@@ -245,7 +245,7 @@ int BTLZH2_Dec_TryDecodeRawSymbolQuad(
 }
 
 int BTLZH2_Dec_DecodeRawSymbolQuad(
-	BTLZA_Context *ctx, byte *symab)
+	BGBBTJ_BTLZA_Context *ctx, byte *symab)
 {
 	int i;
 	i=BTLZH2_Dec_TryDecodeRawSymbolQuad(ctx, symab);
@@ -255,7 +255,7 @@ int BTLZH2_Dec_DecodeRawSymbolQuad(
 }
 
 int BTLZH2_Dec_TryDecodeRawSymbolOct(
-	BTLZA_Context *ctx, byte *symab)
+	BGBBTJ_BTLZA_Context *ctx, byte *symab)
 {
 	int i;
 	i=BTLZH2_Dec_TryDecodeRawSymbolQuad(ctx, symab);
@@ -266,7 +266,7 @@ int BTLZH2_Dec_TryDecodeRawSymbolOct(
 }
 
 int BTLZH2_Dec_DecodeRawSymbolOct(
-	BTLZA_Context *ctx, byte *symab)
+	BGBBTJ_BTLZA_Context *ctx, byte *symab)
 {
 	int i;
 	i=BTLZH2_Dec_TryDecodeRawSymbolOct(ctx, symab);
@@ -276,7 +276,7 @@ int BTLZH2_Dec_DecodeRawSymbolOct(
 }
 
 int BTLZH2_Dec_DecodeRawSymbolRun(
-	BTLZA_Context *ctx, byte *syms, int len)
+	BGBBTJ_BTLZA_Context *ctx, byte *syms, int len)
 {
 	byte *ct, *cte;
 
@@ -300,7 +300,7 @@ int BTLZH2_Dec_DecodeRawSymbolRun(
 	return(0);
 }
 
-int BTLZH2_Dec_DecodeDistance(BTLZA_Context *ctx)
+int BTLZH2_Dec_DecodeDistance(BGBBTJ_BTLZA_Context *ctx)
 {
 
 	int i, j, k;
@@ -311,7 +311,7 @@ int BTLZH2_Dec_DecodeDistance(BTLZA_Context *ctx)
 	return(k);
 }
 
-int BTLZH2_Dec_DecodeCodeLengths(BTLZA_Context *ctx,
+int BTLZH2_Dec_DecodeCodeLengths(BGBBTJ_BTLZA_Context *ctx,
 	byte *cl, int ncl)
 {
 	int i, j, k;
@@ -364,7 +364,7 @@ int BTLZH2_Dec_DecodeCodeLengths(BTLZA_Context *ctx,
 	return(0);
 }
 
-int BTLZH2_Dec_DecodeHuffTable(BTLZA_Context *ctx)
+int BTLZH2_Dec_DecodeHuffTable(BGBBTJ_BTLZA_Context *ctx)
 {
 	static int lorder[]={
 		16, 17, 18, 19,  0,  8,  7,  9,

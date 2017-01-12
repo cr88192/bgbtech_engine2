@@ -1,106 +1,10 @@
-#include <btlzazip.h>
+// #include <btlzazip.h>
 
-#if defined(WIN64) || (_M_IX86_FP>=2)
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#define HAVE_SSE2
-#endif
-
-int btlza_trans8[256]={
-0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0,
-0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
-0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8,
-0x18, 0x98, 0x58, 0xD8, 0x38, 0xB8, 0x78, 0xF8,
-0x04, 0x84, 0x44, 0xC4, 0x24, 0xA4, 0x64, 0xE4,
-0x14, 0x94, 0x54, 0xD4, 0x34, 0xB4, 0x74, 0xF4,
-0x0C, 0x8C, 0x4C, 0xCC, 0x2C, 0xAC, 0x6C, 0xEC,
-0x1C, 0x9C, 0x5C, 0xDC, 0x3C, 0xBC, 0x7C, 0xFC,
-0x02, 0x82, 0x42, 0xC2, 0x22, 0xA2, 0x62, 0xE2,
-0x12, 0x92, 0x52, 0xD2, 0x32, 0xB2, 0x72, 0xF2,
-0x0A, 0x8A, 0x4A, 0xCA, 0x2A, 0xAA, 0x6A, 0xEA,
-0x1A, 0x9A, 0x5A, 0xDA, 0x3A, 0xBA, 0x7A, 0xFA,
-0x06, 0x86, 0x46, 0xC6, 0x26, 0xA6, 0x66, 0xE6,
-0x16, 0x96, 0x56, 0xD6, 0x36, 0xB6, 0x76, 0xF6,
-0x0E, 0x8E, 0x4E, 0xCE, 0x2E, 0xAE, 0x6E, 0xEE,
-0x1E, 0x9E, 0x5E, 0xDE, 0x3E, 0xBE, 0x7E, 0xFE,
-0x01, 0x81, 0x41, 0xC1, 0x21, 0xA1, 0x61, 0xE1,
-0x11, 0x91, 0x51, 0xD1, 0x31, 0xB1, 0x71, 0xF1,
-0x09, 0x89, 0x49, 0xC9, 0x29, 0xA9, 0x69, 0xE9,
-0x19, 0x99, 0x59, 0xD9, 0x39, 0xB9, 0x79, 0xF9,
-0x05, 0x85, 0x45, 0xC5, 0x25, 0xA5, 0x65, 0xE5,
-0x15, 0x95, 0x55, 0xD5, 0x35, 0xB5, 0x75, 0xF5,
-0x0D, 0x8D, 0x4D, 0xCD, 0x2D, 0xAD, 0x6D, 0xED,
-0x1D, 0x9D, 0x5D, 0xDD, 0x3D, 0xBD, 0x7D, 0xFD,
-0x03, 0x83, 0x43, 0xC3, 0x23, 0xA3, 0x63, 0xE3,
-0x13, 0x93, 0x53, 0xD3, 0x33, 0xB3, 0x73, 0xF3,
-0x0B, 0x8B, 0x4B, 0xCB, 0x2B, 0xAB, 0x6B, 0xEB,
-0x1B, 0x9B, 0x5B, 0xDB, 0x3B, 0xBB, 0x7B, 0xFB,
-0x07, 0x87, 0x47, 0xC7, 0x27, 0xA7, 0x67, 0xE7,
-0x17, 0x97, 0x57, 0xD7, 0x37, 0xB7, 0x77, 0xF7,
-0x0F, 0x8F, 0x4F, 0xCF, 0x2F, 0xAF, 0x6F, 0xEF,
-0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF
-};
-
-int btlza_dbase1[64]=
-{
-	   1,    2,    3,     4,     5,     7,     9,    13,
-	  17,   25,   33,    49,    65,    97,   129,   193,
-	 257,  385,  513,   769,  1025,  1537,  2049,  3073,
-	4097, 6145, 8193, 12289, 16385, 24577, 32769, 49153,
-	0x00010001, 0x00018001, 0x00020001, 0x00030001, 
-	0x00040001, 0x00060001, 0x00080001, 0x000C0001, 
-	0x00100001, 0x00180001, 0x00200001, 0x00300001, 
-	0x00400001, 0x00600001, 0x00800001, 0x00C00001, 
-	0x01000001, 0x01800001, 0x02000001, 0x03000001, 
-	0x04000001, 0x06000001, 0x08000001, 0x0C000001, 
-	0x10000001, 0x18000001, 0x20000001, 0x30000001, 
-	0x40000001, 0x60000001, 0x80000001, 0xC0000001
-};
-int btlza_dextra1[64]=
-{
-	 0,  0,  0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
-	 7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-	15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22,
-	23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30
-};
-
-int btlza_lbase1[32]={
-		3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
-		35, 43, 51, 59, 67, 83, 99, 115,
-		131, 163, 195, 227, 258, 0, 0, 0};
-int btlza_lextra1[32]={
-		0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-		3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 0, 0, 0};
-int btlza_lbase2[32]={
-		3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
-		35, 43, 51, 59, 67, 83, 99, 115,
-		131, 163, 195, 227, 3, 0, 0, 0};
-int btlza_lextra2[32]={
-		0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-		3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 16, 0, 0, 0};
-
-int btlza_lbase3[64]={
-	  3,   4,   5,   6,   7,   8,   9,  10,
-	 11,  13,  15,  17,  19,  23,  27,  31,
-	 35,  43,  51,  59,  67,  83,  99, 115,
-	131, 163, 195, 227,
-	   259,   323,   387,   451,
-	   515,   643,   771,   899,
-	  1027,  1283,  1539,  1795,
-	  2051,  2563,  3075,  3587,
-	  4099,  5123,  6147,  7171,
-	  8195, 10243, 12291, 14339,
-	 16387, 20483, 24579, 28675,
-	 32771, 40963, 49155, 57347,
-	 65538,     0,     0,     0
-};
-int btlza_lextra3[64]={
-	 0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1, 2, 2, 2, 2,
-	 3,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  5, 6, 6, 6, 6,
-	 7,  7,  7,  7,  8,  8,  8,  8,  9,  9,  9,  9, 10, 10, 10, 10,
-	11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13,  0,  0,  0,  0
-};
-
+// #if defined(WIN64) || (_M_IX86_FP>=2)
+// #include <xmmintrin.h>
+// #include <emmintrin.h>
+// #define HAVE_SSE2
+// #endif
 
 int BTLZA_BitDec_TransposeByte(int v)
 {
@@ -260,7 +164,7 @@ int BTLZA_BitDec_SetupTableI(byte *cl, int ncl,
 	return(0);
 }
 
-int BTLZA_BitDec_SetupStatic(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_SetupStatic(BTLZA_Context *ctx)
 {
 	byte lcl[288], dcl[32];
 	int hl, hd;
@@ -296,14 +200,14 @@ int BTLZA_BitDec_SetupStatic(BGBBTJ_BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeSymbol(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeSymbol(BTLZA_Context *ctx)
 	{ return(ctx->BS_DecodeSymbol(ctx)); }
-int BTLZA_BitDec_DecodeDistanceSymbol(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeDistanceSymbol(BTLZA_Context *ctx)
 	{ return(ctx->BS_DecodeDistanceSymbol(ctx)); }
-int BTLZA_BitDec_DecodeClSymbol(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeClSymbol(BTLZA_Context *ctx)
 	{ return(ctx->BS_DecodeClSymbol(ctx)); }
 
-int BTLZA_BitDec_DecodeSymbolBasic(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeSymbolBasic(BTLZA_Context *ctx)
 {
 	int i, j;
 
@@ -326,7 +230,7 @@ int BTLZA_BitDec_DecodeSymbolBasic(BGBBTJ_BTLZA_Context *ctx)
 	return(j);
 }
 
-int BTLZA_BitDec_DecodeDistanceSymbolBasic(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeDistanceSymbolBasic(BTLZA_Context *ctx)
 {
 	int i, j;
 
@@ -352,7 +256,7 @@ int BTLZA_BitDec_DecodeDistanceSymbolBasic(BGBBTJ_BTLZA_Context *ctx)
 
 // force_inline
 int BTLZA_BitDec_ReadNBitsBasic2(
-	BGBBTJ_BTLZA_Context *ctx, int n)
+	BTLZA_Context *ctx, int n)
 {
 	int i, j, k;
 
@@ -398,7 +302,7 @@ int BTLZA_BitDec_ReadNBitsBasic2(
 }
 
 force_inline void BTLZA_BitDec_SkipNBitsBasic2(
-	BGBBTJ_BTLZA_Context *ctx, int n)
+	BTLZA_Context *ctx, int n)
 {
 	int i, j, k;
 
@@ -444,7 +348,7 @@ force_inline void BTLZA_BitDec_SkipNBitsBasic2(
 
 #if 0
 force_inline void BTLZA_BitDec_SkipNBitsL8Basic2(
-	BGBBTJ_BTLZA_Context *ctx, int n)
+	BTLZA_Context *ctx, int n)
 {
 	int i, j, k;
 
@@ -474,7 +378,7 @@ force_inline void BTLZA_BitDec_SkipNBitsL8Basic2(
 
 // force_inline
 int BTLZA_BitDec_DecodeSymbolBasic2(
-	BGBBTJ_BTLZA_Context *ctx)
+	BTLZA_Context *ctx)
 {
 	int i, j, k, j2, l, l2;
 
@@ -498,7 +402,7 @@ int BTLZA_BitDec_DecodeSymbolBasic2(
 }
 
 force_inline int BTLZA_BitDec_DecodeDistanceSymbolBasic2(
-	BGBBTJ_BTLZA_Context *ctx)
+	BTLZA_Context *ctx)
 {
 	int i, j, k, l;
 
@@ -522,7 +426,7 @@ force_inline int BTLZA_BitDec_DecodeDistanceSymbolBasic2(
 }
 
 #if 1
-int BTLZA_BitDec_DecodeSymbolRingHuff(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeSymbolRingHuff(BTLZA_Context *ctx)
 {
 	int rh;
 	int i, j, k;
@@ -549,7 +453,7 @@ int BTLZA_BitDec_DecodeSymbolRingHuff(BGBBTJ_BTLZA_Context *ctx)
 	return(j);
 }
 
-int BTLZA_BitDec_DecodeDistanceSymbolRingHuff(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeDistanceSymbolRingHuff(BTLZA_Context *ctx)
 {
 	int rh;
 	int i, j;
@@ -577,7 +481,7 @@ int BTLZA_BitDec_DecodeDistanceSymbolRingHuff(BGBBTJ_BTLZA_Context *ctx)
 }
 #endif
 
-int BTLZA_BitDec_DecodeSymbolReadBit(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeSymbolReadBit(BTLZA_Context *ctx)
 {
 	int i, j, k, l;
 
@@ -600,7 +504,7 @@ int BTLZA_BitDec_DecodeSymbolReadBit(BGBBTJ_BTLZA_Context *ctx)
 	return(j);
 }
 
-int BTLZA_BitDec_DecodeDistanceSymbolReadBit(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeDistanceSymbolReadBit(BTLZA_Context *ctx)
 {
 	int i, j, k, l;
 
@@ -623,7 +527,7 @@ int BTLZA_BitDec_DecodeDistanceSymbolReadBit(BGBBTJ_BTLZA_Context *ctx)
 	return(j);
 }
 
-int BTLZA_BitDec_DecodeDistance(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeDistance(BTLZA_Context *ctx)
 {
 
 	int i, j, k;
@@ -632,7 +536,7 @@ int BTLZA_BitDec_DecodeDistance(BGBBTJ_BTLZA_Context *ctx)
 	return(k);
 }
 
-force_inline int BTLZA_BitDec_DecodeDistanceBasic2(BGBBTJ_BTLZA_Context *ctx)
+force_inline int BTLZA_BitDec_DecodeDistanceBasic2(BTLZA_Context *ctx)
 {
 	int i, j, k;
 	j=BTLZA_BitDec_DecodeDistanceSymbolBasic2(ctx);
@@ -640,7 +544,7 @@ force_inline int BTLZA_BitDec_DecodeDistanceBasic2(BGBBTJ_BTLZA_Context *ctx)
 	return(k);
 }
 
-int BTLZA_BitDec_DecodeCodeLengths(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitDec_DecodeCodeLengths(BTLZA_Context *ctx,
 	byte *cl, int ncl)
 {
 	int i, j, k;
@@ -693,7 +597,7 @@ int BTLZA_BitDec_DecodeCodeLengths(BGBBTJ_BTLZA_Context *ctx,
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeCodeLengthsRh(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitDec_DecodeCodeLengthsRh(BTLZA_Context *ctx,
 	byte *cl, byte *lcl, int ncl)
 {
 	int i, j, k;
@@ -745,7 +649,7 @@ int BTLZA_BitDec_DecodeCodeLengthsRh(BGBBTJ_BTLZA_Context *ctx,
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeHeader(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeHeader(BTLZA_Context *ctx)
 {
 	static int lorder[]={
 		16, 17, 18, 0, 8,7, 9,6, 10,5, 11,4, 12,3, 13,2, 14,1, 15, 19};
@@ -810,7 +714,7 @@ int BTLZA_BitDec_DecodeHeader(BGBBTJ_BTLZA_Context *ctx)
 }
 
 int BTLZA_BitDec_CheckSetupRingHuffTables(
-	BGBBTJ_BTLZA_Context *ctx, int hnrh)
+	BTLZA_Context *ctx, int hnrh)
 {
 	int i, j, k;
 
@@ -890,9 +794,10 @@ int BTLZA_BitDec_CheckSetupRingHuffTables(
 		}
 	}
 	ctx->bs_rhtab_n=hnrh;
+	return(0);
 }
 
-int BTLZA_BitDec_DecodeHeaderBTLZH(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeHeaderBTLZH(BTLZA_Context *ctx)
 {
 	static int lorder[]={
 		16, 17, 18, 0, 8,7, 9,6, 10,5, 11,4, 12,3, 13,2, 14,1, 15, 19,
@@ -996,7 +901,7 @@ int BTLZA_BitDec_DecodeHeaderBTLZH(BGBBTJ_BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeStaticHeader2(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeStaticHeader2(BTLZA_Context *ctx)
 {
 	byte lcl[384], dcl[64];
 	int hl, hd, tl, td;
@@ -1235,7 +1140,7 @@ void BTLZA_BitDec_MemCpyLax(byte *dst, byte *src, int len)
 }
 
 
-int BTLZA_BitDec_DecodeRunLzMatch(BGBBTJ_BTLZA_Context *ctx, int sym)
+int BTLZA_BitDec_DecodeRunLzMatch(BTLZA_Context *ctx, int sym)
 {
 	char *s, *t;
 	int i, j, k, l;
@@ -1253,7 +1158,7 @@ int BTLZA_BitDec_DecodeRunLzMatch(BGBBTJ_BTLZA_Context *ctx, int sym)
 }
 
 force_inline int BTLZA_BitDec_DecodeRunLzMatchBasic2(
-	BGBBTJ_BTLZA_Context *ctx, int sym)
+	BTLZA_Context *ctx, int sym)
 {
 	char *s, *t;
 	int i, j, k, l;
@@ -1270,7 +1175,7 @@ force_inline int BTLZA_BitDec_DecodeRunLzMatchBasic2(
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeRunExtMatch(BGBBTJ_BTLZA_Context *ctx, int sym)
+int BTLZA_BitDec_DecodeRunExtMatch(BTLZA_Context *ctx, int sym)
 {
 	char *s, *t;
 	int i, j, k, l;
@@ -1315,7 +1220,7 @@ int BTLZA_BitDec_DecodeRunExtMatch(BGBBTJ_BTLZA_Context *ctx, int sym)
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeRun(BGBBTJ_BTLZA_Context *ctx, int sym)
+int BTLZA_BitDec_DecodeRun(BTLZA_Context *ctx, int sym)
 {
 	if(sym<318)
 		{ return(BTLZA_BitDec_DecodeRunLzMatch(ctx, sym)); }
@@ -1325,7 +1230,7 @@ int BTLZA_BitDec_DecodeRun(BGBBTJ_BTLZA_Context *ctx, int sym)
 	return(-1);
 }
 
-int BTLZA_BitDec_DecodeRunBasic2(BGBBTJ_BTLZA_Context *ctx, int sym)
+int BTLZA_BitDec_DecodeRunBasic2(BTLZA_Context *ctx, int sym)
 {
 	if(sym<318)
 		{ return(BTLZA_BitDec_DecodeRunLzMatchBasic2(ctx, sym)); }
@@ -1335,7 +1240,7 @@ int BTLZA_BitDec_DecodeRunBasic2(BGBBTJ_BTLZA_Context *ctx, int sym)
 	return(-1);
 }
 
-int BTLZA_BitDec_DecodeBlockDataI(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeBlockDataI(BTLZA_Context *ctx)
 {
 	int i;
 
@@ -1358,7 +1263,7 @@ int BTLZA_BitDec_DecodeBlockDataI(BGBBTJ_BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeBlockDataBasic2I(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeBlockDataBasic2I(BTLZA_Context *ctx)
 {
 	int sab[4];
 	int i;
@@ -1382,7 +1287,7 @@ int BTLZA_BitDec_DecodeBlockDataBasic2I(BGBBTJ_BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeBlockData(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeBlockData(BTLZA_Context *ctx)
 {
 	int i;
 
@@ -1417,7 +1322,7 @@ int BTLZA_BitDec_DecodeBlockData(BGBBTJ_BTLZA_Context *ctx)
 	}
 }
 
-int BTLZA_BitDec_AlignBitsEnd(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_AlignBitsEnd(BTLZA_Context *ctx)
 {
 	int i, j;
 
@@ -1434,7 +1339,7 @@ int BTLZA_BitDec_AlignBitsEnd(BGBBTJ_BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitDec_DecodeHeaderBTArith(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeHeaderBTArith(BTLZA_Context *ctx)
 {
 	int hl, hd, hc, he, hr;
 	int i, j;
@@ -1477,7 +1382,7 @@ int BTLZA_BitDec_DecodeHeaderBTArith(BGBBTJ_BTLZA_Context *ctx)
 	return(-1);
 }
 
-int BTLZA_BitDec_DecodeBlock(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitDec_DecodeBlock(BTLZA_Context *ctx)
 {
 	int fi, ty, ty2, l, nl;
 	int i;
@@ -1572,13 +1477,13 @@ int BTLZA_BitDec_DecodeBlock(BGBBTJ_BTLZA_Context *ctx)
 	return(fi);
 }
 
-int BTLZA_BitDec_DecodeStream(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitDec_DecodeStream(BTLZA_Context *ctx,
 	byte *ibuf, byte *obuf, int isz, int osz)
 {
 	return(BTLZA_BitDec_DecodeStreamSz(ctx, ibuf, obuf, isz, osz, NULL, 0));
 }
 
-int BTLZA_BitDec_DecodeStreamSz(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitDec_DecodeStreamSz(BTLZA_Context *ctx,
 	byte *ibuf, byte *obuf, int isz,
 	int osz, int *rosz, int flags)
 {

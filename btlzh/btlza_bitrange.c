@@ -11,26 +11,26 @@ u16 bgbbtj_bitarith_transtab9[512];	//byte transpose table
 btlza_prob btlza_weightadjust[512];		//weight adjustment tables
 
 void *bgbbtj_btlza_mutex=NULL;
-BGBBTJ_BTLZA_Context *bgbbtj_btlza_freectx=NULL;
+BTLZA_Context *bgbbtj_frgl_freectx=NULL;
 
 #if defined(BGBBTJ_DRV) || defined(BGBBTJ_NODY)
 
-void BGBBTJ_BTLZA_Lock()
+void BTLZA_Lock()
 {
 }
 
-void BGBBTJ_BTLZA_Unlock()
+void BTLZA_Unlock()
 {
 }
 
 #else
 
-void BGBBTJ_BTLZA_Lock()
+void BTLZA_Lock()
 {
 	thLockFastMutex(bgbbtj_btlza_mutex);
 }
 
-void BGBBTJ_BTLZA_Unlock()
+void BTLZA_Unlock()
 {
 	thUnlockFastMutex(bgbbtj_btlza_mutex);
 }
@@ -100,73 +100,73 @@ void BTLZA_BitArith_Init()
 	btlza_weightadjust[(1<<8)+0]=0;
 }
 
-BGBBTJ_API BGBBTJ_BTLZA_Context *BTLZA_AllocContext(void)
+BTEIFGL_API BTLZA_Context *BTLZA_AllocContext(void)
 {
-	BGBBTJ_BTLZA_Context *ctx;
+	BTLZA_Context *ctx;
 	int i, j;
 
 	BTLZA_BitArith_Init();
 
-	BGBBTJ_BTLZA_Lock();
-	if(bgbbtj_btlza_freectx)
+	BTLZA_Lock();
+	if(bgbbtj_frgl_freectx)
 	{
-		ctx=bgbbtj_btlza_freectx;
-		bgbbtj_btlza_freectx=ctx->next;
-		BGBBTJ_BTLZA_Unlock();
+		ctx=bgbbtj_frgl_freectx;
+		bgbbtj_frgl_freectx=ctx->next;
+		BTLZA_Unlock();
 		return(ctx);
 	}
-	BGBBTJ_BTLZA_Unlock();
+	BTLZA_Unlock();
 	
-	ctx=btlza_malloc(sizeof(BGBBTJ_BTLZA_Context));
+	ctx=frgl_malloc(sizeof(BTLZA_Context));
 	ctx->cs=NULL; ctx->ct=NULL;
 	
 	return(ctx);
 }
 
-BGBBTJ_API void BTLZA_FreeContext(
-	BGBBTJ_BTLZA_Context *ctx)
+BTEIFGL_API void BTLZA_FreeContext(
+	BTLZA_Context *ctx)
 {
 #if 1
 	ctx->rmin=0;	ctx->rmax=0;
 	ctx->rval=0;	ctx->wctx=0;
 	ctx->cs=NULL;	ctx->ct=NULL;
 
-	BGBBTJ_BTLZA_Lock();
-	ctx->next=bgbbtj_btlza_freectx;
-	bgbbtj_btlza_freectx=ctx;
-	BGBBTJ_BTLZA_Unlock();
+	BTLZA_Lock();
+	ctx->next=bgbbtj_frgl_freectx;
+	bgbbtj_frgl_freectx=ctx;
+	BTLZA_Unlock();
 #endif
 
 #if 0
-	if(ctx->lz_wbuf)btlza_free(ctx->lz_wbuf);
-	if(ctx->lz_lbuf)btlza_free(ctx->lz_lbuf);
-	if(ctx->lz_hash)btlza_free(ctx->lz_hash);
+	if(ctx->lz_wbuf)frgl_free(ctx->lz_wbuf);
+	if(ctx->lz_lbuf)frgl_free(ctx->lz_lbuf);
+	if(ctx->lz_hash)frgl_free(ctx->lz_hash);
 
-	if(ctx->lz_tbuf)btlza_free(ctx->lz_tbuf);
-	if(ctx->lz_mbuf)btlza_free(ctx->lz_mbuf);
+	if(ctx->lz_tbuf)frgl_free(ctx->lz_tbuf);
+	if(ctx->lz_mbuf)frgl_free(ctx->lz_mbuf);
 
-	if(ctx->mdl_lit)btlza_free(ctx->mdl_lit);
-	if(ctx->mdl_dist)btlza_free(ctx->mdl_dist);
-	if(ctx->mdl_xbits)btlza_free(ctx->mdl_xbits);
-	btlza_free(ctx);
+	if(ctx->mdl_lit)frgl_free(ctx->mdl_lit);
+	if(ctx->mdl_dist)frgl_free(ctx->mdl_dist);
+	if(ctx->mdl_xbits)frgl_free(ctx->mdl_xbits);
+	frgl_free(ctx);
 #endif
 }
 
-int BTLZA_BitArith_InputByte(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitArith_InputByte(BTLZA_Context *ctx)
 {
 //	if(ctx->cs>ctx->cse)
 //		return(0);
 	return(*ctx->cs++);
 }
 
-void BTLZA_BitArith_OutputByte(BGBBTJ_BTLZA_Context *ctx, int i)
+void BTLZA_BitArith_OutputByte(BTLZA_Context *ctx, int i)
 {
 //	if(ctx->ct>ctx->cte)
 //		return;
 	*ctx->ct++=i;
 }
 
-void BTLZA_BitArith_NormalizeOutput(BGBBTJ_BTLZA_Context *ctx)
+void BTLZA_BitArith_NormalizeOutput(BTLZA_Context *ctx)
 {
 	while(!((ctx->rmin^ctx->rmax)>>24))
 //	while((ctx->rmax-ctx->rmin)<16777216)
@@ -178,7 +178,7 @@ void BTLZA_BitArith_NormalizeOutput(BGBBTJ_BTLZA_Context *ctx)
 	}
 }
 
-void BTLZA_BitArith_NormalizeInput(BGBBTJ_BTLZA_Context *ctx)
+void BTLZA_BitArith_NormalizeInput(BTLZA_Context *ctx)
 {
 #if 0
 	while(!((ctx->rmin^ctx->rmax)>>24))
@@ -201,7 +201,7 @@ void BTLZA_BitArith_NormalizeInput(BGBBTJ_BTLZA_Context *ctx)
 
 }
 
-void BTLZA_BitArith_FlushWBits(BGBBTJ_BTLZA_Context *ctx)
+void BTLZA_BitArith_FlushWBits(BTLZA_Context *ctx)
 {
 	while((ctx->rmin!=BTLZA_BITARITH_LOWER) ||
 		(ctx->rmax!=BTLZA_BITARITH_UPPER))
@@ -215,7 +215,7 @@ void BTLZA_BitArith_FlushWBits(BGBBTJ_BTLZA_Context *ctx)
 }
 
 
-void BTLZA_BitArith_OutputFixedBit(BGBBTJ_BTLZA_Context *ctx, int i)
+void BTLZA_BitArith_OutputFixedBit(BTLZA_Context *ctx, int i)
 {
 	u32 r, r2, v;
 	int j;
@@ -228,7 +228,7 @@ void BTLZA_BitArith_OutputFixedBit(BGBBTJ_BTLZA_Context *ctx, int i)
 	BTLZA_BitArith_NormalizeOutput(ctx);
 }
 
-int BTLZA_BitArith_InputFixedBit(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitArith_InputFixedBit(BTLZA_Context *ctx)
 {
 	u32 r, r2, v, i;
 
@@ -243,7 +243,7 @@ int BTLZA_BitArith_InputFixedBit(BGBBTJ_BTLZA_Context *ctx)
 	return(i);
 }
 
-void BTLZA_BitArith_OutputBit(BGBBTJ_BTLZA_Context *ctx,
+void BTLZA_BitArith_OutputBit(BTLZA_Context *ctx,
 	int i, u32 w)
 {
 	u32 r, r2, v;
@@ -258,7 +258,7 @@ void BTLZA_BitArith_OutputBit(BGBBTJ_BTLZA_Context *ctx,
 	BTLZA_BitArith_NormalizeOutput(ctx);
 }
 
-int BTLZA_BitArith_InputBit(BGBBTJ_BTLZA_Context *ctx, u32 w)
+int BTLZA_BitArith_InputBit(BTLZA_Context *ctx, u32 w)
 {
 	u32 r, r2, v, i;
 
@@ -273,7 +273,7 @@ int BTLZA_BitArith_InputBit(BGBBTJ_BTLZA_Context *ctx, u32 w)
 	return(i);
 }
 
-void BTLZA_BitArith_OutputModelBit(BGBBTJ_BTLZA_Context *ctx,
+void BTLZA_BitArith_OutputModelBit(BTLZA_Context *ctx,
 	int i, byte *mctx)
 {
 	u32 r, v, w;
@@ -304,7 +304,7 @@ void BTLZA_BitArith_OutputModelBit(BGBBTJ_BTLZA_Context *ctx,
 	BTLZA_BitArith_NormalizeOutput(ctx);
 }
 
-int BTLZA_BitArith_InputModelBit(BGBBTJ_BTLZA_Context *ctx, byte *mctx)
+int BTLZA_BitArith_InputModelBit(BTLZA_Context *ctx, byte *mctx)
 {
 	u32 r, v, w;
 	int i, j, k;
@@ -337,7 +337,7 @@ int BTLZA_BitArith_InputModelBit(BGBBTJ_BTLZA_Context *ctx, byte *mctx)
 	return(i);
 }
 
-void BTLZA_BitArith_OutputFixedBits(BGBBTJ_BTLZA_Context *ctx,
+void BTLZA_BitArith_OutputFixedBits(BTLZA_Context *ctx,
 	int v, int n)
 {
 	int i, j, k, l;
@@ -347,7 +347,7 @@ void BTLZA_BitArith_OutputFixedBits(BGBBTJ_BTLZA_Context *ctx,
 		{ BTLZA_BitArith_OutputFixedBit(ctx, (v>>i)&1); }
 }
 
-int BTLZA_BitArith_InputFixedBits(BGBBTJ_BTLZA_Context *ctx, int n)
+int BTLZA_BitArith_InputFixedBits(BTLZA_Context *ctx, int n)
 {
 	int i, j, k, l;
 
@@ -360,7 +360,7 @@ int BTLZA_BitArith_InputFixedBits(BGBBTJ_BTLZA_Context *ctx, int n)
 	return(j);
 }
 
-int BTLZA_BitArith_InputContextFixedBits(BGBBTJ_BTLZA_Context *ctx, int n)
+int BTLZA_BitArith_InputContextFixedBits(BTLZA_Context *ctx, int n)
 {
 	int i, j, k, l;
 
@@ -374,7 +374,7 @@ int BTLZA_BitArith_InputContextFixedBits(BGBBTJ_BTLZA_Context *ctx, int n)
 	return(j&((1<<n)-1));
 }
 
-int BTLZA_BitArith_InputContextFixedBitsLE(BGBBTJ_BTLZA_Context *ctx, int n)
+int BTLZA_BitArith_InputContextFixedBitsLE(BTLZA_Context *ctx, int n)
 {
 	int i, j, k, l;
 
@@ -389,7 +389,7 @@ int BTLZA_BitArith_InputContextFixedBitsLE(BGBBTJ_BTLZA_Context *ctx, int n)
 	return(l);
 }
 
-void BTLZA_BitArith_OutputContextModelBits(BGBBTJ_BTLZA_Context *ctx,
+void BTLZA_BitArith_OutputContextModelBits(BTLZA_Context *ctx,
 	int v, int n, btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -404,7 +404,7 @@ void BTLZA_BitArith_OutputContextModelBits(BGBBTJ_BTLZA_Context *ctx,
 	ctx->wctx=j;
 }
 
-int BTLZA_BitArith_InputContextModelBits(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_InputContextModelBits(BTLZA_Context *ctx,
 	int n, btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -419,7 +419,7 @@ int BTLZA_BitArith_InputContextModelBits(BGBBTJ_BTLZA_Context *ctx,
 	return(j&((1<<n)-1));
 }
 
-void BTLZA_BitArith_OutputExtraBits(BGBBTJ_BTLZA_Context *ctx,
+void BTLZA_BitArith_OutputExtraBits(BTLZA_Context *ctx,
 	int v, int n, btlza_prob *mdl, int ctxmask)
 {
 	switch(n)
@@ -439,7 +439,7 @@ void BTLZA_BitArith_OutputExtraBits(BGBBTJ_BTLZA_Context *ctx,
 	}
 }
 
-void BTLZA_BitArith_OutputContextModelBitsLE(BGBBTJ_BTLZA_Context *ctx,
+void BTLZA_BitArith_OutputContextModelBitsLE(BTLZA_Context *ctx,
 	int v, int n, btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -456,7 +456,7 @@ void BTLZA_BitArith_OutputContextModelBitsLE(BGBBTJ_BTLZA_Context *ctx,
 	ctx->wctx=j;
 }
 
-int BTLZA_BitArith_InputContextModelBitsLE(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_InputContextModelBitsLE(BTLZA_Context *ctx,
 	int n, btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -474,7 +474,7 @@ int BTLZA_BitArith_InputContextModelBitsLE(BGBBTJ_BTLZA_Context *ctx,
 	return(v);
 }
 
-int BTLZA_BitArith_InputExtraBits(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_InputExtraBits(BTLZA_Context *ctx,
 	int n, btlza_prob *mdl, int ctxmask)
 {
 	int i, j;
@@ -500,7 +500,7 @@ int BTLZA_BitArith_InputExtraBits(BGBBTJ_BTLZA_Context *ctx,
 	return(v);
 }
 
-int BTLZA_BitArith_SetupEncode(BGBBTJ_BTLZA_Context *ctx, byte *out, int sz)
+int BTLZA_BitArith_SetupEncode(BTLZA_Context *ctx, byte *out, int sz)
 {
 	ctx->ct=out;
 	ctx->cte=out+sz;
@@ -509,7 +509,7 @@ int BTLZA_BitArith_SetupEncode(BGBBTJ_BTLZA_Context *ctx, byte *out, int sz)
 	return(0);
 }
 
-int BTLZA_BitArith_SetupDecode(BGBBTJ_BTLZA_Context *ctx, byte *in, int sz)
+int BTLZA_BitArith_SetupDecode(BTLZA_Context *ctx, byte *in, int sz)
 {
 	int i;
 
@@ -525,14 +525,14 @@ int BTLZA_BitArith_SetupDecode(BGBBTJ_BTLZA_Context *ctx, byte *in, int sz)
 	return(0);
 }
 
-int BTLZA_BitArith_SetupBeginEncode(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitArith_SetupBeginEncode(BTLZA_Context *ctx)
 {
 	ctx->rmin=BTLZA_BITARITH_LOWER;
 	ctx->rmax=BTLZA_BITARITH_UPPER;
 	return(0);
 }
 
-int BTLZA_BitArith_SetupBeginDecode(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitArith_SetupBeginDecode(BTLZA_Context *ctx)
 {
 	int i;
 
@@ -551,7 +551,7 @@ int BTLZA_BitArith_SetupBeginDecode(BGBBTJ_BTLZA_Context *ctx)
 	return(0);
 }
 
-int BTLZA_BitArith_SetupEndDecode(BGBBTJ_BTLZA_Context *ctx)
+int BTLZA_BitArith_SetupEndDecode(BTLZA_Context *ctx)
 {
 	ctx->rmin=0;
 	ctx->rmax=0;
@@ -571,7 +571,7 @@ int btlza_ctxindex(int ctx, int mask)
 //	return(ctx&mask);
 }
 
-void BTLZA_BitArith_EncodeSymbol6(BGBBTJ_BTLZA_Context *ctx, int v,
+void BTLZA_BitArith_EncodeSymbol6(BTLZA_Context *ctx, int v,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -586,7 +586,7 @@ void BTLZA_BitArith_EncodeSymbol6(BGBBTJ_BTLZA_Context *ctx, int v,
 	ctx->wctx=j;
 }
 
-void BTLZA_BitArith_EncodeSymbol8(BGBBTJ_BTLZA_Context *ctx, int v,
+void BTLZA_BitArith_EncodeSymbol8(BTLZA_Context *ctx, int v,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -601,7 +601,7 @@ void BTLZA_BitArith_EncodeSymbol8(BGBBTJ_BTLZA_Context *ctx, int v,
 	ctx->wctx=j;
 }
 
-void BTLZA_BitArith_EncodeSymbol9(BGBBTJ_BTLZA_Context *ctx, int v,
+void BTLZA_BitArith_EncodeSymbol9(BTLZA_Context *ctx, int v,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -616,7 +616,7 @@ void BTLZA_BitArith_EncodeSymbol9(BGBBTJ_BTLZA_Context *ctx, int v,
 	ctx->wctx=j;
 }
 
-void BTLZA_BitArith_EncodeSymbol8LE(BGBBTJ_BTLZA_Context *ctx, int v,
+void BTLZA_BitArith_EncodeSymbol8LE(BTLZA_Context *ctx, int v,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, l;
@@ -632,7 +632,7 @@ void BTLZA_BitArith_EncodeSymbol8LE(BGBBTJ_BTLZA_Context *ctx, int v,
 	ctx->wctx=j;
 }
 
-int BTLZA_BitArith_DecodeSymbol6(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_DecodeSymbol6(BTLZA_Context *ctx,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, v;
@@ -648,7 +648,7 @@ int BTLZA_BitArith_DecodeSymbol6(BGBBTJ_BTLZA_Context *ctx,
 	return(j&0x3F);
 }
 
-int BTLZA_BitArith_DecodeSymbol8(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_DecodeSymbol8(BTLZA_Context *ctx,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, v;
@@ -666,7 +666,7 @@ int BTLZA_BitArith_DecodeSymbol8(BGBBTJ_BTLZA_Context *ctx,
 	return(j&0xFF);
 }
 
-int BTLZA_BitArith_DecodeSymbol9(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_DecodeSymbol9(BTLZA_Context *ctx,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, v;
@@ -685,7 +685,7 @@ int BTLZA_BitArith_DecodeSymbol9(BGBBTJ_BTLZA_Context *ctx,
 	return(j&0x1FF);
 }
 
-int BTLZA_BitArith_DecodeSymbol8LE(BGBBTJ_BTLZA_Context *ctx,
+int BTLZA_BitArith_DecodeSymbol8LE(BTLZA_Context *ctx,
 	btlza_prob *mdl, int ctxmask)
 {
 	int i, j, k, v;
@@ -704,7 +704,7 @@ int BTLZA_BitArith_DecodeSymbol8LE(BGBBTJ_BTLZA_Context *ctx,
 }
 
 void BTLZA_BitArith_ResetContextWeights(
-	BGBBTJ_BTLZA_Context *ctx)
+	BTLZA_Context *ctx)
 {
 	int i, j;
 
@@ -721,7 +721,7 @@ void BTLZA_BitArith_ResetContextWeights(
 }
 
 void BTLZA_BitArith_SetupContextBits(
-	BGBBTJ_BTLZA_Context *ctx, int bits)
+	BTLZA_Context *ctx, int bits)
 {
 	int i, j;
 
@@ -734,27 +734,27 @@ void BTLZA_BitArith_SetupContextBits(
 	}
 
 	if(ctx->mdl_lit && (ctx->ctxbits!=bits))
-		{ btlza_free(ctx->mdl_lit); ctx->mdl_lit=NULL; }
+		{ frgl_free(ctx->mdl_lit); ctx->mdl_lit=NULL; }
 	
 	j=1<<bits;
 	if(!ctx->mdl_lit)
-		{ ctx->mdl_lit=btlza_malloc(j*sizeof(btlza_prob)); }
+		{ ctx->mdl_lit=frgl_malloc(j*sizeof(btlza_prob)); }
 	ctx->ctxbits=bits;
 	ctx->ctxmask=(1<<bits)-1;
 	ctx->wctx=0;
 
 	j=1<<12;
 	if(!ctx->mdl_dist)
-		{ ctx->mdl_dist=btlza_malloc(j*sizeof(btlza_prob)); }
+		{ ctx->mdl_dist=frgl_malloc(j*sizeof(btlza_prob)); }
 	if(!ctx->mdl_xbits)
-		{ ctx->mdl_xbits=btlza_malloc(j*sizeof(btlza_prob)); }
+		{ ctx->mdl_xbits=frgl_malloc(j*sizeof(btlza_prob)); }
 
 	BTLZA_BitArith_ResetContextWeights(ctx);
 }
 
 
 void BTLZA_BitArith_ResetRawContextWeights(
-	BGBBTJ_BTLZA_Context *ctx)
+	BTLZA_Context *ctx)
 {
 	int i, j;
 
@@ -765,7 +765,7 @@ void BTLZA_BitArith_ResetRawContextWeights(
 }
 
 void BTLZA_BitArith_SetupRawContextBits(
-	BGBBTJ_BTLZA_Context *ctx, int bits)
+	BTLZA_Context *ctx, int bits)
 {
 	int i, j;
 
@@ -778,11 +778,11 @@ void BTLZA_BitArith_SetupRawContextBits(
 	}
 
 	if(ctx->mdl_rbits && (ctx->ctxbits_raw!=bits))
-		{ btlza_free(ctx->mdl_rbits); ctx->mdl_rbits=NULL; }
+		{ frgl_free(ctx->mdl_rbits); ctx->mdl_rbits=NULL; }
 	
 	j=1<<bits;
 	if(!ctx->mdl_rbits)
-		{ ctx->mdl_rbits=btlza_malloc(j*sizeof(btlza_prob)); }
+		{ ctx->mdl_rbits=frgl_malloc(j*sizeof(btlza_prob)); }
 	ctx->ctxbits_raw=bits;
 	ctx->ctxmask_raw=(1<<bits)-1;
 	ctx->wctx=0;
@@ -791,8 +791,8 @@ void BTLZA_BitArith_SetupRawContextBits(
 }
 
 #if 0
-BGBBTJ_API int BTLZA_BitArith_EncodeDataCtx(
-	BGBBTJ_BTLZA_Context *ctx,
+BTEIFGL_API int BTLZA_BitArith_EncodeDataCtx(
+	BTLZA_Context *ctx,
 	byte *ibuf, int isz, byte *obuf, int osz, int flags)
 {
 	int i, j, k, l, ll, le;
@@ -833,8 +833,8 @@ BGBBTJ_API int BTLZA_BitArith_EncodeDataCtx(
 	return(i);
 }
 
-BGBBTJ_API int BTLZA_BitArith_DecodeDataCtx(
-	BGBBTJ_BTLZA_Context *ctx,
+BTEIFGL_API int BTLZA_BitArith_DecodeDataCtx(
+	BTLZA_Context *ctx,
 	byte *ibuf, int isz, byte *obuf, int osz)
 {
 	int i, j, k, l, fl, ll, osz1, le;
@@ -876,13 +876,13 @@ BGBBTJ_API int BTLZA_BitArith_DecodeDataCtx(
 	return(i);
 }
 
-BGBBTJ_API int BTLZA_BitArith_EncodeData(
+BTEIFGL_API int BTLZA_BitArith_EncodeData(
 	byte *ibuf, int isz, byte *obuf, int osz)
 {
-	BGBBTJ_BTLZA_Context *ctx;
+	BTLZA_Context *ctx;
 	int i, j;
 	
-//	ctx=btlza_malloc(sizeof(BGBBTJ_BTLZA_Context));
+//	ctx=frgl_malloc(sizeof(BTLZA_Context));
 //	ctx->cs=NULL; ctx->ct=NULL;
 	ctx=BTLZA_AllocContext();
 	i=BTLZA_BitArith_EncodeDataCtx(ctx, ibuf, isz, obuf, osz, 13);
@@ -890,10 +890,10 @@ BGBBTJ_API int BTLZA_BitArith_EncodeData(
 	return(i);
 }
 
-BGBBTJ_API int BTLZA_BitArith_DecodeData(
+BTEIFGL_API int BTLZA_BitArith_DecodeData(
 	byte *ibuf, int isz, byte *obuf, int osz)
 {
-	BGBBTJ_BTLZA_Context *ctx;
+	BTLZA_Context *ctx;
 	int i, j;
 	
 	ctx=BTLZA_AllocContext();
@@ -902,10 +902,10 @@ BGBBTJ_API int BTLZA_BitArith_DecodeData(
 	return(i);
 }
 
-BGBBTJ_API int BTLZA_BitArith_EncodeTestData(
+BTEIFGL_API int BTLZA_BitArith_EncodeTestData(
 	byte *ibuf, int isz, byte *obuf, int osz)
 {
-	BGBBTJ_BTLZA_Context *ctx;
+	BTLZA_Context *ctx;
 	byte *tbuf;
 	int i, j, k;
 

@@ -154,6 +154,7 @@ Each cell is 64 bytes.
 #define BGBDT_ACCFL_CHKADJ		8		//check adjacent blocks
 #define BGBDT_ACCFL_LIGHTDIRTY	16		//only lighting has changed
 #define BGBDT_ACCFL_DISTANT		32		//represents a distant chunk
+#define BGBDT_ACCFL_NOLOADRGN	64		//don't load region
 
 #define BGBDT_TRFL_NOLOAD		1		//don't load chunks during trace
 #define BGBDT_TRFL_SOLID		2		//stop if we hit something solid
@@ -439,6 +440,7 @@ BGBDT_VoxChunkMesh *cvs;	//chunk CVS
 int lastpvs;
 int lastcvs;
 int lasttick;
+int lastsave;
 
 short pvsrov;
 
@@ -577,11 +579,21 @@ byte lzwin[256];					//command window
 byte lzidx[256];					//command window index
 byte lzwpos;						//command window position
 
-// byte *lzhash[256];					//LZ hash
-// byte *lzhash[2048];					//LZ hash
-byte *lzhash[4096];					//LZ hash
+// byte *lzhash[256];				//LZ hash
+// byte *lzhash[2048];				//LZ hash
+// byte *lzhash[4096];				//LZ hash
+// byte lzhix[1024];
+
+byte *lzhash[16384];				//LZ hash
+byte lzhix[8192];					//hash-index
 
 int lzctrl;
+byte lzrsd;		//RLE search depth
+byte lzsd;		//LZ search depth
+byte lzsd2;		//log2 of LZ search depth
+byte lzhs2;		//log2 of LZ hash size
+byte lzixm;		//LZ index mask
+u16 lzhm;
 
 int (*ReadAdRiceLL)(BGBDT_RiceContext *ctx, int *rk);
 int (*ReadAdDist)(BGBDT_RiceContext *ctx, int *rk);

@@ -727,6 +727,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 					chk->ticklim++;
 				
 					BGBDT_VoxLight_UpdateChunkLight(world, chk);
+					chk->flags|=BGBDT_CHKFL_SAVEDIRTY;
 					rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
 				}
 			}
@@ -738,11 +739,13 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 
 	rgn->flags&=~BGBDT_RGNFL_NEWRGN;
 
-	if(rgn->flags&BGBDT_RGNFL_RGNDIRTY)
+//	if(rgn->flags&BGBDT_RGNFL_RGNDIRTY)
+	if((rgn->flags&BGBDT_RGNFL_RGNDIRTY) && (t0>(rgn->lastsave+1000)))
 	{
 //		printf("Save Region %p\n", rgn);
 		BGBDT_WorldSaveRegionData(world, rgn);
 		rgn->flags&=~BGBDT_RGNFL_RGNDIRTY;
+		rgn->lastsave=t0;
 	}
 
 	rgn->lasttick=t0;

@@ -1801,25 +1801,25 @@ byte *BTIC4B_BufReadUVLI(byte *cs, u64 *rval)
 		return(cs);
 	}else if(i<0xC0)
 	{
-		i=(i&0x7F<<8)|(*cs++);
+		i=((i&0x7F)<<8)|(*cs++);
 		if(rval)*rval=i;
 		return(cs);
 	}else if(i<0xE0)
 	{
-		i=(i&0x3F<<8)|(*cs++);
+		i=((i&0x3F)<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		if(rval)*rval=i;
 		return(cs);
 	}else if(i<0xF0)
 	{
-		i=(i&0x1F<<8)|(*cs++);
+		i=((i&0x1F)<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		if(rval)*rval=i;
 		return(cs);
 	}else if(i<0xF8)
 	{
-		i=(i&0x0F<<8)|(*cs++);
+		i=((i&0x0F)<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
@@ -1827,7 +1827,7 @@ byte *BTIC4B_BufReadUVLI(byte *cs, u64 *rval)
 		return(cs);
 	}else if(i<0xFC)
 	{
-		i=(i&0x07<<8)|(*cs++);
+		i=((i&0x07)<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
@@ -1836,7 +1836,7 @@ byte *BTIC4B_BufReadUVLI(byte *cs, u64 *rval)
 		return(cs);
 	}else if(i<0xFE)
 	{
-		i=(i&0x03<<8)|(*cs++);
+		i=((i&0x03)<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
@@ -1846,7 +1846,7 @@ byte *BTIC4B_BufReadUVLI(byte *cs, u64 *rval)
 		return(cs);
 	}else if(i<0xFF)
 	{
-		i=(i&0x01<<8)|(*cs++);
+		i=((i&0x01)<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);
 		i=(i<<8)|(*cs++);

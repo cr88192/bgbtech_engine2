@@ -920,8 +920,10 @@ int main_startup(int argc, char *argv[])
 
 //#ifndef __EMSCRIPTEN__
 #if 1
-	xyz.x=-4<<BGBDT_XYZ_SHR_CHUNK;
-	xyz.y=-4<<BGBDT_XYZ_SHR_CHUNK;
+//	xyz.x=-4<<BGBDT_XYZ_SHR_CHUNK;
+//	xyz.y=-4<<BGBDT_XYZ_SHR_CHUNK;
+	xyz.x=((u32)(~3))<<BGBDT_XYZ_SHR_CHUNK;
+	xyz.y=((u32)(~3))<<BGBDT_XYZ_SHR_CHUNK;
 	xyz.z= 4<<BGBDT_XYZ_SHR_CHUNK;
 	BGBDT_WorldGetChunk(bgbdt_voxworld, xyz,
 		BGBDT_ACCFL_ENNEWRGN|BGBDT_ACCFL_ENNEWCHK);
@@ -1114,8 +1116,10 @@ int main_drawvoxui()
 
 		if(setp)
 		{
+//			BGBDT_WorldSetVoxelData(bgbdt_voxworld,
+//				voxui_xyz, td, BGBDT_ACCFL_CHKADJ);
 			BGBDT_WorldSetVoxelData(bgbdt_voxworld,
-				voxui_xyz, td, BGBDT_ACCFL_CHKADJ);
+				voxui_xyz, td, BGBDT_ACCFL_CHKADJ|BGBDT_ACCFL_NOLOADRGN);
 		}
 
 //		vs0=NULL;
@@ -1803,7 +1807,8 @@ int main_handle_input()
 			{
 				main_setplacevox(&td);
 				BGBDT_WorldSetVoxelData(
-					bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
+					bgbdt_voxworld, bgbdt_tslxyz, td,
+					BGBDT_ACCFL_CHKADJ|BGBDT_ACCFL_NOLOADRGN);
 			}
 		}
 
@@ -1884,7 +1889,8 @@ int main_handle_input()
 			td.vattr=0;
 			td.vlight=0;		td.alight=0;
 			BGBDT_WorldSetVoxelData(
-				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
+				bgbdt_voxworld, bgbdt_tsxyz, td,
+				BGBDT_ACCFL_CHKADJ|BGBDT_ACCFL_NOLOADRGN);
 			break;
 		case K_INS:
 		case 'r':
@@ -1902,7 +1908,8 @@ int main_handle_input()
 //			td.vlight=0;		td.alight=0;
 			main_setplacevox(&td);
 			BGBDT_WorldSetVoxelData(
-				bgbdt_voxworld, bgbdt_tslxyz, td, BGBDT_ACCFL_CHKADJ);
+				bgbdt_voxworld, bgbdt_tslxyz, td,
+				BGBDT_ACCFL_CHKADJ|BGBDT_ACCFL_NOLOADRGN);
 			break;
 
 		case '\\':		
@@ -1921,7 +1928,8 @@ int main_handle_input()
 //			td.vlight=0;		td.alight=0;
 			main_setplacevox(&td);
 			BGBDT_WorldSetVoxelData(
-				bgbdt_voxworld, bgbdt_tsxyz, td, BGBDT_ACCFL_CHKADJ);
+				bgbdt_voxworld, bgbdt_tsxyz, td,
+				BGBDT_ACCFL_CHKADJ|BGBDT_ACCFL_NOLOADRGN);
 			break;
 
 		case '0':	case '1':
@@ -1960,7 +1968,7 @@ int main_body()
 	float tv0[3], tv1[3], tv2[3];
 
 	BGBDT_VoxCoord xyzs, xyze, xyzt, xyztl, xyzte;
-	BGBDT_VoxCoord emin, emax;
+	BGBDT_VoxCoord emin, emax, xyz;
 	BGBDT_VoxData td;
 	BGBDT_VoxDataStatus tds;
 	dtVal ent;
@@ -2092,7 +2100,8 @@ int main_body()
 	
 	Bt2Ent_SetToolTraceEnt(bgbdt_tent);
 
-	BGBDT_WorldGetVoxelData(bgbdt_voxworld, xyzs, &td, NULL, 0);
+//	BGBDT_WorldGetVoxelData(bgbdt_voxworld, xyzs, &td, NULL, 0);
+	BGBDT_WorldGetVoxelData(bgbdt_voxworld, xyzs, &td, NULL, BGBDT_TRFL_NOLOAD);
 	i=BGBDT_VoxLight_GetBlockLightIntensity(bgbdt_voxworld, xyzs, td);
 	
 	f=(i+1)/16.0;	f=1.0/f;
@@ -2284,6 +2293,15 @@ int main_body()
 		bgbdt_absorg[0], bgbdt_absorg[1], bgbdt_absorg[2],
 		bgbdt_reforg[0], bgbdt_reforg[1], bgbdt_reforg[2]);
 	GfxFont_DrawString(tb, (wxs/2)-52*8, (wys/2)-2*8,
+		8, 8, 0, 255, 0, 255);
+
+	xyz=BGBDT_ConvLocalToVoxCoord(bgbdt_voxworld, bgbdt_org);
+	i=bgbdt_xyz2rgnid(
+		xyz.x>>BGBDT_XYZ_SHR_REGION,
+		xyz.y>>BGBDT_XYZ_SHR_REGION,
+		xyz.z>>BGBDT_XYZ_SHR_REGION);
+	sprintf(tb, "Region=%08X", i);
+	GfxFont_DrawString(tb, (wxs/2)-52*8, (wys/2)-3*8,
 		8, 8, 0, 255, 0, 255);
 
 #if 0

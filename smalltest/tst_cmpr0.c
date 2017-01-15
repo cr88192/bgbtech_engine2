@@ -4,6 +4,7 @@ int main()
 {
 	int i0, i1, i2, i3;
 	int w0, w1, w2;
+	int wa, wb;
 	int i, j, k;
 	
 #if 0
@@ -22,6 +23,9 @@ int main()
 
 		w0=256*(i0+1)/(i0+i1+2);
 
+		wa=w0+((256-w0)>>5);
+		wb=w0-(w0>>5);
+
 		i2=i0+1; i3=i1;
 		if(i2>=16) { i2--; i3--; if(i3<0)i3=0; }
 		w1=256*(i2+1)/(i2+i3+2);
@@ -33,6 +37,7 @@ int main()
 		k=i2|(i3<<4);
 
 	
-		printf("%02X(%02X) %02X(%02X) %02X(%02X)\n", i, w0, j, w1, k, w2);
+		printf("%02X(%02X,%02X,%02X) "
+			"%02X(%02X) %02X(%02X)\n", i, w0, wa, wb, j, w1, k, w2);
 	}
 }

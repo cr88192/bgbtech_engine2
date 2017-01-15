@@ -117,7 +117,7 @@ void *BGBDT_WorldReallocVoxelData(BGBDT_VoxWorld *world,
 	return(buf);
 }
 
-u32 bgbdt_xyz2rgnid(int bx, int by, int bz)
+BTEIFGL_API u32 bgbdt_xyz2rgnid(int bx, int by, int bz)
 {
 	u32 v;
 	
@@ -155,6 +155,12 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 
 	if(accfl&BGBDT_ACCFL_NOLOAD)
 		return(NULL);
+	if(accfl&BGBDT_ACCFL_NOLOADRGN)
+		return(NULL);
+
+//	if(accfl&BGBDT_ACCFL_NOLOAD)
+//	if(accfl&(BGBDT_ACCFL_NOLOAD|BGBDT_ACCFL_NOLOADRGN))
+//		return(NULL);
 	
 	//load region.
 

@@ -245,12 +245,17 @@ BtPak0_LoadChunk *BtPak_ImageLookupChunk(BtPak0_Image *img, int idx)
 	return(NULL);
 }
 
+// byte *btpak_load_tbuf=NULL;
+// int btpak_load_sztbuf;
+
 BtPak0_LoadChunk *BtPak_ImageLoadChunk(BtPak0_Image *img, int idx)
 {
 	BtPak0_ChunkInfo *chi;
 	BtPak0_LoadChunk *cur;
+	byte *tbuf;
 	u64 ofs;
-	u32 sz;
+	u32 sz, csz, sz2;
+	int i, j, k;
 
 	if(idx<=0)
 		return(NULL);
@@ -277,6 +282,60 @@ BtPak0_LoadChunk *BtPak_ImageLoadChunk(BtPak0_Image *img, int idx)
 		fseek(img->fd, ofs, 0);
 		fread(cur->data, 1, sz, img->fd);
 		cur->szData=sz;
+	}else if((chi->cm==8) || (chi->cm==9) || (chi->cm==10))
+	{
+		sz=bkpak_swdu32(chi->szChk);
+		csz=bkpak_swdu32(chi->cszChk);
+		ofs=bkpak_swdu64(chi->ofsChk);
+
+		printf("BtPak_ImageLoadChunk: Sz=%d Csz=%d\n", sz, csz);
+
+		sz2=sz+(csz/2);
+//		cur->data=btpak_malloc(sz);
+		cur->data=btpak_malloc(sz2);
+		cur->szData=sz;
+
+		tbuf=((byte *)cur->data)+sz2-csz;
+
+//		tbuf=btpak_malloc(csz+1024);
+
+#if 0
+		printf("BtPak_ImageLoadChunk: Csz=%d\n", csz);
+		tbuf=btpak_load_tbuf;
+		if(tbuf && (csz>btpak_load_sztbuf))
+		{
+			printf("BtPak_ImageLoadChunk: Free tbuf tbsz=%d\n",
+				btpak_load_sztbuf);
+			btpak_free(tbuf); tbuf=NULL;
+		}
+		
+		if(!tbuf)
+		{
+			k=csz+256;
+			j=(1<<22);
+			while(j<k)
+				j=j+(j>>1);
+
+			printf("BtPak_ImageLoadChunk: Alloc tbuf tbsz=%d\n", j);
+
+			tbuf=btpak_malloc(j);
+			btpak_load_tbuf=tbuf;
+			btpak_load_sztbuf=j;
+		}
+#endif
+
+		fseek(img->fd, ofs, 0);
+//		fread(cur->data, 1, sz, img->fd);
+		fread(tbuf, 1, csz, img->fd);
+
+		i=BTLZA_DecodeStreamZl(tbuf, cur->data, csz, sz);
+		if(i<0)
+		{
+			printf("BtPak_ImageLoadChunk: Error %d\n", i);
+			tbuf=NULL;
+		}
+//		if(tbuf)
+//			{ btpak_free(tbuf); }
 	}
 
 	cur->next=img->lchk;
@@ -449,7 +508,9 @@ int BtPak_ImageCommitLoadChunk(
 	BtPak0_Image *img, BtPak0_LoadChunk *chk)
 {
 	BtPak0_ChunkInfo *chi;
+	byte *cbuf;
 	u64 ofs;
+	int cbsz, cm;
 	int sz, sz1, csz, bix, bn;
 
 	if(!chk->isDirty)
@@ -460,7 +521,54 @@ int BtPak_ImageCommitLoadChunk(
 	sz=bkpak_swdu32(chi->szChk);
 	csz=bkpak_swdu32(chi->cszChk);
 
-	if(ofs && (chk->szData>csz))
+	sz=chk->szData;
+	if(chk->cfl&BTPAK_CFL_MULTI)
+	{
+		sz1=chk->n_cell<<chk->shCell;
+//		sz=sz1;
+		if(sz1<sz)sz=sz1;
+	}
+
+	if(chk->cfl&BTPAK_CFL_ISBM)
+	{
+		sz1=(chk->n_cell*2+7)/8;
+		if(sz1<sz)sz=sz1;
+	}
+
+	cm=0; cbuf=NULL;
+//	if(sz>0)
+	if(sz>256)
+	{
+		cbuf=btpak_malloc(sz*1.5);
+
+		cm=10;
+//		cbsz=BTLZA_BitEncF_EncodeStreamXLvlZl(
+//			chk->data, cbuf, sz, sz*1.5, 1);
+		cbsz=BTLZA_BitEnc_EncodeStreamXLvlZl(
+			chk->data, cbuf, sz, sz*1.5, 8);
+//		if(cbsz<=0)
+		if((cbsz<=0) || (cbsz>(0.9*sz)))
+		{
+			btpak_free(cbuf);
+			cbuf=NULL;
+		}else
+		{
+			printf("BtPak_ImageCommitLoadChunk: %d->%d,%s\n",
+				sz, cbsz, BtPak_ImageCtId2Str(img, chk->ctid));
+		}
+	}
+	
+	if(!cbuf)
+	{
+		cbuf=chk->data;
+		cbsz=sz;
+		cm=0;
+	}
+
+
+//	if(ofs && (chk->szData>csz))
+//	if(ofs && (sz>csz))
+	if(ofs && (cbsz>csz))
 	{
 		BtPak_ImageFreeBlocks(img, (int)(ofs>>9));
 		ofs=0;
@@ -468,28 +576,25 @@ int BtPak_ImageCommitLoadChunk(
 	
 	if(!ofs)
 	{
-		sz=chk->szData;
-		
-		if(chk->cfl&BTPAK_CFL_MULTI)
-		{
-			sz1=chk->n_cell<<chk->shCell;
-//			sz=sz1;
-			if(sz1<sz)sz=sz1;
-		}
-
-		bn=(sz+511)>>9;
+//		bn=(sz+511)>>9;
+		bn=(cbsz+511)>>9;
 		bix=BtPak_ImageAllocBlocks(img, bn);
 		csz=bn<<9;
 		ofs=bix<<9;
 	}
 	
 	fseek(img->fd, ofs, 0);
-	fwrite(chk->data, 1, sz, img->fd);
-	
+//	fwrite(chk->data, 1, sz, img->fd);
+	fwrite(cbuf, 1, cbsz, img->fd);
+
+	if(cbuf!=chk->data)
+		{ btpak_free(cbuf); }
+
 	chi->ofsChk=bkpak_sweu64(ofs);
 	chi->szChk=bkpak_sweu32(sz);
 	chi->cszChk=bkpak_sweu32(csz);
-	chi->cm=chk->cm;
+//	chi->cm=chk->cm;
+	chi->cm=cm;
 	chi->cfl=chk->cfl;
 	chi->shOsz=chk->shOsz;
 	chi->shCell=chk->shCell;
@@ -548,6 +653,8 @@ int BtPak_ImageCommitChunks(
 	return(1);
 }
 
+int btpak_ctid_lcbm=0;
+
 BtPak0_LoadChunk *BtPak_ImageFindMultiChunk(
 	BtPak0_Image *img, int ctid, int sz)
 {
@@ -584,7 +691,8 @@ BtPak0_LoadChunk *BtPak_ImageFindMultiChunk(
 		}
 	}
 	
-	csz=1<<20;
+//	csz=1<<20;
+	csz=1<<16;
 	while(sz>csz)
 		csz=csz+(csz>>1);
 	
@@ -596,11 +704,18 @@ BtPak0_LoadChunk *BtPak_ImageFindMultiChunk(
 	lccur->shOsz=18;
 	lccur->shCell=6;
 	
+	if(!btpak_ctid_lcbm)
+		btpak_ctid_lcbm=BtPak_ImageCalcPathCtId(img, ".lcbm");
+	
 	k=((csz>>4)+3)/4;
 	lccur->lcBm=BtPak_ImageNewLoadChunk(img, k);
+	lccur->lcBm->ctid=btpak_ctid_lcbm;
+	lccur->lcBm->cfl=BTPAK_CFL_ISBM;
 	lccur->bm=lccur->lcBm->data;
 	lccur->n_cell=0;
 	lccur->m_cell=csz>>lccur->shCell;
+	lccur->lcBm->n_cell=0;
+	lccur->lcBm->m_cell=csz>>lccur->shCell;
 	
 	return(lccur);
 }
@@ -659,6 +774,7 @@ int BtPak_ImageFindFreeMultiChunkSpace(
 		j=((j+511)/512)*512;
 		BtPak_ImageResizeLoadChunk(img, chk->lcBm, j);
 		chk->m_cell=j*4;
+		chk->lcBm->m_cell=j*4;
 		
 		chk->bm=chk->lcBm->data;
 		bm=chk->bm;
@@ -670,6 +786,7 @@ int BtPak_ImageFindFreeMultiChunkSpace(
 	ix1=ix+nblk;
 	chk->rov=ix1;
 	chk->n_cell=ix1+1;
+	chk->lcBm->n_cell=ix1+1;
 	
 	j=chk->n_cell<<chk->shCell;
 	j=((j+511)/512)*512;
@@ -1036,20 +1153,85 @@ BTEIFGL_API int BtPak_ImageLoadFile(BtPak0_Image *img, char *path,
 	return(id);
 }
 
+int BtPak_IsAlphaId(int ch)
+{
+	if((ch>='A') && (ch<='Z'))
+		return(1+(ch-'A'));
+	if((ch>='a') && (ch<='z'))
+		return(1+(ch-'a'));
+	return(0);
+}
+
 int BtPak_ImageCalcPathCtId(BtPak0_Image *img, char *path)
 {
-	char *s, *s1;
+	char *s, *s1, *se;
 	int h;
 	
 	s=path+strlen(path);
+	se=s;
 	while(s>path && (*s!='.'))
 		s--;
+	if(*s=='.')s++;
+	
+	if(((se-s)==3) &&
+		(BtPak_IsAlphaId(s[0])>0) &&
+		(BtPak_IsAlphaId(s[1])>0) &&
+		(BtPak_IsAlphaId(s[2])>0))
+	{
+		h=BtPak_IsAlphaId(s[2]);
+		h=h*27+BtPak_IsAlphaId(s[1]);
+		h=h*27+BtPak_IsAlphaId(s[0]);
+		return(h);
+	}
+
+	if(((se-s)==2) &&
+		(BtPak_IsAlphaId(s[0])>0) &&
+		(BtPak_IsAlphaId(s[1])>0))
+	{
+		h=BtPak_IsAlphaId(s[1]);
+		h=h*27+BtPak_IsAlphaId(s[0]);
+		return(h);
+	}
 	
 	h=0;
 	s1=s;	while(*s1)	{ h=(h*251)+(*s1++)+1; }
 	s1=s;	while(*s1)	{ h=(h*251)+(*s1++)+1; }
-	h=((h*251)>>8)&65535;
+//	h=((h*251)>>8)&65535;
+	h=0x8000|(((h*251)>>8)&32767);
 	return(h);
+}
+
+char *BtPak_ImageCtId2Str(BtPak0_Image *img, int ctid)
+{
+	static char tb[16];
+	char *s, *t;
+	int i, j, k;
+
+	if(!ctid || (ctid&0x8000))
+	{
+		switch(ctid)
+		{
+		case 0xCB63: s="frag"; break;
+		case 0xA112: s="vert"; break;
+		case 0x87CF: s="LCBM"; break;
+		default: s=NULL; break;
+		}
+		if(s)
+			return(s);
+	
+		sprintf(tb, "0x%04X", ctid);
+		return(tb);
+	}
+	
+	i=ctid; t=tb;
+	while(i)
+	{
+		j=i%27;
+		i=i/27;
+		*t++='a'+(j-1);
+	}
+	*t++=0;
+	return(tb);
 }
 
 BTEIFGL_API int BtPak_ImageStoreFile(BtPak0_Image *img, char *path,
@@ -1077,7 +1259,9 @@ BTEIFGL_API int BtPak_ImageStoreFile(BtPak0_Image *img, char *path,
 		
 		if(isz>=(1<<20))
 		{
+			k=BtPak_ImageCalcPathCtId(img, path);
 			chk=BtPak_ImageNewLoadChunk(img, isz);
+			chk->ctid=k;
 			de->chkId=bkpak_sweu32(chk->chkId);
 			de->oszFile=bkpak_sweu64(isz);
 		}else

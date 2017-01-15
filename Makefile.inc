@@ -104,6 +104,16 @@ BTEIFGL_SRCS=\
 	btic4b/bt4b_shim_bc7.c \
 	btic4b/bt4b_shim_s2tc.c \
 	btic4b/bt4b_dump_hdr.c \
+	\
+	btlzh/btlza_fastdfl.c		\
+	btlzh/btlza_bitdecode.c	\
+	btlzh/btlza_bitencode.c	\
+	btlzh/btlza_bitrange.c	\
+	btlzh/btlza_bitrange3.c	\
+	btlzh/btlza_bitstream.c	\
+	btlzh/btlza_decode.c		\
+	btlzh/btlza_encode.c		\
+
 
 BTEIFGL_MULTISRCS=\
 	base/base_multi.c \
@@ -111,6 +121,7 @@ BTEIFGL_MULTISRCS=\
 	btews/btws_multi.c \
 	fastbcn/bcn_multi.c \
 	btic4b/bt4b_multi.c \
+	btlzh/btlza_multi.c \
 	\
 	$(BSVM2_MULTISRCS)
 
@@ -120,7 +131,7 @@ BTEIFGL_MULTISRCS=\
 SRCS=$(BTEIFGL_SRCS)
 MSRCS=$(BTEIFGL_MULTISRCS)
 
-BSVM2_BASE=bsvm2/
+# BSVM2_BASE=bsvm2/
 
 DEP_HDRS=\
 	include/bteifgl_auto.h \

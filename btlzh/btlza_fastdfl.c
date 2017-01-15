@@ -420,6 +420,13 @@ int BTLZA_BitEncF_EncodeStream_I(BTLZA_Context *ctx,
 	byte *s;
 	int i, j, k;
 
+	ctx->BS_EncodeSymbol=
+		BTLZA_BitEnc_EncodeSymbolBasic;
+	ctx->BS_EncodeDistanceSymbol=
+		BTLZA_BitEnc_EncodeDistanceSymbolBasic;
+	ctx->BS_EncodeClSymbol=
+		BTLZA_BitEnc_EncodeSymbolBasic;
+
 	ctx->BS_WriteByte=BTLZA_BitEnc_WriteByteBasic;
 
 	ctx->ibuf=ibuf;
@@ -591,6 +598,11 @@ BTEIFGL_API int BTLZA_BitEncF_EncodeStreamXLvlZlc(
 	int i, j, k, l;
 
 	j=BTLZA_BitEncF_EncodeStreamXLvl(ibuf, obuf+1, isz, osz-1, lvl);
-	obuf[0]=0x8A;	
+	obuf[0]=0x8A;
+
+	k=(obuf[0]<<8)+obuf[1];
+	if(!(k%31))
+		obuf[0]=0xBA;
+
 	return(j+1);
 }

@@ -266,9 +266,13 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 	k=4;
 	while((k--)>0)
 	{
-		tpos.x=(lcpos.x+cpos.x)>>1;
-		tpos.y=(lcpos.y+cpos.y)>>1;
-		tpos.z=(lcpos.z+cpos.z)>>1;
+//		tpos.x=(lcpos.x+cpos.x)>>1;
+//		tpos.y=(lcpos.y+cpos.y)>>1;
+//		tpos.z=(lcpos.z+cpos.z)>>1;
+
+		tpos.x=(lcpos.x>>1)+(cpos.x>>1);
+		tpos.y=(lcpos.y>>1)+(cpos.y>>1);
+		tpos.z=(lcpos.z>>1)+(cpos.z>>1);
 
 		tp1.x=tpos.x&(~BGBDT_XYZ_MASK_VOXEL);
 		tp1.y=tpos.y&(~BGBDT_XYZ_MASK_VOXEL);
@@ -280,7 +284,7 @@ BTEIFGL_API int BGBDT_RayCastVoxel(BGBDT_VoxWorld *world,
 				break;
 
 //		BGBDT_WorldGetVoxelData(world, cpos, &td1, NULL, 0);
-		BGBDT_WorldGetVoxelData(world, tpos, &td1, NULL, 0);
+		BGBDT_WorldGetVoxelData(world, tpos, &td1, NULL, accfl);
 		if(BGBDT_WorldVoxel_CheckMatchP(world, tpos, td1, tracefl))
 			break;
 

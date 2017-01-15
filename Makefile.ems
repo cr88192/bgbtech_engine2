@@ -12,23 +12,31 @@ CC_OUTDLL=emcc -o
 CC_OUTOBJ=emcc -o 
 CC_OUTTOOL=cl /Fe 
 
-CFLAGS=-Iinclude -Ibsvm2/include -s LEGACY_GL_EMULATION=1 \
+# BSVM2_BASE=bsvm2.l/
+BSVM2_BASE=bsvm2/
+
+CFLAGS=-Iinclude -I$(BSVM2_BASE)/include -s LEGACY_GL_EMULATION=1 \
 	-s TOTAL_MEMORY=536870912 \
 	-s GL_UNSAFE_OPTS=0 \
 	-s WASM=1 \
-	-O3
+	-O3 -g
 
+#	-s SAFE_HEAP=1 \
+#	-s ASSERTIONS=1
+
+
+#	-s WASM=1
 #	-s ALLOW_MEMORY_GROWTH=1 \
 #	-s TOTAL_MEMORY=268435456 \
 #	-s TOTAL_MEMORY=536870912 \
-#	-s SAFE_HEAP=1 \
 #	-O2
 #	-s SAFE_HEAP=1 \
 #	-s ALLOW_MEMORY_GROWTH=1 -O2
 DLL_CFLAGS=$(CFLAGS) -DBTEIFGL_DLL
 DLL_LDFLAGS=
 LDFLAGS=btewsim.bc -lSDL -lGL \
-	$(DLL_LDFLAGS) --preload-file resource_ems
+	$(DLL_LDFLAGS) \
+	--preload-file resource_ems
 
 all: libs apps
 

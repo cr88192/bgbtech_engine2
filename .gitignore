@@ -32,3 +32,4 @@ resource_dev2/**/*.*
 *.html
 *.html.mem
 *.bc
+*.wast

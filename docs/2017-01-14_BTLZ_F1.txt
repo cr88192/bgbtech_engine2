@@ -1,0 +1,33 @@
+BTLZ_F1
+
+Yet Another Byte Oriented LZ77 Variant
+
+
+Match Layout:
+	Token (Escape_Raw) (Raw_Bytes) (Escape_Match) Distance
+
+Token:
+0RRR-LLLL
+	RRR=Raw bytes, 0..6=Raw, 7=Escape
+	LLLL=Match Length, 0=Special, 1..14=4..17, 15=Escape (18+ bytes)
+10DD-LLLL
+	RLE: DD=Raw & Distance (1..4), LLLL=Length (Special, 4..17, 15=Escape)
+	1000-0000: EOB
+11DD-DLLL (Short Match)
+	Raw=0
+	DDD=Distance (0=Last Distance, 1..6, 7=Short Distance)
+	LLL=Length (0=Last Length, 4..9, Escape)
+
+Escaped Raw Length, Match Length, or Short Distance
+	00..DF: Single Byte Length (0..223)
+	E0..EF: Two Byte (4kB)
+	F0..FB: Three Byte (768kB)
+	FC..FE: Four Byte (48MB)
+	FF: Five Byte (4GB)
+
+Match Distance
+	      00-00 ..       DF-FF: Two-Byte Distance (56kB)
+	   E0-00-00 ..    EF-FF-FF: Three-Byte Distance (1MB)
+	F0-00-00-00 .. FD-FF-FF-FF: Four-Byte Match (224MB)
+	            FE-XX-XX-XX-XX: Five-Byte Match (4GB)
+

@@ -485,7 +485,7 @@ int main()
 	BGBDT_SndSampler *samp;
 	byte *inbuf, *cs, *cse;
 	s16 *sbuf, *sbuf2, *sbuf3;
-	byte *bbuf;
+	byte *bbuf, *tbuf;
 	char **a;
 	double e, f, g, h, el, er, ec, es;
 	int t0, t1, t2, ts, te, dt;
@@ -724,6 +724,12 @@ int main()
 	t2=t1-t0;
 	printf("Encode=%dms, %d samples/sec\n",
 		t2, (int)(1000.0*(blks*blen2)/t2));
+
+	j=blks*bsz;
+	tbuf=frgl_malloc(j*2);
+	i=BTLZA_BitArith3_EncodeTestData(bbuf, j, tbuf, j*2);
+	printf("Arith Test %d -> %d %.2f%% / %.2f%%\n", j, i,
+		(100.0*i)/j, 100.0-(100.0*i)/j);
 
 	t0=clock();
 	for(i=0; i<blks; i++)

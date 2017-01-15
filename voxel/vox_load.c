@@ -612,7 +612,7 @@ int BGBDT_VoxRgn_CheckRegionLzMagic(byte *buf)
  * 12-15: Header Reserved
  *   12=Method: 4=LZ4, 8/9/10=Reserved for Deflate/BTLZH
  *   13-15: Reserved, Zeros
- * 0xE0 Marker for compressed data.
+ * 0xE1 Marker for compressed data.
  * ~ 20: Compressed Data
  *
  * LZ4
@@ -638,9 +638,49 @@ int BGBDT_VoxRgn_CheckRegionLzMagic(byte *buf)
 int BGBDT_VoxRgn_LzMemCpyF(byte *dst, byte *src, int len)
 {
 	byte *cs, *ct, *cse;
+	int d;
+	int i;
 	
 	cs=src; cse=src+len; ct=dst;
-#if defined(X86) || defined(X86_64)
+// #if defined(X86) || defined(X86_64)
+#if 0
+
+#if 0
+	d=dst-src;
+	if(d<8)
+	{
+		switch(d)
+		{
+		case 0:
+			break;
+#if 0
+		case 1:
+			i=cs[0]; i|=i<<8; i|=i<<16;
+			((u32 *)ct)[0]=i;
+			((u32 *)ct)[1]=i;
+			break;
+		case 2:
+			i=cs[0]|(cs[1]<<8);
+			i|=i<<16;
+			((u32 *)ct)[0]=i;
+			((u32 *)ct)[1]=i;
+			break;
+#endif
+		default:
+			ct[0]=cs[0]; ct[1]=cs[1];
+			ct[2]=cs[2]; ct[3]=cs[3];
+			ct[4]=cs[4]; ct[5]=cs[5];
+			ct[6]=cs[6]; ct[7]=cs[7];
+			break;
+		}
+	}
+#endif
+
+	ct[0]=cs[0]; ct[1]=cs[1];
+	ct[2]=cs[2]; ct[3]=cs[3];
+	ct[4]=cs[4]; ct[5]=cs[5];
+	ct[6]=cs[6]; ct[7]=cs[7];
+
 	while(cs<cse)
 	{
 		*(u64 *)ct=*(u64 *)cs;
@@ -657,9 +697,10 @@ int BGBDT_VoxRgn_LzMemCpyF(byte *dst, byte *src, int len)
 int BGBDT_VoxRgn_UnpackLZ4(byte *ibuf, int isz, byte *obuf, int osz)
 {
 	byte *cs, *cse, *cs1, *ct, *cte;
-	int tk, rl, ll, ld;
+	int tk, rl, ll, ld, rs;
 	int i, j, k;
 
+	rs=0;
 	cs=ibuf; cse=ibuf+isz;
 	ct=obuf; cte=obuf+osz;
 	while((cs<cse) && (ct<cte))
@@ -676,7 +717,8 @@ int BGBDT_VoxRgn_UnpackLZ4(byte *ibuf, int isz, byte *obuf, int osz)
 
 		if(((cs+rl)>cse) || ((ct+rl)>cte))
 		{
-			FRGL_DBGBREAK
+			FRGL_DBGBREAK_SOFT
+			rs=-2;
 			break;
 		}
 		
@@ -690,12 +732,14 @@ int BGBDT_VoxRgn_UnpackLZ4(byte *ibuf, int isz, byte *obuf, int osz)
 		{
 			if(!ld)
 				break;
-			FRGL_DBGBREAK
+			FRGL_DBGBREAK_SOFT
+			rs=-2;
 			break;
 		}
 
-		ll=(tk&15)+4;
-		if(ll==15)
+		j=(tk&15);
+		ll=j+4;
+		if(j==15)
 		{
 			i=*cs++;
 			while(i==0xFF)
@@ -706,7 +750,8 @@ int BGBDT_VoxRgn_UnpackLZ4(byte *ibuf, int isz, byte *obuf, int osz)
 		cs1=ct-ld;
 		if((cs1<obuf) || ((ct+ll)>cte))
 		{
-			FRGL_DBGBREAK
+			FRGL_DBGBREAK_SOFT
+			rs=-2;
 			break;
 		}
 		BGBDT_VoxRgn_LzMemCpyF(ct, cs1, ll);
@@ -715,7 +760,18 @@ int BGBDT_VoxRgn_UnpackLZ4(byte *ibuf, int isz, byte *obuf, int osz)
 //			{ *ct++=*cs1++; }
 	}
 	
-	return(0);
+	if((ct==cte) && ((cse-cs)==3))
+	{
+		if(!cs[0] && !cs[1] && !cs[2])
+			return(rs);
+	}
+	
+	if((ct>=cte) && (cs<cse))
+	{
+		FRGL_DBGBREAK_SOFT
+	}
+	
+	return(rs);
 }
 
 int BGBDT_VoxRgn_UnpackRgnLz(BGBDT_VoxWorld *world,
@@ -724,27 +780,66 @@ int BGBDT_VoxRgn_UnpackRgnLz(BGBDT_VoxWorld *world,
 	byte *obuf;
 	byte *cs, *cse, *cs1, *ct, *cte;
 	int tsz, isz, osz;
-	int tk, rl, ll, ld;
+//	int tk, rl, ll, ld;
+	int cm;
 	int i, j, k;
 
 	if(!BGBDT_VoxRgn_CheckRegionLzMagic(ibuf))
+	{
+		FRGL_DBGBREAK_SOFT
 		return(-1);
-	if(	(ibuf[12]!=4) || (ibuf[13]!=0) ||
-		(ibuf[14]!=0) || (ibuf[15]!=0))
-		return(-1);
+	}
 	
-	tsz=(ibuf[1]<<16)|(ibuf[2]<<8)||(ibuf[3]);
-	osz=(ibuf[8]<<24)|(ibuf[9]<<16)|(ibuf[10]<<8)||(ibuf[11]);
-	obuf=frgl_malloc(osz);
+	cm=ibuf[12];
+//	if(	(ibuf[12]!=4) || (ibuf[13]!=0) ||
+//		(ibuf[14]!=0) || (ibuf[15]!=0))
+	if(	((cm!=4) && (cm!=8) && (cm!=9) && (cm!=10)) ||
+		(ibuf[13]!=0) || (ibuf[14]!=0) || (ibuf[15]!=0))
+	{
+		FRGL_DBGBREAK_SOFT
+		return(-1);
+	}
+	
+	tsz=(ibuf[1]<<16)|(ibuf[2]<<8)|(ibuf[3]);
+	osz=(ibuf[8]<<24)|(ibuf[9]<<16)|(ibuf[10]<<8)|(ibuf[11]);
+	obuf=frgl_malloc(osz+256);
 	
 	cs=ibuf+tsz;
-	if(cs[0]!=0xE0)
+	if(cs[0]!=0xE1)
+	{
+		frgl_free(obuf);
+		FRGL_DBGBREAK_SOFT
 		return(-1);
+	}
 	isz=(cs[1]<<16)|(cs[2]<<8)|(cs[3]);
 	cse=cs+isz;
 	cs+=4;
 
-	BGBDT_VoxRgn_UnpackLZ4(cs, cse-cs, obuf, osz);
+	if(cm==4)
+	{
+		i=BGBDT_VoxRgn_UnpackLZ4(cs, cse-cs, obuf, osz);
+		if(i<0)
+		{
+			frgl_free(obuf);
+			FRGL_DBGBREAK_SOFT
+			return(-1);
+		}
+	}else if((cm==8) || (cm==9) || (cm==10))
+	{
+//		i=BTLZA_DecodeStreamSzZl(cs, obuf, cse-cs, osz, &i, 0);
+		i=BTLZA_DecodeStreamZl(cs, obuf, cse-cs, osz);
+		if(i<0)
+		{
+			frgl_free(obuf);
+			FRGL_DBGBREAK_SOFT
+			return(-1);
+		}
+	}else
+	{
+		frgl_free(obuf);
+		FRGL_DBGBREAK_SOFT
+		return(-1);
+	}
 	
 	*robuf=obuf;
 	*rosz=osz;

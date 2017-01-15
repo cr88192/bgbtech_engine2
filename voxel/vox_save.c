@@ -58,10 +58,21 @@ void BGBDT_EmitLzSMTF2(BGBDT_RiceContext *ctx, int sym, int *rk)
 	ctx->WriteAdRiceLL(ctx, ix0, rk);
 }
 
+int BGBDT_ChunkLzHashHi(BGBDT_RiceContext *ctx, byte *ics)
+{
+	int h;
+	h=((ics[0]*251^ics[1])*251^ics[2])*251;
+//	h=(h>>9)&255;
+	h=(h>>9)&(ctx->lzhm);
+
+	return(h);
+}
+
+#if 0
 void BGBDT_ChunkLzHashChi(BGBDT_RiceContext *ctx,
 	byte *ics, int *chi)
 {
-	int h;
+	int h, ix;
 
 //	h=((ics[0]*251+ics[1])*251+ics[2])*251;
 	h=((ics[0]*251^ics[1])*251^ics[2])*251;
@@ -96,7 +107,7 @@ void BGBDT_ChunkLzHashChi(BGBDT_RiceContext *ctx,
 	chi[7]=(h<<3)|7;
 #endif
 
-#if 1
+#if 0
 	h=(h>>9)&255;
 	chi[ 0]=(h<<4)| 0;
 	chi[ 1]=(h<<4)| 1;
@@ -115,15 +126,44 @@ void BGBDT_ChunkLzHashChi(BGBDT_RiceContext *ctx,
 	chi[14]=(h<<4)|14;
 	chi[15]=(h<<4)|15;
 #endif
+
+#if 1
+	h=(h>>9)&255;
+	ix=ctx->lzhix[h];
+	chi[ 0]=(h<<4)|((ix+ 0)&15);
+	chi[ 1]=(h<<4)|((ix+ 1)&15);
+	chi[ 2]=(h<<4)|((ix+ 2)&15);
+	chi[ 3]=(h<<4)|((ix+ 3)&15);
+	if(ctx->lzsd>4)
+	{
+		chi[ 4]=(h<<4)|((ix+ 4)&15);
+		chi[ 5]=(h<<4)|((ix+ 5)&15);
+		chi[ 6]=(h<<4)|((ix+ 6)&15);
+		chi[ 7]=(h<<4)|((ix+ 7)&15);
+
+		if(ctx->lzsd>8)
+		{
+			chi[ 8]=(h<<4)|((ix+ 8)&15);
+			chi[ 9]=(h<<4)|((ix+ 9)&15);
+			chi[10]=(h<<4)|((ix+10)&15);
+			chi[11]=(h<<4)|((ix+11)&15);
+			chi[12]=(h<<4)|((ix+12)&15);
+			chi[13]=(h<<4)|((ix+13)&15);
+			chi[14]=(h<<4)|((ix+14)&15);
+			chi[15]=(h<<4)|((ix+15)&15);
+		}
+	}
+#endif
 }
+#endif
 
 int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 	byte *ics, byte *icss, byte *icse, int *rbl, int *rbd)
 {
-	int chi[16];
+//	int chi[16];
 	byte *s0, *s1, *s2, *s3, *se;
 	int hi, l, d, bl, bd, bi;
-	int i, j, k;
+	int i, j, k, sd, rsd;
 
 	if((ics+5)>=icse)
 		return(0);
@@ -132,11 +172,15 @@ int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 //	hi=((ics[0]*251^ics[1])*251^ics[2])*251;
 //	hi=(hi>>8)&255;
 	
-	BGBDT_ChunkLzHashChi(ctx, ics, chi);
+//	BGBDT_ChunkLzHashChi(ctx, ics, chi);
+	hi=BGBDT_ChunkLzHashHi(ctx, ics);
 	
 	bl=0; bd=0;
+	sd=ctx->lzsd;
+	rsd=ctx->lzrsd;
 	
-	for(i=1; i<6; i++)
+//	for(i=1; i<6; i++)
+	for(i=1; i<rsd; i++)
 	{
 		s0=ics; se=s0+256;
 		if(icse<se)se=icse;
@@ -170,14 +214,27 @@ int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 	bi=0;
 //	for(i=0; i<4; i++)
 //	for(i=0; i<8; i++)
-	for(i=0; i<16; i++)
+//	for(i=0; i<16; i++)
+	for(i=0; i<sd; i++)
 	{
 		s0=ics; se=s0+256;
 		if(icse<se)se=icse;
 //		s1=ctx->lzhash[(i<<8)|hi];
-		s1=ctx->lzhash[chi[i]];
+//		s1=ctx->lzhash[chi[i]];
+		j=(hi<<ctx->lzsd2)|((ctx->lzhix[hi]+i)&ctx->lzixm);
+
+		if(j>>14)
+			{ FRGL_DBGBREAK }
+
+		s1=ctx->lzhash[j];
 		if(s1)
 		{
+			if((s1<icss) || (s1>=icse))
+			{
+				FRGL_DBGBREAK_SOFT
+				continue;
+			}
+
 			while((s0<se) && (*s0==*s1))
 				{ s0++; s1++; }
 			l=s0-ics;
@@ -195,9 +252,9 @@ int BGBDT_ChunkLzLookupMatch(BGBDT_RiceContext *ctx,
 
 int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len)
 {
-	int chi[16];
+//	int chi[16];
 	byte *cs, *cse;
-	int hi;
+	int hi, hj;
 	
 	cs=ics; cse=cs+len;
 	while(cs<cse)
@@ -206,9 +263,23 @@ int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len)
 //		hi=((cs[0]*251^cs[1])*251^cs[2])*251;
 //		hi=(hi>>8)&255;
 
-		BGBDT_ChunkLzHashChi(ctx, cs, chi);
+//		BGBDT_ChunkLzHashChi(ctx, cs, chi);
+//		ctx->lzhash[chi[15]]=cs;
+//		ctx->lzhix[(chi[15]>>4)&255]--;
 
-#if 1
+//		hi=(chi[15]>>4)&255;
+//		ctx->lzhix[hi]--;
+//		hj=(hi<<4)|(ctx->lzhix[hi]&15);
+//		ctx->lzhash[hj]=cs;
+
+		hi=BGBDT_ChunkLzHashHi(ctx, cs);
+		ctx->lzhix[hi]--;
+		hj=(hi<<ctx->lzsd2)|((ctx->lzhix[hi]+0)&ctx->lzixm);
+		if(hj>>14)
+			{ FRGL_DBGBREAK }
+		ctx->lzhash[hj]=cs;
+
+#if 0
 		ctx->lzhash[chi[15]]=ctx->lzhash[chi[14]];
 		ctx->lzhash[chi[14]]=ctx->lzhash[chi[13]];
 		ctx->lzhash[chi[13]]=ctx->lzhash[chi[12]];
@@ -219,13 +290,14 @@ int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len)
 		ctx->lzhash[chi[ 8]]=ctx->lzhash[chi[ 7]];
 #endif
 
-#if 1
+#if 0
 		ctx->lzhash[chi[7]]=ctx->lzhash[chi[6]];
 		ctx->lzhash[chi[6]]=ctx->lzhash[chi[5]];
 		ctx->lzhash[chi[5]]=ctx->lzhash[chi[4]];
 		ctx->lzhash[chi[4]]=ctx->lzhash[chi[3]];
 #endif
 
+#if 0
 		ctx->lzhash[chi[3]]=ctx->lzhash[chi[2]];
 		ctx->lzhash[chi[2]]=ctx->lzhash[chi[1]];
 		ctx->lzhash[chi[1]]=ctx->lzhash[chi[0]];
@@ -235,6 +307,8 @@ int BGBDT_ChunkLzUpdateWindow(BGBDT_RiceContext *ctx, byte *ics, int len)
 //		ctx->lzhash[512|hi]=ctx->lzhash[256|hi];
 //		ctx->lzhash[256|hi]=ctx->lzhash[hi];
 //		ctx->lzhash[hi]=cs;
+#endif
+
 		cs++;
 	}
 	return(0);
@@ -248,6 +322,13 @@ int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
 	int l, d, ll, ld, r;
 	int i0, i1, i2, i3;
 	int i, j, k;
+
+	ctx->lzrsd=6;
+	ctx->lzsd2=4;
+	ctx->lzsd=1<<ctx->lzsd2;
+	ctx->lzhs2=12-ctx->lzsd2;
+	ctx->lzixm=(1<<ctx->lzsd2)-1;
+	ctx->lzhm=(1<<ctx->lzhs2)-1;
 	
 	for(i=0; i<256; i++)
 		{ ctx->lzwin[i]=i; ctx->lzidx[i]=i; }
@@ -257,6 +338,8 @@ int BGBDT_EncodeChunkLZ(BGBDT_RiceContext *ctx,
 //	for(i=0; i<2048; i++)
 	for(i=0; i<4096; i++)
 		{ ctx->lzhash[i]=NULL; }
+	for(i=0; i<256; i++)
+		{ ctx->lzhix[i]=0; }
 
 	ctx->WriteAdRiceLL=BGBDT_Rice_WriteAdRiceDc;
 	ctx->WriteAdDist=BGBDT_Rice_WriteAdRiceDc;
@@ -443,7 +526,8 @@ int BGBDT_WorldEncodeChunkBits(BGBDT_VoxWorld *world,
 	}
 
 	i=chk->flags;
-	i&=~(BGBDT_CHKFL_DIRTY|BGBDT_CHKFL_MESHDIRTY|BGBDT_CHKFL_SAVEDIRTY);
+//	i&=~(BGBDT_CHKFL_DIRTY|BGBDT_CHKFL_MESHDIRTY|BGBDT_CHKFL_SAVEDIRTY);
+	i&=~BGBDT_CHKFL_ALLDIRTY;
 	i&=~BGBDT_CHKFL_ENTSPAWN;
 	
 	if(i)
@@ -584,8 +668,15 @@ int BGBDT_RegionAllocCellData(BGBDT_VoxRegion *rgn, int sz)
 	if(i>=0)
 	{
 		BGBDT_RegionCellSetTag(rgn, i, 1);
+		memset(rgn->rgnbuf+(i<<BGBDT_RGN_CELLSHR),
+			0, 1<<BGBDT_RGN_CELLSHR);
+
 		for(j=1; j<n; j++)
+		{
 			BGBDT_RegionCellSetTag(rgn, i+j, 2);
+			memset(rgn->rgnbuf+((i+j)<<BGBDT_RGN_CELLSHR),
+				0, 1<<BGBDT_RGN_CELLSHR);
+		}
 		return(i);
 	}
 	
@@ -602,11 +693,15 @@ int BGBDT_RegionFreeCellData(BGBDT_VoxRegion *rgn, int ix)
 		return(-1);
 
 	BGBDT_RegionCellSetTag(rgn, ix, 0);
+	memset(rgn->rgnbuf+(ix<<BGBDT_RGN_CELLSHR),
+		0, 1<<BGBDT_RGN_CELLSHR);
 	for(i=ix+1; i<rgn->nrgncell; i++)
 	{
 		j=BGBDT_RegionCellGetTag(rgn, i);
 		if(j!=2)break;
 		BGBDT_RegionCellSetTag(rgn, i, 0);
+		memset(rgn->rgnbuf+(i<<BGBDT_RGN_CELLSHR),
+			0, 1<<BGBDT_RGN_CELLSHR);
 	}
 	return(0);
 }
@@ -626,16 +721,25 @@ int BGBDT_WorldEncodeChunk(BGBDT_VoxWorld *world,
 	return(ofs);
 }
 
+byte *bgbdt_voxrgn_enctobuf;
+int bgbdt_voxrgn_szenctobuf;
+
+
 int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 	BGBDT_VoxRegion *rgn)
 {
 	char tbuf[256];
 	BGBDT_VoxChunk *chk;
+	byte *tobuf;
 	byte *ct;
 	int bid;
 	int bx, by, bz, bn;
-	int n, sz0, sz1;
+	int n, sz0, sz1, sz2, sz3;
 	int i, j, k;
+
+#ifdef __EMSCRIPTEN__
+	return(0);
+#endif
 
 #if 0
 	if(rgn->szrgnbuf>(6<<20) && (rgn->rgnmap[12288]==0xFF))
@@ -705,6 +809,19 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 				chk->bx, chk->by, chk->bz, bid);
 		}
 	}
+
+#if 1
+	for(i=0; i<rgn->nrgncell; i++)
+	{
+		j=BGBDT_RegionCellGetTag(rgn, i);
+		if(!j)
+		{
+//			BGBDT_RegionCellSetTag(rgn, i, 0);
+			memset(rgn->rgnbuf+(i<<BGBDT_RGN_CELLSHR),
+				0, 1<<BGBDT_RGN_CELLSHR);
+		}
+	}
+#endif
 	
 	ct=rgn->rgnbuf;
 	ct[0]=0xE4;
@@ -805,11 +922,285 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 	ct[0]=0xE4;		ct[1]=sz1>>16;
 	ct[2]=sz1>> 8;	ct[3]=sz1    ;
 
-	
 	bid=bgbdt_xyz2rgnid(rgn->bx, rgn->by, rgn->bz);
 	sprintf(tbuf, "region/%s/%08X.rgn", world->worldname, bid);
 
+#if 1
+	tobuf=bgbdt_voxrgn_enctobuf;
+	sz3=bgbdt_voxrgn_szenctobuf;
+
+	sz2=rgn->szrgnbuf*1.25;
+
+	if(!tobuf || (sz2>sz3))
+	{
+		frgl_free(tobuf);
+		tobuf=frgl_malloc(sz2);
+		bgbdt_voxrgn_szenctobuf=sz2;
+	}
+	
+//	sz3=BGBDT_WorldEncodeRegionLZ4(world, rgn,
+//		rgn->rgnbuf, rgn->szrgnbuf, tobuf, sz2);
+
+	sz3=BGBDT_WorldEncodeRegionBLZ(world, rgn,
+		rgn->rgnbuf, rgn->szrgnbuf, tobuf, sz2);
+
+	if(sz3>0)
+	{
+		vf_storefile(tbuf, tobuf, sz3);
+	}else
+	{
+		vf_storefile(tbuf, rgn->rgnbuf, rgn->szrgnbuf);
+	}
+//	frgl_free(tobuf);
+#else
 	vf_storefile(tbuf, rgn->rgnbuf, rgn->szrgnbuf);
+#endif
+
 	return(0);
+}
+
+
+byte *BGBDT_EncLZ4_EmitMod255(byte *ct, int val)
+{
+	int v;
+	
+	v=val;
+	while(v>=255)
+	{
+		*ct++=0xFF;
+		v-=255;
+	}
+	*ct++=v;
+	return(ct);
+}
+
+int BGBDT_EncodeRegionBufLZ4(BGBDT_RiceContext *ctx,
+	byte *ibuf, int ibsz, byte *obuf, int obsz)
+{
+	byte *ct, *cte, *cs, *css, *cse, *csrb;
+	int kr, ks, kl, kd;
+	int l, d, r, tk, l1;
+	int i0, i1, i2, i3;
+	int i, j, k;
+	
+	for(i=0; i<4096; i++)
+		{ ctx->lzhash[i]=NULL; }
+	for(i=0; i<1024; i++)
+		{ ctx->lzhix[i]=0; }
+
+	ctx->lzrsd=2;
+	ctx->lzsd2=1;
+	ctx->lzsd=1<<ctx->lzsd2;
+	ctx->lzhs2=14-ctx->lzsd2;
+	ctx->lzixm=(1<<ctx->lzsd2)-1;
+	ctx->lzhm=(1<<ctx->lzhs2)-1;
+
+	ct=obuf; cte=obuf+obsz;
+	cs=ibuf; cse=ibuf+ibsz; css=ibuf; csrb=cs;
+	while((cs<cse) && (ct<cte))
+	{
+		i=BGBDT_ChunkLzLookupMatch(ctx, cs, css, cse, &l, &d);
+		if((i>0) && (l>=4) && (d>0) && (d<65536))
+		{
+			r=cs-csrb;
+			
+			l1=l-4;
+			tk=(r>=15)?0xF0:(r<<4);
+			tk|=(l1>=15)?0x0F:l1;
+			*ct++=tk;
+
+			if(r>=15)
+				{ ct=BGBDT_EncLZ4_EmitMod255(ct, r-15); }
+			
+			for(j=0; j<r; j++)
+				{ *ct++=csrb[j]; }
+
+			if((cs-d)<ibuf)
+				{ FRGL_DBGBREAK_SOFT }
+
+			*ct++=d;
+			*ct++=d>>8;
+
+			if(l1>=15)
+				{ ct=BGBDT_EncLZ4_EmitMod255(ct, l1-15); }
+			
+			BGBDT_ChunkLzUpdateWindow(ctx, cs, l);
+			cs+=l;
+			csrb=cs;
+		}else
+		{
+			BGBDT_ChunkLzUpdateWindow(ctx, cs, 1);
+			cs++;
+		}
+	}
+	
+	if(ct>=cte)
+	{
+		FRGL_DBGBREAK_SOFT
+	}
+	
+	if(cs>csrb)
+	{
+		r=cs-csrb;
+
+		tk=(r>=15)?0xF0:(r<<4);
+		*ct++=tk;
+
+		if(r>=15)
+			{ ct=BGBDT_EncLZ4_EmitMod255(ct, r-15); }
+
+		for(j=0; j<r; j++)
+			{ *ct++=csrb[j]; }
+		*ct++=0x00;
+		*ct++=0x00;
+	}else
+	{
+		*ct++=0x00;
+		*ct++=0x00;
+		*ct++=0x00;
+	}
+
+	return(ct-obuf);
+}
+
+int BGBDT_WorldEncodeRegionLZ4(
+	BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn,
+	byte *ibuf, int ibsz, byte *obuf, int obsz)
+{
+	BGBDT_RiceContext *ctx;
+	byte *tbuf;
+	byte *cs, *ct;
+	int sz, tsz;
+	int i, j, k;
+
+	ctx=BGBDT_Rice_AllocContext();
+
+	i=BGBDT_EncodeRegionBufLZ4(ctx, ibuf, ibsz, obuf+20, obsz-20-1024);
+	BGBDT_Rice_FreeContext(ctx);
+	if(i<0)return(i);
+	
+	j=ibsz;
+	k=i+4;
+	obuf[ 0]=0xE4;		obuf[ 1]=0x00;
+	obuf[ 2]=0x00;		obuf[ 3]=0x10;
+	obuf[ 4]='R';		obuf[ 5]='G';
+	obuf[ 6]='L';		obuf[ 7]='Z';
+	obuf[ 8]=j>>24;		obuf[ 9]=j>>16;
+	obuf[10]=j>> 8;		obuf[11]=j    ;
+	obuf[12]=0x04;		obuf[13]=0x00;
+	obuf[14]=0x00;		obuf[15]=0x00;
+	obuf[16]=0xE1;		obuf[17]=k>>16;
+	obuf[18]=k>> 8;		obuf[19]=k    ;
+	sz=20+i;
+
+#if 1
+	tbuf=NULL; tsz=0;
+	i=BGBDT_VoxRgn_UnpackRgnLz(world, obuf, sz, &tbuf, &tsz);
+	if((i<0) || !tbuf)
+	{
+		printf("BGBDT_WorldEncodeRegionLZ4: Fail: Decode Status=%d\n", i);
+		FRGL_DBGBREAK_SOFT
+		return(i);
+	}
+	
+	if(ibsz!=tsz)
+	{
+		printf("BGBDT_WorldEncodeRegionLZ4: Fail: Size Mismatch\n");
+		FRGL_DBGBREAK_SOFT
+
+		if(tbuf)
+			frgl_free(tbuf);
+		return(-1);
+	}
+	
+	if(memcmp(ibuf, tbuf, tsz)!=0)
+	{
+		printf("BGBDT_WorldEncodeRegionLZ4: Fail: Data Mismatch\n");
+
+		for(i=0; i<tsz; i++)
+			if(ibuf[i]!=tbuf[i])
+				break;
+
+		FRGL_DBGBREAK_SOFT
+
+		frgl_free(tbuf);
+		return(-1);
+	}
+	frgl_free(tbuf);
+#endif
+
+	printf("BGBDT_WorldEncodeRegionLZ4: OK %p (%d->%d, %.2f%%)\n",
+		rgn, ibsz, sz, (100.0*sz)/ibsz);
+	return(sz);
+}
+
+int BGBDT_WorldEncodeRegionBLZ(
+	BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn,
+	byte *ibuf, int ibsz, byte *obuf, int obsz)
+{
+	BGBDT_RiceContext *ctx;
+	byte *tbuf;
+	byte *cs, *ct;
+	int sz, tsz, bid;
+	int i, j, k;
+
+	i=BTLZA_BitEncF_EncodeStreamXLvlZl(
+		ibuf, obuf+20, ibsz, obsz-20-1024, 1);
+	if(i<0)return(i);
+	
+	j=ibsz;
+	k=i+4;
+	obuf[ 0]=0xE4;		obuf[ 1]=0x00;
+	obuf[ 2]=0x00;		obuf[ 3]=0x10;
+	obuf[ 4]='R';		obuf[ 5]='G';
+	obuf[ 6]='L';		obuf[ 7]='Z';
+	obuf[ 8]=j>>24;		obuf[ 9]=j>>16;
+	obuf[10]=j>> 8;		obuf[11]=j    ;
+	obuf[12]=0x0A;		obuf[13]=0x00;
+	obuf[14]=0x00;		obuf[15]=0x00;
+	obuf[16]=0xE1;		obuf[17]=k>>16;
+	obuf[18]=k>> 8;		obuf[19]=k    ;
+	sz=20+i;
+
+#if 0
+	tbuf=NULL; tsz=0;
+	i=BGBDT_VoxRgn_UnpackRgnLz(world, obuf, sz, &tbuf, &tsz);
+	if((i<0) || !tbuf)
+	{
+		printf("BGBDT_WorldEncodeRegionBLZ: Fail: Decode Status=%d\n", i);
+		FRGL_DBGBREAK_SOFT
+		return(i);
+	}
+	
+	if(ibsz!=tsz)
+	{
+		printf("BGBDT_WorldEncodeRegionBLZ: Fail: Size Mismatch\n");
+		FRGL_DBGBREAK_SOFT
+
+		if(tbuf)
+			frgl_free(tbuf);
+		return(-1);
+	}
+	
+	if(memcmp(ibuf, tbuf, tsz)!=0)
+	{
+		printf("BGBDT_WorldEncodeRegionBLZ: Fail: Data Mismatch\n");
+
+		for(i=0; i<tsz; i++)
+			if(ibuf[i]!=tbuf[i])
+				break;
+
+		FRGL_DBGBREAK_SOFT
+
+		frgl_free(tbuf);
+		return(-1);
+	}
+	frgl_free(tbuf);
+#endif
+
+	bid=bgbdt_xyz2rgnid(rgn->bx, rgn->by, rgn->bz);
+	printf("BGBDT_WorldEncodeRegionBLZ: OK %08X (%d->%d, %.2f%%)\n",
+		bid, ibsz, sz, (100.0*sz)/ibsz);
+	return(sz);
 }
 

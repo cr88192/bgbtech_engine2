@@ -107,8 +107,10 @@
 
 #ifdef _MSC_VER
 #define FRGL_DBGBREAK			__debugbreak();
+#define FRGL_DBGBREAK_SOFT		if(IsDebuggerPresent())DebugBreak();
 #else
 #define FRGL_DBGBREAK			*(int *)-1=-1;
+#define FRGL_DBGBREAK_SOFT		
 #endif
 
 #define	BGBBTJ_JPG_RGBA			0	//RGBA(32)
@@ -368,6 +370,8 @@ int m_prim;
 
 #include <bgbdt_btpak0.h>
 #include <bt4b_common.h>
+
+#include <btlzazip.h>
 
 #include <bteifgl_auto.h>
 

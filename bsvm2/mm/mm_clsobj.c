@@ -872,6 +872,18 @@ BS2VM_API dtcObject BGBDTC_AllocClassInstance(
 	return(ptr);
 }
 
+BS2VM_API dtcObject BGBDTC_AllocCloneInstance(
+	dtcObject obj)
+{
+	BGBDTC_ClassInfo *cls;
+	void *obj1;
+	
+	cls=*(void **)obj;
+	obj1=BGBDTC_AllocClassInstance(cls);
+	memcpy(obj1, obj, cls->szdata);
+	return(obj1);
+}
+
 int BGBDTC_CheckExpandClassIfaceIndex(
 	BGBDTC_ClassInfo *cls, int idx)
 {

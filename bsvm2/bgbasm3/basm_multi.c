@@ -9,6 +9,8 @@
 #define BGBASM_DLL
 #endif
 
+#ifndef BGBASM_OMIT
+
 //#include <bsvm2_bsvm21.h>
 #include <bsvm2.h>
 
@@ -41,3 +43,10 @@
 #include "link/link_vfs.c"
 #include "link/bldr_coff.c"
 // #include "link/bldr_elf.c"
+
+#else
+
+void *BLNK_LookupLabelOS(char *name)
+	{ return(NULL); }
+
+#endif

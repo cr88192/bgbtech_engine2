@@ -314,17 +314,17 @@ BTEIFGL_API int GfxFont_DrawChar(int c, int x, int y, int w, int h,
 	frag=GfxFont_FetchFrag(font_cur, c);
 	if(!frag)return(-1);
 
-	glDisable(GL_CULL_FACE);
+	frglDisable(GL_CULL_FACE);
 	frglEnableTexture2D();
-	glBindTexture(GL_TEXTURE_2D, frag->texnum);
+	frglBindTexture(GL_TEXTURE_2D, frag->texnum);
 
-//	glEnable (GL_BLEND);
-//	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//	frglEnable (GL_BLEND);
+//	frglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//	glShadeModel (GL_SMOOTH);
+//	frglShadeModel (GL_SMOOTH);
 
 // #ifndef GLES
-//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//	frglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 // #endif
 
 //	n=c&63;
@@ -346,7 +346,7 @@ BTEIFGL_API int GfxFont_DrawChar(int c, int x, int y, int w, int h,
 //	s2=1;
 //	t2=0;
 
-//	glColor4f(1, 0, 0, 1);
+//	frglColor4f(1, 0, 0, 1);
 	frglColor4f(r/255.0, g/255.0, b/255.0, a/255.0);
 
 	if(font_mode&FRGL_FONT_ITALIC)
@@ -435,7 +435,7 @@ BTEIFGL_API int GfxFont_DrawChar(int c, int x, int y, int w, int h,
 		(font_mode&FRGL_FONT_OVERLINE) ||
 		(font_mode&FRGL_FONT_STRIKEOUT))
 	{
-//		glDisable (GL_TEXTURE_2D);
+//		frglDisable (GL_TEXTURE_2D);
 		frglDisableTexture2D();
 
 		frglBegin(GL_LINES);
@@ -527,13 +527,13 @@ BTEIFGL_API int GfxFont_DrawCharModeQI(int c,
 
 	if(!qb)
 	{
-		glDisable (GL_CULL_FACE);
-//		glEnable(GL_TEXTURE_2D);
+		frglDisable (GL_CULL_FACE);
+//		frglEnable(GL_TEXTURE_2D);
 		frglEnableTexture2D();
-		glBindTexture(GL_TEXTURE_2D, texn);
+		frglBindTexture(GL_TEXTURE_2D, texn);
 
 //#ifndef GLES
-//		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//		frglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 //#endif
 
 //		frglBegin(FRGL_QUADS);
@@ -541,14 +541,14 @@ BTEIFGL_API int GfxFont_DrawCharModeQI(int c,
 		qb=1;
 	}
 
-//	glDisable (GL_CULL_FACE);
-//	glEnable (GL_TEXTURE_2D);
-//	glBindTexture(GL_TEXTURE_2D, frag->texnum);
+//	frglDisable (GL_CULL_FACE);
+//	frglEnable (GL_TEXTURE_2D);
+//	frglBindTexture(GL_TEXTURE_2D, frag->texnum);
 
-//	glEnable (GL_BLEND);
-//	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//	glShadeModel (GL_SMOOTH);
-//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//	frglEnable (GL_BLEND);
+//	frglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//	frglShadeModel (GL_SMOOTH);
+//	frglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 //	n=c&63;
 

@@ -212,7 +212,7 @@ Signature Characters:
 *  Co, Object (Class/Instance)
 *  Cp, MapObj (Dynamic Object)
 *  Cq, Quaternion (vec4f)
-*  Cr
+*  Cr, auto_var
 *  Cs, string
 *  Ct, symbol
 *  Cv, (IsType) null
@@ -951,6 +951,11 @@ Instructions
 * E1 6B Zn, AGETI				//Address Get Property (Integer)
 ** 0=Array Length, 1=Array Offset, ...
 ** Gets a built-in integer property from an address-type value.
+** Z gives base-type for Array, or Void for Object
+
+* E1 6C Zn, AGETA				//Address Get Property (Address)
+** Gets a built-in address property from an address-type value.
+** Z gives base-type for Array, or Void for Object
 
 * / E1 6C Gj, LDOSL				//Load Instance Variable Local, ( => A )
 * / E1 6D Gj, STOSL				//Store Instance Variable Local ( V => )
@@ -968,7 +973,6 @@ Instructions
 * E1 77, UDIVL				//Unsigned Divide Long
 * E1 78, CVTUI2L			//Convert UInt to Long
 
-* / E1 78, CMIEQ				//A==0 (Same as LNTI)
 * E1 79, CMINE				//A!=0
 * E1 7A, CMILT				//A< 0
 * E1 7B, CMIGT				//A> 0

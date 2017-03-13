@@ -721,10 +721,6 @@ int BGBDT_WorldEncodeChunk(BGBDT_VoxWorld *world,
 	return(ofs);
 }
 
-byte *bgbdt_voxrgn_enctobuf;
-int bgbdt_voxrgn_szenctobuf;
-
-
 int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 	BGBDT_VoxRegion *rgn)
 {

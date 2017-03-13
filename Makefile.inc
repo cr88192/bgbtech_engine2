@@ -9,6 +9,7 @@ BTEIFGL_SRCS=\
 	base/frgl_fonts_qi2.c \
 	base/frgl_input.c \
 	base/frgl_menu.c \
+	base/frgl_shaddll.c \
 	base/frgl_shader.c \
 	base/frgl_texture.c \
 	base/frgl_util.c \
@@ -40,6 +41,9 @@ BTEIFGL_SRCS=\
 	base/w32_glw.c \
 	base/w32_mouse.c \
 	base/w32_sound.c \
+	\
+	base/ems_glw.c \
+	base/ems_sound.c \
 	\
 	base/w32_guid.c \
 	base/w32_net.c \

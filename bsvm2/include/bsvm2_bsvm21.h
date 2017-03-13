@@ -72,6 +72,9 @@
 #define BSVM2_OPAG_ALEN		0	//Array Length
 #define BSVM2_OPAG_AOFS		1	//Array Offset
 
+#define BSVM2_OPAGA_TOSTRING	0	//ToString
+#define BSVM2_OPAGA_CLONE		1	//Clone
+
 #define BSVM2_OPRV_ADD		0
 #define BSVM2_OPRV_SUB		1
 #define BSVM2_OPRV_MUL		2
@@ -434,7 +437,9 @@
 #define BSVM2_OP_ISTYPE		0x0168	//Check if address is type
 #define BSVM2_OP_DTNISTYPE	0x0169	//Trap if address not type
 #define BSVM2_OP_DZNISTYPE	0x016A	//Null if address not type
-#define BSVM2_OP_AGETI		0x016B	//Check if address is type
+#define BSVM2_OP_AGETI		0x016B	//Get Address Int Property
+#define BSVM2_OP_AGETA		0x016C	//Get Address Address Property
+
 // #define BSVM2_OP_LDOSL		0x016C	//Load object field from local
 // #define BSVM2_OP_STOSL		0x016D	//Store object field from local
 #define BSVM2_OP_CALLAA		0x016E	//Dynamic Call

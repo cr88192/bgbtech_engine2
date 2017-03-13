@@ -43,7 +43,8 @@ byte cfl;				//Chunk Flags
 byte shOsz;				//Shift for offset+size
 byte shCell;			//Shift for cells
 btpk_u16 ctId;			//Content ID
-byte pad[6];
+byte szoPad;			//Size/Offset Pad
+byte pad[5];
 /* 32B */
 };
 

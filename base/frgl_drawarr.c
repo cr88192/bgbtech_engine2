@@ -12,6 +12,10 @@ int frgl_shader_pgl_Normal;
 int frgl_shader_pgl_Vertex;
 int frgl_shader_pgl_TexCoord;
 
+void (APIENTRY *pglLoadIdentity)(void);
+void (APIENTRY *pglMatrixMode)(GLenum mode);
+void (APIENTRY *pglMultMatrixf)(const GLfloat *m);
+
 BTEIFGL_API void FRGL_DrawPrim_SyncSendMatrix(void)
 {
 	float *mvm, *pvm;
@@ -31,24 +35,24 @@ BTEIFGL_API void FRGL_DrawPrim_SyncSendMatrix(void)
 		}
 
 #if !defined(GLES2)
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMultMatrixf(pvm);	
+		pglMatrixMode(GL_PROJECTION);
+		pglLoadIdentity();
+		pglMultMatrixf(pvm);	
 
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glMultMatrixf(mvm);
+		pglMatrixMode(GL_MODELVIEW);
+		pglLoadIdentity();
+		pglMultMatrixf(mvm);
 #endif
 	}else
 	{
 #if !defined(GLES2)
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMultMatrixf(pvm);	
+		pglMatrixMode(GL_PROJECTION);
+		pglLoadIdentity();
+		pglMultMatrixf(pvm);	
 
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glMultMatrixf(mvm);
+		pglMatrixMode(GL_MODELVIEW);
+		pglLoadIdentity();
+		pglMultMatrixf(mvm);
 #endif
 	}
 }
@@ -83,15 +87,20 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysSimpleFlat(
 		frglVertexAttribPointer(frgl_shader_pgl_Vertex,
 			xyzsize, xyztype, 0, xyzstep, xyz);
 
-		glDrawArrays(prim, base, nxyz);
+		frglDrawArrays(prim, base, nxyz);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glDrawArrays(prim, base, nxyz);
-		glDisableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_VERTEX_ARRAY);
+
+//		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+//		frglDrawArrays(prim, base, nxyz);
+
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglDrawArrays(prim, 0, nxyz);
+
+		frglDisableClientState(GL_VERTEX_ARRAY);
 	}
 }
 
@@ -114,19 +123,25 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalFlat(
 		frglVertexAttribPointer(frgl_shader_pgl_Normal,
 			normsize, normtype, 0, normstep, norm);
 
-		glDrawArrays(prim, base, nxyz);
+		frglDrawArrays(prim, base, nxyz);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 		frglDisableVertexAttribArray(frgl_shader_pgl_Normal);
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glNormalPointer(normtype, normstep, norm);
-		glDrawArrays(prim, base, nxyz);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+
+//		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+//		frglNormalPointer(normtype, normstep, norm);
+//		frglDrawArrays(prim, base, nxyz);
+
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglNormalPointer(normtype, normstep, ((byte *)norm)+(base*normstep));
+		frglDrawArrays(prim, 0, nxyz);
+
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
 	}
 }
 
@@ -153,23 +168,30 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalFlatRGB(
 		frglVertexAttribPointer(frgl_shader_pgl_Color,
 			rgbsize, rgbtype, 0, rgbstep, rgb);
 
-		glDrawArrays(prim, base, nxyz);
+		frglDrawArrays(prim, base, nxyz);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 		frglDisableVertexAttribArray(frgl_shader_pgl_Normal);
 		frglDisableVertexAttribArray(frgl_shader_pgl_Color);
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glNormalPointer(normtype, normstep, norm);
-		glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-		glDrawArrays(prim, base, nxyz);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+
+//		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+//		frglNormalPointer(normtype, normstep, norm);
+//		frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+//		frglDrawArrays(prim, base, nxyz);
+
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglNormalPointer(normtype, normstep, ((byte *)norm)+(base*normstep));
+		frglColorPointer(rgbsize, rgbtype, rgbstep, ((byte *)rgb)+(base*rgbstep));
+		frglDrawArrays(prim, 0, nxyz);
+
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
 	}
 }
 
@@ -196,23 +218,30 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTex(
 		frglVertexAttribPointer(frgl_shader_pgl_Normal,
 			normsize, normtype, 0, normstep, norm);
 
-		glDrawArrays(prim, base, nxyz);
+		frglDrawArrays(prim, base, nxyz);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 		frglDisableVertexAttribArray(frgl_shader_pgl_TexCoord);
 		frglDisableVertexAttribArray(frgl_shader_pgl_Normal);
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glTexCoordPointer(stsize, sttype, ststep, st);
-		glNormalPointer(normtype, normstep, norm);
-		glDrawArrays(prim, base, nxyz);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+
+//		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+//		frglTexCoordPointer(stsize, sttype, ststep, st);
+//		frglNormalPointer(normtype, normstep, norm);
+//		frglDrawArrays(prim, base, nxyz);
+
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglTexCoordPointer(stsize, sttype, ststep, ((byte *)st)+(base*ststep));
+		frglNormalPointer(normtype, normstep, ((byte *)norm)+(base*normstep));
+		frglDrawArrays(prim, 0, nxyz);
+
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
 	}
 }
 
@@ -257,7 +286,7 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTexRGB(
 			frglVertexAttribPointer(frgl_shader_pgl_Color,
 				rgbsize, rgbtype, clb, rgbstep, rgb);
 
-		glDrawArrays(prim, base, nxyz);
+		frglDrawArrays(prim, base, nxyz);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 		if(stp)frglDisableVertexAttribArray(frgl_shader_pgl_TexCoord);
@@ -267,19 +296,43 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTexRGB(
 		FRGL_ErrorStatusUniform("<?FRGL_DrawPrim_DrawArraysNormalTexRGB,B>");
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glTexCoordPointer(stsize, sttype, ststep, st);
-		glNormalPointer(normtype, normstep, norm);
-		glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-		glDrawArrays(prim, base, nxyz);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
+//		FRGL_ErrorStatusUniform("<?FRGL_DrawPrim_DrawArraysNormalTexRGB,C>");
+
+#if 1
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglTexCoordPointer(stsize, sttype, ststep, ((byte *)st)+(base*ststep));
+		frglNormalPointer(normtype, normstep, ((byte *)norm)+(base*normstep));
+		frglColorPointer(rgbsize, rgbtype, rgbstep, ((byte *)rgb)+(base*rgbstep));
+		frglDrawArrays(prim, 0, nxyz);
+
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
+#endif
+
+#if 0
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+		frglTexCoordPointer(stsize, sttype, ststep, st);
+		frglNormalPointer(normtype, normstep, norm);
+		frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+		frglDrawArrays(prim, base, nxyz);
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
+#endif
+
+//		FRGL_ErrorStatusUniform("<?FRGL_DrawPrim_DrawArraysNormalTexRGB,D>");
 	}
 }
 
@@ -306,23 +359,40 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysTexRGB(
 		frglVertexAttribPointer(frgl_shader_pgl_Color,
 			rgbsize, rgbtype, 1, rgbstep, rgb);
 
-		glDrawArrays(prim, base, nxyz);
+		frglDrawArrays(prim, base, nxyz);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 		frglDisableVertexAttribArray(frgl_shader_pgl_TexCoord);
 		frglDisableVertexAttribArray(frgl_shader_pgl_Color);
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glTexCoordPointer(stsize, sttype, ststep, st);
-		glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-		glDrawArrays(prim, base, nxyz);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
+#if 1
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglTexCoordPointer(stsize, sttype, ststep, ((byte *)st)+(base*ststep));
+		frglColorPointer(rgbsize, rgbtype, rgbstep, ((byte *)rgb)+(base*rgbstep));
+		frglDrawArrays(prim, 0, nxyz);
+
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
+#endif
+
+#if 0
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+		frglTexCoordPointer(stsize, sttype, ststep, st);
+		frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+		frglDrawArrays(prim, base, nxyz);
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
+#endif
 	}
 }
 
@@ -354,7 +424,7 @@ BTEIFGL_API void FRGL_DrawPrim_DrawElementsNormalTexRGB(
 		frglVertexAttribPointer(frgl_shader_pgl_Color,
 			rgbsize, rgbtype, 0, rgbstep, rgb);
 
-		glDrawElements(prim, nxyz, GL_UNSIGNED_INT, indices+base);
+		frglDrawElements(prim, nxyz, GL_UNSIGNED_INT, indices+base);
 
 		frglDisableVertexAttribArray(frgl_shader_pgl_Vertex);
 		frglDisableVertexAttribArray(frgl_shader_pgl_TexCoord);
@@ -362,19 +432,37 @@ BTEIFGL_API void FRGL_DrawPrim_DrawElementsNormalTexRGB(
 		frglDisableVertexAttribArray(frgl_shader_pgl_Color);
 	}else
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-		glTexCoordPointer(stsize, sttype, ststep, st);
-		glNormalPointer(normtype, normstep, norm);
-		glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-		glDrawElements(prim, nxyz, GL_UNSIGNED_INT, indices+base);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
+#if 0
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+		frglVertexPointer(xyzsize, xyztype, xyzstep, ((byte *)xyz)+(base*xyzstep));
+		frglTexCoordPointer(stsize, sttype, ststep, ((byte *)st)+(base*ststep));
+		frglNormalPointer(normtype, normstep, ((byte *)norm)+(base*normstep));
+		frglColorPointer(rgbsize, rgbtype, rgbstep, ((byte *)rgb)+(base*rgbstep));
+		frglDrawArrays(prim, 0, nxyz);
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
+#endif
+
+#if 1
+		frglEnableClientState(GL_VERTEX_ARRAY);
+		frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglEnableClientState(GL_NORMAL_ARRAY);
+		frglEnableClientState(GL_COLOR_ARRAY);
+		frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+		frglTexCoordPointer(stsize, sttype, ststep, st);
+		frglNormalPointer(normtype, normstep, norm);
+		frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+		frglDrawElements(prim, nxyz, GL_UNSIGNED_INT, indices+base);
+		frglDisableClientState(GL_VERTEX_ARRAY);
+		frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		frglDisableClientState(GL_NORMAL_ARRAY);
+		frglDisableClientState(GL_COLOR_ARRAY);
+#endif
 	}
 }
 #endif
@@ -389,10 +477,10 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysSimpleFlat(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glDrawArrays(prim, base, nxyz);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglDrawArrays(prim, base, nxyz);
+	frglDisableClientState(GL_VERTEX_ARRAY);
 }
 
 BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalFlat(
@@ -403,13 +491,13 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalFlat(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glNormalPointer(normtype, normstep, norm);
-	glDrawArrays(prim, base, nxyz);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_NORMAL_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglNormalPointer(normtype, normstep, norm);
+	frglDrawArrays(prim, base, nxyz);
+	frglDisableClientState(GL_VERTEX_ARRAY);
+	frglDisableClientState(GL_NORMAL_ARRAY);
 }
 
 BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalFlatRGB(
@@ -421,16 +509,16 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalFlatRGB(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glNormalPointer(normtype, normstep, norm);
-	glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-	glDrawArrays(prim, base, nxyz);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_NORMAL_ARRAY);
+	frglEnableClientState(GL_COLOR_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglNormalPointer(normtype, normstep, norm);
+	frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+	frglDrawArrays(prim, base, nxyz);
+	frglDisableClientState(GL_VERTEX_ARRAY);
+	frglDisableClientState(GL_NORMAL_ARRAY);
+	frglDisableClientState(GL_COLOR_ARRAY);
 }
 
 BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTex(
@@ -442,16 +530,16 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTex(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glTexCoordPointer(stsize, sttype, ststep, st);
-	glNormalPointer(normtype, normstep, norm);
-	glDrawArrays(prim, base, nxyz);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglEnableClientState(GL_NORMAL_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglTexCoordPointer(stsize, sttype, ststep, st);
+	frglNormalPointer(normtype, normstep, norm);
+	frglDrawArrays(prim, base, nxyz);
+	frglDisableClientState(GL_VERTEX_ARRAY);
+	frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglDisableClientState(GL_NORMAL_ARRAY);
 }
 
 BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTexRGB(
@@ -464,19 +552,19 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysNormalTexRGB(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glTexCoordPointer(stsize, sttype, ststep, st);
-	glNormalPointer(normtype, normstep, norm);
-	glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-	glDrawArrays(prim, base, nxyz);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglEnableClientState(GL_NORMAL_ARRAY);
+	frglEnableClientState(GL_COLOR_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglTexCoordPointer(stsize, sttype, ststep, st);
+	frglNormalPointer(normtype, normstep, norm);
+	frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+	frglDrawArrays(prim, base, nxyz);
+	frglDisableClientState(GL_VERTEX_ARRAY);
+	frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglDisableClientState(GL_NORMAL_ARRAY);
+	frglDisableClientState(GL_COLOR_ARRAY);
 }
 
 BTEIFGL_API void FRGL_DrawPrim_DrawArraysTexRGB(
@@ -488,16 +576,16 @@ BTEIFGL_API void FRGL_DrawPrim_DrawArraysTexRGB(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glTexCoordPointer(stsize, sttype, ststep, st);
-	glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-	glDrawArrays(prim, base, nxyz);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglEnableClientState(GL_COLOR_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglTexCoordPointer(stsize, sttype, ststep, st);
+	frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+	frglDrawArrays(prim, base, nxyz);
+	frglDisableClientState(GL_VERTEX_ARRAY);
+	frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglDisableClientState(GL_COLOR_ARRAY);
 }
 
 
@@ -511,18 +599,18 @@ BTEIFGL_API void FRGL_DrawPrim_DrawElementsNormalTexRGB(
 	FRGL_DRAWPRIM_LIMXYZ64K
 
 //	FRGL_DrawPrim_SyncSendMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glVertexPointer(xyzsize, xyztype, xyzstep, xyz);
-	glTexCoordPointer(stsize, sttype, ststep, st);
-	glNormalPointer(normtype, normstep, norm);
-	glColorPointer(rgbsize, rgbtype, rgbstep, rgb);
-	glDrawElements(prim, nxyz, GL_UNSIGNED_INT, indices+base);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
+	frglEnableClientState(GL_VERTEX_ARRAY);
+	frglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglEnableClientState(GL_NORMAL_ARRAY);
+	frglEnableClientState(GL_COLOR_ARRAY);
+	frglVertexPointer(xyzsize, xyztype, xyzstep, xyz);
+	frglTexCoordPointer(stsize, sttype, ststep, st);
+	frglNormalPointer(normtype, normstep, norm);
+	frglColorPointer(rgbsize, rgbtype, rgbstep, rgb);
+	frglDrawElements(prim, nxyz, GL_UNSIGNED_INT, indices+base);
+	frglDisableClientState(GL_VERTEX_ARRAY);
+	frglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	frglDisableClientState(GL_NORMAL_ARRAY);
+	frglDisableClientState(GL_COLOR_ARRAY);
 }
 #endif

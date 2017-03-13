@@ -8,26 +8,26 @@ BTEIFGL_API int Draw_SetSolid_2D(
 //	pdgl_view_xs=xs;
 //	pdgl_view_ys=ys;
 
-	glViewport(xo, yo, xs, ys);
+	frglViewport(xo, yo, xs, ys);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglProjectionMatrix();
 	frglLoadIdentity();
 	frglOrtho(-1000, 1000, -1000/aspect, 1000/aspect, -99999, 99999);
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglDisable(GL_DEPTH_TEST);
+	frglDisable(GL_CULL_FACE);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	frglEnable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glColor4f(1,1,1,1);
+	frglColor4f(1,1,1,1);
 	return(0);
 }
 
@@ -44,9 +44,9 @@ BTEIFGL_API int Draw_SetSolid2_2D(float aspect, float size,
 //	pdgl_view_xs=xs;
 //	pdgl_view_ys=ys;
 
-	glViewport(xo, yo, xs, ys);
+	frglViewport(xo, yo, xs, ys);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglProjectionMatrix();
 	frglLoadIdentity();
 
@@ -63,28 +63,28 @@ BTEIFGL_API int Draw_SetSolid2_2D(float aspect, float size,
 		frglTranslatef(-org[0],  -org[1],  -org[2]);
 	}
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_ALPHA_TEST);
+	frglDisable(GL_DEPTH_TEST);
+	frglDisable(GL_CULL_FACE);
+	frglDisable(GL_ALPHA_TEST);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glShadeModel(GL_SMOOTH);
+	frglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	frglShadeModel(GL_SMOOTH);
 
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	frglEnable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-//	glEnable(GL_STENCIL_TEST);
-//	glEnable(GL_SCISSOR_TEST);
+//	frglEnable(GL_STENCIL_TEST);
+//	frglEnable(GL_SCISSOR_TEST);
 
-	glDisable(GL_STENCIL_TEST);
-	glDisable(GL_SCISSOR_TEST);
+	frglDisable(GL_STENCIL_TEST);
+	frglDisable(GL_SCISSOR_TEST);
 
 	frglColor4f(1.0,1.0,1.0,1.0);
 	return(0);
@@ -101,9 +101,9 @@ BTEIFGL_API int Draw_SetOrtho_3D(float aspect, float size,
 //	pdgl_view_xs=w;
 //	pdgl_view_ys=h;
 
-	glViewport(x, y, w, h);
+	frglViewport(x, y, w, h);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglProjectionMatrix();
 	frglLoadIdentity();
 
@@ -111,7 +111,7 @@ BTEIFGL_API int Draw_SetOrtho_3D(float aspect, float size,
 	frglOrtho(-size, size, -h2, h2, -999999999, 999999999);
 
 //	if(leftcoords)
-//	glScalef(1, 1, -1);
+//	frglScalef(1, 1, -1);
 
 	if(angles)
 	{
@@ -124,17 +124,17 @@ BTEIFGL_API int Draw_SetOrtho_3D(float aspect, float size,
 		frglTranslatef(-org[0],  -org[1],  -org[2]);
 	}
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglDisable(GL_DEPTH_TEST);
+	frglDisable(GL_CULL_FACE);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glDisable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	frglDisable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	glColor4f(0,0,0,1);
+	frglColor4f(0,0,0,1);
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 	return(0);
@@ -148,9 +148,9 @@ BTEIFGL_API int Draw_SetSolid3_2D(float lxs, float lys,
 //	pdgl_view_xs=xs;
 //	pdgl_view_ys=ys;
 
-	glViewport(xo, yo, xs, ys);
+	frglViewport(xo, yo, xs, ys);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglProjectionMatrix();
 	frglLoadIdentity();
 
@@ -160,31 +160,31 @@ BTEIFGL_API int Draw_SetSolid3_2D(float lxs, float lys,
 		frglTranslatef(-org[0],  -org[1],  -org[2]);
 	}
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_ALPHA_TEST);
+	frglEnable(GL_DEPTH_TEST);
+	frglDisable(GL_CULL_FACE);
+	frglDisable(GL_ALPHA_TEST);
 
-	glDepthFunc(GL_LEQUAL);
+	frglDepthFunc(GL_LEQUAL);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glShadeModel(GL_SMOOTH);
+	frglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	frglShadeModel(GL_SMOOTH);
 
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	frglEnable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-//	glEnable(GL_STENCIL_TEST);
-//	glEnable(GL_SCISSOR_TEST);
+//	frglEnable(GL_STENCIL_TEST);
+//	frglEnable(GL_SCISSOR_TEST);
 
 	frglColor4f(1,1,1,1);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+	frglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
 		GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	return(0);
 }
@@ -198,9 +198,9 @@ BTEIFGL_API int Draw_SetSolid4_2D(
 //	pdgl_view_xs=xs;
 //	pdgl_view_ys=ys;
 
-	glViewport(xo, yo, xs, ys);
+	frglViewport(xo, yo, xs, ys);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
@@ -217,35 +217,35 @@ BTEIFGL_API int Draw_SetSolid4_2D(
 		frglTranslatef(-org[0],  -org[1],  -org[2]);
 	}
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
-	glEnable(GL_DEPTH_TEST);
-//	glDisable(GL_CULL_FACE);
-	glDisable(GL_ALPHA_TEST);
+	frglEnable(GL_DEPTH_TEST);
+//	frglDisable(GL_CULL_FACE);
+	frglDisable(GL_ALPHA_TEST);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glFrontFace(GL_CCW);
+	frglEnable(GL_CULL_FACE);
+	frglCullFace(GL_FRONT);
+	frglFrontFace(GL_CCW);
 
-	glDepthFunc(GL_LEQUAL);
+	frglDepthFunc(GL_LEQUAL);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glShadeModel(GL_SMOOTH);
+	frglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	frglShadeModel(GL_SMOOTH);
 
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	frglEnable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-//	glEnable(GL_STENCIL_TEST);
-//	glEnable(GL_SCISSOR_TEST);
+//	frglEnable(GL_STENCIL_TEST);
+//	frglEnable(GL_SCISSOR_TEST);
 
 	frglColor4f(1,1,1,1);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+	frglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
 		GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	return(0);
 }
@@ -262,9 +262,9 @@ BTEIFGL_API int Draw_SetPerspective_3D(
 //	pdgl_view_xs=xs;
 //	pdgl_view_ys=ys;
 
-	glViewport(xo, yo, xs, ys);
+	frglViewport(xo, yo, xs, ys);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglProjectionMatrix();
 	frglLoadIdentity();
 
@@ -280,11 +280,11 @@ BTEIFGL_API int Draw_SetPerspective_3D(
 	ymax=xmax/aspect;
 
 	frglFrustum(xmin, xmax, ymin, ymax, dst, 10000);
-//	glFrustum(xmin, xmax, ymin, ymax, dst, 100000);
-//	glFrustum(xmin, xmax, ymin, ymax, dst, 100000000);
-//	glFrustum(xmin, xmax, ymin, ymax, dst, 1000000);
+//	frglFrustum(xmin, xmax, ymin, ymax, dst, 100000);
+//	frglFrustum(xmin, xmax, ymin, ymax, dst, 100000000);
+//	frglFrustum(xmin, xmax, ymin, ymax, dst, 1000000);
 
-//	glScalef(1, 1, -1);
+//	frglScalef(1, 1, -1);
 
 	frglTranslatef(0, 0, -d);
 
@@ -300,37 +300,37 @@ BTEIFGL_API int Draw_SetPerspective_3D(
 	}
 
 //	MatN_SwapOrder(pos, pos2, 4);
-//	glMultMatrixd(pos2);
+//	frglMultMatrixd(pos2);
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	frglEnable(GL_DEPTH_TEST);
+	frglDepthFunc(GL_LESS);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glFrontFace(GL_CCW);
+	frglEnable(GL_CULL_FACE);
+	frglCullFace(GL_FRONT);
+	frglFrontFace(GL_CCW);
 
-	glDisable(GL_SCISSOR_TEST);
-	glDisable(GL_ALPHA_TEST);
+	frglDisable(GL_SCISSOR_TEST);
+	frglDisable(GL_ALPHA_TEST);
 
-//	glDisable(GL_CULL_FACE);
+//	frglDisable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-//	glShadeModel(GL_SMOOTH);
+	frglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//	frglShadeModel(GL_SMOOTH);
 
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	frglEnable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 //	frglColor4f(0,0,0,1);
 	frglColor4f(1,1,1,1);
 
-//	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+//	frglHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	return(0);
 }
 
@@ -346,9 +346,9 @@ BTEIFGL_API int Draw_SetPerspective2_3D(
 //	pdgl_view_xs=xs;
 //	pdgl_view_ys=ys;
 
-	glViewport(xo, yo, xs, ys);
+	frglViewport(xo, yo, xs, ys);
 
-//	glMatrixMode(GL_PROJECTION);
+//	frglMatrixMode(GL_PROJECTION);
 	frglProjectionMatrix();
 	frglLoadIdentity();
 
@@ -368,13 +368,13 @@ BTEIFGL_API int Draw_SetPerspective2_3D(
 //	dst=dst*0.25;
 
 	frglFrustum(xmin, xmax, ymin, ymax, dst, 10000);
-//	glFrustum(xmin, xmax, ymin, ymax, dst, 100000);
-//	glFrustum(xmin, xmax, ymin, ymax, dst, 100000000);
+//	frglFrustum(xmin, xmax, ymin, ymax, dst, 100000);
+//	frglFrustum(xmin, xmax, ymin, ymax, dst, 100000000);
 
-//	glScalef(1, 1, -1);
+//	frglScalef(1, 1, -1);
 	frglTranslatef(0, 0, -dst);
-//	glTranslatef(0, 0, -2*dst);
-//	glTranslatef(0, 0, -dst*0.5);
+//	frglTranslatef(0, 0, -2*dst);
+//	frglTranslatef(0, 0, -dst*0.5);
 
 //	Mat3to4F_Transpose(rot, pos);
 
@@ -396,35 +396,35 @@ BTEIFGL_API int Draw_SetPerspective2_3D(
 	}
 
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglLoadIdentity();
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	frglEnable(GL_DEPTH_TEST);
+	frglDepthFunc(GL_LESS);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glFrontFace(GL_CCW);
+	frglEnable(GL_CULL_FACE);
+	frglCullFace(GL_FRONT);
+	frglFrontFace(GL_CCW);
 
-	glDisable(GL_SCISSOR_TEST);
-	glDisable(GL_ALPHA_TEST);
+	frglDisable(GL_SCISSOR_TEST);
+	frglDisable(GL_ALPHA_TEST);
 
-//	glDisable(GL_CULL_FACE);
+//	frglDisable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	frglEnable(GL_BLEND);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-//	glShadeModel(GL_SMOOTH);
+	frglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//	frglShadeModel(GL_SMOOTH);
 
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	frglEnable(GL_TEXTURE_2D);
+	frglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 //	frglColor4f(0,0,0,1);
 	frglColor4f(1,1,1,1);
 
-//	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+//	frglHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	return(0);
 }
 

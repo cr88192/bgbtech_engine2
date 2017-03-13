@@ -3328,6 +3328,18 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 //		cty=BS2C_InferSuperType(ctx, lt, rt);
 		cty=BS2C_TypeAssignSuperType(ctx, lt, rt);
 
+		if(	BGBDT_TagStr_IsSymbolP(ln) &&
+			BS2C_TypeConcreteP(ctx, rt))
+		{
+			i=BS2C_InferExprLocalIndex(ctx, ln);
+			if(i>=0)
+			{
+				vi=ctx->frm->locals[i];
+				if(vi->bty==BS2CC_TYZ_AUTOVAR)
+					{ vi->bty=rt; cty=rt; }
+			}
+		}
+
 //		BS2C_CompileExpr(ctx, ln, cty);
 //		BS2C_CompileExpr(ctx, rn, cty);
 
@@ -4114,6 +4126,35 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				
 				if(!vi2)
 				{
+					if(!strcmp(fn, "toString"))
+					{
+						BS2C_CompileExpr(ctx, ln, lt);
+//						BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST);
+						BS2C_EmitOpcode(ctx, BSVM2_OP_AGETA);
+						BS2C_EmitOpcodeUZx(ctx,
+							BSVM2_OPZ_VOID, BSVM2_OPAGA_TOSTRING);
+
+						BS2C_CompileExprPopType1(ctx);
+						BS2C_CompileExprPushType(ctx, BS2CC_TYZ_STRING);
+						BS2C_CompileConvType(ctx, dty);
+						return;
+					}
+
+					i=-1;
+					if(!strcmp(fn, "clone"))
+						i=BSVM2_OPAGA_CLONE;
+
+					if(i>=0)
+					{
+						BS2C_CompileExpr(ctx, ln, lt);
+						BS2C_EmitOpcode(ctx, BSVM2_OP_AGETA);
+						BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_VOID, i);
+						BS2C_CompileExprPopType1(ctx);
+						BS2C_CompileExprPushType(ctx, lt);
+						BS2C_CompileConvType(ctx, dty);
+						return;
+					}
+
 					BS2C_CompileError(ctx, BS2CC_ERRN_ERRNODECL);
 					return;
 				}
@@ -4393,7 +4434,11 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			if(!strcmp(fn, "toString"))
 			{
 				BS2C_CompileExpr(ctx, ln, lt);
-				BS2C_CompileConvType(ctx, BS2CC_TYZ_STRING);
+//				BS2C_CompileConvType(ctx, BS2CC_TYZ_STRING);
+				BS2C_EmitOpcodeUZx(ctx, z, BSVM2_OPAGA_TOSTRING);
+				BS2C_CompileExprPopType1(ctx);
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_STRING);
+				BS2C_CompileConvType(ctx, dty);
 				return;
 			}
 
@@ -4416,6 +4461,23 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 				return;
 			}
 
+			i=-1;
+			if(!strcmp(fn, "clone"))
+				i=BSVM2_OPAGA_CLONE;
+
+			if((z>=0) && (i>=0))
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_AGETA);
+				BS2C_EmitOpcodeUZx(ctx, z, i);
+
+				BS2C_CompileExprPopType1(ctx);
+				BS2C_CompileExprPushType(ctx, lt);
+
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+
 			BS2C_CaseError(ctx);
 			return;
 		}
@@ -4423,6 +4485,30 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 		if(BS2C_TypeVariantP(ctx, lt) && BGBDT_TagStr_IsSymbolP(rn))
 		{
 			fn=BGBDT_TagStr_GetUtf8(rn);
+
+			if(!strcmp(fn, "toString"))
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+//				BS2C_CompileConvType(ctx, BS2CC_TYZ_STRING);
+				BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST);
+				BS2C_CompileExprPopType1(ctx);
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_STRING);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+
+			if(!strcmp(fn, "clone"))
+			{
+				BS2C_CompileExpr(ctx, ln, lt);
+//				BS2C_CompileConvType(ctx, BS2CC_TYZ_STRING);
+//				BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST);
+				BS2C_EmitOpcodeUZx(ctx, BSVM2_OPZ_VOID, BSVM2_OPAGA_CLONE);
+				BS2C_CompileExprPopType1(ctx);
+				BS2C_CompileExprPushType(ctx, BS2CC_TYZ_STRING);
+				BS2C_CompileConvType(ctx, dty);
+				return;
+			}
+
 //			i=BS2C_GetFrameDynamicSlotName(ctx, fn);
 			i=BS2C_GetFrameSymbol(ctx, fn);
 
@@ -4467,12 +4553,14 @@ void BS2C_CompileExpr(BS2CC_CompileContext *ctx,
 			if(BS2C_TypeSmallDoubleP(ctx, cty))
 			{
 				BS2C_CompileExpr(ctx, ln, cty);
+				BS2C_CompileConvType(ctx, dty);
 				return;
 			}
 		}
 
 		BS2C_CompileExpr(ctx, ln, lt);
 		BS2C_CompileCastType(ctx, cty);
+		BS2C_CompileConvType(ctx, dty);
 		return;
 	}
 

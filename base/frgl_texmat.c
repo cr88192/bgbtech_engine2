@@ -209,8 +209,9 @@ BTEIFGL_API int FRGL_TexMat_BindBasic(int idx)
 	{
 		if(!idx)
 		{
+			frgl_shader_pgl_Vertex=-1;
 			frgl_texmat_current=NULL;
-			glBindTexture(GL_TEXTURE_2D, 0);
+			frglBindTexture(GL_TEXTURE_2D, 0);
 			return(0);
 		}
 		return(-1);
@@ -219,8 +220,9 @@ BTEIFGL_API int FRGL_TexMat_BindBasic(int idx)
 	if(cur==frgl_texmat_current)
 		return(0);
 	
+	frgl_shader_pgl_Vertex=-1;
 	frgl_texmat_current=cur;
-	glBindTexture(GL_TEXTURE_2D, cur->basetex);
+	frglBindTexture(GL_TEXTURE_2D, cur->basetex);
 	return(0);
 }
 
@@ -236,11 +238,12 @@ BTEIFGL_API int FRGL_TexMat_CheckTeardown(FRGL_TextureMaterial *mat)
 	for(i=1; i<8; i++)
 	{
 		frglActiveTexture(i);
-		glDisable(GL_TEXTURE_2D);
+		frglDisable(GL_TEXTURE_2D);
 	}
 	frglActiveTexture(0);
-	glEnable(GL_TEXTURE_2D);
+	frglEnable(GL_TEXTURE_2D);
 
+	frgl_shader_pgl_Vertex=-1;
 	FRGL_BindShader(0);
 	return(0);
 }
@@ -251,6 +254,7 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 {
 	FRGL_TextureMaterial *cur;
 	int t0;
+	int fl;
 
 	if((idx<0) || (idx>=frgl_texmat_ninfos))
 		return(-1);
@@ -262,7 +266,7 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 		{
 			FRGL_TexMat_CheckTeardown(frgl_texmat_current);
 			frgl_texmat_current=NULL;
-			glBindTexture(GL_TEXTURE_2D, 0);
+			frglBindTexture(GL_TEXTURE_2D, 0);
 			return(0);
 		}
 		return(-1);
@@ -280,9 +284,9 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 
 	frglActiveTexture(0);
 	if(cur->alt_tex>0)
-		{ glBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
+		{ frglBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
 	else
-		{ glBindTexture(GL_TEXTURE_2D, cur->basetex); }
+		{ frglBindTexture(GL_TEXTURE_2D, cur->basetex); }
 
 //	if(cur->use_pgm>0)
 	if(cur->shader && !bgbdt_voxel_noshader)
@@ -304,8 +308,11 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 			FRGL_GetUniformLocation("pgl_ProjectionMatrix");
 
 		frgl_shader_pgl_Vertex=-1;
+		fl=0;
 
-#if 0
+//#if 1
+#ifndef __EMSCRIPTEN__
+//#if 0
 		frgl_shader_pgl_Color=
 			FRGL_GetAttribLocation("pgl_Color");
 //		frgl_shader_pgl_SecondaryColor=
@@ -316,6 +323,9 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 			FRGL_GetAttribLocation("pgl_Vertex");
 		frgl_shader_pgl_TexCoord=
 			FRGL_GetAttribLocation("pgl_TexCoord");
+		
+		if(frgl_shader_pgl_Vertex>0)
+			fl|=1;
 #endif
 
 #if 0
@@ -334,20 +344,22 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 		frgl_shader_pgl_TexBase=
 			FRGL_GetUniformLocation("texBase");
 
+		FRGL_Uniform1f("pgl_usepglvertex", (fl&1)?1.0:(-1.0));
+
 //		frglUniform1i(frgl_shader_pgl_TexBase, 0);
 		FRGL_Uniform1i("texBase", 0);
 
 		if(cur->alt_tex>0)
-			{ glBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
+			{ frglBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
 		else
-			{ glBindTexture(GL_TEXTURE_2D, cur->basetex); }
+			{ frglBindTexture(GL_TEXTURE_2D, cur->basetex); }
 
 		frglActiveTexture(1);
-		glEnable(GL_TEXTURE_2D);
+		frglEnable(GL_TEXTURE_2D);
 		if(cur->norm_tex>0)
-			{ glBindTexture(GL_TEXTURE_2D, cur->norm_tex); }
+			{ frglBindTexture(GL_TEXTURE_2D, cur->norm_tex); }
 		else
-			{ glBindTexture(GL_TEXTURE_2D, frgl_texmat_normdfl); }
+			{ frglBindTexture(GL_TEXTURE_2D, frgl_texmat_normdfl); }
 		FRGL_Uniform1i("texNorm", 1);
 
 		FRGL_Uniform1f("exposure", frgl_texmat_expose);

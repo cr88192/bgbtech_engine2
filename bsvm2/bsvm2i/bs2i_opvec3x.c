@@ -105,6 +105,7 @@ BS2VM_API void BSVM2_Pack3DvTo3Xf(u32 *pv, double *px)
 	lz=((u64 *)px)[2];
 
 	if(!((u32)(lx|ly|lz)))
+//	if(0)
 	{
 		((float *)pv)[0]=px[0];
 		((float *)pv)[1]=px[1];
@@ -190,6 +191,7 @@ BS2VM_API void BSVM2_Unpack3XfTo3Dv(u32 *pv, double *px)
 //	u64 m0, m1, m2;
 
 	if(pv[3])
+//	if(1)
 	{
 //		lx=(((u64)pv[0])<<32)|((pv[3]&0x000007FF)<<21);
 //		ly=(((u64)pv[1])<<32)|((pv[3]&0x003FF800)<<10);

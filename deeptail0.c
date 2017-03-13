@@ -764,8 +764,10 @@ int main_prestart(int argc, char *argv[])
 	FRGL_CvarSetDefault("r_drawdist", "256");
 	FRGL_CvarSetDefault("r_noshader", "0");
 	FRGL_CvarSetDefault("r_novbo", "0");
+	FRGL_CvarSetDefault("r_nosky", "0");
 
 	FRGL_CvarSetDefault("gl_texfilter", "GL_LINEAR_MIPMAP_LINEAR");
+	FRGL_CvarSetDefault("gl_driver", "opengl32");
 
 	FRGL_CvarSetDefault("g_startworld", "maretst0");
 	FRGL_CvarSetDefault("g_startwtype", "mare");
@@ -1157,7 +1159,7 @@ int main_drawvoxhud()
 	GfxDrv_GetWindowSize(&wxs, &wys);
 
 	FRGL_TexMat_BindBasic(0);
-	glDisable(GL_CULL_FACE);
+	frglDisable(GL_CULL_FACE);
 
 	if(bgbdt_toolslot)
 	{
@@ -1520,6 +1522,7 @@ int main_handle_input()
 	mlook=	FRGL_KeyDown(K_SHIFT) ||
 			FRGL_KeyDown(K_NUMPAD5) ||
 			FRGL_KeyDown('/') ||
+			FRGL_KeyDown('?') ||
 			(frgl_state->mb&2);
 //    lmlook=	FRGL_LastKeyDown(K_SHIFT) ||
 //			FRGL_LastKeyDown(K_NUMPAD5) ||
@@ -1532,6 +1535,9 @@ int main_handle_input()
 	}
 #endif
     
+    if(!GfxDrv_WindowIsActiveP())
+		mlook=0;
+    
 	V3F_ZERO(iv);
 
 	if(isotest_player_flip)
@@ -1541,7 +1547,8 @@ int main_handle_input()
 
 	mvsp=15;
 
-#ifdef __EMSCRIPTEN__
+// #ifdef __EMSCRIPTEN__
+#if 0
 	if(1)
 	{
 		mvsp=5;
@@ -1631,7 +1638,6 @@ int main_handle_input()
 			if(FRGL_KeyDown(K_END))
 				{ iv[2]-=fsg*mvsp; }
 
-
 			if(FRGL_KeyDown('a'))
 				{ iv[0]-=mvsp*bgbdt_rot[0]; iv[1]-=mvsp*bgbdt_rot[1]; }
 			if(FRGL_KeyDown('d'))
@@ -1643,14 +1649,19 @@ int main_handle_input()
 			if(FRGL_KeyDown(' '))
 				{ iv[2]+=fsg*mvsp; }
 
-//			if(FRGL_KeyDown('h'))
-//				{ bgbdt_ang[2]+=120*frgl_state->dt_f; }
-//			if(FRGL_KeyDown('k'))
-//				{ bgbdt_ang[2]-=120*frgl_state->dt_f; }
-//			if(FRGL_KeyDown('u'))
-//				{ bgbdt_ang[0]+=120*frgl_state->dt_f; }
-//			if(FRGL_KeyDown('j'))
-//				{ bgbdt_ang[0]-=120*frgl_state->dt_f; }
+			if(FRGL_KeyDown('t'))
+				{ iv[2]+=3*fsg*mvsp; }
+			if(FRGL_KeyDown('g'))
+				{ iv[2]-=3*fsg*mvsp; }
+
+			if(FRGL_KeyDown('h'))
+				{ bgbdt_ang[2]+=60*frgl_state->dt_f; }
+			if(FRGL_KeyDown('k'))
+				{ bgbdt_ang[2]-=60*frgl_state->dt_f; }
+			if(FRGL_KeyDown('u'))
+				{ bgbdt_ang[0]+=60*frgl_state->dt_f; }
+			if(FRGL_KeyDown('j'))
+				{ bgbdt_ang[0]-=60*frgl_state->dt_f; }
 
 //			if(FRGL_KeyDown('e'))
 //				{ iv[2]+=fsg*mvsp; }
@@ -1658,28 +1669,28 @@ int main_handle_input()
 //				{ iv[2]-=fsg*mvsp; }
 		}else
 		{
-			if(FRGL_KeyDown(K_LEFTARROW))
+			if(FRGL_KeyDown(K_LEFTARROW) || FRGL_KeyDown('a'))
 			{
 				iv[0]-=mvsp*bgbdt_rot[0];
 				iv[1]-=mvsp*bgbdt_rot[1];
 				iv[2]-=mvsp*bgbdt_rot[2];
 			}
 
-			if(FRGL_KeyDown(K_RIGHTARROW))
+			if(FRGL_KeyDown(K_RIGHTARROW) || FRGL_KeyDown('d'))
 			{
 				iv[0]+=mvsp*bgbdt_rot[0];
 				iv[1]+=mvsp*bgbdt_rot[1];
 				iv[2]+=mvsp*bgbdt_rot[2];
 			}
 
-			if(FRGL_KeyDown(K_END))
+			if(FRGL_KeyDown(K_END) || FRGL_KeyDown('t'))
 			{
 				iv[0]-=mvsp*bgbdt_rot[6];
 				iv[1]-=mvsp*bgbdt_rot[7];
 				iv[2]-=mvsp*bgbdt_rot[8];
 			}
 
-			if(FRGL_KeyDown(K_HOME))
+			if(FRGL_KeyDown(K_HOME) || FRGL_KeyDown('g'))
 			{
 				iv[0]+=mvsp*bgbdt_rot[6];
 				iv[1]+=mvsp*bgbdt_rot[7];
@@ -1693,7 +1704,7 @@ int main_handle_input()
 //		if(FRGL_KeyDown(K_RIGHTARROW))
 //			{ bgbdt_ang[2]-=135*frgl_state->dt_f; }
 
-		if(FRGL_KeyDown(K_LEFTARROW))
+		if(FRGL_KeyDown(K_LEFTARROW) || FRGL_KeyDown('a'))
 		{
 //			bgbdt_org[0]-=25*bgbdt_rot[0]*frgl_state->dt_f;
 //			bgbdt_org[1]-=25*bgbdt_rot[1]*frgl_state->dt_f;
@@ -1704,7 +1715,7 @@ int main_handle_input()
 			iv[2]-=mvsp*bgbdt_rot[2];
 		}
 
-		if(FRGL_KeyDown(K_RIGHTARROW))
+		if(FRGL_KeyDown(K_RIGHTARROW) || FRGL_KeyDown('d'))
 		{
 //			bgbdt_org[0]+=25*bgbdt_rot[0]*frgl_state->dt_f;
 //			bgbdt_org[1]+=25*bgbdt_rot[1]*frgl_state->dt_f;
@@ -1715,10 +1726,10 @@ int main_handle_input()
 			iv[2]+=mvsp*bgbdt_rot[2];
 		}
 
-		if(FRGL_KeyDown(K_HOME))
+		if(FRGL_KeyDown(K_HOME) || FRGL_KeyDown('t'))
 //			{ bgbdt_org[2]+=25*frgl_state->dt_f; }
 			{ iv[2]+=fsg*mvsp; }
-		if(FRGL_KeyDown(K_END))
+		if(FRGL_KeyDown(K_END) || FRGL_KeyDown('g'))
 //			{ bgbdt_org[2]-=25*frgl_state->dt_f; }
 			{ iv[2]-=fsg*mvsp; }
 		if(FRGL_KeyDown(K_PGUP))
@@ -1727,16 +1738,18 @@ int main_handle_input()
 			{ bgbdt_ang[0]-=120*frgl_state->dt_f; }
 	}
 
-	if(isotest_player_noclip)
+	if(isotest_player_noclip || !mlook)
 	{
-		if(FRGL_KeyDown(K_UPARROW) || FRGL_KeyDown(K_NUMPAD7))
+		if(FRGL_KeyDown(K_UPARROW) || FRGL_KeyDown(K_NUMPAD7) ||
+			FRGL_KeyDown('w'))
 		{
 			iv[0]+=mvsp*bgbdt_rot[3];
 			iv[1]+=mvsp*bgbdt_rot[4];
 			iv[2]+=mvsp*bgbdt_rot[5];
 		}
 
-		if(FRGL_KeyDown(K_DOWNARROW) || FRGL_KeyDown(K_NUMPAD9))
+		if(FRGL_KeyDown(K_DOWNARROW) || FRGL_KeyDown(K_NUMPAD9) ||
+			FRGL_KeyDown('s'))
 		{
 			iv[0]-=mvsp*bgbdt_rot[3];
 			iv[1]-=mvsp*bgbdt_rot[4];
@@ -2145,7 +2158,7 @@ int main_body()
 	FRGL_Setup3D(bgbdt_org, bgbdt_rot);
 //	FRGL_Setup3D(org, rot);
 
-	glDisable(GL_CULL_FACE);
+	frglDisable(GL_CULL_FACE);
 
 	lorg[0]=0;
 	lorg[1]=1024;
@@ -2155,7 +2168,7 @@ int main_body()
 
 	frglEnableTexture2D();
 //	frglDisableTexture2D();
-	glEnable(GL_CULL_FACE);
+	frglEnable(GL_CULL_FACE);
 
 	BGBDT_TickVoxWorld(bgbdt_voxworld);
 
@@ -2168,7 +2181,7 @@ int main_body()
 	BGBDT_Part_DrawParticles();
 #endif
 
-	glEnable(GL_CULL_FACE);
+	frglEnable(GL_CULL_FACE);
 
 
 	frglDisableTexture2D();
@@ -2314,7 +2327,7 @@ int main_body()
 #endif
 
 	f=frgl_state->dt_f;
-	frm_dtf[frm_rov++]=f;
+	frm_dtf[(frm_rov++)&255]=f;
 	
 	g=0; x0=f; x1=f;
 	for(i=0; i<256; i++)
@@ -2326,6 +2339,9 @@ int main_body()
 	}
 	g=g/256.0;
 
+	frglColor4f(1.0, 1.0, 1.0, 1.0);
+	frglEnableTexture2D();
+
 	sprintf(tb, "Cur=%.2fHz, Avg=%.2fHz, Min=%.2fHz, Max=%.2fHz "
 			"Time=%d:%02d expose=%.3f",
 		1.0/frgl_state->dt_f, 1.0/g, 1.0/x1, 1.0/x0,
@@ -2333,7 +2349,7 @@ int main_body()
 		(((int)bgbdt_worldtime)%60),
 		expose);
 //	GfxFont_DrawString(tb, -480, 384-16, 8, 8, 0, 255, 0, 255);
-	GfxFont_DrawString(tb, -(wxs/2), 384-16, 8, 8, 0, 255, 0, 255);
+	GfxFont_DrawString(tb, -(wxs/2), (wys/2)-16, 8, 8, 0, 255, 0, 255);
 
 	sprintf(tb, "dt/ms ( phy=%2d tick=%2d pvs=%2d "
 			"draw=%2d sound=%2d )->frame=%2d swap=%2d",
@@ -2345,7 +2361,7 @@ int main_body()
 		bgbdt_voxworld->dt_frame,
 		GfxDrv_GetDtSwap());
 //	GfxFont_DrawString(tb, -480, 384-24, 8, 8, 0, 255, 0, 255);
-	GfxFont_DrawString(tb, -(wxs/2), 384-24, 8, 8, 0, 255, 0, 255);
+	GfxFont_DrawString(tb, -(wxs/2), (wys/2)-24, 8, 8, 0, 255, 0, 255);
 
 	sprintf(tb, "Mesh gen-novis=%d/%d (%2.2f%%) "
 			"cvs=%d (%d tris) pvs=%d (%d tris) raw=%d (%d tris)",
@@ -2360,7 +2376,7 @@ int main_body()
 		bgbdt_voxworld->rawchk_tot,
 		bgbdt_voxworld->rawchk_tris);
 //	GfxFont_DrawString(tb, -480, 384-16, 8, 8, 0, 255, 0, 255);
-	GfxFont_DrawString(tb, -(wxs/2), 384-32, 8, 8, 0, 255, 0, 255);
+	GfxFont_DrawString(tb, -(wxs/2), (wys/2)-32, 8, 8, 0, 255, 0, 255);
 
 	frglColor4f(1, 1, 1, 1);
 
@@ -2368,9 +2384,9 @@ int main_body()
 
 	Con_Render();
 
+#if 0
 	frglDisableTexture2D();
 
-#if 1
 	frglColor4f(255, 0, 0, 0.75);
 
 	frglBegin(GL_LINES);
@@ -2380,6 +2396,9 @@ int main_body()
 	frglVertex2f(frgl_state->mx, -frgl_state->my+10);
 	frglEnd();
 #endif
+
+	GfxFont_DrawString("X", frgl_state->mx-8, -frgl_state->my-8,
+		16, 16, 255, 0, 0, 255);
 
 	t1=frgl_clock();
 	t2=t1-t00;

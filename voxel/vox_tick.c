@@ -564,6 +564,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 	BGBDT_VoxChunkMesh *mesh;
 	BGBDT_VoxChunk *chk;
 	byte *pxt, *pyt, *pzt;
+	double d;
 	int t0, t1, t2;
 	int bx, by, bz, bi;
 	int cx, cy, cz;
@@ -575,18 +576,24 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 		return;
 //	rgn->lastpvs=t0;
 
+	d=bgbdt_voxel_drawdist;
+	if(d<128)d=128;
+
 	BGBDT_CalcRegionBlockLocalCenter(world,
 		rgn, 128, 128, 128, lorg);
-	if(V3F_DIST(world->camorg, lorg)>256)
+//	if(V3F_DIST(world->camorg, lorg)>256)
+	if(V3F_DIST(world->camorg, lorg)>(d*1.5))
 	{
-		if(V3F_DIST(world->camorg, lorg)>768)
+//		if(V3F_DIST(world->camorg, lorg)>768)
+		if(V3F_DIST(world->camorg, lorg)>(d*3))
 		{
 			BGBDT_UnloadVoxRegion(world, rgn);
 			return;
 		}
 
 //		if(V3F_DIST(world->camorg, lorg)>384)
-		if(V3F_DIST(world->camorg, lorg)>512)
+//		if(V3F_DIST(world->camorg, lorg)>512)
+		if(V3F_DIST(world->camorg, lorg)>(d*2))
 		{
 			BGBDT_UnloadRegionMeshes(world, rgn);
 			return;

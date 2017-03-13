@@ -67,7 +67,8 @@ PFNGLUNIFORMMATRIX4FVPROC	pglUniformMatrix4fv;
 void *frglGetProcAddress(char *name)
 {
 #ifdef _WIN32
-	return(wglGetProcAddress(name));
+//	return(wglGetProcAddress(name));
+	return(frwglGetProcAddress(name));
 #else
 
 #ifdef __EMSCRIPTEN__
@@ -316,14 +317,14 @@ BTEIFGL_API int FRGL_GetFreeVideoMemory()
 
 	if(FRGL_CheckGlExtension("GL_NVX_gpu_memory_info"))
 	{
-		glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX,
+		frglGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX,
 			&mem[0]);
 //		printf("FRGL_GetFreeVideoMemory: NVidia\n");
 	}
 
 	if(FRGL_CheckGlExtension("GL_ATI_meminfo"))
 	{
-		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,
+		frglGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,
 			mem);
 //		printf("FRGL_GetFreeVideoMemory: ATI/AMD\n");
 	}
@@ -401,7 +402,7 @@ BTEIFGL_API int FRGL_ErrorStatusUniform(char *name)
 	static int errorcnt=0;
 	int i, we;
 
-	i=glGetError(); we=0;
+	i=frglGetError(); we=0;
 	while(i!=GL_NO_ERROR)
 	{
 		if((i!=lasterror) && ((errorcnt++)<16))
@@ -412,7 +413,7 @@ BTEIFGL_API int FRGL_ErrorStatusUniform(char *name)
 		lasterror=i;
 //		__debugbreak();
 //		*(int *)-1=-1;
-		i=glGetError();
+		i=frglGetError();
 		we|=2;
 	}
 	return(we);
@@ -1198,7 +1199,11 @@ BTEIFGL_API int frglDrawBuffers(int n, int *ids)
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glDrawBuffers");
-		if(!fcn)return(-1);
+		if(!fcn)
+		{
+			printf("frglDrawBuffers: GetProcAddress Failed\n");
+			return(-1);
+		}
 	}
 
 	fcn(n, (GLenum *)ids);
@@ -1213,10 +1218,13 @@ BTEIFGL_API int frglGenBuffers(int n, int *ids)
 
 	if(!fcn)
 	{
-		if(set)return(-1); set=1;
+		if(set)
+			{ ids=0; return(-1); }
+		set=1;
 		fcn=frglGetProcAddress("glGenBuffers");
 		if(!fcn)
 		{
+			printf("frglGenBuffers: GetProcAddress Failed\n");
 			ids=0;
 			return(-1);
 		}
@@ -1235,7 +1243,11 @@ BTEIFGL_API int frglDeleteBuffers(int n, int *ids)
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glDeleteBuffers");
-		if(!fcn)return(-1);
+		if(!fcn)
+		{
+			printf("frglDeleteBuffers: GetProcAddress Failed\n");
+			return(-1);
+		}
 	}
 
 	fcn(n, (GLuint *)ids);
@@ -1249,9 +1261,14 @@ BTEIFGL_API int frglBindBuffer(int target, int buffer)
 
 	if(!fcn)
 	{
-		if(set)return(-1); set=1;
+		if(set)return(-1);
+		set=1;
 		fcn=frglGetProcAddress("glBindBuffer");
-		if(!fcn)return(-1);
+		if(!fcn)
+		{
+			printf("frglBindBuffer: GetProcAddress Failed\n");
+			return(-1);
+		}
 	}
 
 	fcn(target, buffer);
@@ -1269,7 +1286,11 @@ BTEIFGL_API int frglBufferData(
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glBufferData");
-		if(!fcn)return(-1);
+		if(!fcn)
+		{
+			printf("frglBufferData: GetProcAddress Failed\n");
+			return(-1);
+		}
 	}
 
 	fcn(target, size, data, usage);
@@ -1287,7 +1308,11 @@ BTEIFGL_API int frglBufferSubData(
 	{
 		if(set)return(-1); set=1;
 		fcn=frglGetProcAddress("glBufferSubData");
-		if(!fcn)return(-1);
+		if(!fcn)
+		{
+			printf("frglBufferSubData: GetProcAddress Failed\n");
+			return(-1);
+		}
 	}
 
 	fcn(target, offset, size, data);

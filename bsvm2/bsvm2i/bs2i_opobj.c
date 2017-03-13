@@ -632,6 +632,36 @@ BS2VM_API void BSVM2_Op_DROPAA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 }
 
+BS2VM_API void BSVM2_Op_CLONEAA(BSVM2_Frame *frm, BSVM2_Opcode *op)
+{
+	dtVal a, obj, idx;
+//	char *fn;
+	void *p;
+	
+	obj=frm->stack[op->t0].a;
+	
+	if(BGBDTC_CheckObjvObjectP(obj))
+	{
+//		a=dtcVaCloneInstance(obj);
+		p=BGBDTC_AllocCloneInstance(dtvUnwrapPtr(obj));
+		a=dtvWrapPtr(p);
+		frm->stack[op->t0].a=a;
+		return;
+	}
+	
+#if 0
+	if(BGBDT_MapObj_IsObjectP(obj))
+	{
+//		fn=op->v.p;
+//		a=BGBDT_MapObj_GetObjvSlotValueName(obj, fn);
+		frm->stack[op->t0].a=a;
+		return;
+	}
+#endif
+	
+	frm->stack[op->t0].a=DTV_UNDEFINED;
+}
+
 BS2VM_API void BSVM2_Op_LDOSAA(BSVM2_Frame *frm, BSVM2_Opcode *op)
 {
 	dtVal a, obj, idx;

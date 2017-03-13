@@ -1,4 +1,4 @@
-//AHSRC:bsvm2/mm/mm_cell.c
+//AHSRC:bsvm2.l/mm/mm_cell.c
 int BGBDT_MM_AllocSObjChk();
 int BGBDT_MM_AllocMObjChk();
 int BGBDT_FindFreeCellsChk(BGBDT_MM_ChunkInfo *chk, int cells);
@@ -22,7 +22,7 @@ byte *BGBDT_MM_GetObjectPtrBase(byte *ptr);
 BS2VM_API void *BGBDT_MM_GetPtrForObjId(int objid);
 BS2VM_API int BGBDT_MM_GetObjIdForPtr(void *ptr);
 BS2VM_API void *BGBDT_MM_GetDataPtrForObjId(int objid);
-//AHSRC:bsvm2/mm/mm_clsobj.c
+//AHSRC:bsvm2.l/mm/mm_clsobj.c
 BGBDTC_ClassInfo *BGBDTC_AllocClass();
 BS2VM_API BGBDTC_ClassInfo *BGBDTC_LookupClassQName(char *qname);
 BS2VM_API BGBDTC_ClassInfo *BGBDTC_GetClassQName(char *qname);
@@ -110,7 +110,7 @@ dtVal BGBDTC_SlotI_GetA_StrA(dtcObject obj, dtcField fi);
 void BGBDTC_SlotI_SetA_StrA(dtcObject obj, dtcField fi, dtVal v);
 dtVal BGBDTC_SlotI_GetA_IfaceA(dtcObject obj, dtcField fi);
 void BGBDTC_SlotI_SetA_IfaceA(dtcObject obj, dtcField fi, dtVal v);
-int BGBDTC_SlotSetupVtGetSet(BGBDTC_ClassInfo *cls, BGBDTC_SlotInfo *vi);
+int BGBDTC_SlotSetupVtGetSet(BGBDTC_ClassInfo *cls, BGBDTC_SlotInfo *vi);
 BS2VM_API int BGBDTC_FinishLayoutClass(BGBDTC_ClassInfo *cls);
 BS2VM_API int BGBDTC_BeginLayoutClass(BGBDTC_ClassInfo *cls);
 BS2VM_API int BGBDTC_EndLayoutClass(BGBDTC_ClassInfo *cls);
@@ -122,6 +122,7 @@ BS2VM_API BGBDTC_SlotInfo *BGBDTC_GetClassSlotName(BGBDTC_ClassInfo *cls, char *
 BS2VM_API BGBDTC_SlotInfo *BGBDTC_LookupClassSlotNameSig(BGBDTC_ClassInfo *cls, char *name, char *sig);
 BS2VM_API BGBDTC_SlotInfo *BGBDTC_LookupClassMatchSlot(BGBDTC_ClassInfo *cls, BGBDTC_SlotInfo *svi);
 BS2VM_API dtcObject BGBDTC_AllocClassInstance(BGBDTC_ClassInfo *cls);
+BS2VM_API dtcObject BGBDTC_AllocCloneInstance(dtcObject obj);
 int BGBDTC_CheckExpandClassIfaceIndex(BGBDTC_ClassInfo *cls, int idx);
 BS2VM_API int BGBDTC_CheckClassExtends(BGBDTC_ClassInfo *clsa, BGBDTC_ClassInfo *clsb);
 BS2VM_API int BGBDTC_CheckClassImplements(BGBDTC_ClassInfo *clsa, BGBDTC_ClassInfo *clsb);
@@ -139,7 +140,7 @@ BS2VM_API int BGBDTC_SetCacheNameL(dtcObject obj,dtcField *rfi, char *qn, char *
 BS2VM_API int BGBDTC_SetCacheNameF(dtcObject obj,dtcField *rfi, char *qn, char *fn, f32 val);
 BS2VM_API int BGBDTC_SetCacheNameD(dtcObject obj,dtcField *rfi, char *qn, char *fn, f64 val);
 BS2VM_API int BGBDTC_SetCacheNameA(dtcObject obj,dtcField *rfi, char *qn, char *fn, dtVal val);
-//AHSRC:bsvm2/mm/mm_lobj.c
+//AHSRC:bsvm2.l/mm/mm_lobj.c
 int BGBDT_MM_AllocLObjInfo(void);
 void BGBDT_MM_FreeLObjInfo(int cni);
 int BGBDT_MM_LObjInfoToIndex(BGBDT_MM_LObjInfo *inf);
@@ -155,7 +156,7 @@ int BGBDT_MM_LookupLObj(byte *ptr);
 byte *BGBDT_MM_LookupLObjBase(byte *ptr);
 void BGBDT_MM_FreeLObjPtr(byte *ptr);
 byte *BGBDT_MM_GetLObjPtrForIndex(int lni);
-//AHSRC:bsvm2/mm/mm_mapobj.c
+//AHSRC:bsvm2.l/mm/mm_mapobj.c
 int BGBDT_MapObj_HashNameSig(char *name, char *sig, char *flsig);
 int BGBDT_MapObj_CheckStrMatch(char *str, char *ref);
 int BGBDT_MapObj_CheckStrMatch2(char *str, char *ref);
@@ -188,7 +189,7 @@ BS2VM_API int BGBDT_MapObj_IsObjectP(dtVal objv);
 int BGBDT_MapObj_QueryNodeSlotList(BGBDT_MapObjHead *obj,BGBDT_MapObjNode *no, int *slis, int mslis);
 BS2VM_API int BGBDT_MapObj_GetObjSlotCount(dtVal objv);
 BS2VM_API int BGBDT_MapObj_QueryObjSlotList(dtVal objv, int *slis, int mslis);
-//AHSRC:bsvm2/mm/mm_objty.c
+//AHSRC:bsvm2.l/mm/mm_objty.c
 int BGBDT_MM_QHashName(char *name);
 BS2VM_API int BGBDT_MM_LookupIndexObjTypeName(char *name);
 BS2VM_API int BGBDT_MM_GetIndexObjTypeName(char *name);
@@ -207,7 +208,7 @@ BS2VM_API void BGBDT_MM_Free(void *ptr);
 BS2VM_API void BGBDT_MM_Destroy(void *ptr);
 BS2VM_API dtVal BGBDT_MM_DtvWrapObjPtrF(void *ptr);
 BS2VM_API dtVal BGBDT_MM_DtvWrapObjPtr(void *ptr);
-//AHSRC:bsvm2/mm/mm_tagarith.c
+//AHSRC:bsvm2.l/mm/mm_tagarith.c
 dtVal BGBDT_TagAri_Add(dtVal a, dtVal b);
 dtVal BGBDT_TagAri_Sub(dtVal a, dtVal b);
 dtVal BGBDT_TagAri_Mul(dtVal a, dtVal b);
@@ -223,7 +224,7 @@ dtVal BGBDT_TagAri_Neg(dtVal a);
 dtVal BGBDT_TagAri_Not(dtVal a);
 dtVal BGBDT_TagAri_LNot(dtVal a);
 int BGBDT_TagAri_Compare(dtVal a, dtVal b);
-//AHSRC:bsvm2/mm/mm_tagarr.c
+//AHSRC:bsvm2.l/mm/mm_tagarr.c
 int BGBDT_TagArr_BaseTypeSize(int bty);
 BS2VM_API dtVal BGBDT_TagArr_NewArray(int size, int bty);
 BS2VM_API int BGBDT_TagArr_FreeArray(dtVal objv);
@@ -233,7 +234,7 @@ dtVal BGBDT_TagArr_GetIndexVariant(dtVal arr, int idx);
 void BGBDT_TagArr_SetIndexVariant(dtVal arr, int idx, dtVal val);
 BS2VM_API dtVal BGBDT_TagTy_EncodeRotLong(s64 value);
 BS2VM_API s64 BGBDT_TagTy_DecodeRotLong(dtVal val);
-//AHSRC:bsvm2/mm/mm_tagparse.c
+//AHSRC:bsvm2.l/mm/mm_tagparse.c
 char *BGBDT_TagParse_EatWhiteOnly(char *s);
 char *BGBDT_TagParse_EatWhite(char *s);
 int BGBDT_TagParse_ParseHexN(char *s, int n);
@@ -248,7 +249,7 @@ dtVal BGBDT_TagParse_ParseEntObj(BGBDT_MM_ParsePrintInfo *inf);
 BS2VM_API BGBDT_MM_ParsePrintInfo *BGBDT_TagParse_NewStringParser(char *strbuf, int szbuf);
 BS2VM_API dtVal BGBDT_TagParse_ParseValueFromStrBuf(char *strbuf, int szbuf);
 BS2VM_API dtVal BGBDT_TagParse_ParseValueFromLoadFile(char *name);
-//AHSRC:bsvm2/mm/mm_tagprint.c
+//AHSRC:bsvm2.l/mm/mm_tagprint.c
 BS2VM_API BGBDT_MM_ParsePrintInfo *BGBDT_MM_AllocParsePrintInfo();
 BS2VM_API int BGBDT_MM_FreeParsePrintInfo(BGBDT_MM_ParsePrintInfo *inf);
 int bgbdt_mm_strprint_putstr(BGBDT_MM_ParsePrintInfo *inf, char *str);
@@ -277,7 +278,7 @@ int BGBDT_MM_FormatMapObjValue(BGBDT_MM_ParsePrintInfo *inf, dtVal val);
 int BGBDT_MM_FormatTagArr(BGBDT_MM_ParsePrintInfo *inf, dtVal val);
 BS2VM_API int BGBDT_MM_FormatValue(BGBDT_MM_ParsePrintInfo *inf, dtVal val);
 BS2VM_API int BGBDT_MM_FormatValueToStrBuf(char *strbuf, int szbuf, dtVal val);
-//AHSRC:bsvm2/mm/mm_tagstr.c
+//AHSRC:bsvm2.l/mm/mm_tagstr.c
 void BGBDT_TagStr_InitTypes(void);
 char *BGBDT_TagStr_TabStrdup(BGBDT_TagStrTab *tab, char *str);
 int bgbdt_strcmp16(u16 *s1, u16 *s2);
@@ -303,7 +304,7 @@ BS2VM_API char *BGBDT_TagStr_GetUtf8(dtVal val);
 BS2VM_API char *BGBDT_TagStr_GetChars(dtVal val);
 BS2VM_API int BGBDT_TagStr_SymbolIsP(dtVal val, char *name);
 BS2VM_API dtVal BGBDT_TagStr_StringAdjustOffset(dtVal val, int idx);
-//AHSRC:bsvm2/mm/mm_thread.c
+//AHSRC:bsvm2.l/mm/mm_thread.c
 thContext *thGetContext();
 void *BIPRO_LookupLabelOS(char *name);
 void bipro_thread_markctx(thContext *inf);
@@ -388,13 +389,13 @@ char *BIPRO_GetLastNamePtr(void *ptr, void **rbp);
 char *BIPRO_GetAddrName(void *ptr);
 char *BIPRO_GetAddrLastName(void *ptr, void **rbp);
 char *BIPRO_LookupSectionAddrName(void *ptr);
-//AHSRC:bsvm2/mm/mm_typesig.c
+//AHSRC:bsvm2.l/mm/mm_typesig.c
 char *BGBDTC_SigNext(char *sig);
 char *BGBDTC_SigGetRet(char *sig);
 int BGBDTC_GetSigOpZ(char *sig);
 int BGBDTC_GetSigBType(char *sig);
 int BGBDTC_GetSigSizeAlign(char *sig, int *rsz, int *ral);
-//AHSRC:bsvm2/mm/mm_util.c
+//AHSRC:bsvm2.l/mm/mm_util.c
 BS2VM_API void *bgbdt_mm_malloc(int sz);
 BS2VM_API void *bgbdt_mm_realloc(void *ptr, int sz);
 BS2VM_API void bgbdt_mm_free(void *ptr);
@@ -404,7 +405,7 @@ BS2VM_API char *bgbdt_mm_rstrdup(char *str);
 BS2VM_API s64 bgbdt_mm_ratoi(char *str);
 BS2VM_API char **bgbdt_mm_rsplit(char *s);
 BS2VM_API char *bgbdt_mm_rsgets(char *buf, int lim, char *str);
-//AHSRC:bsvm2/mm/mm_vfs.c
+//AHSRC:bsvm2.l/mm/mm_vfs.c
 void *bgbdt_mm_fopen_tmp(char *name, char *mode);
 s64 bgbdt_mm_tell_tmp(void *fd);
 int bgbdt_mm_seek_tmp(void *fd, s64 pos, int rel);
@@ -423,13 +424,13 @@ BS2VM_API void bgbdt_mm_fputc(int c, void *fd);
 BS2VM_API void *bgbdt_mm_loadfile(char *name, int *rsz);
 BS2VM_API int bgbdt_mm_storefile(char *name, void *buf, int sz);
 BS2VM_API int bgbdt_mm_storetextfile(char *name, char *buf);
-//AHSRC:bsvm2/mm/mm_worker.c
+//AHSRC:bsvm2.l/mm/mm_worker.c
 int bgbdt_work_worker(void *ptr);
 BS2VM_API void BGBDT_Work_SubmitItem(BGBDT_WorkItem *item);
 BS2VM_API BGBDT_WorkItem *BGBDT_Work_AllocItem();
 BS2VM_API void BGBDT_Work_FreeItem(BGBDT_WorkItem *item);
 BS2VM_API void BGBDT_Work_KillWorkers(void);
-//AHSRC:bsvm2/mm/mm_xi128.c
+//AHSRC:bsvm2.l/mm/mm_xi128.c
 BS2VM_API BGBDTC_X128 *BGBDT_XI128_AllocInt128(void);
 BS2VM_API void BGBDT_XI128_FreeInt128(BGBDTC_X128 *xp);
 BS2VM_API bool BGBDT_XI128_IsInt128P(dtVal objv);
@@ -449,10 +450,10 @@ BS2VM_API BGBDTC_X128 BGBDT_XI128_NegX(BGBDTC_X128 a);
 BS2VM_API BGBDTC_X128 BGBDT_XI128_NotX(BGBDTC_X128 a);
 BS2VM_API BGBDTC_X128 BGBDT_XI128_SubX(BGBDTC_X128 a, BGBDTC_X128 b);
 BS2VM_API BGBDTC_X128 BGBDT_XI128_SubX(BGBDTC_X128 a, BGBDTC_X128 b);
-BS2VM_API void BGBDT_XI128_AddWX(BGBDTC_X128 aa, BGBDTC_X128 ab, BGBDTC_X128 ba, BGBDTC_X128 bb, BGBDTC_X128 *rca, BGBDTC_X128 *rcb);
+BS2VM_API void BGBDT_XI128_AddWX(BGBDTC_X128 aa, BGBDTC_X128 ab, BGBDTC_X128 ba, BGBDTC_X128 bb, BGBDTC_X128 *rca, BGBDTC_X128 *rcb);
 BS2VM_API void BGBDT_XI128_NegWX(BGBDTC_X128 aa, BGBDTC_X128 ab,BGBDTC_X128 *rca, BGBDTC_X128 *rcb);
 BS2VM_API void BGBDT_XI128_NotWX(BGBDTC_X128 aa, BGBDTC_X128 ab,BGBDTC_X128 *rca, BGBDTC_X128 *rcb);
-BS2VM_API void BGBDT_XI128_SubWX(BGBDTC_X128 aa, BGBDTC_X128 ab, BGBDTC_X128 ba, BGBDTC_X128 bb, BGBDTC_X128 *rca, BGBDTC_X128 *rcb);
+BS2VM_API void BGBDT_XI128_SubWX(BGBDTC_X128 aa, BGBDTC_X128 ab, BGBDTC_X128 ba, BGBDTC_X128 bb, BGBDTC_X128 *rca, BGBDTC_X128 *rcb);
 BS2VM_API BGBDTC_X128 BGBDT_XI128_MulX(BGBDTC_X128 a, BGBDTC_X128 b);
 BS2VM_API int BGBDT_XI128_MulwX(BGBDTC_X128 a, BGBDTC_X128 b,BGBDTC_X128 *rc, BGBDTC_X128 *rd);
 BS2VM_API BGBDTC_X128 BGBDT_XI128_AndX(BGBDTC_X128 a, BGBDTC_X128 b);
@@ -491,10 +492,10 @@ BS2VM_API bool BGBDT_XI128_ZeroXP(BGBDTC_X128 a);
 BS2VM_API bool BGBDT_XI128_NegXP(BGBDTC_X128 a);
 BS2VM_API int BGBDT_XI128_CmpSgX(BGBDTC_X128 a, BGBDTC_X128 b);
 BS2VM_API int BGBDT_XI128_CmpX(BGBDTC_X128 a, BGBDTC_X128 b);
-BS2VM_API int BGBDT_XI128_CmpWX(BGBDTC_X128 aa, BGBDTC_X128 ab, BGBDTC_X128 ba, BGBDTC_X128 bb);
+BS2VM_API int BGBDT_XI128_CmpWX(BGBDTC_X128 aa, BGBDTC_X128 ab, BGBDTC_X128 ba, BGBDTC_X128 bb);
 BS2VM_API BGBDTC_X128 BGBDT_XI128_OrBitX(BGBDTC_X128 a, int pos);
 BS2VM_API int BGBDT_XI128_DivuXI(BGBDTC_X128 a, BGBDTC_X128 b,BGBDTC_X128 *rq, BGBDTC_X128 *rr);
-BS2VM_API int BGBDT_XI128_DivW1XI(BGBDTC_X128 al, BGBDTC_X128 ah, BGBDTC_X128 b, BGBDTC_X128 *rq, BGBDTC_X128 *rr);
+BS2VM_API int BGBDT_XI128_DivW1XI(BGBDTC_X128 al, BGBDTC_X128 ah, BGBDTC_X128 b, BGBDTC_X128 *rq, BGBDTC_X128 *rr);
 BS2VM_API int BGBDT_XI128_Divu2nXI(BGBDTC_X128 a, u32 bv, BGBDTC_X128 *rq, BGBDTC_X128 *rr);
 BS2VM_API int BGBDT_XI128_DivXI(BGBDTC_X128 a, BGBDTC_X128 b,BGBDTC_X128 *rq, BGBDTC_X128 *rr);
 BS2VM_API int BGBDT_XI128_Div2XI(BGBDTC_X128 a, BGBDTC_X128 b,BGBDTC_X128 *rq);
@@ -521,7 +522,7 @@ dtVal BGBDT_XI128_Not(dtVal a);
 dtVal BGBDT_XI128_LNot(dtVal a);
 int BGBDT_XI128_Compare(dtVal a, dtVal b);
 int BGBDT_XI128_CompareB(dtVal a, dtVal b);
-//AHSRC:bsvm2/mm/mm_xf128.c
+//AHSRC:bsvm2.l/mm/mm_xf128.c
 BS2VM_API BGBDTC_X128 *BGBDT_XF128_AllocFloat128(void);
 BS2VM_API void BGBDT_XF128_FreeFloat128(BGBDTC_X128 *xp);
 BS2VM_API BGBDTC_X128 BGBDT_XF128_FromInt128(BGBDTC_X128 a);
@@ -551,7 +552,7 @@ BS2VM_API dtVal BGBDT_XF128_WrapFloat128(BGBDTC_X128 a);
 BS2VM_API dtVal BGBDT_XF128_WrapFloat128L2(u64 lo, u64 hi);
 BS2VM_API BGBDTC_X128 BGBDT_XF128_UnwrapFloat128(dtVal vec);
 BS2VM_API dtVal BGBDT_XF128_Add(dtVal a, dtVal b);
-//AHSRC:bsvm2/mm/mm_xd128.c
+//AHSRC:bsvm2.l/mm/mm_xd128.c
 BS2VM_API void BGBDT_XD128_UnpackDPD(BGBDTC_X128 a, s32 *tb);
 BS2VM_API BGBDTC_X128 BGBDT_XD128_PackDPD(s32 *ta);
 BS2VM_API void BGBDT_XD128_AdjustAddDPD(s32 *ta, s32 *tc);
@@ -567,7 +568,7 @@ BS2VM_API BGBDTC_X128 BGBDT_XD128_DivX(BGBDTC_X128 a, BGBDTC_X128 b);
 BS2VM_API void BGBDT_XD128_DumpStr(BGBDTC_X128 a, char *buf);
 s32 bgbdt_xd128_readdgts(char **rs, int n);
 BS2VM_API BGBDTC_X128 BGBDT_XD128_ReadDumpStr(char *buf);
-//AHSRC:bsvm2/mm/mm_xvec.c
+//AHSRC:bsvm2.l/mm/mm_xvec.c
 BGBDTC_X128 *BGBDT_XV128_AllocVec3f(void);
 BGBDTC_X128 *BGBDT_XV128_AllocVec4f(void);
 BGBDTC_X128 *BGBDT_XV128_AllocQuatf(void);
@@ -590,7 +591,7 @@ dtVal BGBDT_XV128_Add(dtVal a, dtVal b);
 dtVal BGBDT_XV128_Sub(dtVal a, dtVal b);
 dtVal BGBDT_XV128_Mul(dtVal a, dtVal b);
 dtVal BGBDT_XV128_Div(dtVal a, dtVal b);
-//AHSRC:bsvm2/bsvm2c/bs2p_astnode.c
+//AHSRC:bsvm2.l/bsvm2c/bs2p_astnode.c
 char *BS2P_GenSym(BS2CC_CompileContext *ctx);
 char *BS2P_StrSym(BS2CC_CompileContext *ctx, char *str);
 dtVal BS2P_NewAstNode(BS2CC_CompileContext *ctx, char *tag);
@@ -636,7 +637,7 @@ dtVal BS2P_ParseWrapArray(BS2CC_CompileContext *ctx, dtVal lst);
 dtVal BS2P_ParseWrapObject(BS2CC_CompileContext *ctx, dtVal lst);
 dtVal BS2P_ParseWrapVector(BS2CC_CompileContext *ctx, dtVal lst);
 dtVal BS2P_ParseWrapImaginary(BS2CC_CompileContext *ctx,char *sfx, double val);
-//AHSRC:bsvm2/bsvm2c/bs2p_decl.c
+//AHSRC:bsvm2.l/bsvm2c/bs2p_decl.c
 int BS2P_DeclTypeRejectKeyword(BS2CC_CompileContext *ctx, char *str);
 dtVal BS2P_ParseModifierList(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseQName(BS2CC_CompileContext *ctx);
@@ -647,7 +648,7 @@ dtVal BS2P_TryParseDecl(BS2CC_CompileContext *ctx);
 dtVal BS2P_TryParseDeclSingle(BS2CC_CompileContext *ctx,dtVal modif, dtVal tyexp);
 dtVal BS2P_TryParseArgDecl(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseFunVars(BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bsvm2c/bs2p_litexpr.c
+//AHSRC:bsvm2.l/bsvm2c/bs2p_litexpr.c
 void BS2P_RaiseError(BS2CC_CompileContext *ctx, char *errn);
 void BS2P_RaiseError1(BS2CC_CompileContext *ctx, char *errn,char *parm0);
 dtVal BS2P_ParseWrapStringL(BS2CC_CompileContext *ctx, char *str);
@@ -673,7 +674,7 @@ dtVal BS2P_ParseOptExpr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseExprList(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseNameExpr(BS2CC_CompileContext *ctx);
 dtVal BS2P_ParseNameExprList(BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bsvm2c/bs2p_stmt.c
+//AHSRC:bsvm2.l/bsvm2c/bs2p_stmt.c
 int BS2P_ParseError(BS2CC_CompileContext *ctx, int errn);
 void BS2P_WarnExpectSemi(BS2CC_CompileContext *ctx);
 void BS2P_ErrSyntaxError(BS2CC_CompileContext *ctx);
@@ -691,7 +692,7 @@ BS2VM_API dtVal BS2P_ParseBuffer(BS2CC_CompileContext *ctx,char *srcbuf, int szs
 BS2VM_API dtVal BS2P_ParseBufferExpression(BS2CC_CompileContext *ctx,char *srcbuf, int szsrcbuf);
 BS2VM_API BS2CC_CompileContext *BS2CC_AllocCompileContext();
 BS2VM_API void BS2P_FreeCompileContext(BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bsvm2c/bs2p_token.c
+//AHSRC:bsvm2.l/bsvm2c/bs2p_token.c
 char *BS2P_EatWhiteOnly(char *s);
 char *BS2P_EatWhite(char *s);
 int BS2P_ParseHexN(char *s, int n);
@@ -708,7 +709,7 @@ void BS2P_SetCurSrcPosition(BS2CC_CompileContext *ctx, char *pos);
 int BS2P_GetCurPosition(BS2CC_CompileContext *ctx);
 void BS2P_SetCurPosition(BS2CC_CompileContext *ctx, int tok);
 int BS2P_GetCurSourceLine(BS2CC_CompileContext *ctx,char **rlfn, int *rlln);
-//AHSRC:bsvm2/bsvm2c/bs2p_preproc.c
+//AHSRC:bsvm2.l/bsvm2c/bs2p_preproc.c
 char *BS2PP_GetFilename();
 int BS2PP_CalcLinenum(char *spos);
 void BS2PP_FlushToken(char *str);
@@ -754,7 +755,7 @@ char *BS2PP_ParseLine(BS2CC_CompileContext *ctx, char *s, char *b);
 int BS2PP_BufferLine(BS2CC_CompileContext *ctx, char *b);
 int BS2PP_Buffer(BS2CC_CompileContext *ctx, char *ibuf);
 int BS2PP_Filter(BS2CC_CompileContext *ctx,char *ibuf, char *obuf, int osz);
-//AHSRC:bsvm2/bsvm2c/bs2c_compile.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_compile.c
 int BS2C_CompileErrorGetSourceLine(BS2CC_CompileContext *ctx);
 int BS2C_CompileErrorIndexName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_CompileError(BS2CC_CompileContext *ctx, int errn);
@@ -795,14 +796,14 @@ BS2VM_API void BS2C_CompileFuncs2(BS2CC_CompileContext *ctx, int base);
 BS2VM_API char *BS2C_ErrStringForMsg(BS2CC_CompileContext *ctx, int ix, int cn, int pix);
 BS2VM_API void BS2C_DumpErrors(BS2CC_CompileContext *ctx);
 BS2VM_API int BS2C_CompileModuleBuffer(BS2CC_CompileContext *ctx, char *buf, int szbuf);
-BS2VM_API int BS2C_CompileModuleList(BS2CC_CompileContext *ctx, char *base, char **names);
+BS2VM_API int BS2C_CompileModuleList(BS2CC_CompileContext *ctx, char *base, char **names);
 BS2VM_API int BS2C_CompileImageDef(char *img, char *def);
 BS2VM_API dtVal BS2C_EvalExpr(char *str);
-//AHSRC:bsvm2/bsvm2c/bs2c_conv.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_conv.c
 void BS2C_CompileConvType(BS2CC_CompileContext *ctx, int dty);
 void BS2C_CompileCastType(BS2CC_CompileContext *ctx, int dty);
 void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,int flag);
-//AHSRC:bsvm2/bsvm2c/bs2c_disasm.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_disasm.c
 int bs2c_disasm_decnbl(char *ps);
 int bs2c_disasm_decbyte(char *ps);
 int bs2c_disasm_matchPrefix(byte *cs, char *pat,byte **rcs1, char **rpa1);
@@ -815,13 +816,13 @@ byte *bs2c_disasm_ReadSplit2VLI(byte *cs, int *rvh, s64 *rvl);
 byte *bs2c_disasm_ReadFxVLI(byte *cs, double *rv);
 byte *bs2c_disasm_ReadZxVLI(byte *cs, int *rz, int *rv);
 byte *bs2c_disasm_ReadZxVLI(byte *cs, int *rz, int *rv);
-int bs2c_disasm_matchItem(BS2CC_CcFrame *frm, byte *cs, char *pat, byte **rcs1, char **rpa1);
-int bs2c_disasm_PrintItem(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CcFrame *frm, byte *cs, char *pat, byte **rcs1, char **rpa1);
-int BS2C_DisAsmOp(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm);
-void BS2C_DisAsmFuncBody(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm);
-void BS2C_DisAsmStruct(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
-BS2VM_API void BS2C_DisAsmFuncs(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx);
-//AHSRC:bsvm2/bsvm2c/bs2c_emit.c
+int bs2c_disasm_matchItem(BS2CC_CcFrame *frm, byte *cs, char *pat, byte **rcs1, char **rpa1);
+int bs2c_disasm_PrintItem(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CcFrame *frm, byte *cs, char *pat, byte **rcs1, char **rpa1);
+int BS2C_DisAsmOp(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm);
+void BS2C_DisAsmFuncBody(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_CcFrame *frm);
+void BS2C_DisAsmStruct(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+BS2VM_API void BS2C_DisAsmFuncs(BGBDT_MM_ParsePrintInfo *prn, BS2CC_CompileContext *ctx);
+//AHSRC:bsvm2.l/bsvm2c/bs2c_emit.c
 void BS2C_EmitCheckExpand(BS2CC_CompileContext *ctx, int sz);
 void BS2C_EmitByte(BS2CC_CompileContext *ctx, int op);
 void BS2C_EmitWord(BS2CC_CompileContext *ctx, int op);
@@ -871,7 +872,7 @@ int BS2C_ImgGetString(BS2CC_CompileContext *ctx, char *str);
 void BS2C_EmitReturnV(BS2CC_CompileContext *ctx);
 void BS2C_EmitReturnVal(BS2CC_CompileContext *ctx);
 void BS2C_EmitReturnCleanupV(BS2CC_CompileContext *ctx, int last);
-//AHSRC:bsvm2/bsvm2c/bs2c_expr.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_expr.c
 void BS2C_CompileLoadNameAsType(BS2CC_CompileContext *ctx,char *name, int ty);
 void BS2C_CompileExprResvPush(BS2CC_CompileContext *ctx, int n);
 void BS2C_CompileExprPushType(BS2CC_CompileContext *ctx, int dty);
@@ -896,8 +897,8 @@ void BS2C_CompileCallArg(BS2CC_CompileContext *ctx,BS2CC_VarInfo *vai, dtVal exp
 void BS2C_CompileCallVariArgs(BS2CC_CompileContext *ctx,BS2CC_VarInfo *vari, dtVal an);
 void BS2C_CompileExprCall(BS2CC_CompileContext *ctx,dtVal fnn, dtVal an, int dty);
 void BS2C_CompileCall(BS2CC_CompileContext *ctx, dtVal expr, int dty);
-void BS2C_CompileObjMethodCall(BS2CC_CompileContext *ctx,int clsty, char *name, dtVal args, int dty);
-void BS2C_CompileObjMethodCallB(BS2CC_CompileContext *ctx,int clsty, char *name, dtVal args, int dty, int flag);
+void BS2C_CompileObjMethodCall(BS2CC_CompileContext *ctx,int clsty, char *name, dtVal args, int dty);
+void BS2C_CompileObjMethodCallB(BS2CC_CompileContext *ctx,int clsty, char *name, dtVal args, int dty, int flag);
 void BS2C_CompileCallSuper(BS2CC_CompileContext *ctx, dtVal expr, int dty);
 void BS2C_CompileExprNew(BS2CC_CompileContext *ctx, dtVal expr, int dty);
 void BS2C_CompileStoreExpr(BS2CC_CompileContext *ctx, dtVal expr);
@@ -905,7 +906,7 @@ void BS2C_CompileExprBinary(BS2CC_CompileContext *ctx,char *op, dtVal ln, dtVal 
 void BS2C_CompileExprPushConstInt(BS2CC_CompileContext *ctx, s64 val, int dty);
 void BS2C_CompileExprPushConstFloat(BS2CC_CompileContext *ctx, f64 val, int dty);
 void BS2C_CompileExpr(BS2CC_CompileContext *ctx,dtVal expr, int dty);
-//AHSRC:bsvm2/bsvm2c/bs2c_image.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_image.c
 byte *BS2C_Image_EmitTag(byte *ct, u64 tag, s64 sz);
 byte *BS2C_Image_EmitTagData(byte *ct, u32 tag, int sz,byte *data);
 byte *BS2C_Image_EmitUVLI(byte *ct, u64 v);
@@ -918,30 +919,30 @@ s64 BS2C_Image_QHashName(char *str);
 u32 BS2C_Image_HashData(byte *buf, int sz);
 char *BS2C_Image_FlagsToFlSig(BS2CC_CompileContext *ctx, s64 bmfl);
 int BS2C_Image_FlagsToFlSigId(BS2CC_CompileContext *ctx, s64 bmfl);
-byte *BS2C_Image_FlattenGlobalInfo_GblDefI(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_GblVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_GblFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_StrVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_StrFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_StructI(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_StructDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_ClassDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_IfaceDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobalInfo_Package(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *obuf);
-int BS2C_Image_FlattenInitMapTagVal(BS2CC_CompileContext *ctx, dtVal val);
+byte *BS2C_Image_FlattenGlobalInfo_GblDefI(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_GblVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_GblFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StrVar(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StrFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StructI(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_StructDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_ClassDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_IfaceDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobalInfo_Package(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *obuf);
+int BS2C_Image_FlattenInitMapTagVal(BS2CC_CompileContext *ctx, dtVal val);
 int BS2C_Image_BaseTypePackSize(int bty);
-byte *BS2C_Image_FlattenGlobalInfo_InitArr(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *obuf);
-byte *BS2C_Image_FlattenGlobalInfo(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
-byte *BS2C_Image_FlattenGlobals(BS2CC_CompileContext *ctx, byte *obuf, int *gix);
-byte *BS2C_Image_FlattenGixArray(BS2CC_CompileContext *ctx, byte *obuf, int *gix);
-BS2VM_API void BS2C_TouchReachable_TouchReachDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
-BS2VM_API void BS2C_TouchReachable_TouchPublicDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+byte *BS2C_Image_FlattenGlobalInfo_InitArr(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *obuf);
+byte *BS2C_Image_FlattenGlobalInfo(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, byte *ct);
+byte *BS2C_Image_FlattenGlobals(BS2CC_CompileContext *ctx, byte *obuf, int *gix);
+byte *BS2C_Image_FlattenGixArray(BS2CC_CompileContext *ctx, byte *obuf, int *gix);
+BS2VM_API void BS2C_TouchReachable_TouchReachDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
+BS2VM_API void BS2C_TouchReachable_TouchPublicDef(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari);
 BS2VM_API int BS2C_TouchReachable(BS2CC_CompileContext *ctx);
-int BS2C_Image_CompareMains(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi1, BS2CC_VarInfo *vi2);
+int BS2C_Image_CompareMains(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi1, BS2CC_VarInfo *vi2);
 byte *BS2C_Image_FlattenMains(BS2CC_CompileContext *ctx, byte *obuf);
 byte *BS2C_Image_FlattenPvbm(BS2CC_CompileContext *ctx, byte *obuf);
-BS2VM_API int BS2C_FlattenImage(BS2CC_CompileContext *ctx, byte *obuf, int obmsz);
-//AHSRC:bsvm2/bsvm2c/bs2c_infer.c
+BS2VM_API int BS2C_FlattenImage(BS2CC_CompileContext *ctx, byte *obuf, int obmsz);
+//AHSRC:bsvm2.l/bsvm2c/bs2c_infer.c
 int BS2C_InferName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_InferRetTypeName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_InferExprLocalIndex(BS2CC_CompileContext *ctx, dtVal expr);
@@ -949,7 +950,7 @@ int BS2C_InferExprObjMethodCall(BS2CC_CompileContext *ctx,int clsty, char *name,
 int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_InferCaptureStatement(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_InferCaptureFunc(BS2CC_CompileContext *ctx, BS2CC_VarInfo *func);
-//AHSRC:bsvm2/bsvm2c/bs2c_jcond.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_jcond.c
 int BS2C_CompileGetCondBool(BS2CC_CompileContext *ctx, dtVal cc);
 void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,dtVal cc, int tt, int tf);
 void BS2C_CompileTempJmpIfElse(BS2CC_CompileContext *ctx,dtVal cc, int tt, int tf);
@@ -957,13 +958,13 @@ void BS2C_CompileTempJmpThen(BS2CC_CompileContext *ctx,dtVal cc, int tt);
 void BS2C_CompileTempJmpThen2(BS2CC_CompileContext *ctx,dtVal cc, int tt, int tfa);
 void BS2C_CompileTempJmpElse(BS2CC_CompileContext *ctx,dtVal cc, int tf);
 void BS2C_CompileTempJmpElse2(BS2CC_CompileContext *ctx,dtVal cc, int tf, int tta);
-//AHSRC:bsvm2/bsvm2c/bs2c_reduce.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_reduce.c
 s64 BS2C_ReduceClampConstRangeL(BS2CC_CompileContext *ctx, s64 iv, int dty);
 dtVal BS2C_ReduceExprVariConst(BS2CC_CompileContext *ctx,BS2CC_VarInfo *vari);
 dtVal BS2C_ReduceExprName(BS2CC_CompileContext *ctx, char *name);
 dtVal BS2C_ReduceExpr(BS2CC_CompileContext *ctx, dtVal expr);
 dtVal BS2C_ReduceEvaluateExprAs(BS2CC_CompileContext *ctx, dtVal expr, int dty);
-//AHSRC:bsvm2/bsvm2c/bs2c_scope.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_scope.c
 int BS2C_LookupLocal(BS2CC_CompileContext *ctx, char *name);
 int BS2C_LookupLexical(BS2CC_CompileContext *ctx, char *name);
 int BS2C_LookupGlobal(BS2CC_CompileContext *ctx, char *name);
@@ -971,14 +972,14 @@ void BS2C_CheckExpandFrameGlobals(BS2CC_CompileContext *ctx);
 int BS2C_IndexFrameGlobal(BS2CC_CompileContext *ctx, int gix);
 int BS2C_IndexFrameLiteral(BS2CC_CompileContext *ctx, int gix);
 int BS2C_LookupFrameGlobal(BS2CC_CompileContext *ctx, char *name);
-int BS2C_LookupPkgGlobal(BS2CC_CompileContext *ctx, BS2CC_PkgFrame *pkg, char *name);
-int BS2C_LookupPkgImpGlobal(BS2CC_CompileContext *ctx, BS2CC_PkgFrame *pkg, char *name);
-int BS2C_LookupVariGlobal(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, char *name);
+int BS2C_LookupPkgGlobal(BS2CC_CompileContext *ctx, BS2CC_PkgFrame *pkg, char *name);
+int BS2C_LookupPkgImpGlobal(BS2CC_CompileContext *ctx, BS2CC_PkgFrame *pkg, char *name);
+int BS2C_LookupVariGlobal(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, char *name);
 BS2CC_VarInfo *BS2C_GetFrameGlobalInfo(BS2CC_CompileContext *ctx, int idx);
 BS2CC_VarInfo *BS2C_LookupObjectFieldName(BS2CC_CompileContext *ctx, BS2CC_VarInfo *obj, char *name);
 BS2CC_VarInfo *BS2C_LookupObjectFuncName(BS2CC_CompileContext *ctx, BS2CC_VarInfo *obj, char *name);
 BS2CC_VarInfo *BS2C_LookupObjectFuncNameB(BS2CC_CompileContext *ctx, BS2CC_VarInfo *obj, char *name);
-BS2CC_VarInfo *BS2C_LookupObjectFuncNameArgs(BS2CC_CompileContext *ctx,  BS2CC_VarInfo *obj, char *name, int *aty, int na);
+BS2CC_VarInfo *BS2C_LookupObjectFuncNameArgs(BS2CC_CompileContext *ctx,  BS2CC_VarInfo *obj, char *name, int *aty, int na);
 int BS2C_CompileLoadName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_CompileStoreName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_CompileLoadRefName(BS2CC_CompileContext *ctx, char *name);
@@ -988,7 +989,7 @@ int BS2C_LookupDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_GetDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_GetFrameDynamicSlotName(BS2CC_CompileContext *ctx, char *name);
 int BS2C_GetFrameSymbol(BS2CC_CompileContext *ctx, char *name);
-//AHSRC:bsvm2/bsvm2c/bs2c_stmt.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_stmt.c
 void BS2C_CompileStmtVarInit(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, dtVal expr);
 void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileStmtSwitchDiR(BS2CC_CompileContext *ctx,int *swtgt, s64 *swval, int swn, int swdfl);
@@ -1001,7 +1002,7 @@ void BS2C_CompileStmtTryCatch(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileStatement(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileFuncVarExpr(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileFunVarStatement(BS2CC_CompileContext *ctx, dtVal expr);
-//AHSRC:bsvm2/bsvm2c/bs2c_topstmt.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_topstmt.c
 void BS2C_CompileSetupVarInfo(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vi, dtVal expr);
 void BS2C_CompileFunVar(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileStructVar(BS2CC_CompileContext *ctx, dtVal expr);
@@ -1013,7 +1014,7 @@ void BS2C_CompileTopFuncArg(BS2CC_CompileContext *ctx,BS2CC_VarInfo *func, dtVal
 int BS2C_CompileTopFunc(BS2CC_CompileContext *ctx, dtVal expr);
 void BS2C_CompileTopStruct(BS2CC_CompileContext *ctx, dtVal expr);
 BS2VM_API void BS2C_CompileTopStatement(BS2CC_CompileContext *ctx, dtVal expr);
-//AHSRC:bsvm2/bsvm2c/bs2c_type.c
+//AHSRC:bsvm2.l/bsvm2c/bs2c_type.c
 int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty);
 int BS2C_GetTypeVecZ(BS2CC_CompileContext *ctx, int ty);
 char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty);
@@ -1049,6 +1050,7 @@ int BS2C_TypeFloat128P(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeSizedArrayP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVoidP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVariantP(BS2CC_CompileContext *ctx, int ty);
+int BS2C_TypeConcreteP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeStringP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVec2fP(BS2CC_CompileContext *ctx, int ty);
 int BS2C_TypeVec3fP(BS2CC_CompileContext *ctx, int ty);
@@ -1088,13 +1090,13 @@ int BS2C_TypeExtTypeNew(BS2CC_CompileContext *ctx, dtVal expr);
 int BS2C_TypeLookupTypeOverflow(BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *tovf);
 int BS2C_TypeGetTypeOverflow(BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *tovf);
 int BS2C_TypeFromTypeOverflow(BS2CC_CompileContext *ctx, BS2CC_TypeOverflow *ovf);
-int BS2C_TypeRefinedType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, dtVal expr);
-int BS2C_TypeRefinedType2(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, dtVal expr, int flag);
-//AHSRC:bsvm2/bsvm2c/bs2e_expr.c
+int BS2C_TypeRefinedType(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, dtVal expr);
+int BS2C_TypeRefinedType2(BS2CC_CompileContext *ctx, BS2CC_VarInfo *vari, dtVal expr, int flag);
+//AHSRC:bsvm2.l/bsvm2c/bs2e_expr.c
 dtVal BS2E_LoadName(BS2CC_CompileContext *ctx, char *name);
 dtVal BS2E_StoreName(BS2CC_CompileContext *ctx,char *name, dtVal val);
 dtVal BS2E_EvalExpr(BS2CC_CompileContext *ctx, dtVal expr);
-//AHSRC:bsvm2/bsvm2i/bs2i_fcnblock.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_fcnblock.c
 BSVM2_Opcode *BSVM2_Interp_AllocOpcode(BSVM2_CodeBlock *cblk);
 BSVM2_TailOpcode *BSVM2_Interp_AllocTailOpcode(BSVM2_CodeBlock *cblk);
 BSVM2_Trace *BSVM2_Interp_AllocTrace(BSVM2_CodeBlock *cblk);
@@ -1106,7 +1108,7 @@ int BSVM2_Interp_PeekIxOpcodeNumber(BSVM2_CodeBlock *cblk);
 int BSVM2_Interp_DecodeBlockNoexOp(BSVM2_CodeBlock *cblk, int opn);
 BSVM2_Trace *BSVM2_Interp_DecodeBlockTraces(BSVM2_CodeBlock *cblk);
 BSVM2_Trace *BSVM2_Interp_TryJitBlock(BSVM2_CodeBlock *cblk);
-//AHSRC:bsvm2/bsvm2i/bs2i_interp.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_interp.c
 BS2VM_API int BSVM2_Interp_SetEnable(int parm);
 BS2VM_API int BSVM2_Interp_SetDisable(int parm);
 BS2VM_API int bsvm2_natfib(int x);
@@ -1118,10 +1120,10 @@ BS2VM_API void BSVM2_Interp_FreePoolContext(BSVM2_Context *ctx);
 BS2VM_API BSVM2_Frame *BSVM2_Interp_AllocFrame(BSVM2_Context *ctx);
 BS2VM_API bool BSVM2_Interp_IsLambdaP(dtVal objv);
 BS2VM_API BSVM2_Lambda *BSVM2_Interp_AllocLambda(BSVM2_Context *ctx);
-BS2VM_API BSVM2_Trace *BSVM2_Interp_SetupCallVM(BSVM2_Context *ctx, BSVM2_ImageGlobal *vi, BSVM2_Value *args);
-BS2VM_API BSVM2_Trace *BSVM2_Interp_SetupMethodCallVM(BSVM2_Context *ctx, BSVM2_ImageGlobal *vi, dtVal self, BSVM2_Value *args);
-BS2VM_API int BSVM2_Interp_SetupCacheMethodCallVM(BSVM2_Context *ctx, dtVal self, dtcMethod *rfi, BSVM2_Value *args, char *qn, char *fn, char *sig);
-BS2VM_API int BSVM2_Interp_CallCacheMethodVM(dtVal self,dtcMethod *rfi, BSVM2_Value *args, char *qn, char *fn, char *sig, int lim);
+BS2VM_API BSVM2_Trace *BSVM2_Interp_SetupCallVM(BSVM2_Context *ctx, BSVM2_ImageGlobal *vi, BSVM2_Value *args);
+BS2VM_API BSVM2_Trace *BSVM2_Interp_SetupMethodCallVM(BSVM2_Context *ctx, BSVM2_ImageGlobal *vi, dtVal self, BSVM2_Value *args);
+BS2VM_API int BSVM2_Interp_SetupCacheMethodCallVM(BSVM2_Context *ctx, dtVal self, dtcMethod *rfi, BSVM2_Value *args, char *qn, char *fn, char *sig);
+BS2VM_API int BSVM2_Interp_CallCacheMethodVM(dtVal self,dtcMethod *rfi, BSVM2_Value *args, char *qn, char *fn, char *sig, int lim);
 BS2VM_API BSVM2_Value *BSVM2_Interp_GetGlobalValue(BSVM2_ImageGlobal *vi);
 BS2VM_API s32 BSVM2_Interp_GetGlobalI(BSVM2_ImageGlobal *vi);
 BS2VM_API s64 BSVM2_Interp_GetGlobalL(BSVM2_ImageGlobal *vi);
@@ -1141,7 +1143,7 @@ BS2VM_API dtVal BSVM2_Interp_SetGlobalDy(BSVM2_ImageGlobal *vi, dtVal v);
 BS2VM_API int BSVM2_Interp_RunContext(BSVM2_Context *ctx, int lim);
 int BSVM2_Interp_RunDoWork(BGBDT_WorkItem *item);
 BS2VM_API BGBDT_WorkItem *BSVM2_Interp_RunContextWork(BSVM2_Context *ctx);
-//AHSRC:bsvm2/bsvm2i/bs2i_load.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_load.c
 byte *BS2I_ReadTag(byte *cs, u64 *rtag, s64 *rlen);
 byte *BS2I_ReadTag2(byte *cs, u32 *rtag, int *rlen);
 byte *BS2I_ReadVLI_I(byte *cs, u64 *rv, int *rl);
@@ -1159,13 +1161,13 @@ void BS2I_ImageErrorCorruptTag(BSVM2_CodeImage *img);
 void BS2I_ImageCheckUnknownTag(BSVM2_CodeImage *img, u64 tag);
 int BS2I_ImageGetGlobalOfs(BSVM2_CodeImage *img, int gix);
 byte *BS2I_ImageGetGlobalLump(BSVM2_CodeImage *img, int gix);
-int BS2I_ImageDecodeGlobalFunc(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, u32 dtag, byte *data, byte *edata);
+int BS2I_ImageDecodeGlobalFunc(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, u32 dtag, byte *data, byte *edata);
 char *BS2I_ImageTryGetGlobalQName(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl);
 s64 BS2I_Image_QHashName(char *str);
 u64 BS2I_FlagsFromFlagstr(BSVM2_CodeImage *img, char *str);
-int BS2I_ImageDecodeGlobalVar(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, u32 dtag, byte *data, byte *edata);
+int BS2I_ImageDecodeGlobalVar(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, u32 dtag, byte *data, byte *edata);
 dtVal BS2I_ImageDecodeTagIndexAddr(BSVM2_CodeImage *img, int gix);
-int BS2I_ImageDecodeGlobalArray(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, u32 dtag, byte *data, byte *edata);
+int BS2I_ImageDecodeGlobalArray(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, u32 dtag, byte *data, byte *edata);
 int BS2I_ImageDecodeGlobal(BSVM2_CodeImage *img, BSVM2_ImageGlobal *gbl, byte *gdat);
 BSVM2_ImageGlobal *BS2I_ImageGetGlobal(BSVM2_CodeImage *img, int gix);
 BSVM2_ImageGlobal *BS2I_ImageGetGlobalInitial(BSVM2_CodeImage *img, int gix);
@@ -1176,7 +1178,7 @@ BS2VM_API BSVM2_Trace *BS2I_ImageGetFuncTrace(BSVM2_ImageGlobal *vi);
 BS2VM_API BSVM2_Trace *BS2I_ImageGetMainTrace(BSVM2_CodeImage *img, char *qnpkg);
 BS2VM_API BSVM2_CodeImage *BS2I_DecodeImageBuffer(byte *ibuf, int isz);
 BS2VM_API BSVM2_ImageGlobal *BS2I_GlobalLookupGlobalVar(char *qname);
-//AHSRC:bsvm2/bsvm2i/bs2i_natcall.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_natcall.c
 BS2VM_API void *BSVM2_NatCall_GetProcAddress(char *name);
 BS2VM_API int BSVM2_NatCall_RegisterProcAddress(char *name, void *addr);
 void BSVM2_NatCall_Call_0_V(void *fptr,BSVM2_Value *rv, BSVM2_Value *av);
@@ -1199,7 +1201,7 @@ BS2VM_API BSVM2_Trace *BSVM2_TrOp_NatCallG1(BSVM2_Frame *frm, BSVM2_TailOpcode *
 dtVal BSVM2_Sig_GetSigPtrDtVal(void *ptr, char *sig);
 dtVal BSVM2_Sig_SetSigPtrDtVal(void *ptr, char *sig, dtVal v);
 BSVM2_Trace *BSVM2_TrOp_NatCallFail(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_oparith.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_oparith.c
 BS2VM_API void BSVM2_Op_ADDI(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_SUBI(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_MULI(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1348,7 +1350,7 @@ BS2VM_API void BSVM2_Op_ORI_LLC(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_XORI_LLC(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_SHLI_LLC(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_SARI_LLC(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_oparr.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_oparr.c
 BS2VM_API void BSVM2_Op_LDIXI(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDIXL(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDIXF(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1538,9 +1540,9 @@ BS2VM_API void BSVM2_Op_STDRAL_B(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STDRAL_S(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_AGETI_LEN(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_AGETI_OFS(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opcode.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opcode.c
 BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(BSVM2_CodeBlock *cblk, int opn);
-//AHSRC:bsvm2/bsvm2i/bs2i_opcvt.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opcvt.c
 void BSVM2_Op_NOP(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_DUPI(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_DUPL(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1592,7 +1594,7 @@ int bsvm2_op_stricmp(byte *s0, byte *s1);
 BS2VM_API void BSVM2_Op_CMPST(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CMPSST(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CMPUST(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opdtvar.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opdtvar.c
 BS2VM_API void BSVM2_Op_ADDAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_SUBAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_MULAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1608,7 +1610,7 @@ BS2VM_API void BSVM2_Op_NEGAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_NOTAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LNTAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CMPAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opinit.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opinit.c
 int BSVM2_Interp_DecodeOpUCxI(BSVM2_CodeBlock *cblk);
 u64 BSVM2_Interp_DecodeOpUCxL(BSVM2_CodeBlock *cblk);
 s32 BSVM2_Interp_DecodeOpSCxI(BSVM2_CodeBlock *cblk);
@@ -1641,47 +1643,47 @@ void BSVM2_Interp_DecodeOpZiIx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op);
 void BSVM2_Interp_DecodeOpZiCi(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op);
 void BSVM2_Interp_DecodeOpFx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,int zty);
 void BSVM2_Interp_DecodeOpCx(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op,int zty);
-void BSVM2_Interp_SetupOpBin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUn(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUnL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUstL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUnP(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUnPGx(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUat(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUatL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUatJx(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUatKx(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUat2(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpPopUn(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpPopBin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpPopTrin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinC2(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinCI(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinCJ(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinCiSa(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op), void (*run2)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinLL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpBinC2P(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpTrinC2(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpTrinCiSa(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op), void (*run2)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpTrinC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpTrinCI(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpPopTrinC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpPopTrinCI(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpTrin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpQuad(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpI_SLL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUn(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUnL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUstL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUnP(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUnPGx(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUat(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUatL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUatJx(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUatKx(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUat2(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpPopUn(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpPopBin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpPopTrin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinC2(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinCI(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinCJ(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinCiSa(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op), void (*run2)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinLL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpBinC2P(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpTrinC2(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpTrinCiSa(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyr, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op), void (*run2)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpTrinC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpTrinCI(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpPopTrinC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int ztyc, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpPopTrinCI(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpTrin(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpQuad(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, int zty, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpI_SLL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
 void BSVM2_Interp_SetupOp_LSL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpI_SLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpI_SLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
 void BSVM2_Interp_SetupOpI_LSC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUI_SLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUI_SLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
 void BSVM2_Interp_SetupOpUI_LSC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpI_LLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-void BSVM2_Interp_SetupOpUI_LLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpI_LLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
+void BSVM2_Interp_SetupOpUI_LLC(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
 void BSVM2_Interp_SetupOpI_LLL(BSVM2_CodeBlock *cblk,BSVM2_Opcode *op, void (*run)(BSVM2_Frame *frm, BSVM2_Opcode *op));
-//AHSRC:bsvm2/bsvm2i/bs2i_opobj.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opobj.c
 BS2VM_API void BSVM2_Op_LDOSI_TN(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDOSL_TN(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDOSF_TN(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1758,6 +1760,7 @@ BS2VM_API void BSVM2_Op_DSBOS(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_DSTOS(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_DUPAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_DROPAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
+BS2VM_API void BSVM2_Op_CLONEAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDOSAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STOSAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_SBOSAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1769,7 +1772,7 @@ BS2VM_API void BSVM2_Op_LDIXAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STIXAA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDIXAI(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_STIXAI(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opptr.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opptr.c
 BS2VM_API void BSVM2_Op_CVTA2PTR(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTPTR2A(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_LDRL(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1876,7 +1879,7 @@ void BSVM2_Op_STDDECZLP_D(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_STDDECZLP_A(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_STDDECZLP_B(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_STDDECZLP_S(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opvars.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opvars.c
 void BSVM2_Op_LDI(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_LDL(BSVM2_Frame *frm, BSVM2_Opcode *op);
 void BSVM2_Op_LDF(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1955,7 +1958,7 @@ BS2VM_API void BSVM2_Op_DSTIXUZRL_L(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_DSTIXUZRL_F(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_DSTIXUZRL_D(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_DSTIXUZRL_A(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opvec2.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opvec2.c
 BS2VM_API void BSVM2_Op_MKV2I(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_MKV2F(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTVI2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -1984,7 +1987,7 @@ BS2VM_API void BSVM2_Op_LDV2FB_V2F(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BSVM2_Opcode *BSVM2_OpVec_DecodeBinOpX(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op, int opn);
 BSVM2_Opcode *BSVM2_OpVec_DecodeUnOpX(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op, int opn);
 BSVM2_Opcode *BSVM2_OpVec_DecodeVectorOpcode(BSVM2_CodeBlock *cblk, BSVM2_Opcode *op, int opn);
-//AHSRC:bsvm2/bsvm2i/bs2i_opvec3.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opvec3.c
 BSVM2_ValX128 *BSVM2_FrameAllocX128(BSVM2_Frame *frm);
 void BSVM2_FrameFreeX128(BSVM2_Frame *frm, BSVM2_ValX128 *val);
 BS2VM_API void BSVM2_Op_BINOPX_ADD_V3F(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -2044,7 +2047,7 @@ BS2VM_API void BSVM2_Op_CVTX3F2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTX4F2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTXQF2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTAA2X3F(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opvec3x.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opvec3x.c
 BS2VM_API u64 BSVM2_Double2XFloat(double v);
 BS2VM_API double BSVM2_XFloat2Double(u64 lv);
 BS2VM_API u64 BSVM2_Double2XFloat2(u64 lv);
@@ -2073,7 +2076,7 @@ BS2VM_API void BSVM2_Op_UNOPX_SQRT_X3XF(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_UNOPX_RSQRT_X3XF(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_UNOPX_LEN_X3XF(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_UNOPX_LEN2_X3XF(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_opvxi.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_opvxi.c
 BS2VM_API void BSVM2_Op_BINOPX_ADD_XI128(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_BINOPX_SUB_XI128(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_BINOPX_MUL_XI128(BSVM2_Frame *frm, BSVM2_Opcode *op);
@@ -2110,7 +2113,7 @@ BS2VM_API void BSVM2_Op_CVTXL2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTXF2AA(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTAA2XL(BSVM2_Frame *frm, BSVM2_Opcode *op);
 BS2VM_API void BSVM2_Op_CVTAA2XF(BSVM2_Frame *frm, BSVM2_Opcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_tailop.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_tailop.c
 BSVM2_Trace *BSVM2_TrRun_NULL(BSVM2_Frame *frm, BSVM2_Trace *tr);
 BSVM2_Trace *BSVM2_TrRun_Def0(BSVM2_Frame *frm, BSVM2_Trace *tr);
 BSVM2_Trace *BSVM2_TrRun_Def1(BSVM2_Frame *frm, BSVM2_Trace *tr);
@@ -2148,7 +2151,7 @@ BSVM2_Trace *BSVM2_TrRun_NextN4(BSVM2_Frame *frm, BSVM2_Trace *tr);
 BSVM2_Trace *BSVM2_TrRun_NextN5(BSVM2_Frame *frm, BSVM2_Trace *tr);
 BSVM2_Trace *BSVM2_TrRun_NextN6(BSVM2_Frame *frm, BSVM2_Trace *tr);
 BSVM2_Trace *BSVM2_TrRun_NextN7(BSVM2_Frame *frm, BSVM2_Trace *tr);
-BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(BSVM2_CodeBlock *cblk, BSVM2_Opcode **ops, int n_ops, BSVM2_TailOpcode *top, int flag);
+BSVM2_Trace *BSVM2_Interp_DecodeBlockSetupTraceDfl(BSVM2_CodeBlock *cblk, BSVM2_Opcode **ops, int n_ops, BSVM2_TailOpcode *top, int flag);
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_Default(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_JMP(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_JEQ(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
@@ -2245,7 +2248,7 @@ BS2VM_API BSVM2_Trace *BSVM2_TrOp_CATCH(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_BEGLEC(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_ENDLEC(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
 BS2VM_API BSVM2_Trace *BSVM2_TrOp_ENDLEC2(BSVM2_Frame *frm, BSVM2_TailOpcode *op);
-//AHSRC:bsvm2/bsvm2i/bs2i_topinit.c
+//AHSRC:bsvm2.l/bsvm2i/bs2i_topinit.c
 byte *BSVM2_Interp_DecodeOpJAddr(BSVM2_CodeBlock *cblk);
 void BSVM2_Interp_DecodeTopGx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op);
 void BSVM2_Interp_DecodeTopZx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op);
@@ -2255,15 +2258,15 @@ void BSVM2_Interp_DecodeTopZn(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op);
 void BSVM2_Interp_DecodeTopIx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op);
 void BSVM2_Interp_DecodeTopJx(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op);
 void BSVM2_Interp_DecodeTopGj(BSVM2_CodeBlock *cblk, BSVM2_TailOpcode *op);
-void BSVM2_Interp_SetupTopPopUnJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopPopUn(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopUatJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopUat(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopUnJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopUn(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopUnPJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopPopBinJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
-void BSVM2_Interp_SetupTopPopBin(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopPopUnJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopPopUn(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopUatJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopUat(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopUnJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopUn(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopUnPJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopPopBinJmp(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
+void BSVM2_Interp_SetupTopPopBin(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op, BSVM2_Trace *(*run)(BSVM2_Frame *frm, BSVM2_TailOpcode *op));
 void BSVM2_Interp_SetupTopJCMP(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op);
 void BSVM2_Interp_SetupTopCallG(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op);
 void BSVM2_Interp_SetupTopCallV(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op);
@@ -2271,9 +2274,9 @@ void BSVM2_Interp_SetupTopCallTh(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op);
 void BSVM2_Interp_SetupTopCallA(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op);
 void BSVM2_Interp_SetupTopCallL(BSVM2_CodeBlock *cblk,BSVM2_TailOpcode *op);
 BSVM2_TailOpcode *BSVM2_Interp_DecodeTailOpcode(BSVM2_CodeBlock *cblk, int opn);
-//AHSRC:bsvm2/bsvm2i/bs2j_rvalut.c
+//AHSRC:bsvm2.l/bsvm2i/bs2j_rvalut.c
 char *BSVM2_Interp_ReverseLookupPublicOp(void *ptr);
-//AHSRC:bsvm2/bsvm2i/bs2j_tr_x86.c
+//AHSRC:bsvm2.l/bsvm2i/bs2j_tr_x86.c
 int BS2J_VirtualEBP(BSVM2_Trace *tr, int ofs);
 int BS2J_CheckSavedESI(BSVM2_Trace *tr);
 int BS2J_CheckSavedEDI(BSVM2_Trace *tr);
@@ -2294,7 +2297,7 @@ int BS2J_EmitNormalReturn(BSVM2_Trace *tr);
 int BS2J_JitTraceHandleTail(BSVM2_Trace *tr);
 int BS2J_CheckSetupJitTrace(BSVM2_Trace *tr);
 BS2VM_API int BS2J_DumpMissCounts();
-//AHSRC:bsvm2/bsvm2i/bs2j_tr_x64.c
+//AHSRC:bsvm2.l/bsvm2i/bs2j_tr_x64.c
 int BS2J_VirtualEBP(BSVM2_Trace *tr, int ofs);
 int BS2J_CheckSavedESI(BSVM2_Trace *tr);
 int BS2J_CheckSavedEDI(BSVM2_Trace *tr);

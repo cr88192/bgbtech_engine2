@@ -4,7 +4,7 @@ Yet Another Byte Oriented LZ77 Variant
 
 
 Match Layout:
-	Token (Escape_Raw) (Raw_Bytes) (Escape_Match) Distance
+	Token (Escape_Raw) (Raw_Bytes) Distance (Escape_Match)
 
 Token:
 0RRR-LLLL
@@ -28,6 +28,6 @@ Escaped Raw Length, Match Length, or Short Distance
 Match Distance
 	      00-00 ..       DF-FF: Two-Byte Distance (56kB)
 	   E0-00-00 ..    EF-FF-FF: Three-Byte Distance (1MB)
-	F0-00-00-00 .. FD-FF-FF-FF: Four-Byte Match (224MB)
-	            FE-XX-XX-XX-XX: Five-Byte Match (4GB)
+	F0-00-00-00 .. FE-FF-FF-FF: Four-Byte Match (240MB)
+	            FF-XX-XX-XX-XX: Five-Byte Match (4GB)
 

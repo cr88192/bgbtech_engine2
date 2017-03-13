@@ -254,7 +254,7 @@ BtPak0_LoadChunk *BtPak_ImageLoadChunk(BtPak0_Image *img, int idx)
 	BtPak0_LoadChunk *cur;
 	byte *tbuf;
 	u64 ofs;
-	u32 sz, csz, sz2;
+	u32 sz, csz, sz2, szo;
 	int i, j, k;
 
 	if(idx<=0)
@@ -290,7 +290,17 @@ BtPak0_LoadChunk *BtPak_ImageLoadChunk(BtPak0_Image *img, int idx)
 
 		printf("BtPak_ImageLoadChunk: Sz=%d Csz=%d\n", sz, csz);
 
-		sz2=sz+(csz/2);
+//		szo=4096;
+//		if(csz<szo)szo=csz;
+//		if((csz<(sz/4)) && (sz>=8192))
+//			szo=0;
+//		szo=0;
+		szo=chi->szoPad;
+		if(szo>>4)
+			{ szo=(16|(szo&15))<<((szo>>4)-1); }
+
+		sz2=sz+szo;
+//		sz2=sz+(csz/2);
 //		cur->data=btpak_malloc(sz);
 		cur->data=btpak_malloc(sz2);
 		cur->szData=sz;
@@ -512,6 +522,8 @@ int BtPak_ImageCommitLoadChunk(
 	u64 ofs;
 	int cbsz, cm;
 	int sz, sz1, csz, bix, bn;
+	int mexp, mpad, szop;
+	int i, j, k;
 
 	if(!chk->isDirty)
 		return(0);
@@ -544,8 +556,13 @@ int BtPak_ImageCommitLoadChunk(
 		cm=10;
 //		cbsz=BTLZA_BitEncF_EncodeStreamXLvlZl(
 //			chk->data, cbuf, sz, sz*1.5, 1);
+//		cbsz=BTLZA_BitEnc_EncodeStreamXLvlZl(
+//			chk->data, cbuf, sz, sz*1.5, 8);
 		cbsz=BTLZA_BitEnc_EncodeStreamXLvlZl(
-			chk->data, cbuf, sz, sz*1.5, 8);
+			chk->data, cbuf, sz, sz*1.5, 10);
+		mexp=BTLZA_BitEnc_GetLastMaxExp(cbsz);
+		mpad=mexp-(sz-cbsz);
+		mpad+=512;
 //		if(cbsz<=0)
 		if((cbsz<=0) || (cbsz>(0.9*sz)))
 		{
@@ -553,8 +570,10 @@ int BtPak_ImageCommitLoadChunk(
 			cbuf=NULL;
 		}else
 		{
-			printf("BtPak_ImageCommitLoadChunk: %d->%d,%s\n",
-				sz, cbsz, BtPak_ImageCtId2Str(img, chk->ctid));
+			printf("BtPak_ImageCommitLoadChunk: %d->%d,%s  mpad=%d\n",
+				sz, cbsz, BtPak_ImageCtId2Str(img, chk->ctid), mpad);
+			if(mpad<0)
+				mpad=0;
 		}
 	}
 	
@@ -562,6 +581,7 @@ int BtPak_ImageCommitLoadChunk(
 	{
 		cbuf=chk->data;
 		cbsz=sz;
+		mpad=0;
 		cm=0;
 	}
 
@@ -590,8 +610,23 @@ int BtPak_ImageCommitLoadChunk(
 	if(cbuf!=chk->data)
 		{ btpak_free(cbuf); }
 
+	if(mpad>=16)
+	{
+		i=mpad; j=1;
+		while(i>=32)
+			{ i=(i+1)>>1; j++; }
+		szop=(i&15)|(j<<4);
+	}else
+	{
+		szop=mpad;
+	}
+
+//	sz1=sz+mpad;
+//	sz1=(sz1+15)&(~15);
+
 	chi->ofsChk=bkpak_sweu64(ofs);
 	chi->szChk=bkpak_sweu32(sz);
+//	chi->szChk=bkpak_sweu32(sz1);
 	chi->cszChk=bkpak_sweu32(csz);
 //	chi->cm=chk->cm;
 	chi->cm=cm;
@@ -599,6 +634,7 @@ int BtPak_ImageCommitLoadChunk(
 	chi->shOsz=chk->shOsz;
 	chi->shCell=chk->shCell;
 	chi->ctId=bkpak_sweu16(chk->ctid);
+	chi->szoPad=szop;
 	chk->isDirty=0;
 	return(1);
 }

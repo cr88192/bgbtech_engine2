@@ -8,6 +8,7 @@
 #include "frgl_fonts_qi2.c"
 #include "frgl_input.c"
 #include "frgl_menu.c"
+#include "frgl_shaddll.c"
 #include "frgl_shader.c"
 #include "frgl_texture.c"
 #include "frgl_util.c"

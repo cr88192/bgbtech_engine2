@@ -241,25 +241,25 @@ BTEIFGL_API void frglNormal3f(float x, float y, float z)
 	frgl_drawprim_ntmp[3]=0;
 }
 
-BTEIFGL_API void frglColorMask(bool r, bool g, bool b, bool a)
-{
-	glColorMask(r, g, b, a);
-}
+//BTEIFGL_API void frglColorMask(bool r, bool g, bool b, bool a)
+//{
+//	glColorMask(r, g, b, a);
+//}
 
 BTEIFGL_API void frglEnableTexture2D(void)
 {
-	glEnable(GL_TEXTURE_2D);
+	frglEnable(GL_TEXTURE_2D);
 }
 
 BTEIFGL_API void frglDisableTexture2D(void)
 {
-	glDisable(GL_TEXTURE_2D);
+	frglDisable(GL_TEXTURE_2D);
 //	glBindTexture(GL_TEXTURE_2D, frgl_drawprim_whitetex);
 }
 
 BTEIFGL_API void frglBindTexture2D(int tex)
 {
-	glBindTexture(GL_TEXTURE_2D, tex);
+	frglBindTexture(GL_TEXTURE_2D, tex);
 }
 
 BTEIFGL_API void frglEnableLighting(void)
@@ -272,15 +272,15 @@ BTEIFGL_API void frglDisableLighting(void)
 //	glDisable(GL_LIGHTING);
 }
 
-BTEIFGL_API void frglEnable(int flag)
-{
-	glEnable(flag);
-}
+//BTEIFGL_API void frglEnable(int flag)
+//{
+//	glEnable(flag);
+//}
 
-BTEIFGL_API void frglDisable(int flag)
-{
-	glDisable(flag);
-}
+//BTEIFGL_API void frglDisable(int flag)
+//{
+//	glDisable(flag);
+//}
 
 
 BTEIFGL_API void frglModelviewMatrix(void)

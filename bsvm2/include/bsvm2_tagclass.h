@@ -223,6 +223,9 @@ static_inline void dtcVaSetCacheNameA(dtVal obj,
 		dtcField *rfi, char *qn, char *fn, dtVal v)
 	{ BGBDTC_SetCacheNameA(dtvUnwrapPtr(obj), rfi, qn, fn, v); }
 
+// static_inline dtVal dtcVaCloneInstance(dtVal obj)
+//	{ return(dtvWrapPtr(BGBDTC_AllocCloneInstance(dtvUnwrapPtr(obj)))); }
+
 typedef union BGBDTC_X128_s BGBDTC_X128;
 
 union BGBDTC_X128_s {

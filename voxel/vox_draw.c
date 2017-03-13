@@ -3,6 +3,7 @@
 float bgbdt_voxel_drawdist=256;
 bool bgbdt_voxel_noshader=0;
 bool bgbdt_voxel_novbo=0;
+bool bgbdt_voxel_nosky=0;
 // float bgbdt_voxel_drawdist=192;
 
 void BGBDT_CalcCoordLocalOrigin(BGBDT_VoxWorld *world,
@@ -212,24 +213,10 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 	}
 #endif
 
-//#ifndef __EMSCRIPTEN__
-#if 1
 	if(mesh->vbo_id>0)
 	{
 		frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
-
-//#ifdef __EMSCRIPTEN__
-#if 0
-		if((mesh->flags&BGBDT_MESHFL_DRAW1) &&
-			!(mesh->flags&BGBDT_MESHFL_RELOAD1))
-		{
-			frglBufferData(GL_ARRAY_BUFFER,
-				mesh->sz_vabuf, mesh->vabuf, GL_STATIC_DRAW);
-			mesh->flags|=BGBDT_MESHFL_RELOAD1;
-		}
-#endif
 	}
-#endif
 
 //	i=0;
 //	if(1)
@@ -357,7 +344,8 @@ void BGBDT_UpdateVoxRegionCVS(BGBDT_VoxWorld *world,
 			continue;
 		}
 
-		if(lvorg[2]<60)
+//		if(lvorg[2]<60)
+		if(lvorg[2]<30)
 		{
 			mcur->flags|=BGBDT_MESHFL_QINHIBIT;
 		}else
@@ -413,12 +401,17 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 //	BGBDT_TickVoxRegion(world, rgn);
 	BGBDT_UpdateVoxRegionCVS(world, rgn);
 
-//	glMatrixMode(GL_MODELVIEW);
+//	frglMatrixMode(GL_MODELVIEW);
 	frglModelviewMatrix();
 	frglPushMatrix();
 	
-	glEnable(GL_ALPHA_TEST);
-//	glDisable(GL_CULL_FACE);
+	frglDepthFunc(GL_LEQUAL);
+	frglBlendFunc(GL_ONE, GL_ZERO);
+	frglEnable(GL_CULL_FACE);
+	
+	frglEnable(GL_ALPHA_TEST);
+//	frglDisable(GL_ALPHA_TEST);
+//	frglDisable(GL_CULL_FACE);
 
 	BGBDT_CalcRegionLocalOrigin(world, rgn, lorg);
 
@@ -452,22 +445,9 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 	}
 	frglBindBuffer(GL_ARRAY_BUFFER, 0);
 #endif
-	
-#if 0
-//	for(i=0; i<4096; i++)
-	for(bz=0; bz<16; bz++)
-		for(by=0; by<16; by++)
-			for(bx=0; bx<16; bx++)
-	{
-		mesh=BGBDT_GetRegionChunkMesh(world, rgn,
-//			bx, by, bz, BGBDT_ACCFL_ENNEWCHK);
-			bx, by, bz, 0);
-		if(!mesh)continue;
-		BGBDT_DrawVoxChunkMesh(world, mesh);
-	}
-#endif	
 
-	glDisable(GL_ALPHA_TEST);
+	frglDisable(GL_ALPHA_TEST);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	frglPopMatrix();
 }
@@ -489,8 +469,12 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 	bgbdt_voxel_drawdist=FRGL_CvarGetNum("r_drawdist");
 	bgbdt_voxel_noshader=FRGL_CvarGetNum("r_noshader");
 	bgbdt_voxel_novbo=FRGL_CvarGetNum("r_novbo");
+	bgbdt_voxel_nosky=FRGL_CvarGetNum("r_nosky");
+//	frgl_shader_pgl_Vertex=-1;
 
 	FRGL_TexMat_BindMaterial(0);
+
+	GfxDrv_SetClearColor(0.0, 0.0, 0.0);
 
 	if(world->insky && (world->insky<4))
 //	if(0)
@@ -502,6 +486,11 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 		case 3: tx=FRGL_TexMat_GetLoadIndex("textures/sky3"); break;
 		default: tx=0; break;
 		}
+		
+		GfxDrv_SetClearColor(0.3, 0.5, 0.8);
+		
+		if(bgbdt_voxel_nosky)
+			tx=0;
 		
 		if(tx>0)
 		{
@@ -524,10 +513,14 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 			FRGL_TexMat_BindMaterial(tx);
 			
 			h=1.0/8000;
+
+			frglDepthFunc(GL_LEQUAL);
+			frglBlendFunc(GL_ONE, GL_ZERO);
+			frglDisable(GL_ALPHA_TEST);
 			
 			frglBegin(GL_QUADS);
 
-			for(y=0; y<24; y++)
+			for(y=2; y<12; y++)
 				for(x=0; x<48; x++)
 			{
 				a0=(x+0)*(2*M_PI/48);
@@ -629,6 +622,7 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 #endif
 
 	FRGL_TexMat_BindMaterial(0);
+//	frgl_shader_pgl_Vertex=-1;
 
 	world->dt_draw=frgl_clock()-world->tickstart;
 }

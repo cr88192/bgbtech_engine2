@@ -81,12 +81,12 @@ int bt2ent_frgl_printf(dtVal str, dtVal va)
 	dtVal vn;
 	double f;
 	s64 li;
-	int fl, w, pr;
+	int fl, w, pr, brk;
 	int i, j, k, n;
 
 	str1=BGBDT_TagStr_GetUtf8(str);
 	
-	s=str1; t=tb; n=0;
+	s=str1; t=tb; n=0; brk=0;
 	while(*s)
 	{
 		if(*s!='%')
@@ -169,6 +169,7 @@ int bt2ent_frgl_printf(dtVal str, dtVal va)
 			if(w)	sprintf(t, "%0*llX", w, li);
 			else	sprintf(t, "%llX", li);
 			s++; t+=strlen(t);
+//			brk=1;
 			continue;
 		}
 		
@@ -204,6 +205,11 @@ int bt2ent_frgl_printf(dtVal str, dtVal va)
 	
 //	fputs(tb, stdout);
 	frgl_puts(tb);
+	
+	if(brk)
+	{
+		FRGL_DBGBREAK_SOFT
+	}
 	
 	return(0);
 }
@@ -1142,17 +1148,22 @@ BTEIFGL_API int Bt2Ent_DrawWorldEnts(BGBDT_VoxWorld *world)
 //	if(isotest_usebkg)
 //		return;
 
+	frglDepthFunc(GL_LEQUAL);
+	frglBlendFunc(GL_ONE, GL_ZERO);
+//	frglEnable(GL_CULL_FACE);
+	frglEnable(GL_ALPHA_TEST);
+
 //	frglEnable(GL_CULL_FACE);
 	frglDisable(GL_CULL_FACE);
-	frglDisable(GL_ALPHA_TEST);
+//	frglDisable(GL_ALPHA_TEST);
 
 //	frglEnable(GL_ALPHA_TEST);
 
 //	isotile_drawsky(map);
 //	isotile_drawmap2(map);
 
-	frglDisable(GL_CULL_FACE);
-	frglEnable(GL_ALPHA_TEST);
+//	frglDisable(GL_CULL_FACE);
+//	frglEnable(GL_ALPHA_TEST);
 	frglColor4f(1,1,1,1);
 
 	l=world->nents;
@@ -1165,6 +1176,7 @@ BTEIFGL_API int Bt2Ent_DrawWorldEnts(BGBDT_VoxWorld *world)
 	}
 
 	frglDisable(GL_ALPHA_TEST);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	frglColor4f(1,1,1,1);
 	return(0);

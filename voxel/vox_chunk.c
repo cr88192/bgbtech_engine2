@@ -1,6 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <bteifgl.h>
 
+byte *bgbdt_voxrgn_enctobuf;
+int bgbdt_voxrgn_szenctobuf;
+
+
 BGBDT_VoxRegion *BGBDT_AllocRegion(BGBDT_VoxWorld *world)
 {
 	BGBDT_VoxRegion *tmp;
@@ -133,6 +137,7 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 	byte *buf, *buf1;
 	int szbuf, szbuf1;
 	int bx, by, bz, bid;
+	int i, j, k;
 	
 	bx=xyz.x>>BGBDT_XYZ_SHR_REGION_XY;
 	by=xyz.y>>BGBDT_XYZ_SHR_REGION_XY;
@@ -167,15 +172,35 @@ BTEIFGL_API BGBDT_VoxRegion *BGBDT_WorldGetRegion(BGBDT_VoxWorld *world,
 	bid=bgbdt_xyz2rgnid(bx, by, bz);
 	sprintf(tbuf, "region/%s/%08X.rgn", world->worldname, bid);
 
-	buf=vf_loadfile(tbuf, &szbuf);
+	if(!bgbdt_voxrgn_enctobuf)
+	{
+		szbuf=1<<22;
+		buf=frgl_malloc(szbuf);
+		bgbdt_voxrgn_enctobuf=buf;
+		bgbdt_voxrgn_szenctobuf=szbuf;
+	}
+
+	buf=bgbdt_voxrgn_enctobuf;
+	szbuf=bgbdt_voxrgn_szenctobuf;
+	i=VfLoadFile(tbuf, (void **)(&buf), &szbuf);
+	if(i<0)
+	{
+		buf=NULL;
+	}
+//	buf=vf_loadfile(tbuf, &szbuf);
 
 	if(buf && BGBDT_VoxRgn_CheckRegionLzMagic(buf))
 	{
 		buf1=NULL;
 		BGBDT_VoxRgn_UnpackRgnLz(world, buf, szbuf, &buf1, &szbuf1);
-		frgl_free(buf);
+//		frgl_free(buf);
 		buf=buf1;
 		szbuf=szbuf1;
+	}else if(buf)
+	{
+		buf1=frgl_malloc(szbuf);
+		memcpy(buf1, buf, szbuf);
+		buf=buf1;
 	}
 	
 	if(buf)

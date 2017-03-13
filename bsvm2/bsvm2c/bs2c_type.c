@@ -44,6 +44,8 @@ int BS2C_GetTypeBaseZ(BS2CC_CompileContext *ctx, int ty)
 		return(BSVM2_OPZ_UBYTE);
 	if(ty==BS2CC_TYZ_HFLOAT)
 		return(BSVM2_OPZ_USHORT);
+	if(ty==BS2CC_TYZ_AUTOVAR)
+		return(BSVM2_OPZ_ADDRESS);
 
 //	if(ty==BS2CC_TYZ_VEC2F)
 //		return(BSVM2_OPZ_LONG);
@@ -238,6 +240,11 @@ char *BS2C_GetTypeSig(BS2CC_CompileContext *ctx, int ty)
 		case BS2CC_TYZ_BOOL:	*t++='b'; break;
 		case BS2CC_TYZ_HFLOAT:	*t++='k'; break;
 
+		case BS2CC_TYZ_AUTOVAR:	*t++='C'; *t++='r'; break;
+
+		case BS2CC_TYZ_SYMBOL:		*t++='C'; *t++='t'; break;
+		case BS2CC_TYZ_KEYWORD:		*t++='C'; *t++='n'; break;
+
 		case BS2CC_TYZ_INT128:		*t++='n'; break;
 		case BS2CC_TYZ_UINT128:		*t++='o'; break;
 		case BS2CC_TYZ_FLOAT128:	*t++='g'; break;
@@ -420,6 +427,12 @@ char *BS2C_GetTypeNameStr(BS2CC_CompileContext *ctx, int ty)
 			strcpy(t, "bool"); t+=strlen(t); break;
 		case BS2CC_TYZ_HFLOAT:
 			strcpy(t, "hfloat"); t+=strlen(t); break;
+		case BS2CC_TYZ_AUTOVAR:
+			strcpy(t, "auto"); t+=strlen(t); break;
+		case BS2CC_TYZ_SYMBOL:
+			strcpy(t, "symbol"); t+=strlen(t); break;
+		case BS2CC_TYZ_KEYWORD:
+			strcpy(t, "keyword"); t+=strlen(t); break;
 
 		case BS2CC_TYZ_INT128:
 			strcpy(t, "int128"); t+=strlen(t); break;
@@ -782,6 +795,7 @@ int BS2C_TypeAddressP(BS2CC_CompileContext *ctx, int ty)
 
 		if((ty==BS2CC_TYZ_ADDRESS)||
 			(ty==BS2CC_TYZ_VARIANT)||
+			(ty==BS2CC_TYZ_AUTOVAR)||
 			(ty==BS2CC_TYZ_STRING)||
 			(ty==BS2CC_TYZ_CSTRING))
 				return(1);
@@ -1025,6 +1039,18 @@ int BS2C_TypeVoidP(BS2CC_CompileContext *ctx, int ty)
 int BS2C_TypeVariantP(BS2CC_CompileContext *ctx, int ty)
 {
 	return(ty==BS2CC_TYZ_VARIANT);
+//	return(
+//		(ty==BS2CC_TYZ_VARIANT)||
+//		(ty==BS2CC_TYZ_AUTOVAR));
+}
+
+int BS2C_TypeConcreteP(BS2CC_CompileContext *ctx, int ty)
+{
+	if(	(ty==BS2CC_TYZ_VARIANT)||
+		(ty==BS2CC_TYZ_ADDRESS)||
+		(ty==BS2CC_TYZ_AUTOVAR))
+			return(0);
+	return(1);
 }
 
 int BS2C_TypeStringP(BS2CC_CompileContext *ctx, int ty)
@@ -1393,6 +1419,8 @@ int BS2C_TypeDerefType(BS2CC_CompileContext *ctx, int ty)
 		{
 			if(ty==BS2CC_TYZ_VARIANT)
 				return(ty);
+			if(ty==BS2CC_TYZ_AUTOVAR)
+				return(ty);
 
 			BS2C_CompileError(ctx, BS2CC_ERRN_ERRCANTDEREF);
 			return(ty);
@@ -1624,6 +1652,11 @@ int BS2C_InferSuperType(
 			(lty==BS2CC_TYZ_VEC3XF))
 				return(rty);
 	}
+
+	if((lty==BS2CC_TYZ_AUTOVAR) && (rty!=BS2CC_TYZ_AUTOVAR))
+		return(rty);
+	if((lty!=BS2CC_TYZ_AUTOVAR) && (rty==BS2CC_TYZ_AUTOVAR))
+		return(lty);
 
 	if(BS2C_TypeVariantP(ctx, lty) ||
 		BS2C_TypeVariantP(ctx, rty))
@@ -1990,6 +2023,8 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_VARIANT);
 		if(!strcmp(tyn, "variant"))
 			return(BS2CC_TYZ_VARIANT);
+		if(!strcmp(tyn, "auto"))
+			return(BS2CC_TYZ_AUTOVAR);
 		if(!strcmp(tyn, "void"))
 			return(BS2CC_TYZ_VOID);
 		if(!strcmp(tyn, "string"))
@@ -2004,6 +2039,11 @@ int BS2C_TypeBaseType(BS2CC_CompileContext *ctx, dtVal expr)
 			return(BS2CC_TYZ_BOOL);
 		if(!strcmp(tyn, "hfloat"))
 			return(BS2CC_TYZ_HFLOAT);
+
+		if(!strcmp(tyn, "symbol"))
+			return(BS2CC_TYZ_SYMBOL);
+		if(!strcmp(tyn, "keyword"))
+			return(BS2CC_TYZ_KEYWORD);
 
 		if(!strcmp(tyn, "int128"))
 			return(BS2CC_TYZ_INT128);
@@ -2323,6 +2363,8 @@ int BS2C_TypeRefinedType2(
 			{ bt=BS2CC_TYZ_VARIANT; }
 		else if(!strcmp(tyn, "variant"))
 			{ bt=BS2CC_TYZ_VARIANT; }
+		else if(!strcmp(tyn, "auto"))
+			{ bt=BS2CC_TYZ_AUTOVAR; }
 		else if(!strcmp(tyn, "string"))
 			{ bt=BS2CC_TYZ_STRING; }
 		else if(!strcmp(tyn, "cstring"))

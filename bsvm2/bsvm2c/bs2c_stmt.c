@@ -60,6 +60,13 @@ void BS2C_CompileStmtVar(BS2CC_CompileContext *ctx, dtVal expr)
 	vi=ctx->frm->locals[ix];
 	bty=vi->bty;
 
+	if((bty==BS2CC_TYZ_AUTOVAR) && dtvTrueP(ni))
+	{
+		cty=BS2C_InferExpr(ctx, ni);
+		if(BS2C_TypeConcreteP(ctx, cty))
+			{ vi->bty=cty; bty=cty; }
+	}
+
 	if(vi->bmfl&BS2CC_TYFL_DYNAMIC)
 	{
 		ix2=BS2C_LookupFrameGlobal(ctx, name);

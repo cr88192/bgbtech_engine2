@@ -30,7 +30,7 @@ void BS2C_CompileSetupVarInfo(
 	dtVal n0, n1;
 	s64 bmfl;
 	char *name, *tag;
-	int bty, tk;
+	int bty, tk, bty2;
 	int i, j, k, l;
 
 	tag=BS2P_GetAstNodeTag(expr);
@@ -53,6 +53,14 @@ void BS2C_CompileSetupVarInfo(
 		
 		if(!vi->vitype)
 			vi->vitype=BS2CC_VITYPE_LCLVAR;
+			
+		if((bty==BS2CC_TYZ_AUTOVAR) && dtvTrueP(ni))
+		{
+			bty2=BS2C_InferExpr(ctx, ni);
+			if(BS2C_TypeConcreteP(ctx, bty2))
+				{ vi->bty=bty2; }
+		}
+			
 		return;
 	}
 

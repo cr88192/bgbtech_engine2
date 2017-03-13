@@ -424,12 +424,12 @@ BTEIFGL_API int Con_RenderBackgroundInfo(FRGL_ConsoleInfo *con)
 			x=(j*con->chxs)-wxs2;
 			y=(i*con->chys)-wys2;
 #if 0
-//			glBegin(GL_QUADS);
+//			frglBegin(GL_QUADS);
 			frglVertex2f(x,	y);
 			frglVertex2f(x,	y+8);
 			frglVertex2f(x+8,	y+8);
 			frglVertex2f(x+8,	y);
-//			glEnd();
+//			frglEnd();
 #endif
 
 			frglVertex2f(x			,	y);
@@ -469,19 +469,23 @@ BTEIFGL_API int Con_RenderInfo(FRGL_ConsoleInfo *con)
 //	GfxFont_SetFont("fixed", 0);
 	GfxFont_SetFontSize("fixed", 0, con->chys);
 
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_TEXTURE_2D);
+	frglDisable(GL_ALPHA_TEST);
+	frglDisable(GL_CULL_FACE);
+	frglDisable(GL_TEXTURE_2D);
 
 	if(con_down)
 	{
-//		glColor4f(0.25, 0.25, 0.25, 0.75);
+//		frglColor4f(0.25, 0.25, 0.25, 0.75);
 //		Draw_Square(-400, -300, 800, 600);
 		Con_RenderBackground();
 	}
 
-//	glEnable(GL_TEXTURE_2D);
-//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//	frglEnable(GL_TEXTURE_2D);
+//	frglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	frglBlendFunc(GL_ONE, GL_ZERO);
+//	frglEnable(GL_CULL_FACE);	
+	frglEnable(GL_ALPHA_TEST);
 
 	GfxFont_DrawCharModeQI(-1, 0,0,0,0, 0,0,0,0, 0);
 //	for(i=0; i<(con_down?75:15); i++)
@@ -774,9 +778,9 @@ BTEIFGL_API int Con_RenderInfo2(FRGL_ConsoleInfo *con)
 		dirty=0;
 	}
 
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_TEXTURE_2D);
+	frglDisable(GL_ALPHA_TEST);
+	frglDisable(GL_CULL_FACE);
+	frglDisable(GL_TEXTURE_2D);
 
 	FRGL_TextVBO_Draw(vbo);
 	return(0);

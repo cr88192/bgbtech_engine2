@@ -31,6 +31,9 @@ int BS2C_InferName(BS2CC_CompileContext *ctx, char *name)
 	{
 		vari=ctx->frm->locals[i];
 		bty=vari->bty;
+		
+		if(bty==BS2CC_TYZ_AUTOVAR)
+			bty=BS2CC_TYZ_VARIANT;
 
 		if(BS2C_TypeVarRefP(ctx, bty))
 		{
@@ -730,7 +733,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 
 		l=dtvArrayGetSize(ln);
 
-		lt=BS2CC_TYZ_FLOAT;
+//		lt=BS2CC_TYZ_FLOAT;
+		lt=-1;
 		
 		if(fn)
 		{
@@ -767,6 +771,20 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 		}
 		
 		ty=-1;
+
+		if(lt<0)
+		{
+			if(l==2)
+				{ ty=BS2CC_TYZ_VEC2D; lt=BS2CC_TYZ_DOUBLE; }
+			if(l==3)
+				{ ty=BS2CC_TYZ_VEC3XF; lt=BS2CC_TYZ_DOUBLE; }
+			if(l==4)
+				{ ty=BS2CC_TYZ_VEC4F; lt=BS2CC_TYZ_FLOAT; }
+
+			if(lt<0)
+				{ lt=BS2CC_TYZ_FLOAT; }
+		}
+
 		if(lt==BS2CC_TYZ_FLOAT)
 		{
 			if(l==2)
@@ -791,6 +809,8 @@ int BS2C_InferExpr(BS2CC_CompileContext *ctx, dtVal expr)
 			{ ty=BS2CC_TYZ_FCPLX; }
 		if(lt==BS2CC_TYZ_DCPLX)
 			{ ty=BS2CC_TYZ_DCPLX; }
+		if(lt==BS2CC_TYZ_VEC3XF)
+			{ ty=BS2CC_TYZ_VEC3XF; }
 
 		if(ty>=0)
 			return(ty);

@@ -40,6 +40,9 @@ byte *ct;		//current pos in bitstream (output)
 byte *cse;		//current end pos in bitstream (input)
 byte *cte;		//current end pos in bitstream (output)
 
+byte *v_cs;		//virtual cs
+int v_maxexp;	//max expansion
+
 u32 rmin;		//window lower range
 u32 rmax;		//window upper range
 u32 rval;		//window decode value

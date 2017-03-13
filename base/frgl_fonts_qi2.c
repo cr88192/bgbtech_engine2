@@ -85,17 +85,24 @@ BTEIFGL_API void FRGL_TextVBO_Draw(FRGL_TextVBO *ctx)
 {
 	int i, j, k;
 
-	glDisable (GL_CULL_FACE);
+	frglDisable(GL_CULL_FACE);
 	frglEnableTexture2D();
 
 //	frglDisableTexture2D();
+
+	if(FRGL_IsRASWP())
+	{
+		frglBlendFunc(GL_ONE, GL_ZERO);
+//		frglEnable(GL_CULL_FACE);
+		frglEnable(GL_ALPHA_TEST);
+	}
 
 	if(ctx->vbo>0)
 	{
 		frglBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 		for(i=0; i<ctx->n_prim; i++)
 		{
-			glBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
+			frglBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
 			FRGL_DrawPrim_DrawArraysTexRGB(
 				ctx->prim[i*4+2], ctx->prim[i*4+0], ctx->prim[i*4+1],
 				3, GL_FLOAT, 12, (byte *)(nlint)ctx->ofs_xyz,
@@ -107,13 +114,19 @@ BTEIFGL_API void FRGL_TextVBO_Draw(FRGL_TextVBO *ctx)
 	{
 		for(i=0; i<ctx->n_prim; i++)
 		{
-			glBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
+			frglBindTexture(GL_TEXTURE_2D, ctx->prim[i*4+3]);
 			FRGL_DrawPrim_DrawArraysTexRGB(
 				ctx->prim[i*4+2], ctx->prim[i*4+0], ctx->prim[i*4+1],
 				3, GL_FLOAT, 12, (byte *)(nlint)ctx->xyz,
 				2, GL_FLOAT, 8, (byte *)(nlint)ctx->st,
 				4, GL_UNSIGNED_BYTE, 4, (byte *)(nlint)ctx->rgba);
 		}
+	}
+
+	if(FRGL_IsRASWP())
+	{
+		frglDisable(GL_ALPHA_TEST);
+		frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 }
 

@@ -428,6 +428,11 @@ BTEIFGL_API void BGBDT_Part_DrawParticles(void)
 	if(bgbdt_part_n_tris<=0)
 		return;
 
+	frglDepthFunc(GL_LEQUAL);
+	frglBlendFunc(GL_ONE, GL_ZERO);
+	frglEnable(GL_CULL_FACE);
+	frglEnable(GL_ALPHA_TEST);
+
 	FRGL_TexMat_BindMaterial(bgbdt_part_texmat);
 
 	FRGL_DrawPrim_DrawArraysTexRGB(
@@ -435,4 +440,7 @@ BTEIFGL_API void BGBDT_Part_DrawParticles(void)
 		3, GL_FLOAT, 3*4, bgbdt_part_tris_xyz,
 		2, GL_FLOAT, 2*4, bgbdt_part_tris_st,
 		4, GL_UNSIGNED_BYTE, 4, bgbdt_part_tris_rgba);
+
+	frglDisable(GL_ALPHA_TEST);
+	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }

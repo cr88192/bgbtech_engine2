@@ -1155,6 +1155,24 @@ BSVM2_Opcode *BSVM2_Interp_DecodeOpcode(
 		}
 		break;
 
+	case BSVM2_OP_AGETA:
+		BSVM2_Interp_DecodeOpZn(cblk, op);
+		switch(op->i0)
+		{
+		case 0:
+			BSVM2_Interp_SetupOpUn(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_CVTAA2ST);
+			break;
+		case 1:
+			BSVM2_Interp_SetupOpUn(cblk, op,
+				BSVM2_OPZ_ADDR, BSVM2_Op_CLONEAA);
+			break;
+		default:
+			BSVM2_DBGTRAP
+			break;
+		}
+		break;
+
 	case BSVM2_OP_HTNULL:
 		opn2=BSVM2_Interp_PeekOpcodeNumber(cblk);
 //		if((opn2>=BSVM2_OP_JEQ) && (opn2<=BSVM2_OP_JGE))

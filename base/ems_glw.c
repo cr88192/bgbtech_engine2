@@ -27,7 +27,10 @@ int window_lastactive;
 int window_fullscreen;
 
 int window_def_width=1024;
-int window_def_height=768;
+int window_def_height=640;
+
+//int window_def_width=1024;
+//int window_def_height=768;
 char *window_def_label="BTEIFGL";
 int window_def_fullscreen=0;
 
@@ -87,12 +90,57 @@ static int gfxdrv_log2up(int v)
 
 byte gfxdrv_lastkeys[256];
 
+static int scantokey[256]=
+{
+  0,    0,    0,    0,  'a',  'b',  'c',  'd', //  0-  7
+'e',  'f',  'g',  'h',  'i',  'j',  'k',  'l', //  8- 15
+'m',  'n',  'o',  'p',  'q',  'r',  's',  't', // 16- 23
+'u',  'v',  'w',  'x',  'y',  'z',  '1',  '2', // 24- 31
+'3',  '4',  '5',  '6',  '7',  '8',  '9',  '0', // 32- 39
+ 13,   27,    8,    9,  ' ',  '-',  '=',  '[', // 40- 47
+']', '\\', '\\',  ';',  '`', '\'',  ',',  '.', // 48- 55
+'/',  160,  135,  136,  137,  138,  139,  140, // 56- 63
+141,  142,  143,  144,  145,  146,    0,  161, // 64- 71
+153,  147,  151,  150,  127,  152,  149,  131, // 72- 79
+130,  129,  128,    0,  207,  206,  205,  204, // 80- 87
+218,  209,  210,  211,  212,  213,  214,  215, // 88- 95
+216,  217,  208,  219,  '`',    0,    0,  '=', // 96-103
+  0,    0,    0,    0,    0,    0,    0,    0, //104-111
+  0,    0,    0,    0,    0,    0,    0,    0, //112-119
+  0,    0,    0,    0,    0,    0,    0,    0, //120-127
+  0,    0,    0,    0,    0,    0,    0,    0, //128-135
+  0,    0,    0,    0,    0,    0,    0,    0, //136-143
+  0,    0,    0,    0,    0,    0,    0,    0, //144-151
+  0,    0,    0,    0,    0,    0,    0,    0, //152-159
+  0,    0,    0,    0,    0,    0,    0,    0, //160-167
+  0,    0,    0,    0,    0,    0,    0,    0, //168-175
+  0,    0,    0,    0,    0,    0,    0,    0, //176-183
+  0,    0,  ';',  '=',    0,  '-',    0,    0, //184-191
+  0,    0,    0,    0,    0,    0,    0,    0, //192-199
+  0,    0,    0,    0,    0,    0,    0,    0, //200-207
+  0,    0,    0,    0,    0,    0,    0,    0, //208-215
+  0,    0,    0,    0,    0,    0,    0,    0, //216-223
+133,  134,  132,    0,  133,  134,  132,    0, //224-231
+};
+
+int GfxDrv_MapKey(int key)
+{
+	int al, val;
+
+//	frgl_printf("Key: 0x%08X\n", key);
+
+	if(key>255)
+		return(0);
+	val=scantokey[key];
+	return(val);
+}
+
 void GfxDrv_UpdateKeyboard()
 {
 	byte *keys;
 	int i;
 
-#if 1
+#if 0
 	keys=SDL_GetKeyboardState(NULL);
 	for(i=0; i<256; i++)
 	{
@@ -114,16 +162,25 @@ void GfxDrv_UpdateKeyboard()
 void GfxDrv_UpdateEvents()
 {
 	SDL_Event ev;
+	int i, j;
 
 	while(SDL_PollEvent(&ev))
 	{
 		switch(ev.type)
 		{
 		case SDL_KEYDOWN:
+			i=ev.key.keysym.scancode;
+			j=GfxDrv_MapKey(i);
+//			printf("EV Key Dn %02X %02X\n", i, j);
+			GfxDev_Key_Event(j, 1);
 //			GfxDev_Key_Event(ev.key.keysym.scancode, 1);
 			break;
 		case SDL_KEYUP:
 //			GfxDev_Key_Event(ev.key.keysym.scancode, 0);
+			i=ev.key.keysym.scancode;
+			j=GfxDrv_MapKey(i);
+//			printf("EV Key Up %02X %02X\n", i, j);
+			GfxDev_Key_Event(j, 0);
 			break;
 		default:
 			break;
@@ -139,6 +196,9 @@ BTEIFGL_API void GfxDrv_GetWindowTexSize(int *xs, int *ys)
 	*xs=1<<gfxdrv_log2up(window_width);
 	*ys=1<<gfxdrv_log2up(window_height);
 }
+
+BTEIFGL_API bool GfxDrv_WindowIsActiveP(void)
+	{ return(window_active); }
 
 BTEIFGL_API void GfxDrv_BeginDrawing()
 {
@@ -227,7 +287,9 @@ void GfxDrv_InitGL()
 BTEIFGL_API int GfxDrv_Start()
 {
 	window_width=1024;
-	window_height=768;
+//	window_height=768;
+	window_height=640;
+	window_active=1;
 
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

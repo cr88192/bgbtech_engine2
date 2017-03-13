@@ -216,7 +216,7 @@ BTEIFGL_API void *VfLoadFile2(char *path, int *rsz)
 	void *buf;
 	int i, sz;
 	
-	buf=NULL;
+	buf=NULL; sz=0;
 	i=VfLoadFile(path, &buf, &sz);
 	if(buf && (i>0))
 	{

@@ -151,9 +151,6 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 
 		ctx->frm->stack_bty[i]=dty;
 
-//		if(sty==BS2CC_TYZ_VARIANT)
-//			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
-
 		if(sty==BSVM2_OPZ_INT)
 		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTI2AA);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
@@ -173,6 +170,9 @@ void BS2C_CompileConvTypeI(BS2CC_CompileContext *ctx, int dty,
 		if(BS2C_TypeSmallLongP(ctx, sty))
 		{	BS2C_EmitOpcode(ctx, BSVM2_OP_CVTL2AA);
 			BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
+
+//		if(sty==BS2CC_TYZ_VARIANT)
+//			{ BS2C_EmitOpcode(ctx, BSVM2_OP_CVTAA2ST); return; }
 
 		BS2C_CaseError(ctx);
 		return;

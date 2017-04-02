@@ -274,6 +274,9 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 	int vxfl, fmfl, vty;
 	int i, j, k;
 
+	if(tds.adjfl&BGBDT_ADJFL_ISCAVE_S)
+		return(0);
+
 	vty=td.vtypel|(td.vtypeh<<8);
 	tix=vty&4095;
 //	tix=td.vtype&4095;

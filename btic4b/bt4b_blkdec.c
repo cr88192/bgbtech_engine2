@@ -1320,11 +1320,31 @@ void BTIC4B_DecBlockGrad4BGRA(BTIC4B_Context *ctx,
 		0xE8E8E8E8, 0xFFAA5500, 0x1B1B1B1B, 0x0055AAFF,
 		0xF9E99490, 0x6F6B1606, 0x06166B6F, 0x9094E9F9};
 	byte tblk[128];
+	int i, j;
 	memcpy(tblk, blkbuf, 64);
 	
-	tblk[0]=0x0C;
-	*(u32 *)(tblk+16)=grtab[blkbuf[16]&15];
-	BTIC4B_DecBlock1BGRA(ctx, tblk, ibuf, ystr);
+	i=*(u32 *)(tblk+16);
+	
+	if(!(i&(~15)))
+	{
+		tblk[0]=0x0C;
+		*(u32 *)(tblk+16)=grtab[blkbuf[16]&15];
+		BTIC4B_DecBlock1BGRA(ctx, tblk, ibuf, ystr);
+		return;
+	}
+
+	if(1)
+	{
+		j=i&65535;
+		tblk[0]=0x0F;
+//		*(u32 *)(tblk+16)=grtab[blkbuf[16]&15];
+		*(u32 *)(tblk+16)=btic4b_grad16_ipattab2[j*4+0];
+		*(u32 *)(tblk+20)=btic4b_grad16_ipattab2[j*4+1];
+		*(u32 *)(tblk+24)=btic4b_grad16_ipattab2[j*4+2];
+		*(u32 *)(tblk+28)=btic4b_grad16_ipattab2[j*4+3];
+		BTIC4B_DecBlock1BGRA(ctx, tblk, ibuf, ystr);
+		return;
+	}
 }
 
 

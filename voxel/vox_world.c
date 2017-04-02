@@ -731,6 +731,21 @@ int glow;
 {"cloud", "textures/atlas0", NULL, NULL,
 	0, 3,  0, 3,  0, 3,  BGBDT_VOXFL_TRANSPARENT, 0},
 
+{"brick_blu", "textures/atlas0", NULL, NULL,
+	3, 4,  3, 4,  3, 4,  0, 0x00},
+{"stone2_blu", "textures/atlas0", NULL, NULL,
+	4, 4,  4, 4,  4, 4,  0, 0x00},
+{"brick_grn", "textures/atlas0", NULL, NULL,
+	5, 4,  5, 4,  5, 4,  0, 0x00},
+{"cobble_blu", "textures/atlas0", NULL, NULL,
+	1, 4,  1, 4,  1, 4,  0, 0x00},
+{"cobble_red", "textures/atlas0", NULL, NULL,
+	1, 3,  1, 3,  1, 3,  0, 0x00},
+{"stone3_blu", "textures/atlas0", NULL, NULL,
+	3, 5,  3, 5,  3, 5,  0, 0x00},
+{"bigbrick_blu", "textures/atlas0", NULL, NULL,
+	4, 5,  4, 5,  4, 5,  0, 0x00},
+
 {NULL, NULL}
 };
 
@@ -821,6 +836,12 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(
 		tyi->mat_bot_y=bgbdt_matinfo[i].mat_bot_y;
 		tyi->flags=bgbdt_matinfo[i].flags;
 		tyi->glow=bgbdt_matinfo[i].glow;
+
+		if(!(tyi->flags&(BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_TRANSPARENT)))
+			tyi->flags|=BGBDT_VOXFL_INCAVE;
+		if((tyi->flags&BGBDT_VOXFL_GLOWLIGHT) &&
+			((tyi->flags&BGBDT_VOXFL_FLUID_MASK)!=BGBDT_VOXFL_FLUID_LAVA))
+				{ tyi->flags&=~BGBDT_VOXFL_INCAVE; }
 
 		tyi->mat_ico=tyi->mat_side;
 		tyi->mat_ico_x=bgbdt_matinfo[i].mat_side_x;

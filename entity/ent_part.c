@@ -42,6 +42,8 @@ BGBDT_Particle *BGBDT_Part_SpawnParticle(vec3d org, vec3 vel, int atxy)
 	
 	tmp=BGBDT_Part_Alloc();
 	
+	atxy=0;
+	
 //	tmp->org=org;
 //	tmp->vel=vel;
 
@@ -429,17 +431,25 @@ BTEIFGL_API void BGBDT_Part_DrawParticles(void)
 		return;
 
 	frglDepthFunc(GL_LEQUAL);
-	frglBlendFunc(GL_ONE, GL_ZERO);
-	frglEnable(GL_CULL_FACE);
-	frglEnable(GL_ALPHA_TEST);
+//	frglBlendFunc(GL_ONE, GL_ZERO);
+//	frglEnable(GL_CULL_FACE);
+//	frglEnable(GL_ALPHA_TEST);
 
-	FRGL_TexMat_BindMaterial(bgbdt_part_texmat);
+//	FRGL_TexMat_BindMaterial(bgbdt_part_texmat);
+	FRGL_TexMat_BindBasic(bgbdt_part_texmat);
+
+	frglNormal3f(
+		bt2ent_voxworld->camrot[3],
+		bt2ent_voxworld->camrot[4],
+		bt2ent_voxworld->camrot[5]);
 
 	FRGL_DrawPrim_DrawArraysTexRGB(
 		GL_TRIANGLES, 0, bgbdt_part_n_tris*3,
 		3, GL_FLOAT, 3*4, bgbdt_part_tris_xyz,
 		2, GL_FLOAT, 2*4, bgbdt_part_tris_st,
 		4, GL_UNSIGNED_BYTE, 4, bgbdt_part_tris_rgba);
+
+	FRGL_TexMat_BindMaterial(0);
 
 	frglDisable(GL_ALPHA_TEST);
 	frglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -633,7 +633,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 
 //		rgn->flags&=~BGBDT_RGNFL_NEWRGN;
 		rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
-		return;
+//		return;
 	}
 
 #if 1
@@ -721,6 +721,15 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 				if(chk)
 				{
 					BGBDT_VoxEnt_UpdateChunkSpawnEnts(world, chk);
+				}
+
+				if(chk && !(chk->flags&BGBDT_CHKFL_CHKCAVE))
+				{
+					BGBDT_VoxLight_UpdateChunkCheckCave(world, chk);
+//					chk->flags|=BGBDT_CHKFL_SAVEDIRTY;
+					if(chk->flags&BGBDT_CHKFL_SAVEDIRTY)
+						rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
+//					chk->flags|=BGBDT_CHKFL_LIGHTDIRTY;
 				}
 
 				if(chk && (chk->flags&BGBDT_CHKFL_LIGHTDIRTY))

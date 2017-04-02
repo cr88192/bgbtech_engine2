@@ -664,6 +664,13 @@ void BTIC4B_DecodeEnableFeature(BTIC4B_Context *ctx, int var)
 		ctx->cmask=0xFF;
 		return;
 	}
+	
+	if(var==-3)
+	{
+		BTIC4B_Grad16_Init();
+		ctx->usegrad=1;
+		return;
+	}
 }
 
 void BTIC4B_DecodeDisableFeature(BTIC4B_Context *ctx, int var)
@@ -673,10 +680,17 @@ void BTIC4B_DecodeDisableFeature(BTIC4B_Context *ctx, int var)
 		ctx->cmask=0x00;
 		return;
 	}
+	
+	if(var==-3)
+	{
+		ctx->usegrad=0;
+		return;
+	}
 }
 
 byte *BTIC4B_DecSetupDecBlockInner(BTIC4B_Context *ctx, byte *ct, int op)
 {
+	int i;
 //	byte *ct;
 
 	switch(op)
@@ -710,7 +724,18 @@ byte *BTIC4B_DecSetupDecBlockInner(BTIC4B_Context *ctx, byte *ct, int op)
 
 	case 0x08:
 		BTIC4B_FillBlockHeadTag(ctx, ct, op);
-		*(ct+16)=BTIC4B_ReadNBits(ctx, 4);
+		if(ctx->usegrad)
+		{
+			i=BTIC4B_ReadNBits(ctx, 5);
+			if(i&1)
+				{ i=(i>>2)|(BTIC4B_ReadNBits(ctx, 13)<<3); }
+			else
+				{ i>>=1; }
+			*(u32 *)(ct+16)=i;
+			break;
+		}
+//		*(ct+16)=BTIC4B_ReadNBits(ctx, 4);
+		*(u32 *)(ct+16)=BTIC4B_ReadNBits(ctx, 4);
 		break;
 
 	case 0x09:

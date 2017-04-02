@@ -433,21 +433,24 @@ public int main(string[] args)
 	l3=(long)f1;
 	if((l2!=l0) || (l3!=l1))
 	{
-		frgl_printf("L<->D Fail A: %08X %08X", (int)l0, (int)l2);
-		frgl_printf("L<->D Fail B: %08X %08X", (int)l1, (int)l3);
+		frgl_printf("L<->D Fail A: %08X %08X\n", (int)l0, (int)l2);
+		frgl_printf("L<->D Fail B: %08X %08X\n", (int)l1, (int)l3);
 	}else
 	{
 		frgl_printf("L<->D Pass\n");
 	}
 	
+//	v0=#[f0, f1, -f0];
 	v0=#[f0, f1, -f0];
 	l2=(long)(v0.x);
 	l3=(long)(v0.y);
 
 	if((l2!=l0) || (l3!=l1))
 	{
-		frgl_printf("L<->V Fail A: %08X %08X", (int)l0, (int)l2);
-		frgl_printf("L<->V Fail B: %08X %08X", (int)l1, (int)l3);
+		frgl_printf("L<->V Fail A: %08X %08X\n", (int)l0, (int)l2);
+		frgl_printf("L<->V Fail B: %08X %08X\n", (int)l1, (int)l3);
+//		frgl_printf("L<->V Fail A: %08X %08X\n", l0, l2);
+//		frgl_printf("L<->V Fail B: %08X %08X\n", l1, l3);
 	}else
 	{
 		frgl_printf("L<->V Pass\n");

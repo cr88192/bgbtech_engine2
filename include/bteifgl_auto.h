@@ -1176,6 +1176,7 @@ void BGBDT_DrawVoxRegionEntities(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
 //AHSRC:voxel/vox_light.c
 int bgbdt_voxlight_blendv(int la, int lb, int vfl);
 int bgbdt_voxlight_blenda(int la, int lb, int ix, int vfl);
+int BGBDT_VoxLight_UpdateChunkCheckCave(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 int BGBDT_VoxLight_UpdateChunkLight(BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk);
 BTEIFGL_API int BGBDT_VoxLight_ClearBlockLightRadius(BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, int accfl);
 BTEIFGL_API int BGBDT_VoxLight_ClearBlockAreaLightRadius(BGBDT_VoxWorld *world, BGBDT_VoxCoord xyz, int accfl);
@@ -1276,6 +1277,7 @@ byte *BGBDT_EncLZ4_EmitMod255(byte *ct, int val);
 int BGBDT_EncodeRegionBufLZ4(BGBDT_RiceContext *ctx,byte *ibuf, int ibsz, byte *obuf, int obsz);
 int BGBDT_WorldEncodeRegionLZ4(BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn, byte *ibuf, int ibsz, byte *obuf, int obsz);
 int BGBDT_WorldEncodeRegionBLZ(BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn, byte *ibuf, int ibsz, byte *obuf, int obsz);
+int BGBDT_WorldEncodeRegionFeLz32(BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn, byte *ibuf, int ibsz, byte *obuf, int obsz);
 //AHSRC:voxel/vox_tick.c
 void BGBDT_RandomTickRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn, BGBDT_VoxCoord xyz);
 void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,BGBDT_VoxRegion *rgn);
@@ -1336,6 +1338,12 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_CreateBasicWorld2(char *name, char *wrlty);
 BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(BGBDT_VoxWorld *wrl, char *name, char *wrlty);
 int BGBDT_VoxelWorld_SaveWorldInfo(BGBDT_VoxWorld *world);
 int BGBDT_VoxelWorld_LoadWorldInfo(BGBDT_VoxWorld *world);
+//AHSRC:voxel/vox_felz32.c
+int BGBDT_FeLz32_LookupMatch(BGBDT_FeLzContext *ctx,u32 *cs, u32 *cse, int *rml, int *rmd);
+int BGBDT_FeLz32_UpdateString(BGBDT_FeLzContext *ctx,u32 *cs, u32 *cse, int len);
+int BGBDT_FeLz32_EncodeBufferCtx(BGBDT_FeLzContext *ctx,u32 *ibuf, int ibsz, u32 *obuf, int obsz);
+int BGBDT_FeLz32_EncodeBuffer(u32 *ibuf, int ibsz, u32 *obuf, int obsz);
+int BGBDT_FeLz32_DecodeBuffer(u32 *ibuf, int ibsz, u32 *obuf, int obsz);
 //AHSRC:voxel/vox_tg_mare.c
 int BGBDT_VoxTg_SetupGenerate(BGBDT_VoxWorld *world);
 int bgbdt_voxtg_vxrand();
@@ -2311,6 +2319,8 @@ BTIC4B_API int BTIC4B_EncodeImgBmpBufferCtx(BTIC4B_Context *ctx,byte *obuf, int 
 BTIC4B_API BTIC4B_Context *BTIC4B_AllocContext(void);
 BTIC4B_API void BTIC4B_FreeContext(BTIC4B_Context *ctx);
 BTIC4B_API int BTIC4B_EncodeImgBmpBuffer(byte *obuf, int cbsz, byte *ibuf, int xs, int ys, int qfl, int clrs);
+//AHSRC:btic4b/bt4b_grad16.c
+int BTIC4B_Grad16_Init();
 //AHSRC:btic4b/bt4b_shim_bc7.c
 void BTIC4B_ConvBlockBC7_Init();
 void BTIC4B_BitsLE_Clear(BTIC4B_BitStream *ctx);

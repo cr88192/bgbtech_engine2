@@ -418,10 +418,11 @@ void BGBDT_WorldVoxel_GetTypeIdFlags(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz, BGBDT_VoxData td, int *rtix, int *rfl)
 {
 	BGBDT_VoxTypeInfo *tyi;
-	int tix, vty;
+	int tix, vty, vfl1;
 
 #if defined(X86) || defined(X86_64)
-	tix=(*(u16 *)(&td.vtypel))&4095;
+	vty=*(u16 *)(&td.vtypel);
+	tix=vty&4095;
 #else
 	vty=td.vtypel|(td.vtypeh<<8);
 	tix=vty&4095;
@@ -434,8 +435,16 @@ void BGBDT_WorldVoxel_GetTypeIdFlags(BGBDT_VoxWorld *world,
 		*rfl=0;
 		return;
 	}
+	
+	vfl1=0;
+	if(vty&BGBDT_VTYFL_MASK)
+	{
+		if((vty&BGBDT_VTYFL_CAVEM)==BGBDT_VTYFL_CAVEM)
+			vfl1|=BGBDT_VOXFL_INCAVE;
+	}
+	
 	*rtix=tix;
-	*rfl=tyi->flags;
+	*rfl=tyi->flags|vfl1;
 }
 
 void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
@@ -454,9 +463,14 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz, td, &vty, &vfl);
 	
 	if(!(vfl&BGBDT_VOXFL_NONSOLID))
-		{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
+//		{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
+		{ rts->adjfl|=BGBDT_ADJFL_SOLID_S|BGBDT_ADJFL_ISCAVE_S; }
 	if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
 		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
+
+//	if((vty&BGBDT_VTYFL_CAVEM)==BGBDT_VTYFL_CAVEM)
+	if(vfl&BGBDT_VOXFL_INCAVE)
+		{ rts->adjfl|=BGBDT_ADJFL_ISCAVE_S; }
 
 
 	xyz2.x=xyz.x-BGBDT_XYZ_OFS_VOXEL; xyz2.y=xyz.y; xyz2.z=xyz.z;
@@ -470,6 +484,13 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	rts->adjlit[0]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[0]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			((vty1&BGBDT_VTYFL_CAVEM)!=BGBDT_VTYFL_CAVEM))
+	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+			!(vfl1&BGBDT_VOXFL_INCAVE))
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			!(vfl1&BGBDT_VOXFL_INCAVE) && (td1.alight&7))
+		{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 
 	xyz2.x=xyz.x+BGBDT_XYZ_OFS_VOXEL; xyz2.y=xyz.y; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
@@ -482,6 +503,13 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	rts->adjlit[1]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[1]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			((vty1&BGBDT_VTYFL_CAVEM)!=BGBDT_VTYFL_CAVEM))
+	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+			!(vfl1&BGBDT_VOXFL_INCAVE))
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			!(vfl1&BGBDT_VOXFL_INCAVE) && (td1.alight&7))
+		{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 
 	xyz2.x=xyz.x; xyz2.y=xyz.y-BGBDT_XYZ_OFS_VOXEL; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
@@ -494,6 +522,13 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	rts->adjlit[2]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[2]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			((vty1&BGBDT_VTYFL_CAVEM)!=BGBDT_VTYFL_CAVEM))
+	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+			!(vfl1&BGBDT_VOXFL_INCAVE))
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			!(vfl1&BGBDT_VOXFL_INCAVE) && (td1.alight&7))
+		{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 
 	xyz2.x=xyz.x; xyz2.y=xyz.y+BGBDT_XYZ_OFS_VOXEL; xyz2.z=xyz.z;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
@@ -506,6 +541,13 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	rts->adjlit[3]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[3]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			((vty1&BGBDT_VTYFL_CAVEM)!=BGBDT_VTYFL_CAVEM))
+	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+			!(vfl1&BGBDT_VOXFL_INCAVE))
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			!(vfl1&BGBDT_VOXFL_INCAVE) && (td1.alight&7))
+		{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 
 	xyz2.x=xyz.x; xyz2.y=xyz.y; xyz2.z=xyz.z-BGBDT_XYZ_OFS_VOXEL;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
@@ -518,6 +560,13 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	rts->adjlit[4]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[4]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			((vty1&BGBDT_VTYFL_CAVEM)!=BGBDT_VTYFL_CAVEM))
+	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+			!(vfl1&BGBDT_VOXFL_INCAVE))
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			!(vfl1&BGBDT_VOXFL_INCAVE) && (td1.alight&7))
+		{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 
 	xyz2.x=xyz.x; xyz2.y=xyz.y; xyz2.z=xyz.z+BGBDT_XYZ_OFS_VOXEL;
 	BGBDT_WorldGetVoxelData(world, xyz2, &td1, NULL,
@@ -530,6 +579,13 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	rts->adjlit[5]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
 		{ rts->adjlit[5]=BGBDT_WorldVoxel_GetGlow(world, xyz2, td1); }
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			((vty1&BGBDT_VTYFL_CAVEM)!=BGBDT_VTYFL_CAVEM))
+	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+			!(vfl1&BGBDT_VOXFL_INCAVE))
+//	if((vfl1&(BGBDT_VOXFL_TRANSPARENT|BGBDT_VOXFL_NONSOLID)) &&
+//			!(vfl1&BGBDT_VOXFL_INCAVE) && (td1.alight&7))
+		{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 }
 
 int BGBDT_WorldGetChunkVoxIdx(BGBDT_VoxWorld *world,
@@ -742,6 +798,8 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 				{ rts->adjfl|=BGBDT_ADJFL_SOLID_S; }
 			if(!(vfl&BGBDT_VOXFL_TRANSPARENT))
 				{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_S; }
+			if(vfl&BGBDT_VOXFL_INCAVE)
+				{ rts->adjfl|=BGBDT_ADJFL_ISCAVE_S; }
 
 //			vty=BGBDT_WorldVoxel_GetTypeID(world, xyz, chk->voxinfo[ix]);
 
@@ -817,6 +875,9 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 						{ rts->adjfl|=BGBDT_ADJFL_SOLID_NZ; }
 					if(!(vfl6&BGBDT_VOXFL_NONSOLID))
 						{ rts->adjfl|=BGBDT_ADJFL_SOLID_PZ; }
+
+					if(!(ifl&BGBDT_VOXFL_INCAVE))
+						{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 				}
 			}
 
@@ -842,6 +903,9 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
 				if(!(vfl6&BGBDT_VOXFL_TRANSPARENT) || (vt6==vty))
 					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
+
+				if(!(ifl&BGBDT_VOXFL_INCAVE))
+					{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }
 			}
 		}
 	}
@@ -876,7 +940,7 @@ int BGBDT_WorldTouchAdjacentChunks(BGBDT_VoxWorld *world,
 		fl=BGBDT_CHKFL_ALLDIRTY;
 		flcl=~(BGBDT_CHKFL_ONLYSOLID|
 			BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_MIXEDSOLID|
-			BGBDT_CHKFL_NOVISFACE);
+			BGBDT_CHKFL_NOVISFACE|BGBDT_CHKFL_CHKCAVE);
 	}
 
 	xyz1.x=xyz.x-BGBDT_XYZ_OFS_VOXEL; xyz1.y=xyz.y; xyz1.z=xyz.z;
@@ -1006,7 +1070,7 @@ BTEIFGL_API int BGBDT_WorldSetChunkVoxelData(BGBDT_VoxWorld *world,
 
 		chk->flags&=~(BGBDT_CHKFL_ONLYSOLID|
 			BGBDT_CHKFL_ONLYAIR|BGBDT_CHKFL_MIXEDSOLID|
-			BGBDT_CHKFL_NOVISFACE);
+			BGBDT_CHKFL_NOVISFACE|BGBDT_CHKFL_CHKCAVE);
 	}
 
 	if(accfl&BGBDT_ACCFL_CHKADJ)

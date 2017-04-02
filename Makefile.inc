@@ -63,6 +63,7 @@ BTEIFGL_SRCS=\
 	voxel/vox_voxty.c \
 	voxel/vox_world.c \
 	\
+	voxel/vox_felz32.c \
 	voxel/vox_tg_mare.c \
 	\
 	entity/ent_bsvm.c \
@@ -105,6 +106,7 @@ BTEIFGL_SRCS=\
 	btic4b/bt4b_blkenc.c \
 	btic4b/bt4b_decode.c \
 	btic4b/bt4b_encode.c \
+	btic4b/bt4b_grad16.c \
 	btic4b/bt4b_shim_bc7.c \
 	btic4b/bt4b_shim_s2tc.c \
 	btic4b/bt4b_dump_hdr.c \

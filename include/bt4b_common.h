@@ -250,6 +250,7 @@ byte pred;				//predictor
 byte imgt;				//image type
 byte clrt;				//colorspace transform
 byte pred_l8p;			//predictor needs to deal with LDR8/Skip
+byte usegrad;
 
 BTIC4B_SmtfState sm_cmd;
 BTIC4B_SmtfState sm_mask;

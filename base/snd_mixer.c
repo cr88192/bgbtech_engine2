@@ -184,17 +184,38 @@ BTEIFGL_API int BGBDT_Sound_MixChannel(
 	
 	if((chan->att==BGBDT_SNDATT_LINEAR) ||
 		(chan->att==BGBDT_SNDATT_SQRT) ||
-		(chan->att==BGBDT_SNDATT_POW075))
+		(chan->att==BGBDT_SNDATT_POW075) ||
+		(chan->att==BGBDT_SNDATT_POW15) ||
+		(chan->att==BGBDT_SNDATT_POW20))
 	{
 		dir=v3sub(chan->org, listen->org);
 		dist=v3len(dir);
 
+#if 0
 		if(chan->att==BGBDT_SNDATT_LINEAR)
 			att=att/(dist+1)+0.5;
 		else if(chan->att==BGBDT_SNDATT_SQRT)
 			att=att/sqrt(dist+1)+0.5;
 		else if(chan->att==BGBDT_SNDATT_POW075)
 			att=att/pow(dist+1, 0.75)+0.5;
+		else if(chan->att==BGBDT_SNDATT_POW15)
+			att=att/pow(dist+1, 1.5)+0.5;
+		else if(chan->att==BGBDT_SNDATT_POW20)
+			att=att/pow(dist+1, 2.0)+0.5;
+#endif
+
+#if 1
+		if(chan->att==BGBDT_SNDATT_LINEAR)
+			att=att/(dist+1);
+		else if(chan->att==BGBDT_SNDATT_SQRT)
+			att=att/sqrt(dist+1);
+		else if(chan->att==BGBDT_SNDATT_POW075)
+			att=att/pow(dist+1, 0.75);
+		else if(chan->att==BGBDT_SNDATT_POW15)
+			att=att/pow(dist+1, 1.5);
+		else if(chan->att==BGBDT_SNDATT_POW20)
+			att=att/pow(dist+1, 2.0);
+#endif
 		
 		dx=v3dot(dir, listen->vld);
 		dy=v3dot(dir, listen->vfw);
@@ -212,14 +233,16 @@ BTEIFGL_API int BGBDT_Sound_MixChannel(
 		att=att*(1.0+0.5*dlr);
 		
 //		d0=(dist/64.0)/771.0;
-		d0=dist/(64.0*771.0);
+//		d0=dist/(64.0*771.0);
+		d0=dist/343.0;
 
 //		dvel=v3dot(chan->vel, listen->vel);
 //		d0=dvel/(64.0*771.0);
 
 		dv0=v3dot(listen->vel, dir);
 		dv1=v3dot(chan->vel, dir);
-		f=(64.0*771.0);
+//		f=(64.0*771.0);
+		f=343.0;
 		dvel=((f+dv0)/(f-dv1));
 
 		fhz=fhz*(1.0/dvel);
@@ -492,6 +515,7 @@ BTEIFGL_API int BGBDT_Sound_PlaySound(
 	mixchn->att=att;
 	mixchn->flag=flag;
 	mixchn->stime=bgbdt_snd_abstime;
+	mixchn->otime=0.0;
 	return(id);
 }
 
@@ -508,8 +532,15 @@ BTEIFGL_API int BGBDT_Sound_ChanSetOrigin(int id, vec3 org)
 	mixc->org=org;
 	mixc->otime=bgbdt_snd_abstime;
 
-	mixc->vel=v3scale(v3sub(mixc->org, mixc->lorg),
-		1.0/(mixc->otime-mixc->lotime+0.00001));
+	if(mixc->lotime!=0.0)
+	{
+		mixc->vel=v3scale(v3sub(mixc->org, mixc->lorg),
+			1.0/(mixc->otime-mixc->lotime+0.00001));
+	}else
+	{
+		mixc->lorg=org;
+		mixc->vel=vec3(0,0,0);
+	}
 	return(0);
 }
 

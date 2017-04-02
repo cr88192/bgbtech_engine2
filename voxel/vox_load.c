@@ -544,8 +544,8 @@ int BGBDT_WorldDecodeChunk(BGBDT_VoxWorld *world,
 		cs=ibuf+8;
 		cse=ibuf+i;
 		
-		if((ibuf[4]=='C') || (ibuf[5]=='H') ||
-			(ibuf[6]=='K') || (ibuf[7]=='0'))
+		if((ibuf[4]=='C') && (ibuf[5]=='H') &&
+			(ibuf[6]=='K') && (ibuf[7]=='0'))
 		{
 			while(cs<cse)
 			{
@@ -610,7 +610,8 @@ int BGBDT_VoxRgn_CheckRegionLzMagic(byte *buf)
  * 0- 7: RGLZ Header Magic
  * 8-11: Unpacked Size of Region
  * 12-15: Header Reserved
- *   12=Method: 4=LZ4, 8/9/10=Reserved for Deflate/BTLZH
+ *   12=Method: 0=Store, 3=FeLz32, 4=LZ4
+ *     8/9/10=Deflate|BTLZH
  *   13-15: Reserved, Zeros
  * 0xE1 Marker for compressed data.
  * ~ 20: Compressed Data
@@ -793,7 +794,7 @@ int BGBDT_VoxRgn_UnpackRgnLz(BGBDT_VoxWorld *world,
 	cm=ibuf[12];
 //	if(	(ibuf[12]!=4) || (ibuf[13]!=0) ||
 //		(ibuf[14]!=0) || (ibuf[15]!=0))
-	if(	((cm!=4) && (cm!=8) && (cm!=9) && (cm!=10)) ||
+	if(	((cm!=3) && (cm!=4) && (cm!=8) && (cm!=9) && (cm!=10)) ||
 		(ibuf[13]!=0) || (ibuf[14]!=0) || (ibuf[15]!=0))
 	{
 		FRGL_DBGBREAK_SOFT
@@ -834,7 +835,18 @@ int BGBDT_VoxRgn_UnpackRgnLz(BGBDT_VoxWorld *world,
 			FRGL_DBGBREAK_SOFT
 			return(-1);
 		}
-	}else
+	}else if(cm==3)
+	{
+		i=BGBDT_FeLz32_DecodeBuffer(
+			(u32 *)cs,		(cse-cs)/4,
+			(u32 *)obuf,	osz/4);
+		if(i<0)
+		{
+			frgl_free(obuf);
+			FRGL_DBGBREAK_SOFT
+			return(-1);
+		}
+	}else 
 	{
 		frgl_free(obuf);
 		FRGL_DBGBREAK_SOFT

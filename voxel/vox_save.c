@@ -921,6 +921,8 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 	bid=bgbdt_xyz2rgnid(rgn->bx, rgn->by, rgn->bz);
 	sprintf(tbuf, "region/%s/%08X.rgn", world->worldname, bid);
 
+	printf("Saving Region %08X\n", bid);
+
 #if 1
 	tobuf=bgbdt_voxrgn_enctobuf;
 	sz3=bgbdt_voxrgn_szenctobuf;
@@ -937,7 +939,10 @@ int BGBDT_WorldSaveRegionData(BGBDT_VoxWorld *world,
 //	sz3=BGBDT_WorldEncodeRegionLZ4(world, rgn,
 //		rgn->rgnbuf, rgn->szrgnbuf, tobuf, sz2);
 
-	sz3=BGBDT_WorldEncodeRegionBLZ(world, rgn,
+//	sz3=BGBDT_WorldEncodeRegionBLZ(world, rgn,
+//		rgn->rgnbuf, rgn->szrgnbuf, tobuf, sz2);
+
+	sz3=BGBDT_WorldEncodeRegionFeLz32(world, rgn,
 		rgn->rgnbuf, rgn->szrgnbuf, tobuf, sz2);
 
 	if(sz3>0)
@@ -1200,3 +1205,79 @@ int BGBDT_WorldEncodeRegionBLZ(
 	return(sz);
 }
 
+
+int BGBDT_WorldEncodeRegionFeLz32(
+	BGBDT_VoxWorld *world, BGBDT_VoxRegion *rgn,
+	byte *ibuf, int ibsz, byte *obuf, int obsz)
+{
+	byte *tbuf;
+	byte *cs, *ct;
+	int t0, t1, t2;
+	int sz, tsz;
+	int i, j, k;
+
+	t0=FRGL_TimeMS();
+	i=BGBDT_FeLz32_EncodeBuffer(
+		(u32 *)ibuf, (ibsz+3)/4,
+		(u32 *)(obuf+20), (obsz-20-1024)/4);
+	if(i<0)return(i);
+	t1=FRGL_TimeMS();
+	
+	t2=t1-t0;
+	
+	i=i*4;
+	
+	j=ibsz;
+	k=i+4;
+	obuf[ 0]=0xE4;		obuf[ 1]=0x00;
+	obuf[ 2]=0x00;		obuf[ 3]=0x10;
+	obuf[ 4]='R';		obuf[ 5]='G';
+	obuf[ 6]='L';		obuf[ 7]='Z';
+	obuf[ 8]=j>>24;		obuf[ 9]=j>>16;
+	obuf[10]=j>> 8;		obuf[11]=j    ;
+	obuf[12]=0x03;		obuf[13]=0x00;
+	obuf[14]=0x00;		obuf[15]=0x00;
+	obuf[16]=0xE1;		obuf[17]=k>>16;
+	obuf[18]=k>> 8;		obuf[19]=k    ;
+	sz=20+i;
+
+#if 1
+	tbuf=NULL; tsz=0;
+	i=BGBDT_VoxRgn_UnpackRgnLz(world, obuf, sz, &tbuf, &tsz);
+	if((i<0) || !tbuf)
+	{
+		printf("BGBDT_WorldEncodeRegionFeLz32: Fail: Decode Status=%d\n", i);
+		FRGL_DBGBREAK_SOFT
+		return(i);
+	}
+	
+	if(ibsz!=tsz)
+	{
+		printf("BGBDT_WorldEncodeRegionFeLz32: Fail: Size Mismatch\n");
+		FRGL_DBGBREAK_SOFT
+
+		if(tbuf)
+			frgl_free(tbuf);
+		return(-1);
+	}
+	
+	if(memcmp(ibuf, tbuf, tsz)!=0)
+	{
+		printf("BGBDT_WorldEncodeRegionFeLz32: Fail: Data Mismatch\n");
+
+		for(i=0; i<tsz; i++)
+			if(ibuf[i]!=tbuf[i])
+				break;
+
+		FRGL_DBGBREAK_SOFT
+
+		frgl_free(tbuf);
+		return(-1);
+	}
+	frgl_free(tbuf);
+#endif
+
+	printf("BGBDT_WorldEncodeRegionFeLz32: OK %p (%d->%d, %.2f%%) %dms\n",
+		rgn, ibsz, sz, (100.0*sz)/ibsz, t2);
+	return(sz);
+}

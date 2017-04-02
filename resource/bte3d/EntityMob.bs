@@ -5,6 +5,7 @@
   */
 public class EntityMob extends EntityBase {
 	EntityBase enemy;
+	public float health;
 	
 	/** Check if we can see another entity */
 	public bool canSeeP(EntityBase other)

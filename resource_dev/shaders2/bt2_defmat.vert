@@ -3,6 +3,7 @@ uniform mat4 pgl_ProjectionMatrix;
 
 uniform float time;
 uniform float exposure;
+uniform float pgl_usepglvertex;
 
 uniform vec3 camOrg;
 uniform vec3 camRotX;
@@ -14,6 +15,11 @@ uniform vec3 camRotZ;
 // attribute vec4 gl_Normal;
 // attribute vec4 gl_Vertex;
 // attribute vec4 gl_TexCoord;
+
+attribute vec4 pgl_Color;
+attribute vec4 pgl_Normal;
+attribute vec4 pgl_Vertex;
+attribute vec4 pgl_TexCoord;
 
 // varying vec3 vecSdir;
 // varying vec3 vecTdir;
@@ -43,10 +49,28 @@ void main()
 { 
 	mat3 normalMatrix;
 //	mat3 eyeMat;
+	vec4 t_Vertex, t_Normal, t_Color, t_TexCoord;
 	vec4 mdlVec;
 //	vec3 eyeOrg;
 //	vec3 eye_x, eye_y, eye_z;
 	vec3 lcl_z;
+
+//	if(dot(pgl_Vertex, pgl_Vertex)==0.0)
+//	if(dot(gl_Vertex, gl_Vertex)!=0.0)
+	if(pgl_usepglvertex<=0.0)
+	{
+		t_Vertex=gl_Vertex;
+		t_Normal=vec4(gl_Normal, 0.0);
+		t_Color=gl_Color;
+		t_TexCoord=gl_MultiTexCoord0;
+	}else
+	{
+		t_Vertex=pgl_Vertex;
+		t_Normal=pgl_Normal;
+		t_Color=pgl_Color *
+			vec4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0/255.0);
+		t_TexCoord=pgl_TexCoord;
+	}
 
 //	normalMatrix=transpose(inverse(mat3(gl_ModelViewMatrix)));
 //	normalMatrix=mat3(pgl_ModelViewMatrix);
@@ -63,10 +87,14 @@ void main()
 //				gl_ModelViewMatrix[2][2]));
 
 //	point=vec3(pgl_ModelViewMatrix * gl_Vertex);
-	point=vec3(gl_ModelViewMatrix * gl_Vertex);
+//	point=vec3(gl_ModelViewMatrix * gl_Vertex);
+//	point=vec3(gl_ModelViewMatrix * pgl_Vertex);
+	point=vec3(gl_ModelViewMatrix * t_Vertex);
 //	normal=normalize(gl_NormalMatrix * gl_Normal);
 //	normal=normalize(normalMatrix * vec3(gl_Normal));
-	normal=normalize(normalMatrix * gl_Normal);
+//	normal=normalize(normalMatrix * gl_Normal);
+//	normal=normalize(normalMatrix * pgl_Normal.xyz);
+	normal=normalize(normalMatrix * t_Normal.xyz);
 
 	if(true)
 	{
@@ -129,27 +157,13 @@ void main()
 
 	lcl_z=normalize(vec3(0.0, 0.0, eye_y.z+0.01));
 
-//	mdlVec=gl_ModelViewMatrix * gl_Vertex;
-//	mdlVec=vec4(point, 0.0) +
-//		vec4(gl_ProjectionMatrixInverse * vec4(0.0,0.0,-1.0,0.0));
-//	mdlVec=vec4(point-eyeOrg, 0.0) +
-//		vec4(gl_ProjectionMatrixInverse * vec4(0.0,0.0,-1.0,0.0));
-//	mdlVec=vec4(point, 0.0) +
-//		vec4(gl_ProjectionMatrixInverse * vec4(0.0,0.0,-1.0,1.0));
-
-//	mdlVec=vec4(point-eyeOrg, 0.0)+vec4(-eye_z, 0.0);
-//	eyeVec=vec3(-mdlVec) * eyeMat;      
-//	eyeVec=(-mdlVec).xyz * eyeMat;      
-
-//	eyeVec=point-eyeOrg;
-//	eyeVec=(point-eyeOrg)*eyeMat;
-//	eyeVec=(eyeOrg-point)*eyeMat;
-//	eyeVec=((eyeOrg+eye_z)-point)*eyeMat;
-
 	lorg=eyeOrg + vec3(0.0, 0.0, 1.0);
-//	lorg=eyeOrg + 3.0*lcl_z;
 
-	extColor=checkExtendColor(gl_Color);
+//	extColor=checkExtendColor(gl_Color);
+//	extColor=checkExtendColor(pgl_Color);
+//	extColor=checkExtendColor(pgl_Color *
+//		vec4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0/255.0));
+	extColor=checkExtendColor(t_Color);
 	
 //	extColor=vec4(1.0, 1.0, 1.0, 1.0);
 	
@@ -157,14 +171,10 @@ void main()
 //		vec4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0/255.0));
 	extColor=vec4(extColor.rgb*exposure, extColor.a);
 
-//	gl_FrontColor=gl_Color;
-//	gl_TexCoord[0]=gl_MultiTexCoord0; 
-//	gl_TexCoord[0]=pgl_TexCoord; 
-	texCoord=gl_MultiTexCoord0.xy; 
-//	texCoord=gl_TexCoord.xy;
-//	gl_Position=ftransform(); 
-//	gl_Position=pgl_ProjectionMatrix*pgl_ModelViewMatrix*gl_Vertex;
-	gl_Position=gl_ProjectionMatrix*gl_ModelViewMatrix*gl_Vertex;
-//	position=ftransform();
-//	gl_Position=position;
+//	texCoord=gl_MultiTexCoord0.xy; 
+//	texCoord=pgl_TexCoord.xy;
+	texCoord=t_TexCoord.xy;
+//	gl_Position=gl_ProjectionMatrix*gl_ModelViewMatrix*gl_Vertex;
+//	gl_Position=gl_ProjectionMatrix*gl_ModelViewMatrix*pgl_Vertex;
+	gl_Position=gl_ProjectionMatrix*gl_ModelViewMatrix*t_Vertex;
 }

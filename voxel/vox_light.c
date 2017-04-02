@@ -88,6 +88,57 @@ int bgbdt_voxlight_blenda(int la, int lb, int ix, int vfl)
 	return(lc);
 }
 
+int BGBDT_VoxLight_UpdateChunkCheckCave(
+	BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
+{
+	BGBDT_VoxTypeInfo *tyi;
+	int vty, vty_air, vty_sky, vty_lava, vty_water;
+	int nsk, tix;
+	int i, j, k;
+
+	vty_air=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
+	vty_sky=BGBDT_VoxelWorld_LookupTypeIndexName(world, "sky1");
+	vty_lava=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
+	vty_water=BGBDT_VoxelWorld_LookupTypeIndexName(world, "water");
+
+#if 1
+	if(chk->flags&BGBDT_CHKFL_CHKCAVE)
+		return(0);
+
+	if(chk->nvoxinfo<2)
+		return(0);
+
+	chk->flags|=BGBDT_CHKFL_CHKCAVE;
+	nsk=1;
+	for(i=0; i<chk->nvoxinfo; i++)
+	{
+		vty=chk->voxinfo[i].vtypel|(chk->voxinfo[i].vtypeh<<8);
+		if(chk->voxinfo[i].alight&7)
+			nsk=0;
+		if((vty&4095)==vty_water)
+			nsk=0;
+
+		tix=vty&4095;
+		tyi=world->voxtypes[tix];
+		if(tyi && !(tyi->flags&(BGBDT_VOXFL_NONSOLID|
+			BGBDT_VOXFL_TRANSPARENT|
+			BGBDT_VOXFL_INCAVE)))
+				nsk=0;
+	}
+	
+	if(nsk)
+	{
+		chk->flags|=BGBDT_CHKFL_SAVEDIRTY;
+		for(i=0; i<chk->nvoxinfo; i++)
+		{
+			vty=chk->voxinfo[i].vtypel|(chk->voxinfo[i].vtypeh<<8);
+			if(((vty&4095)==vty_air) || ((vty&4095)==vty_lava))
+				{ chk->voxinfo[i].vtypeh|=(BGBDT_VTYFL_CAVEM>>8); }
+		}
+	}
+#endif
+}
+
 int BGBDT_VoxLight_UpdateChunkLight(
 	BGBDT_VoxWorld *world, BGBDT_VoxChunk *chk)
 {
@@ -95,10 +146,10 @@ int BGBDT_VoxLight_UpdateChunkLight(
 	BGBDT_VoxDataStatus tds;
 	BGBDT_VoxCoord xyz0;
 	BGBDT_VoxTypeInfo *tyi;
-	int tix, ds, dst, fl, oldcfl;
+	int tix, ds, dst, fl, oldcfl, nsk;
 	int x, y, z, w;
 	int a, b, c;
-	int vty, vty_air, vty_sky;
+	int vty, vty_air, vty_sky, vty_lava, vty_water;
 	int i, j, k;
 	
 	if(!chk)
@@ -108,6 +159,8 @@ int BGBDT_VoxLight_UpdateChunkLight(
 
 	vty_air=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
 	vty_sky=BGBDT_VoxelWorld_LookupTypeIndexName(world, "sky1");
+//	vty_lava=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
+//	vty_water=BGBDT_VoxelWorld_LookupTypeIndexName(world, "water");
 
 	if(chk->voxinfo && (chk->nvoxinfo==1))
 	{
@@ -118,7 +171,7 @@ int BGBDT_VoxLight_UpdateChunkLight(
 		if(chk->voxinfo[0].alight<16)
 			{ chk->voxinfo[0].alight=16; }
 	}else
-	{
+	{		
 		for(i=0; i<chk->nvoxinfo; i++)
 		{
 			vty=chk->voxinfo[i].vtypel|(chk->voxinfo[0].vtypeh<<8);
@@ -198,7 +251,16 @@ int BGBDT_VoxLight_UpdateChunkLight(
 //				continue;
 
 			ds=0;
-						
+
+			if(((vty&BGBDT_VTYFL_CAVEM)==BGBDT_VTYFL_CAVEM) &&
+				!(tds.adjfl&BGBDT_ADJFL_ISCAVE_S))
+			{
+				vty&=~BGBDT_VTYFL_CAVEM;
+				td.vtypel=vty;
+				td.vtypeh=vty>>8;
+				ds=1;
+			}
+
 			for(i=0; i<6; i++)
 			{
 #if 0

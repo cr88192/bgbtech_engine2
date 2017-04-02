@@ -1328,6 +1328,7 @@ int main_handle_input()
 
 	if(Bt2Ent_DialogActiveP())
 	{
+		V3F_ZERO(bgbdt_imp);
 		hituse=0;
 		kcur=frgl_state->keys;
 		while(*kcur)
@@ -1365,6 +1366,7 @@ int main_handle_input()
 //	if(isotest_invopen || isotest_isdead)
 	if(Bt2Ent_InvenActiveP())
 	{
+//		V3F_ZERO(bgbdt_imp);
 		bgbdt_uipause=true;
 
 		hituse=0;
@@ -1425,6 +1427,7 @@ int main_handle_input()
 
 	if(voxui_active)
 	{
+//		V3F_ZERO(bgbdt_imp);
 		bgbdt_uipause=true;
 
 		if((frgl_state->mb&1) && !(frgl_state->lmb&1))
@@ -2033,7 +2036,7 @@ int main_body()
 	t0=frgl_clock();
 
 	BGBDT_Sound_SetListenOrg(vec3(
-		bgbdt_org[0], bgbdt_org[1], 0));
+		bgbdt_org[0], bgbdt_org[1], bgbdt_org[2]));
 	BGBDT_Sound_SetListenVecRt(vec3(
 		bgbdt_rot[0], bgbdt_rot[1], bgbdt_rot[2]));
 	BGBDT_Sound_SetListenVecFw(vec3(

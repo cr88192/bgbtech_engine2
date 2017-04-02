@@ -54,6 +54,7 @@ int BGBDT_VoxTg_SetupGenerate(
 	memset(&voxtg_td_water		, 0, sizeof(BGBDT_VoxData));
 
 	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "air");
+	vty|=BGBDT_VTYFL_CAVEM;
 	voxtg_td_air.vtypel=vty;
 	voxtg_td_air.vtypeh=vty>>8;
 	voxtg_td_air.vattr=0;
@@ -118,6 +119,7 @@ int BGBDT_VoxTg_SetupGenerate(
 
 
 	vty=BGBDT_VoxelWorld_LookupTypeIndexName(world, "lava");
+	vty|=BGBDT_VTYFL_CAVEM;
 	voxtg_td_lava.vtypel=vty;
 	voxtg_td_lava.vtypeh=vty>>8;
 	voxtg_td_lava.vattr=0;

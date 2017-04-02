@@ -190,6 +190,27 @@ NpcDialogBox DiagFromFile(string path)
 	return(box);
 }
 
+NpcDialogBox DiagFromArr(variant[] in_arr)
+{
+	NpcDialogBox[] o_arr;
+	NpcDialogBox tpl, tmp;
+	variant v;
+	int n;
+	int i, j, k;
+	
+	tpl=null;
+	n=in_arr.length;
+	for(i=0; i<n; i++)
+	{
+		v=in_arr[i];
+		
+		if(v is string)
+		{
+//			tmp=tpl.clone;
+		}
+	}
+}
+
 void ptrtst()
 {
 	byte[256] arr;

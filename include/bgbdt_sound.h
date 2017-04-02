@@ -13,6 +13,8 @@
 #define BGBDT_SNDATT_LINEAR		0x0001	//(1/x)
 #define BGBDT_SNDATT_SQRT		0x0002	//(1/sqrt(x))
 #define BGBDT_SNDATT_POW075		0x0003	//(1/pow(x, 0.75))
+#define BGBDT_SNDATT_POW15		0x0004	//(1/x^1.5)
+#define BGBDT_SNDATT_POW20		0x0005	//(1/x^2)
 
 #define BGBDT_SNDFL_LOOP		0x0001	//loops continuously
 #define BGBDT_SNDFL_KEEPDONE	0x0002	//keep channel after done

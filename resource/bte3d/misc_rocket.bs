@@ -91,7 +91,8 @@ public class RocketBase extends EntityBase {
 		switch(explo_frame)
 		{
 		case 5:
-			entPlaySound("sound/explod1", origin, 1024, 1, 0);
+//			entPlaySound("sound/explod1", origin, 1024, 1, 0);
+			entPlaySound("sound/explod1", origin, 1024, 4, 0);
 			sprite_sz=#[48, 48];
 			sprite="images/explod/explo0";
 //			particle_color=0xBF1133AA;

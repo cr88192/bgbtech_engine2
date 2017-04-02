@@ -1,0 +1,187 @@
+public class npc_mermare extends EntityBase {
+	static NpcDialogBox diag0, diag1, diag2;
+	static NpcDialogBox diag3, diag4, diag5;
+	static NpcDialogBox diag6, diag7, diag8;
+	static bool isInit=false;
+	byte elfty;
+	byte pester;
+	
+	public static void init()
+	{
+		if(isInit)
+			return;
+		isInit=true;
+		
+		diag0=new NpcDialogBox;
+		diag1=new NpcDialogBox;
+		diag2=new NpcDialogBox;
+		diag3=new NpcDialogBox;
+		diag4=new NpcDialogBox;
+		diag5=new NpcDialogBox;
+		diag6=new NpcDialogBox;
+		diag7=new NpcDialogBox;
+		diag8=new NpcDialogBox;
+
+		diag0.face1="sprites/mermare/mermare0_smcl";
+		diag0.face2="sprites/mermare/mermare0_smop";
+		diag0.voice="sound/fem_eh0";
+		diag0.options=["Return.", "Motives?", "Documents?"];
+//		diag0.optchain=[null, null, diag1, diag2, null];
+		diag0.optchain=[null, null, null, null, null];
+		diag0.text=
+"""
+Hey, you, human!
+Why not come by our undersea village sometime.
+Me and my family would love to dine upon your flesh.
+""";
+
+
+		diag1.face1="sprites/mermare/mermare0_frcl";
+		diag1.face2="sprites/mermare/mermare0_frop";
+		diag1.voice="sound/fem_eh0";
+		diag1.options=["Return.", "Queen?"];
+		diag1.optchain=[diag0, diag0, diag3, null, null];
+		diag1.text=
+"""
+Well, I have my reasons.
+Don't get me wrong, Princess Twinkle really is my friend, but things
+aren't quite as they seem, between us, or in our service to the Queen.
+""";
+
+		diag2.face1="sprites/mermare/mermare0_smcl";
+		diag2.face2="sprites/mermare/mermare0_smop";
+		diag2.voice="sound/fem_eh0";
+		diag2.give_item=0x00010106;
+		diag2.options=["Return."];
+		diag2.optchain=[diag0, diag0, null, null, null];
+		diag2.text=
+"""
+Here are the updated documents.
+""";
+
+		diag3.face1="sprites/mermare/mermare0_smcl";
+		diag3.face2="sprites/mermare/mermare0_smop";
+		diag3.voice="sound/fem_eh0";
+		diag3.options=["Return."];
+		diag3.optchain=[diag0, diag0, null, null, null];
+		diag3.text=
+"""
+Well, the Queen isn't someone you can really fight against per-se.
+My movement is working towards a different lifestyle, one less ruled over by
+paperwork and administrative functions. This puts us at odds with the Queen.
+
+But, in some sense, she is still the Queen, and that is her role in society.
+We just want the freedom to live our lives as we intend, and to try to
+understand just exactly what is going on in all this.
+
+The Princess, however, is much more firmly commited to the Queens ideals,
+upholding the integrity of the paperwork with an iron fist.
+""";
+
+
+		diag4.face1="sprites/mermare/mermare0_frcl";
+		diag4.face2="sprites/mermare/mermare0_frop";
+		diag4.voice="sound/fem_eh0";
+//		diag4.need_item=0x00010106;
+//		diag4.need_else=diag5;
+		diag4.take_item=0x00010106;
+		diag4.give_token=0x00040106;
+		diag4.options=["Return."];
+		diag4.optchain=[null, null, null, null, null];
+		diag4.text=
+"""
+So, you want me to take these forms and sneak them into Twinkle's mail pile?
+I can do it, but you are asking me to take a pretty big risk here.
+
+Here, take this signet. It will inform the guards to let you into the castle.
+""";
+
+		diag5.face1="sprites/mermare/mermare0_frcl";
+		diag5.face2="sprites/mermare/mermare0_frop";
+//		diag5.voice="sound/fem_eh0";
+		diag5.text=
+"""
+Placeholder.
+""";
+		diag5.options=["Return."];
+		diag5.optchain=[null, null, null, null, null];
+
+
+		diag6.face1="sprites/mermare/mermare0_smcl";
+		diag6.face2="sprites/mermare/mermare0_smop";
+		diag6.voice="sound/fem_eh0";
+		diag6.text="Don't you have something better to be doing?";
+		diag6.options=["Talk Anyways."];
+		diag6.optchain=[null, diag0, null, null, null];
+
+		diag7.face1="sprites/mermare/mermare0_smcl";
+		diag7.face2="sprites/mermare/mermare0_smop";
+		diag7.voice="sound/fem_eh0";
+		diag7.text=
+"""
+Placeholder.
+""";
+		diag7.options=["Return."];
+		diag7.optchain=[null, null, null, null, null];
+
+		diag8.face1="sprites/mermare/mermare0_smcl";
+		diag8.face2="sprites/mermare/mermare0_smop";
+		diag8.voice="sound/fem_eh0";
+		diag8.text="Stop That!";
+		diag8.options=["Return."];
+		diag8.optchain=[null, null, null, null, null];
+	}
+
+	public void spawn()
+	{
+		init();
+	
+		sprite_sz=#[64, 56];
+		radius=12;
+		height=64;
+		sprite="sprites/mermare/mermare0";
+		elfty=0;
+		angle=0;
+
+		flags|=ENTFL_TAKEDAMAGE;
+	}
+
+	public void tick()
+	{
+		vec3f dir, lorg;
+		float dist;
+		int i, j, k;
+
+//		i=((int)(world_time*8))&1;
+		i=((int)(world_time*2))&1;
+
+		if(i)
+			sprite_sz=#[-64, 56];
+		else
+			sprite_sz=#[ 64, 56];
+	}
+	
+	public void touch(EntityBase other)
+	{
+	}
+
+	public void use(EntityBase other)
+	{
+		int i;
+		pester++;
+
+		if(pester>2)
+		{
+			Bt2Ent_SetDialog(diag6);
+			return;
+		}
+	
+		Bt2Ent_SetDialog(diag0);
+	}
+	
+	public void hurt(EntityBase other, int dmgval, int dmgtype)
+	{
+		if(other==world_player)
+			Bt2Ent_SetDialog(diag8);
+	}
+}

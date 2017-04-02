@@ -12,6 +12,8 @@
 #include "vox_voxty.c"
 #include "vox_world.c"
 
+#include "vox_felz32.c"
+
 #include "vox_tg_mare.c"
 
 #include "../entity/ent_bsvm.c"

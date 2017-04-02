@@ -9,6 +9,8 @@
 
 // #include "bt4b_thread.c"
 
+#include "bt4b_grad16.c"
+
 #include "bt4b_blkenc.c"
 #include "bt4b_bitwrite.c"
 #include "bt4b_encode.c"

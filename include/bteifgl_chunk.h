@@ -175,6 +175,7 @@ Each cell is 64 bytes.
 #define BGBDT_VOXFL_PHYSEFF		0x0400	//physics effect
 #define BGBDT_VOXFL_CROSSSPR	0x0800	//cross sprite
 #define BGBDT_VOXFL_SOLIDNSBOX	0x1000	//solid non-standard box
+#define BGBDT_VOXFL_INCAVE		0x2000	//cave or solid/opaque
 
 #define BGBDT_VOXFL_CONT_0		0x0000		//contents=0
 #define BGBDT_VOXFL_CONT_1		0x0010		//contents=1
@@ -212,6 +213,7 @@ Each cell is 64 bytes.
 
 #define BGBDT_ADJFL_SOLID_S		0x1000	//solid self
 #define BGBDT_ADJFL_OPAQUE_S	0x2000	//opaque self
+#define BGBDT_ADJFL_ISCAVE_S	0x4000	//block is in an unreachable cave
 
 #define BGBDT_XYZ_SHR_METER		12
 #define BGBDT_XYZ_SHR_VOXEL		12
@@ -247,9 +249,13 @@ Each cell is 64 bytes.
 
 #define BGBDT_XYZ_SCALE_FROMMETER	(4096.0)
 
+#define BGBDT_VTYFL_MASK		0xF000
+
 #define BGBDT_VTYFL_POWERED		0x1000
 #define BGBDT_VTYFL_UNBREAKABLE	0x2000
 #define BGBDT_VTYFL_FLEXFORM	0x4000
+
+#define BGBDT_VTYFL_CAVEM		0x3000
 
 #define BGBDT_VTXFL_NOMOVE		0x0001	//vertex can't move
 
@@ -266,6 +272,7 @@ Each cell is 64 bytes.
 #define BGBDT_CHKFL_NOVISFACE	0x0080	//no visible faces (general)
 
 #define BGBDT_CHKFL_ENTSPAWN	0x1000	//entities spawned
+#define BGBDT_CHKFL_CHKCAVE		0x2000	//checked if cave
 
 #define BGBDT_RGNFL_NEWRGN		0x0001	//newly created region
 #define BGBDT_RGNFL_RGNDIRTY	0x0002	//region chunks have changed
@@ -534,6 +541,7 @@ void (*RandomTick)(BGBDT_VoxWorld *world,
 
 typedef struct BGBDT_NoiseSample_s BGBDT_NoiseSample;
 typedef struct BGBDT_RiceContext_s BGBDT_RiceContext;
+typedef struct BGBDT_FeLzContext_s BGBDT_FeLzContext;
 
 struct BGBDT_NoiseSample_s {
 int bh;				//hash for chunk (optimize locally)
@@ -605,6 +613,11 @@ void (*WriteSym)(BGBDT_RiceContext *ctx, int sym, int *rk);
 
 };
 
+struct BGBDT_FeLzContext_s {
+u32 mark1;
+
+u32 *lzhash[4096];
+};
 
 typedef struct BGBDT_Particle_s BGBDT_Particle;
 typedef struct BGBDT_ParticleEmission_s BGBDT_ParticleEmission;

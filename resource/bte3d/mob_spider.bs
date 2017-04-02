@@ -28,7 +28,10 @@ public class mob_spider extends EntityMob {
 		sprite_sz=#[128, 96];
 		sprite="sprites/spider/spider0_1";
 		radius=24;
-		height=96;		
+		height=96;
+		health=250;
+
+		flags|=ENTFL_TAKEDAMAGE;
 	}
 
 	public void fallGravity()
@@ -65,6 +68,16 @@ public class mob_spider extends EntityMob {
 			return;
 
 		fallGravity();
+		
+		if(health<0)
+		{
+//			sprite_sz=#[128, -96];
+//			sprite="sprites/spider/spider0_1";
+//			sprite="sprites/spider/spider_walk0_1";
+			sprite="sprites/spider/spider0_dead0";
+
+			return;
+		}
 
 		dir=world_player.origin-this.origin;
 		dist=dir.len;
@@ -74,6 +87,15 @@ public class mob_spider extends EntityMob {
 		{
 //			frgl_printf("Dist=%f\n", dist);
 			return;
+		}
+
+		if(dist<=3.0)
+		{
+			dir=-dir;
+//			return;
+		}else if(dist<=4.0)
+		{
+			dir=#[0,0,0];
 		}
 		
 //		if(dist<48)
@@ -112,5 +134,6 @@ public class mob_spider extends EntityMob {
 
 	public void hurt(EntityBase other, int dmgval, int dmgtype)
 	{
+		health-=dmgval;
 	}
 }

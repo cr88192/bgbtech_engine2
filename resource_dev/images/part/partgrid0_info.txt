@@ -1,0 +1,2 @@
+shader shaders2/bt2_defmat
+// altimg textures/env/dometst2

@@ -20,7 +20,8 @@ public class EntityBase {
 	public long flags;
 	public int entid;
 	public EntityBase owner;
-	
+	public float health;
+
 	/** called after entity creation */
 	public abstract void spawn();
 	public abstract void tick();

@@ -18,7 +18,9 @@ dtcField bt2ent_eb3d_fi_sprite_lf;
 dtcField bt2ent_eb3d_fi_sprite_bk;
 dtcField bt2ent_eb3d_fi_sprite_sz;
 dtcField bt2ent_eb3d_fi_flags;
+dtcField bt2ent_eb3d_fi_entid;
 dtcField bt2ent_eb3d_fi_owner;
+dtcField bt2ent_eb3d_fi_health;
 
 dtcField bt2ent_eb3d_fi_spawn;
 dtcField bt2ent_eb3d_fi_touch;
@@ -464,6 +466,32 @@ BTEIFGL_API void Bt2Ent_EntSetFlags(dtVal obj, s64 val)
 	dtcVaSetL(obj, bt2ent_eb3d_fi_flags, val);
 }
 
+BTEIFGL_API int Bt2Ent_EntGetEntId(dtVal obj)
+{
+	if(!bt2ent_eb3d_fi_entid)
+	{
+		bt2ent_eb3d_fi_entid=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "entid");
+		if(!bt2ent_eb3d_fi_entid)
+			return(0);
+	}
+
+	return(dtcVaGetI(obj, bt2ent_eb3d_fi_entid));
+}
+
+BTEIFGL_API void Bt2Ent_EntSetEntId(dtVal obj, int val)
+{
+	if(!bt2ent_eb3d_fi_entid)
+	{
+		bt2ent_eb3d_fi_entid=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "entid");
+		if(!bt2ent_eb3d_fi_entid)
+			return;
+	}
+
+	dtcVaSetI(obj, bt2ent_eb3d_fi_entid, val);
+}
+
 BTEIFGL_API dtVal Bt2Ent_EntGetOwner(dtVal obj)
 {
 	if(!bt2ent_eb3d_fi_owner)
@@ -488,6 +516,31 @@ BTEIFGL_API void Bt2Ent_EntSetOwner(dtVal obj, dtVal val)
 	}
 
 	dtcVaSetA(obj, bt2ent_eb3d_fi_owner, val);
+}
+
+BTEIFGL_API float Bt2Ent_EntGetHealth(dtVal obj)
+{
+	if(!bt2ent_eb3d_fi_health)
+	{
+		bt2ent_eb3d_fi_health=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "health");
+		if(!bt2ent_eb3d_fi_health)
+			return(0);
+	}
+	return(dtcVaGetF(obj, bt2ent_eb3d_fi_health));
+}
+
+BTEIFGL_API void Bt2Ent_EntSetHealth(dtVal obj, float val)
+{
+	if(!bt2ent_eb3d_fi_health)
+	{
+		bt2ent_eb3d_fi_health=BGBDTC_LookupClassSlotName(
+			bt2ent_eb3d_cls, "health");
+		if(!bt2ent_eb3d_fi_health)
+			return;
+	}
+
+	dtcVaSetF(obj, bt2ent_eb3d_fi_health, val);
 }
 
 
@@ -688,6 +741,8 @@ BTEIFGL_API int Bt2Ent_SpawnWorld(char *func)
 	if(!bt2ent_vi_spawnworld)
 		return(-1);
 
+	printf("SpawnWorld\n");
+
 	args=targs;
 
 //	if(!dtvTrueP(bt2ent_map_entarr))
@@ -817,6 +872,13 @@ BTEIFGL_API dtVal Bt2Ent_SpawnEntityBasic(char *cname, vec3d org)
 		return(DTV_NULL);
 	}
 
+	i=Bt2Ent_GetGlobalI("world_max_entity");
+	if(i>bt2ent_voxworld->nents)
+		bt2ent_voxworld->nents=i;
+
+	Bt2Ent_SetGlobalA("world_entity", bt2ent_voxworld->entarr);
+	Bt2Ent_SetGlobalI("world_max_entity", bt2ent_voxworld->nents);
+
 	if(!bt2ent_eb3d_fi_spawn)
 	{
 		bt2ent_eb3d_fi_spawn=BGBDTC_LookupClassSlotName(
@@ -844,7 +906,12 @@ BTEIFGL_API dtVal Bt2Ent_SpawnEntityBasic(char *cname, vec3d org)
 	n=bt2ent_voxworld->nents++;
 	dtvArraySetIndexDtVal(bt2ent_voxworld->entarr, n, obj);
 
+	printf("Bt2Ent_SpawnEntityBasic: Spawned %s id=%d\n", cname, n);
+
+	Bt2Ent_EntSetEntId(obj, n);
 	Bt2Ent_EntSetOrigin(obj, org);
+
+	Bt2Ent_SetGlobalI("world_max_entity", bt2ent_voxworld->nents);
 
 	sf=dtcVaGetA(obj, bt2ent_eb3d_fi_spawn);
 	sfp=dtvUnwrapPtr(sf);
@@ -864,7 +931,12 @@ BTEIFGL_API dtVal Bt2Ent_SpawnEntityBasic(char *cname, vec3d org)
 
 	if(i)printf("Bt2Ent_SpawnEntityBasic: Classname=%s, Status=%d\n",
 		cname, i);
-	
+
+	i=Bt2Ent_GetGlobalI("world_max_entity");
+	if(i>bt2ent_voxworld->nents)
+		bt2ent_voxworld->nents=i;
+	Bt2Ent_SetGlobalI("world_max_entity", bt2ent_voxworld->nents);
+
 	return(obj);
 }
 

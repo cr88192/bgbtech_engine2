@@ -2316,7 +2316,12 @@ int main_body()
 		xyz.x>>BGBDT_XYZ_SHR_REGION,
 		xyz.y>>BGBDT_XYZ_SHR_REGION,
 		xyz.z>>BGBDT_XYZ_SHR_REGION);
-	sprintf(tb, "Region=%08X", i);
+	
+	f=0.0;
+	if(!dtvNullP(bgbdt_voxworld->ent_player))
+		f=Bt2Ent_EntGetHealth(bgbdt_voxworld->ent_player);
+	
+	sprintf(tb, "Region=%08X Health=%.1f", i, f);
 	GfxFont_DrawString(tb, (wxs/2)-52*8, (wys/2)-3*8,
 		8, 8, 0, 255, 0, 255);
 

@@ -1,3 +1,5 @@
+BGBDT_VoxWorld *bt2ent_voxworld;
+
 dtcClass bt2ent_npcdiag_cls;
 dtcField bt2ent_npcdiag_fi_face1;
 dtcField bt2ent_npcdiag_fi_face2;
@@ -46,6 +48,36 @@ int bt2ent_ntoken;
 char *bgbdt_tool_sprite;
 dtVal bt2ent_traceent;
 
+float bt2ent_ovclr_cur[4];
+float bt2ent_ovclr_vel[4];
+
+BTEIFGL_API int Bt2Ent_SetOverlayColorCur(void *v)
+{
+	float *fv;
+	fv=v;
+	bt2ent_ovclr_cur[0]=fv[0];
+	bt2ent_ovclr_cur[1]=fv[1];
+	bt2ent_ovclr_cur[2]=fv[2];
+	bt2ent_ovclr_cur[3]=fv[3];
+	return(0);
+}
+
+BTEIFGL_API int Bt2Ent_SetOverlayColorVel(void *v)
+{
+	float *fv;
+	fv=v;
+	bt2ent_ovclr_vel[0]=fv[0];
+	bt2ent_ovclr_vel[1]=fv[1];
+	bt2ent_ovclr_vel[2]=fv[2];
+	bt2ent_ovclr_vel[3]=fv[3];
+	return(0);
+}
+
+BTEIFGL_API int Bt2Ent_GetPlayerInWater(void)
+{
+	return(bt2ent_voxworld->inwater);
+}
+
 BTEIFGL_API char *Bt2Ent_GetToolSprite(void)
 {
 	return(bgbdt_tool_sprite);
@@ -90,6 +122,8 @@ BTEIFGL_API int Bt2Ent_InvenActiveP(void)
 
 BTEIFGL_API int Bt2Ent_DrawDialog(void)
 {
+	Bt2Ent_DrawColorOverlay();
+
 	if(Bt2Ent_DialogActiveP())
 	{
 		Bt2Ent_DrawDialogBox(bt2ent_diagbox);
@@ -993,6 +1027,50 @@ int Bt2Ent_DrawUseBackground(void)
 
 	frglEnableTexture2D();
 	frglBindTexture2D(tex);
+	frglBegin(GL_QUADS);
+	frglTexCoord2f(0, 0);
+	frglVertex2f(x0, y0);
+	frglTexCoord2f(1, 0);
+	frglVertex2f(x1, y0);
+	frglTexCoord2f(1, 1);
+	frglVertex2f(x1, y1);
+	frglTexCoord2f(0, 1);
+	frglVertex2f(x0, y1);
+	frglEnd();
+
+	return(0);
+}
+
+int Bt2Ent_DrawColorOverlay(void)
+{
+	char tb[256];
+	dtVal opts, a;
+//	char *face1, *face2, *text;
+	char *sf0, *s0;
+	float x0, y0, x1, y1;
+	float x2, y2, x3, y3;
+	float z0, z1;
+	float u0, v0, u1, v1;
+	int tex;
+	int i, j, k, l;
+
+	V4F_ADDSCALE(bt2ent_ovclr_cur,
+		bt2ent_ovclr_vel, frgl_state->dt_f,
+		bt2ent_ovclr_cur);
+
+	if(bt2ent_ovclr_cur[3]<=0.1)
+		return(0);
+
+	x0=-512; y0=-384;
+	x1=512; y1=384;
+
+//	tex=Tex_LoadFile(bt2ent_usebkg, NULL, NULL);
+
+//	frglEnableTexture2D();
+//	frglBindTexture2D(tex);
+	frglDisableTexture2D();
+	frglColor4fv(bt2ent_ovclr_cur);
+
 	frglBegin(GL_QUADS);
 	frglTexCoord2f(0, 0);
 	frglVertex2f(x0, y0);

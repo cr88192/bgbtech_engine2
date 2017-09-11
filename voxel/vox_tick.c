@@ -563,6 +563,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord cvorg, xyz;
 	BGBDT_VoxChunkMesh *mesh;
 	BGBDT_VoxChunk *chk;
+	BGBDT_VoxRegionBox *rbox;
 	byte *pxt, *pyt, *pzt;
 	double d;
 	int t0, t1, t2;
@@ -601,6 +602,10 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 
 		return;
 	}
+
+	rbox=BGBDT_WorldGetRegionBoxBxyz(world,
+		rgn->bx, rgn->by, rgn->bz,
+		BGBDT_ACCFL_ENNEWRGN);
 
 	cvorg=BGBDT_ConvLocalToVoxCoord(world, world->camorg);
 	cvx=(cvorg.x-(rgn->bx<<BGBDT_XYZ_SHR_REGION_XY))>>BGBDT_XYZ_SHR_CHUNK;
@@ -725,7 +730,7 @@ void BGBDT_TickVoxRegion(BGBDT_VoxWorld *world,
 
 				if(chk && !(chk->flags&BGBDT_CHKFL_CHKCAVE))
 				{
-					BGBDT_VoxLight_UpdateChunkCheckCave(world, chk);
+//					BGBDT_VoxLight_UpdateChunkCheckCave(world, chk);
 //					chk->flags|=BGBDT_CHKFL_SAVEDIRTY;
 					if(chk->flags&BGBDT_CHKFL_SAVEDIRTY)
 						rgn->flags|=BGBDT_RGNFL_RGNDIRTY;
@@ -1051,6 +1056,7 @@ void BGBDT_UpdateVoxRegionPVS(BGBDT_VoxWorld *world,
 BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world)
 {
 	BGBDT_VoxRegion *rcur, *rnxt;
+	BGBDT_VoxRegionBox *rbcur, *rbnxt;
 	
 	bgbdt_voxel_drawdist=FRGL_CvarGetNum("r_drawdist");
 	bgbdt_voxel_noshader=FRGL_CvarGetNum("r_noshader");
@@ -1076,6 +1082,15 @@ BTEIFGL_API void BGBDT_TickVoxWorld(BGBDT_VoxWorld *world)
 	}
 	world->dt_pvs=frgl_clock()-world->tickstart;
 
+	rbcur=world->rgnbox;
+	while(rbcur)
+	{
+		rbnxt=rbcur->next;
+		BGBDT_TickVoxRegionBox(world, rbcur);
+//		rcur=rcur->next;
+		rbcur=rbnxt;
+	}
+
 //	BGBDT_UpdateVoxRegionPVS(world, rgn);
 }
 
@@ -1086,8 +1101,8 @@ void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,
 	BGBDT_VoxCoord xyz1;
 	BGBDT_VoxData td1;
 	BGBDT_VoxDataStatus tds;
-	BGBDT_VoxTypeInfo *tyi;
-	int tix, vty, vty1;
+	BGBDT_VoxTypeInfo *tyi, *ctyi;
+	int tix, vty, vty1, tgc;
 	int x, y, z;
 	int i;
 	
@@ -1095,6 +1110,10 @@ void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,
 		BGBDT_TRFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
 	if(i<0)
 		return;
+
+	vty=td1.vtypel|(td1.vtypeh<<8);
+	tix=vty&4095;
+	ctyi=world->voxtypes[tix];
 
 #if 0
 	if(	(tds.adjfl&(BGBDT_ADJFL_SOLID_PZ|BGBDT_ADJFL_OPAQUE_PZ)) ||
@@ -1111,6 +1130,7 @@ void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,
 	}
 #endif
 
+	tgc=0;
 	for(z=-1; z<=1; z++)
 		for(y=-1; y<=1; y++)
 			for(x=-1; x<=1; x++)
@@ -1132,7 +1152,18 @@ void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,
 		tyi=world->voxtypes[tix];
 		if(!tyi)
 			continue;
+
+		if(!strcmp(tyi->name, "grassclump") ||
+			!strcmp(tyi->name, "redgrassclump") ||
+			!strcmp(tyi->name, "mushroom"))
+				tgc++;
+		
 		if(strcmp(tyi->name, "dirt"))
+//		if(!strcmp(tyi->name, ctyi->name) ||
+//			(	strcmp(tyi->name, "dirt") &&
+//				strcmp(tyi->name, "grass") &&
+//				strcmp(tyi->name, "redgrass") &&
+//				strcmp(tyi->name, "mycelium")))
 			continue;
 		if(tds.adjfl&(BGBDT_ADJFL_SOLID_PZ|BGBDT_ADJFL_OPAQUE_PZ))
 			continue;
@@ -1141,6 +1172,72 @@ void BGBDT_VoxelWorld_RandomTick_Grass(BGBDT_VoxWorld *world,
 			continue;
 
 		BGBDT_WorldSetVoxelData(world, xyz1, td, 0);
+	}
+
+//	if(((rand()&255)<16) && (tgc<1))
+	if(((rand()&255)<1) && (tgc<1))
+	{
+	
+		for(z=-2; z<=2; z++)
+			for(y=-3; y<=3; y++)
+				for(x=-3; x<=3; x++)
+		{
+			if(!(x|y|z))
+				continue;
+		
+			xyz1.x=xyz.x+(x<<BGBDT_XYZ_SHR_VOXEL);
+			xyz1.y=xyz.y+(y<<BGBDT_XYZ_SHR_VOXEL);
+			xyz1.z=xyz.z+(z<<BGBDT_XYZ_SHR_VOXEL);
+		
+			i=BGBDT_WorldGetVoxelData(world, xyz1, &td1, &tds,
+				BGBDT_TRFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
+			if(i<0)
+				continue;
+
+			vty=td1.vtypel|(td1.vtypeh<<8);
+			tix=vty&4095;
+			tyi=world->voxtypes[tix];
+			if(!tyi)
+				continue;
+
+			if(!strcmp(tyi->name, "grassclump") ||
+				!strcmp(tyi->name, "redgrassclump") ||
+				!strcmp(tyi->name, "mushroom"))
+					tgc++;
+		}
+		
+		if(tgc>3)
+			return;
+	
+		x=0; y=0; z=1;
+		xyz1.x=xyz.x+(x<<BGBDT_XYZ_SHR_VOXEL);
+		xyz1.y=xyz.y+(y<<BGBDT_XYZ_SHR_VOXEL);
+		xyz1.z=xyz.z+(z<<BGBDT_XYZ_SHR_VOXEL);
+
+		i=BGBDT_WorldGetVoxelData(world, xyz1, &td1, &tds,
+			BGBDT_TRFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
+		if(i<0)
+			return;
+
+		vty=td1.vtypel|(td1.vtypeh<<8);
+		tix=vty&4095;
+		tyi=world->voxtypes[tix];
+		if(!tyi)
+			return;
+
+		if(!strcmp(tyi->name, "air"))
+		{
+			vty1=-1;
+			if(!strcmp(ctyi->name, "grass"))
+				vty1=BGBDT_VoxelWorld_LookupTypeIndexName(world, "grassclump");
+			if(vty1<=0)
+				return;
+			vty=(vty&(~4095))|(vty1&4095);
+			td1.vtypel=vty;
+			td1.vtypeh=vty>>8;
+
+			BGBDT_WorldSetVoxelData(world, xyz1, td1, 0);
+		}
 	}
 }
 
@@ -1159,6 +1256,16 @@ void BGBDT_VoxelWorld_RandomTick_TallGrass(BGBDT_VoxWorld *world,
 		BGBDT_TRFL_NOLOAD|BGBDT_ACCFL_CHKADJ);
 	if(i<0)
 		return;
+
+	vty=td.vtypel|(td.vtypeh<<8);
+	if((vty&0xF000)==0xF000)
+	{
+		vty=vty&4095;
+		td.vtypel=vty;
+		td.vtypeh=vty>>8;
+		BGBDT_WorldSetVoxelData(world, xyz, td, 0);
+		return;
+	}
 
 	if(	(tds.adjfl&(BGBDT_ADJFL_SOLID_PZ|BGBDT_ADJFL_OPAQUE_PZ)) ||
 		((((tds.adjlit[5]>>4)&15)<2) && (((tds.adjlit[5]>>11)&31)<2)) )

@@ -272,12 +272,12 @@ BTEIFGL_API void frglDisableLighting(void)
 //	glDisable(GL_LIGHTING);
 }
 
-//BTEIFGL_API void frglEnable(int flag)
+// BTEIFGL_API void frglEnable(int flag)
 //{
 //	glEnable(flag);
 //}
 
-//BTEIFGL_API void frglDisable(int flag)
+// BTEIFGL_API void frglDisable(int flag)
 //{
 //	glDisable(flag);
 //}
@@ -564,16 +564,17 @@ BTEIFGL_API void frglDisableLighting(void)
 	glDisable(GL_LIGHTING);
 }
 
-BTEIFGL_API void frglEnable(int flag)
+#if 0
+// BTEIFGL_API void frglEnable(int flag)
 {
 	glEnable(flag);
 }
 
-BTEIFGL_API void frglDisable(int flag)
+// BTEIFGL_API void frglDisable(int flag)
 {
 	glDisable(flag);
 }
-
+#endif
 
 BTEIFGL_API void frglModelviewMatrix(void)
 {

@@ -12,6 +12,12 @@ CC_OUTDLL=cl /LD /Fe
 CC_OUTOBJ=cl /c /Fo
 CC_OUTTOOL=cl /Fe
 
+INST_BASE=$(USRLIB_HOME)
+INST_BIN=$(INST_BASE)/Bin
+# INST_LIB=$(INST_BASE)/Lib
+INST_LIB=$(USRLIB_LIB)
+INST_INC=$(INST_BASE)/Include
+
 # CFLAGS=/Iinclude /Ibsvm2/include /Zi /arch:SSE2 /O2
 CFLAGS=/Iinclude /Ibsvm2/include /Zi /arch:SSE2
 # CFLAGS=/Iinclude /O2 /Zi /arch:SSE2

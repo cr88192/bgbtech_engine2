@@ -5,6 +5,7 @@
 #include "vox_light.c"
 #include "vox_load.c"
 #include "vox_mesh.c"
+#include "vox_rgntex.c"
 #include "vox_rice.c"
 #include "vox_save.c"
 #include "vox_tick.c"

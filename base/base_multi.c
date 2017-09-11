@@ -14,6 +14,8 @@
 #include "frgl_util.c"
 #include "frgl_texmat.c"
 
+#include "frgl_readavi.c"
+
 #include "math_m3.c"
 #include "math_m4.c"
 

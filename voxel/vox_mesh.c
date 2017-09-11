@@ -402,7 +402,7 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 		(tyi->flags&BGBDT_VOXFL_TRANSPARENT))
 	{
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NX))
-			BGBDT_VoxMesh_EmitQuad(mesh, v4, v5, v2, v0,
+			BGBDT_VoxMesh_EmitQuad(mesh, v4, v6, v2, v0,
 				mat_s, atxys, li[0]);
 		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PX))
 			BGBDT_VoxMesh_EmitQuad(mesh, v7, v5, v1, v3,
@@ -423,40 +423,51 @@ int BGBDT_VoxMesh_EmitBlockFacesGeneric(BGBDT_VoxWorld *world,
 				mat_t, atxyb, li[5]);
 	}
 
-	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NX))
-		BGBDT_VoxMesh_EmitQuad(mesh, v0, v2, v6, v4,
-			mat_s, atxys, li[0]);
-	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PX))
-		BGBDT_VoxMesh_EmitQuad(mesh, v3, v1, v5, v7,
-			mat_s, atxys, li[1]);
+	if(!(tyi->flags&BGBDT_VOXFL_DECAL))
+	{
+		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NX))
+			BGBDT_VoxMesh_EmitQuad(mesh, v0, v2, v6, v4,
+				mat_s, atxys, li[0]);
+		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PX))
+			BGBDT_VoxMesh_EmitQuad(mesh, v3, v1, v5, v7,
+				mat_s, atxys, li[1]);
 
-//	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NY))
-//		BGBDT_VoxMesh_EmitQuad(mesh, v0, v1, v5, v4,
-//			tyi->mat_side, atxys, li[2]);
-//	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PY))
-//		BGBDT_VoxMesh_EmitQuad(mesh, v3, v2, v6, v7,
-//			tyi->mat_side, atxys, li[3]);
+		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NY))
+			BGBDT_VoxMesh_EmitQuad(mesh, v1, v0, v4, v5,
+				mat_s, atxys, li[2]);
+		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PY))
+			BGBDT_VoxMesh_EmitQuad(mesh, v2, v3, v7, v6,
+				mat_s, atxys, li[3]);
 
-	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NY))
-		BGBDT_VoxMesh_EmitQuad(mesh, v1, v0, v4, v5,
-			mat_s, atxys, li[2]);
-	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PY))
-		BGBDT_VoxMesh_EmitQuad(mesh, v2, v3, v7, v6,
-			mat_s, atxys, li[3]);
+		if(!(fmfl&BGBDT_ADJFL_OPAQUE_NZ))
+			BGBDT_VoxMesh_EmitQuad(mesh, v0, v1, v3, v2,
+				mat_b, atxyt, li[4]);
+		if(!(fmfl&BGBDT_ADJFL_OPAQUE_PZ))
+			BGBDT_VoxMesh_EmitQuad(mesh, v5, v4, v6, v7,
+				mat_t, atxyb, li[5]);
+	}else
+	{
+		if((fmfl&BGBDT_ADJFL_OPAQUE_NX))
+			BGBDT_VoxMesh_EmitQuad(mesh, v4, v6, v2, v0,
+				mat_s, atxys, li[1]);
+		if((fmfl&BGBDT_ADJFL_OPAQUE_PX))
+			BGBDT_VoxMesh_EmitQuad(mesh, v7, v5, v1, v3,
+				mat_s, atxys, li[0]);
 
-//	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NZ))
-//		BGBDT_VoxMesh_EmitQuad(mesh, v1, v0, v2, v3,
-//			tyi->mat_bot, atxyt, li[4]);
-//	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PZ))
-//		BGBDT_VoxMesh_EmitQuad(mesh, v4, v5, v7, v6,
-//			tyi->mat_top, atxyb, li[5]);
+		if((fmfl&BGBDT_ADJFL_OPAQUE_NY))
+			BGBDT_VoxMesh_EmitQuad(mesh, v5, v4, v0, v1,
+				mat_s, atxys, li[3]);
+		if((fmfl&BGBDT_ADJFL_OPAQUE_PY))
+			BGBDT_VoxMesh_EmitQuad(mesh, v6, v7, v3, v2,
+				mat_s, atxys, li[2]);
 
-	if(!(fmfl&BGBDT_ADJFL_OPAQUE_NZ))
-		BGBDT_VoxMesh_EmitQuad(mesh, v0, v1, v3, v2,
-			mat_b, atxyt, li[4]);
-	if(!(fmfl&BGBDT_ADJFL_OPAQUE_PZ))
-		BGBDT_VoxMesh_EmitQuad(mesh, v5, v4, v6, v7,
-			mat_t, atxyb, li[5]);
+		if((fmfl&BGBDT_ADJFL_OPAQUE_NZ))
+			BGBDT_VoxMesh_EmitQuad(mesh, v2, v3, v1, v0,
+				mat_b, atxyt, li[5]);
+		if((fmfl&BGBDT_ADJFL_OPAQUE_PZ))
+			BGBDT_VoxMesh_EmitQuad(mesh, v7, v6, v4, v5,
+				mat_t, atxyb, li[4]);
+	}
 
 	return(0);
 }

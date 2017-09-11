@@ -74,6 +74,8 @@ public class player extends EntityBase {
 	public void tick()
 	{
 		float f;
+		int wl;
+		
 		if(health<33.0)
 		{
 			f=(33.0-health)*0.01;
@@ -85,7 +87,8 @@ public class player extends EntityBase {
 			return;
 		}
 		
-		if(Bt2Ent_GetPlayerInWater())
+		wl=Bt2Ent_GetPlayerInWater();
+		if(wl && (wl!=4))
 		{
 			Bt2Ent_SetOverlayColorCur(#[0.0, 0.2, 0.5, 0.4]);
 			Bt2Ent_SetOverlayColorVel(#[0.0, 0.0, 0.0, 0.0]);
@@ -163,7 +166,7 @@ public void update(double dt)
 //		Bt2Ent_SetBgm("sound/pi0_amb0");
 		if(!usecsbgm)
 		{
-			Bt2Ent_SetBgm("sound/pi0_amb0");
+//			Bt2Ent_SetBgm("sound/pi0_amb0");
 //			Bt2Ent_SetBgm("sound/Noise0");
 		}
 		world_isHostile=false;

@@ -1452,6 +1452,13 @@ BTEIFGL_API int Tex_LoadTexture(int w, int h, byte *buf, int calcmip)
 	case BTIC1H_PXF_BC7_SRGB:
 		cmp=GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; blksz=16;
 		break;
+	case BTIC1H_PXF_BC4:
+		cmp=GL_COMPRESSED_RED_RGTC1; blksz=8;
+		break;
+	case BTIC1H_PXF_BC5:
+		cmp=GL_COMPRESSED_RG_RGTC2; blksz=16;
+		break;
+
 	default:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
@@ -1740,8 +1747,8 @@ BTEIFGL_API int Tex_LoadTexture2(int w, int h, byte *buf,
 		frglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
 
 #ifdef FRGL_USE_ANISTROPIC
-		frglTexParameterf(GL_TEXTURE_2D,
-			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+//		frglTexParameterf(GL_TEXTURE_2D,
+//			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
 #endif
 	}else if(mip==2)
 	{
@@ -1866,6 +1873,12 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 	case BTIC1H_PXF_BC7_SRGB:
 		cmp=GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; blksz=16;
 		break;
+	case BTIC1H_PXF_BC4:
+		cmp=GL_COMPRESSED_RED_RGTC1; blksz=8;
+		break;
+	case BTIC1H_PXF_BC5:
+		cmp=GL_COMPRESSED_RG_RGTC2; blksz=16;
+		break;
 	default:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
@@ -1924,6 +1937,11 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 
 			frglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
 			frglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+
+#ifdef FRGL_USE_ANISTROPIC
+			frglTexParameterf(GL_TEXTURE_2D,
+				GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);
+#endif
 		}else
 		{
 			Tex_GetModeinfo(&min, &mag);
@@ -2633,6 +2651,10 @@ BTEIFGL_API byte *Img_LoadBMP(VFILE *fd, int *w, int *h, int *rtxc)
 		{
 			clrs=BTIC4B_CLRS_BC3MIP;
 			*rtxc=BTIC1H_PXF_BC3;
+//			clrs=BTIC4B_CLRS_BC5MIP;
+//			*rtxc=BTIC1H_PXF_BC5;
+//			clrs=BTIC4B_CLRS_BC4MIP;
+//			*rtxc=BTIC1H_PXF_BC4;
 		}
 	}
 #endif
@@ -3063,6 +3085,12 @@ BTEIFGL_API int Img_SaveTextureCacheBPX(
 	case BTIC1H_PXF_BC7_SRGB:
 		cmp=GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM; blksz=16;
 		break;
+	case BTIC1H_PXF_BC4:
+		cmp=GL_COMPRESSED_RED_RGTC1; blksz=8;
+		break;
+	case BTIC1H_PXF_BC5:
+		cmp=GL_COMPRESSED_RG_RGTC2; blksz=16;
+		break;
 	default:
 		cmp=GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; blksz=16;
 		break;
@@ -3233,6 +3261,7 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	VFILE *fd;
 	byte *buf;
 	int i, j, k, n, hi, tw, th, txc;
+	int isfar;
 	char *s, *t;
 
 	if(!name)
@@ -3418,6 +3447,10 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 
 	if(!w)w=&tw;
 	if(!h)h=&th;
+	
+	isfar=0;
+	if((t>(name+4)) && !strncmp(t-4, "_far", 4))
+		isfar=1;
 
 	t++;
 
@@ -3513,7 +3546,8 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	if(txc)
 	{
 //		n=Tex_LoadTexture(*w, *h, buf, 1);
-		n=Tex_LoadTexture3B(w, h, buf, 0, txc, 1);
+//		n=Tex_LoadTexture3B(w, h, buf, 0, txc, 1);
+		n=Tex_LoadTexture3B(w, h, buf, 0, txc, isfar?0:1);
 //		tex_buffer[n]=buf;
 		tex_buffer[n]=NULL;
 		tex_width[n]=*w;
@@ -3526,7 +3560,8 @@ BTEIFGL_API int Tex_LoadFile(char *name, int *w, int *h)
 	{
 //		Img_SaveTextureCacheBPX(name, *w, *h, buf, 1);
 
-		n=Tex_LoadTexture(*w, *h, buf, 1);
+//		n=Tex_LoadTexture(*w, *h, buf, 1);
+		n=Tex_LoadTexture(*w, *h, buf, isfar?0:1);
 //		tex_buffer[n]=buf;
 		tex_buffer[n]=NULL;
 		tex_width[n]=*w;

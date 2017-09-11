@@ -227,6 +227,9 @@ void BGBDT_DrawVoxChunkMesh(BGBDT_VoxWorld *world,
 		if(mesh->vbo_id>0)
 			frglBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_id);
 #endif
+//		FRGL_TexMat_SetMaterialIsFar(
+//			!(mesh->flags&BGBDT_MESHFL_QINHIBIT));
+//		FRGL_TexMat_SetMaterialIsFar(1);
 
 		FRGL_TexMat_BindMaterial(mesh->va_mesh[i*4+2]);
 

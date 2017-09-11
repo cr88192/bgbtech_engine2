@@ -14,11 +14,11 @@ CC_OUTTOOL=cl /Fe
 
 BSVM2_BASE=bsvm2/
 
-# CFLAGS=/Iinclude /Ibsvm2/include /Zi
-CFLAGS=/Iinclude /Ibsvm2/include /O2 /Zi /arch:SSE2
+CFLAGS=/Iinclude /Ibsvm2/include /Zi
+# CFLAGS=/Iinclude /Ibsvm2/include /O2 /Zi /arch:SSE2
 DLL_CFLAGS=$(CFLAGS) /DBTEIFGL_DLL
 DLL_LDFLAGS= gdi32.lib user32.lib winmm.lib kernel32.lib \
-	ole32.lib ws2_32.lib
+	ole32.lib ws2_32.lib vfw32.lib
 	
 #	opengl32.lib
 

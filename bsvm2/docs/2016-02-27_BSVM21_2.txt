@@ -219,11 +219,13 @@ Signature Characters:
 *  Cy, Class
 *  Cz, named vararg array (FFI)
 
-*  Da, -
+*  Da, auto_var (alt)
 *  Db, vec3d
 *  Dc, vec4d
-*  Dd, -
-*  De, -
+*  Dd, decimal64 (resv)
+*  De, decimal128 (resv)
+*  Df, decimal32 (resv)
+*  Dz, va_list (resv)
 
 *  Pc, cstring
 

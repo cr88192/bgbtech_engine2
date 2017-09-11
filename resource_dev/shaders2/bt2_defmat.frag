@@ -115,10 +115,11 @@ void main()
 	vec4 hgofs;
 	float height, dist, ndotl, ndoth, spe;
 	float hgign;
+	float eyedist;
 	float v, a;
 	float h1, h2, v1, v2;
 	float tsx, tbx, tsy, tby;
-	float tcx, tcy, tcw;
+	float tcx, tcy, tcw, mip;
 	int xfval;
 
 	aux=lorg-point;
@@ -167,6 +168,8 @@ void main()
 //	eye=normalize(((eyeOrg+eye_z)-point)*eyeMat);
 //	eye=normalize(((eyeOrg+(100*eye_z))-point)*eyeMat);
 
+	eyedist=length(eyeOrg-point);
+
 	baseST=srcST+(eye.xy*v)+ofsST;
 	
 //	if(int(baseST.x*16.0)!=int(srcST.x*16.0))
@@ -187,7 +190,18 @@ void main()
 //	dmidST=midST-baseST;
 //	baseST=baseST+(dmidST*tcw);
 
-	rgba=texture2D(texBase, baseST);
+//	mip=4.0*log2(abs(eye.z));
+//	mip=4.0;
+//	mip=0.75*log2(eyedist);
+//	mip=log2(eyedist*0.5);
+	mip=log2(eyedist*0.75);
+//	mip=log2(eyedist*2.0);
+//	mip=log2(eyedist*eyedist*0.5);
+//	mip=log2(eyedist);
+	if(mip>6.0)mip=6.0;
+
+	rgba=textureLod(texBase, baseST, mip);
+//	rgba=texture2D(texBase, baseST);
 //	rgba=texture2D(texBase, srcST);
 //	glow=texture2D(texGlow, texST);
 

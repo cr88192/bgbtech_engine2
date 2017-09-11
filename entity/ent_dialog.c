@@ -75,7 +75,8 @@ BTEIFGL_API int Bt2Ent_SetOverlayColorVel(void *v)
 
 BTEIFGL_API int Bt2Ent_GetPlayerInWater(void)
 {
-	return(bt2ent_voxworld->inwater);
+	return(bt2ent_voxworld->cam_inwater);
+//	return(bt2ent_voxworld->inwater);
 }
 
 BTEIFGL_API char *Bt2Ent_GetToolSprite(void)

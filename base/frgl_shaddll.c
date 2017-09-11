@@ -412,7 +412,7 @@ BTEIFGL_API void frglHint(GLenum target, GLenum mode)
 
 BTEIFGL_API GLubyte *frglGetString(GLenum name)
 {
-	return(pglGetString(name));
+	return((GLubyte *)(pglGetString(name)));
 }
 
 //BTEIFGL_API void frglLoadIdentity(void)

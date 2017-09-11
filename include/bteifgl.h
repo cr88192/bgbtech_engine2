@@ -355,6 +355,8 @@ int m_prim;
 
 #include <bgbdt_vfile31.h>
 
+#include <bgbdt_dummyavi.h>
+
 #include <bteifgl_texmat.h>
 #include <bgbdt_sound.h>
 

@@ -746,6 +746,20 @@ int glow;
 {"bigbrick_blu", "textures/atlas0", NULL, NULL,
 	4, 5,  4, 5,  4, 5,  0, 0x00},
 
+{"hextile1", "textures/atlas0", NULL, NULL,
+	1, 5,  1, 5,  1, 5,  0, 0x00},
+{"brick_red2", "textures/atlas0", NULL, NULL,
+	2, 5,  2, 5,  2, 5,  0, 0x00},
+{"mycelium", "textures/atlas0", NULL, NULL,
+	5, 5,  5, 5,  5, 5,  0, 0x00},
+{"redgrass", "textures/atlas0", NULL, NULL,
+	6, 5,  6, 5,  6, 5,  0, 0x00},
+
+{"ladder", "textures/atlas0", NULL, NULL,
+	15, 4,  15, 4,  15, 4,  BGBDT_VOXFL_PHYS_LADDER|
+	BGBDT_VOXFL_NONSOLID|BGBDT_VOXFL_TRANSPARENT|
+	BGBDT_VOXFL_DECAL, 0x00},
+
 {NULL, NULL}
 };
 
@@ -858,6 +872,12 @@ BTEIFGL_API BGBDT_VoxWorld *BGBDT_SetupBasicWorld2(
 
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "grassclump");
 	if(tyi)tyi->RandomTick=BGBDT_VoxelWorld_RandomTick_TallGrass;
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "mycelium");
+	if(tyi)tyi->RandomTick=BGBDT_VoxelWorld_RandomTick_Grass;
+
+	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "redgrass");
+	if(tyi)tyi->RandomTick=BGBDT_VoxelWorld_RandomTick_Grass;
 
 	tyi=BGBDT_VoxelWorld_GetTypeInfoName(wrl, "stairs");
 	if(tyi)

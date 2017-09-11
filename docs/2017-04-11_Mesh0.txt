@@ -1,0 +1,39 @@
+Mesh Model Format:
+* Address static and articulated models.
+** Either variant or another format for skeletal models.
+* Nominal half-float coords.
+
+* Vec2H: two half-floats
+* Vec3H: three half-floats
+* Vec2B: two bytes
+* Vec3B: three bytes
+** Vec3SB: Signed Byte
+* Vec4B: four bytes
+** Vec4UB: Unsigned Byte
+
+Vertex:
+* XYZ:Vec3H		//Vertex Coord
+* ST:Vec2H		//Texture Coords
+* NV:Vec3SB		//Normal Vector (Z)
+* NVA:Vec3SB	//Normal Vector (X)
+* RGBA:Vec4UB	//RGBA Color
+
+Triangle:
+* V0:WORD
+* V1:WORD
+* V2:WORD
+
+Mesh:
+* Name:WORD		//name for mesh
+* Mat:WORD		//material name for mesh
+* Tris:WORD		//First Triangle
+* nTris:WORD	//Number of Triangles
+
+File
+* E4,'BMD0'
+
+Chunks
+* E4,'STRS'		//Strings Table
+* E4,'VECS'		//Vertices
+* E4,'TRIS'		//Triangles
+* E4,'MESH'		//Meshes

@@ -29,6 +29,8 @@ THE SOFTWARE.
 
 #define BT1H_ENABLE_AX		//enable alpha extension
 
+#define BT1H_TRAPCRASH 	__debugbreak();
+
 // #define BT1H_DEBUG_TRAPRANGE
 
 typedef unsigned char byte;
@@ -85,6 +87,8 @@ typedef signed long long s64;
 
 #define BTIC1H_FCC_BTIC	RIFF_MAKETAG('B','T','I','C')
 #define BTIC1H_FCC_bt1h	RIFF_MAKETAG('b','t','1','h')
+#define BTIC1H_FCC_bt4b	RIFF_MAKETAG('b','t','4','b')
+
 #define BTIC1H_FCC_YUY2	RIFF_MAKETAG('Y','U','Y','2')
 #define BTIC1H_FCC_UYVY	RIFF_MAKETAG('U','Y','V','Y')
 
@@ -178,6 +182,8 @@ typedef signed long long s64;
 #define	BTIC1H_QFL_USEGDBDR		(1<<13)		//Use Slice Coding
 
 #define	BTIC1H_QFL_DBGPTUNE		(1<<14)		//Parameter Tuning
+#define	BTIC1H_QFL_USEMIP		(1<<15)		//Use Mipmaps
+#define	BTIC1H_QFL_ISMIPLVL		(1<<16)		//Encoding a mipmap level
 
 #define	BTIC1H_DBFL_CLEARSKIP	(1<< 8)		//I-Frame
 

@@ -146,11 +146,23 @@ BTEIFGL_API int FRGL_TexMat_CheckLoadInfo(
 			continue;
 		}
 
+		if(!strcmp(a[0], "farimg"))
+		{
+			mat->far_img=frgl_strdup(a[1]);
+			continue;
+		}
+
 		if(!strcmp(a[0], "shader"))
 		{
 //			mat->alt_img=frgl_strdup(a[1]);
 			mat->shader=frgl_strdup(a[1]);
 //			mat->use_pgm=FRGL_LoadShader(a[1]);
+			continue;
+		}
+
+		if(!strcmp(a[0], "video"))
+		{
+			mat->vidmap=frgl_strdup(a[1]);
 			continue;
 		}
 	}
@@ -189,10 +201,28 @@ BTEIFGL_API int FRGL_TexMat_GetLoadIndex(char *name)
 			cur->norm_img=frgl_strdup(tb);
 		}
 
+		if(!cur->far_img)
+		{
+			sprintf(tb, "%s_far", name);
+			cur->far_img=frgl_strdup(tb);
+		}
+
 //		cur->basetex=Tex_LoadFile(name, NULL, NULL);
 		cur->basetex=Tex_LoadFile(cur->base_img, NULL, NULL);
 		cur->alt_tex=Tex_LoadFile(cur->alt_img, NULL, NULL);
 		cur->norm_tex=Tex_LoadFile(cur->norm_img, NULL, NULL);
+		cur->far_tex=Tex_LoadFile(cur->far_img, NULL, NULL);
+
+		if(cur->vidmap)
+		{
+			cur->vidctx=FRGL_AVI_LoadAVI(cur->vidmap);
+		}
+		
+		if(cur->vidctx)
+		{
+			if(cur->alt_tex<=0)
+				cur->alt_tex=Tex_AllocTexnum();
+		}
 	}
 	return(cur->matid);
 }
@@ -249,12 +279,25 @@ BTEIFGL_API int FRGL_TexMat_CheckTeardown(FRGL_TextureMaterial *mat)
 }
 
 BGBDT_VoxWorld *bt2ent_voxworld;
+int frgl_texmat_statefl;
+int frgl_texmat_laststatefl;
+
+BTEIFGL_API int FRGL_TexMat_SetMaterialIsFar(int isfar)
+{
+	if(isfar)
+		frgl_texmat_statefl|=1;
+	else
+		frgl_texmat_statefl&=~1;
+	return(0);
+}
 
 BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 {
 	FRGL_TextureMaterial *cur;
+	byte *fdbuf;
+	double f, g;
 	int t0;
-	int fl;
+	int fl, xs, ys;
 
 	if((idx<0) || (idx>=frgl_texmat_ninfos))
 		return(-1);
@@ -274,16 +317,43 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 	
 //#ifndef __EMSCRIPTEN__
 #if 1
-	if(cur==frgl_texmat_current)
+	if(cur==frgl_texmat_current &&
+			(frgl_texmat_statefl==frgl_texmat_laststatefl))
 		return(0);
 #endif
 	
 	FRGL_TexMat_CheckTeardown(frgl_texmat_current);
 	frgl_texmat_current=cur;
+	frgl_texmat_laststatefl=frgl_texmat_statefl;
 
+	if(cur->vidctx)
+	{
+		t0=FRGL_TimeMS();
+		f=t0/1000.0;
+		g=f-cur->vidtime;
+		if(g<0)g=0;
+		cur->vidtime=f;
+
+//		fdbuf=FRGL_AVI_FrameRawClrs(cur->vidctx, g*1000000.0, FRGL_FCC_DXT5);
+//		fdbuf=FRGL_AVI_FrameRawClrs(cur->vidctx, g*1000000.0, BGBBTJ_JPG_BGRA);
+		fdbuf=FRGL_AVI_FrameRawClrs(cur->vidctx, g*1000000.0, BGBBTJ_JPG_RGBA);
+		if(cur->vidctx->newframe)
+		{
+			xs=cur->vidctx->bmihead->biWidth;
+			ys=cur->vidctx->bmihead->biHeight;
+//			cur->alt_tex=Tex_LoadTexture3B(&xs, &ys, fdbuf,
+//				cur->alt_tex, BTIC1H_PXF_BC7, 0);
+//			cur->alt_tex=Tex_LoadTexture3B(&xs, &ys, fdbuf,
+//				cur->alt_tex, BTIC1H_PXF_BC3, 1);
+			cur->alt_tex=Tex_LoadTexture3C(&xs, &ys, fdbuf,
+				cur->alt_tex, BTIC1H_PXF_RGBA, 0);
+		}
+	}
 
 	frglActiveTexture(0);
-	if(cur->alt_tex>0)
+	if((frgl_texmat_statefl&1) && (cur->far_tex>0))
+		{ frglBindTexture(GL_TEXTURE_2D, cur->far_tex); }
+	else if(cur->alt_tex>0)
 		{ frglBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
 	else
 		{ frglBindTexture(GL_TEXTURE_2D, cur->basetex); }
@@ -349,7 +419,9 @@ BTEIFGL_API int FRGL_TexMat_BindMaterial(int idx)
 //		frglUniform1i(frgl_shader_pgl_TexBase, 0);
 		FRGL_Uniform1i("texBase", 0);
 
-		if(cur->alt_tex>0)
+		if((frgl_texmat_statefl&1) && (cur->far_tex>0))
+			{ frglBindTexture(GL_TEXTURE_2D, cur->far_tex); }
+		else if(cur->alt_tex>0)
 			{ frglBindTexture(GL_TEXTURE_2D, cur->alt_tex); }
 		else
 			{ frglBindTexture(GL_TEXTURE_2D, cur->basetex); }

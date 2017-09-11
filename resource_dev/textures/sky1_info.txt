@@ -1,2 +1,3 @@
 shader shaders2/bt2_skydome
 altimg textures/env/dometst2
+# video vidtest/TestSonicUnleashed_WindmillIsleDA2_BT1H2.avi

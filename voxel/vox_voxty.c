@@ -114,6 +114,23 @@ BTEIFGL_API int BGBDT_WorldVoxel_GetGlow(BGBDT_VoxWorld *world,
 	return(tyi->glow);
 }
 
+BTEIFGL_API u32 BGBDT_WorldVoxel_GetVoxColorID(BGBDT_VoxWorld *world,
+	BGBDT_VoxCoord xyz, BGBDT_VoxData td)
+{
+	u32 px;
+	int vty;
+	int cr, cg, cb;
+	
+	vty=td.vtypel|(td.vtypeh<<8);
+	cr=(vty    )&15;
+	cg=(vty>> 8)&15;
+	cb=(vty>>16)&15;
+	
+	px=(cb<<16)|(cg<<8)|cr;
+	return(px);
+}
+
+
 BTEIFGL_API BGBDT_VoxTypeInfo *BGBDT_VoxelWorld_LookupTypeInfoName(
 	BGBDT_VoxWorld *world, char *name)
 {

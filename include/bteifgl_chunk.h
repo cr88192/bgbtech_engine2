@@ -176,6 +176,7 @@ Each cell is 64 bytes.
 #define BGBDT_VOXFL_CROSSSPR	0x0800	//cross sprite
 #define BGBDT_VOXFL_SOLIDNSBOX	0x1000	//solid non-standard box
 #define BGBDT_VOXFL_INCAVE		0x2000	//cave or solid/opaque
+#define BGBDT_VOXFL_DECAL		0x4000	//draw as a decal
 
 #define BGBDT_VOXFL_CONT_0		0x0000		//contents=0
 #define BGBDT_VOXFL_CONT_1		0x0010		//contents=1
@@ -184,15 +185,17 @@ Each cell is 64 bytes.
 
 #define BGBDT_VOXFL_CONT_MASK	0x00F0		//contents=3
 
-#define BGBDT_VOXFL_FLUID_WATER	0x0110
-#define BGBDT_VOXFL_FLUID_LAVA	0x0120
-#define BGBDT_VOXFL_FLUID_SLIME	0x0130
+#define BGBDT_VOXFL_FLUID_WATER		0x0110
+#define BGBDT_VOXFL_FLUID_LAVA		0x0120
+#define BGBDT_VOXFL_FLUID_SLIME		0x0130
+// #define BGBDT_VOXFL_FLUID_LADDER	0x0140
 
-#define BGBDT_VOXFL_FLUID_MASK	0x01F0
+#define BGBDT_VOXFL_FLUID_MASK		0x01F0
 
 #define BGBDT_VOXFL_PHYS_FLIPUP	0x0410
 #define BGBDT_VOXFL_PHYS_FLIPDN	0x0420
 #define BGBDT_VOXFL_PHYS_TRIG	0x0430
+#define BGBDT_VOXFL_PHYS_LADDER	0x0440
 #define BGBDT_VOXFL_PHYS_MASK	0x04F0
 
 #define BGBDT_ADJFL_SOLID_NX	0x0001	//solid -X
@@ -306,6 +309,7 @@ typedef struct BGBDT_VoxRenderEntity_s BGBDT_VoxRenderEntity;
 typedef struct BGBDT_VoxChunkMesh_s BGBDT_VoxChunkMesh;
 typedef struct BGBDT_VoxChunk_s BGBDT_VoxChunk;
 typedef struct BGBDT_VoxRegion_s BGBDT_VoxRegion;
+typedef struct BGBDT_VoxRegionBox_s BGBDT_VoxRegionBox;
 typedef struct BGBDT_VoxWorld_s BGBDT_VoxWorld;
 
 typedef struct BGBDT_VoxTypeInfo_s BGBDT_VoxTypeInfo;
@@ -416,7 +420,7 @@ int flags;					//chunk flags
 
 struct BGBDT_VoxRegion_s {
 BGBDT_VoxWorld *world;		//parent world
-BGBDT_VoxRegion *next;		//next region is world
+BGBDT_VoxRegion *next;		//next region in world
 int bx, by, bz;				//base X/Y/Z
 
 int tbx, tby, tbz;			//tick X/Y/Z
@@ -457,6 +461,23 @@ int cvschk_tot;
 int cvschk_tris;
 int rawchk_tot;
 int rawchk_tris;
+
+byte *rgnbox[6];
+};
+
+struct BGBDT_VoxRegionBox_s {
+BGBDT_VoxWorld *world;		//parent world
+BGBDT_VoxRegionBox *next;	//next region box in world
+int bx, by, bz;				//base X/Y/Z
+int flags;
+
+byte *rgnbox[6];
+int boxofs[6];
+
+byte *rgnmap;				//region cell bitmap
+byte *rgnbuf;				//region buffer
+int szrgnbuf;				//size of region buffer
+int nrgncell;				//number of region cells
 };
 
 struct BGBDT_VoxWorld_s {
@@ -468,6 +489,7 @@ char *worldtype;
 BGBDT_VoxRegion *freergn;
 BGBDT_VoxChunk *freechk;
 BGBDT_VoxChunkMesh *freemesh;
+BGBDT_VoxRegionBox *freergnbox;
 void *freeidxl;
 void *freeidxh;
 
@@ -477,6 +499,8 @@ int szwrlbuf;				//size of region buffer
 
 BGBDT_VoxRegion *lastrgn;
 BGBDT_VoxChunk *lastchk;
+
+BGBDT_VoxRegionBox *rgnbox;
 
 u32 wrlseed;				//world seed
 byte seedperm_x[256];		//seed permutation x
@@ -504,6 +528,7 @@ int rawchk_tris;
 
 byte insky;
 byte inwater;
+byte cam_inwater;			//camera is in water
 
 double reforg[3];			//camera reference origin
 float camorg[3];			//camera origin

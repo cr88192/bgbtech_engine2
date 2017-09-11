@@ -9,6 +9,7 @@ BTEIFGL_SRCS=\
 	base/frgl_fonts_qi2.c \
 	base/frgl_input.c \
 	base/frgl_menu.c \
+	base/frgl_readavi.c \
 	base/frgl_shaddll.c \
 	base/frgl_shader.c \
 	base/frgl_texture.c \
@@ -56,6 +57,7 @@ BTEIFGL_SRCS=\
 	voxel/vox_light.c \
 	voxel/vox_load.c \
 	voxel/vox_mesh.c \
+	voxel/vox_rgntex.c \
 	voxel/vox_rice.c \
 	voxel/vox_save.c \
 	voxel/vox_tick.c \
@@ -95,10 +97,15 @@ BTEIFGL_SRCS=\
 	fastbcn/bcn_s2blkdec.c \
 	fastbcn/bcn_decjpg.c \
 	fastbcn/bcn_encjpg.c \
-	fastbcn/bcn_bt1h_common.c \
-	fastbcn/bcn_bt1h_decrice.c \
-	fastbcn/bcn_bt1h_blkdec_pyuv.c \
-	fastbcn/bcn_bt1h_decode.c \
+	\
+	fastbcn/bt1h_bitrange.c \
+	fastbcn/bt1h_blkdec.c \
+	fastbcn/bt1h_common.c \
+	fastbcn/bt1h_decode.c \
+	fastbcn/bt1h_decrice.c \
+	fastbcn/bt1h_rangedec.c \
+	fastbcn/bt1h_shim_bc7.c \
+	fastbcn/bt1h_shim_s2tc.c \
 	\
 	btic4b/bt4b_bitread.c \
 	btic4b/bt4b_bitwrite.c \

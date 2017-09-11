@@ -524,6 +524,13 @@ void BTIC4B_FillBlockHeadTag(BTIC4B_Context *ctx, byte *blk, int tag)
 	*(s16 *)(blk+14)=lqtvq_clamp32767S(ctx->dv);
 #endif
 
+#if 1
+	*(s32 *)(blk+16)=0;
+	*(s32 *)(blk+20)=0;
+	*(s32 *)(blk+24)=0;
+	*(s32 *)(blk+28)=0;
+#endif
+
 #if 0
 	cy=ctx->cy;	cu=ctx->cu;	cv=ctx->cv;
 	dy=ctx->dy;	du=ctx->du;	dv=ctx->dv;
@@ -1564,8 +1571,8 @@ int BTIC4B_DecImgBlocks(BTIC4B_Context *ctx,
 		case 0x42:
 			BTIC4B_DecodeDirtyL8(ctx);
 			n=BTIC4B_DecReadCountVal(ctx);
-			i=BTIC4B_DecReadGenericVal(ctx);
 			j=BTIC4B_DecReadGenericVal(ctx);
+			i=BTIC4B_DecReadGenericVal(ctx);
 			lcs=lblks+(ct-blks);
 			BTIC4B_DecodeCopyBlocks(ctx, ct, lcs+((i*xs1+j)*ctx->blksz), n);
 			ct+=n*ctx->blksz;
@@ -2029,6 +2036,10 @@ BTIC4B_API int BTIC4B_DecodeImgBufferCtx(BTIC4B_Context *ctx,
 			ctx->blks, ctx->lblks, xs, ys);
 	}
 	BTIC4B_DecImageClrs(ctx, ctx->blks, ibuf, xs, ys, clrfl);
+
+	cs1=ctx->blks;
+	ctx->blks=ctx->lblks;
+	ctx->lblks=cs1;
 
 	return(0);
 }

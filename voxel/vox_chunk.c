@@ -498,7 +498,8 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_PX; }
-	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vty1==vty))
+	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) ||
+			((vty1==vty) && !(vfl&BGBDT_VOXFL_DECAL)))
 		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PX; }
 	rts->adjlit[1]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
@@ -517,7 +518,8 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_NY; }
-	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vty1==vty))
+	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) ||
+			((vty1==vty) && !(vfl&BGBDT_VOXFL_DECAL)))
 		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NY; }
 	rts->adjlit[2]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
@@ -536,7 +538,8 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_PY; }
-	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vty1==vty))
+	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || 
+			((vty1==vty) && !(vfl&BGBDT_VOXFL_DECAL)))
 		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PY; }
 	rts->adjlit[3]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
@@ -555,7 +558,8 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_NZ; }
-	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vty1==vty))
+	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) ||
+			((vty1==vty) && !(vfl&BGBDT_VOXFL_DECAL)))
 		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
 	rts->adjlit[4]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
@@ -574,7 +578,8 @@ void BGBDT_WorldGet_UpdateAdjFl(BGBDT_VoxWorld *world,
 	BGBDT_WorldVoxel_GetTypeIdFlags(world, xyz2, td1, &vty1, &vfl1);
 	if(!(vfl1&BGBDT_VOXFL_NONSOLID))
 		{ rts->adjfl|=BGBDT_ADJFL_SOLID_PZ; }
-	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vty1==vty))
+	if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) ||
+			((vty1==vty) && !(vfl&BGBDT_VOXFL_DECAL)))
 		{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
 	rts->adjlit[5]=(td1.alight<<8)|td1.vlight;
 	if(vfl1&BGBDT_VOXFL_GLOWLIGHT)
@@ -891,18 +896,35 @@ BTEIFGL_API int BGBDT_WorldGetChunkVoxelData(BGBDT_VoxWorld *world,
 					BGBDT_ADJFL_OPAQUE_NZ|BGBDT_ADJFL_OPAQUE_PZ;
 			}else
 			{
-				if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vt1==vty))
-					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NX; }
-				if(!(vfl2&BGBDT_VOXFL_TRANSPARENT) || (vt2==vty))
-					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PX; }
-				if(!(vfl3&BGBDT_VOXFL_TRANSPARENT) || (vt3==vty))
-					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NY; }
-				if(!(vfl4&BGBDT_VOXFL_TRANSPARENT) || (vt4==vty))
-					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PY; }
-				if(!(vfl5&BGBDT_VOXFL_TRANSPARENT) || (vt5==vty))
-					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
-				if(!(vfl6&BGBDT_VOXFL_TRANSPARENT) || (vt6==vty))
-					{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
+				if(vfl&BGBDT_VOXFL_DECAL)
+				{
+					if(!(vfl1&BGBDT_VOXFL_NOFACES) && (vt1!=vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NX; }
+					if(!(vfl2&BGBDT_VOXFL_NOFACES) && (vt2!=vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PX; }
+					if(!(vfl3&BGBDT_VOXFL_NOFACES) && (vt3!=vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NY; }
+					if(!(vfl4&BGBDT_VOXFL_NOFACES) && (vt4!=vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PY; }
+					if(!(vfl5&BGBDT_VOXFL_NOFACES) && (vt5!=vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
+					if(!(vfl6&BGBDT_VOXFL_NOFACES) && (vt6!=vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
+				}else
+				{
+					if(!(vfl1&BGBDT_VOXFL_TRANSPARENT) || (vt1==vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NX; }
+					if(!(vfl2&BGBDT_VOXFL_TRANSPARENT) || (vt2==vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PX; }
+					if(!(vfl3&BGBDT_VOXFL_TRANSPARENT) || (vt3==vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NY; }
+					if(!(vfl4&BGBDT_VOXFL_TRANSPARENT) || (vt4==vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PY; }
+					if(!(vfl5&BGBDT_VOXFL_TRANSPARENT) || (vt5==vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_NZ; }
+					if(!(vfl6&BGBDT_VOXFL_TRANSPARENT) || (vt6==vty))
+						{ rts->adjfl|=BGBDT_ADJFL_OPAQUE_PZ; }
+				}
 
 				if(!(ifl&BGBDT_VOXFL_INCAVE))
 					{ rts->adjfl&=~BGBDT_ADJFL_ISCAVE_S; }

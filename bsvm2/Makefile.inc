@@ -104,6 +104,11 @@ all_bsvm: libs_bsvm bsvm2tst0$(EXESUF) xt128tst0$(EXESUF)
 
 libs_bsvm: $(DLLPF)btbsvm2$(DLLSUF)
 
+install_bsvm:
+	cp -rf *$(LIBSUF) $(INST_LIB)
+	cp -rf *$(DLLSUF) $(INST_LIB)
+	cp -rf include/* $(INST_INC)
+
 $(BSVM2_BASE)include/basm/bgbasm_auto.h: \
 		autohead$(BINSUF) $(BGBASM_SRCS)
 	./autohead$(BINSUF) -api BASM_API $(BGBASM_SRCS) \

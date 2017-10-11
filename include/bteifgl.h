@@ -362,6 +362,8 @@ int m_prim;
 
 #include <bgbdt_fastbcn.h>
 
+#include <bgbdt_swrender.h>
+
 #include <bteifgl_chunk.h>
 
 

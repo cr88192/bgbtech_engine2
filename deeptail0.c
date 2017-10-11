@@ -878,19 +878,27 @@ int main_movetick(double dt)
 int main_prestart(int argc, char *argv[])
 {
 	char tb[256];
+	int xs, ys;
 	int i, j, k;
 
 	Con_Init();
 
-	GfxDrv_SetDefaults("BGBTech2-1 Test0", 1024, 768);
+	FRGL_CvarSetDefault("r_width", "1024");
+	FRGL_CvarSetDefault("r_height", "768");
+
+//	GfxDrv_SetDefaults("BGBTech2-1 Test0", 1024, 768);
 	FRGL_CvarSetDefault("hide_os_cursor", "1");
 
 	FRGL_CvarSetDefault("r_drawdist", "256");
 	FRGL_CvarSetDefault("r_noshader", "0");
 	FRGL_CvarSetDefault("r_novbo", "0");
 	FRGL_CvarSetDefault("r_nosky", "0");
+	FRGL_CvarSetDefault("r_nobc7", "0");
+	FRGL_CvarSetDefault("r_nobcn", "0");
+	FRGL_CvarSetDefault("r_interlace", "0");
 
-	FRGL_CvarSetDefault("gl_texfilter", "GL_LINEAR_MIPMAP_LINEAR");
+//	FRGL_CvarSetDefault("gl_texfilter", "GL_LINEAR_MIPMAP_LINEAR");
+	FRGL_CvarSetDefault("gl_texfilter", "GL_NEAREST_MIPMAP_LINEAR");
 	FRGL_CvarSetDefault("gl_driver", "opengl32");
 
 	FRGL_CvarSetDefault("g_startworld", "maretst0");
@@ -899,6 +907,10 @@ int main_prestart(int argc, char *argv[])
 	Con_ExecCmdBuf("config.cfg");
 
 	Con_DoExecCmds();
+
+	xs=FRGL_CvarGetNum("r_width");
+	ys=FRGL_CvarGetNum("r_height");
+	GfxDrv_SetDefaults("BGBTech2-1 Test0", xs, ys);
 
 #ifdef __EMSCRIPTEN__
 	for(i=0; i<10; i++)

@@ -32,8 +32,8 @@ BOOL (APIENTRY *pwglSwapBuffers)(HDC hdc);
 
 HMODULE frgl_opengl32_dll=NULL;
 HMODULE frgl_gdi32_dll=NULL;
-// char *frgl_opengl32_dllname="opengl32";
-char *frgl_opengl32_dllname="rasw_opengl32";
+char *frgl_opengl32_dllname="opengl32";
+// char *frgl_opengl32_dllname="rasw_opengl32";
 byte frgl_nocompressedtextures=0;
 byte frgl_nobc7=0;
 byte frgl_israsw=0;
@@ -58,14 +58,26 @@ int FRGL_InitOpenGlDLL()
 		return(0);
 	
 	frgl_opengl32_dllname=FRGL_CvarGet("gl_driver");
+
+	frgl_nocompressedtextures=0;
+	frgl_nobc7=0;
 	
-	sprintf(tb, "%s.dll", frgl_opengl32_dllname);
-	frgl_opengl32_dll=LoadLibrary(tb);
+	if(!strcmp(frgl_opengl32_dllname, "swrender"))
+	{
+		pwglGetProcAddress=BGBDT_SWR_GetProcAddress;
+		frgl_opengl32_dll=UNDEFINED;
+		frgl_nobc7=1;
+		frgl_nocompressedtextures=1;
+	}else
+	{
+		sprintf(tb, "%s.dll", frgl_opengl32_dllname);
+		frgl_opengl32_dll=LoadLibrary(tb);
 
-	frgl_gdi32_dll=LoadLibrary("gdi32.dll");
+		frgl_gdi32_dll=LoadLibrary("gdi32.dll");
 
-	pwglGetProcAddress=(void *)GetProcAddress(
-		frgl_opengl32_dll, "wglGetProcAddress");
+		pwglGetProcAddress=(void *)GetProcAddress(
+			frgl_opengl32_dll, "wglGetProcAddress");
+	}
 	
 	pwglCreateContext		=frwglGetProcAddress("wglCreateContext");
 	pwglDeleteContext		=frwglGetProcAddress("wglDeleteContext");
@@ -91,10 +103,15 @@ int FRGL_InitOpenGlDLL()
 		pwglDescribePixelFormat	=frwglGetProcAddress("wglDescribePixelFormat");
 		pwglSwapBuffers			=frwglGetProcAddress("wglSwapBuffers");
 
-		frgl_nocompressedtextures=0;
+//		frgl_nocompressedtextures=0;
 //		frgl_nobc7=1;
 		frgl_israsw=1;
 	}
+	
+	if(FRGL_CvarGetInt("gl_nobc7"))
+		frgl_nobc7=1;
+	if(FRGL_CvarGetInt("gl_nobcn"))
+		frgl_nocompressedtextures=1;
 	
 	FRGL_InitOpenGlFuncs();
 }

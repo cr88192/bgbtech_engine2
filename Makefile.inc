@@ -126,6 +126,10 @@ BTEIFGL_SRCS=\
 	btlzh/btlza_bitstream.c	\
 	btlzh/btlza_decode.c		\
 	btlzh/btlza_encode.c		\
+	\
+	swrender/swr_drawspan.c		\
+	swrender/swr_glue.c			\
+	swrender/swr_glue_glw.c
 
 
 BTEIFGL_MULTISRCS=\
@@ -135,6 +139,7 @@ BTEIFGL_MULTISRCS=\
 	fastbcn/bcn_multi.c \
 	btic4b/bt4b_multi.c \
 	btlzh/btlza_multi.c \
+	swrender/swr_multi.c \
 	\
 	$(BSVM2_MULTISRCS)
 
@@ -162,7 +167,8 @@ libs: $(DLLPF)btewsim$(DLLSUF)
 apps: deeptail0$(EXESUF) bsvm2tst0$(EXESUF) \
 	btewiresim0$(EXESUF) msptst0$(EXESUF) \
 	isotest0$(EXESUF) btactst0$(EXESUF) \
-	plattest0$(EXESUF) btactst1$(EXESUF)
+	plattest0$(EXESUF) btactst1$(EXESUF) \
+	swrtest0$(EXESUF)
 
 apps2: deeptail0$(EXESUF)
 
@@ -205,6 +211,9 @@ btactst1$(EXESUF): btactst1.c $(DEP_HDRS) libs
 
 plattest0$(EXESUF): plattest0.c $(DEP_HDRS) libs
 	$(CC_OUTEXE)plattest0$(EXESUF) plattest0.c $(CFLAGS) $(LDFLAGS)
+
+swrtest0$(EXESUF): swrtest0.c $(DEP_HDRS) libs
+	$(CC_OUTEXE)swrtest0$(EXESUF) swrtest0.c $(CFLAGS) $(LDFLAGS)
 
 clean:
 clean2:

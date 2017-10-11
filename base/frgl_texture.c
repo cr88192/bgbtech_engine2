@@ -308,7 +308,9 @@ BTEIFGL_API int Tex_ResampleQuick
 
 #endif
 
-BTEIFGL_API int Tex_Resample(byte *src, int iw, int ih, byte *dst, int ow, int oh)
+BTEIFGL_API int Tex_Resample(
+	byte *src, int iw, int ih,
+	byte *dst, int ow, int oh)
 {
 	float xs, ys, xc, yc;
 	float ix, iy, fx, fy, fxn, fyn;
@@ -352,7 +354,8 @@ BTEIFGL_API int Tex_Resample(byte *src, int iw, int ih, byte *dst, int ow, int o
 }
 
 
-BTEIFGL_API int Tex_ResampleMono(byte *src, int iw, int ih,
+BTEIFGL_API int Tex_ResampleMono(
+	byte *src, int iw, int ih,
 	byte *dst, int ow, int oh)
 {
 	int i, j, ik, ix, iy;
@@ -467,7 +470,8 @@ static void Tex_Resample2DN(
 	}
 }
 
-BTEIFGL_API int Tex_PadResample(int *src, int iw, int ih,
+BTEIFGL_API int Tex_PadResample(
+	int *src, int iw, int ih,
 	int *dst, int ow, int oh)
 {
 	int i, j;
@@ -1838,7 +1842,9 @@ BTEIFGL_API int Tex_LoadTexture3B(int *wp, int *hp, byte *buf,
 
 	if(	(clrs==BTIC1H_PXF_RGB8E8) ||
 		(clrs==BTIC1H_PXF_RGB9E5) ||
-		(clrs==BTIC1H_PXF_RG11B10))
+		(clrs==BTIC1H_PXF_RG11B10) ||
+		(clrs==BTIC1H_PXF_BGR) ||
+		(clrs==BTIC1H_PXF_BGRA))
 	{
 		return(Tex_LoadTexture3C(wp, hp, buf, num, clrs, mip));
 	}
@@ -2047,6 +2053,9 @@ BTEIFGL_API int Tex_LoadTexture3C(
 	case BTIC1H_PXF_RGBA:
 	case BTIC1H_PXF_RGBX:
 		ipfmt=4; pfmt=GL_RGBA; pty=GL_UNSIGNED_BYTE; break;
+	case BTIC1H_PXF_BGRA:
+	case BTIC1H_PXF_BGRX:
+		ipfmt=4; pfmt=GL_BGRA; pty=GL_UNSIGNED_BYTE; break;
 	case BTIC1H_PXF_RGB9E5:
 	case BTIC1H_PXF_RGB8E8:
 		ipfmt=GL_RGB9_E5; pfmt=GL_RGB;

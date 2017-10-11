@@ -455,29 +455,15 @@ void BGBDT_DrawVoxRegion(BGBDT_VoxWorld *world,
 	frglPopMatrix();
 }
 
-BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
+BTEIFGL_API void BGBDT_DrawVoxWorldSky(BGBDT_VoxWorld *world)
 {
-	float lorg[4], lorg2[4];
 	float bmin[3], bmax[3];
-	BGBDT_VoxRegion *rcur, *rnxt, *rfst, *rcur2, *rprv2;
 	double f, g, h, d, d2;
 	float x0, y0, z0, x1, y1, z1;
 	float x2, y2, z2, x3, y3, z3;
 	float a0, a1, a2, a3;
 	int x, y;
 	int tx;
-
-	world->tickstart=frgl_clock();
-
-	bgbdt_voxel_drawdist=FRGL_CvarGetNum("r_drawdist");
-	bgbdt_voxel_noshader=FRGL_CvarGetNum("r_noshader");
-	bgbdt_voxel_novbo=FRGL_CvarGetNum("r_novbo");
-	bgbdt_voxel_nosky=FRGL_CvarGetNum("r_nosky");
-//	frgl_shader_pgl_Vertex=-1;
-
-	FRGL_TexMat_BindMaterial(0);
-
-	GfxDrv_SetClearColor(0.0, 0.0, 0.0);
 
 	if(world->insky && (world->insky<4))
 //	if(0)
@@ -555,6 +541,33 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 			frglEnd();
 		}
 	}
+}
+
+BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
+{
+	float lorg[4], lorg2[4];
+	float bmin[3], bmax[3];
+	BGBDT_VoxRegion *rcur, *rnxt, *rfst, *rcur2, *rprv2;
+	double f, g, h, d, d2;
+	float x0, y0, z0, x1, y1, z1;
+	float x2, y2, z2, x3, y3, z3;
+	float a0, a1, a2, a3;
+	int x, y;
+	int tx;
+
+	world->tickstart=frgl_clock();
+
+	bgbdt_voxel_drawdist=FRGL_CvarGetNum("r_drawdist");
+	bgbdt_voxel_noshader=FRGL_CvarGetNum("r_noshader");
+	bgbdt_voxel_novbo=FRGL_CvarGetNum("r_novbo");
+	bgbdt_voxel_nosky=FRGL_CvarGetNum("r_nosky");
+//	frgl_shader_pgl_Vertex=-1;
+
+	FRGL_TexMat_BindMaterial(0);
+
+	GfxDrv_SetClearColor(0.0, 0.0, 0.0);
+
+//	BGBDT_DrawVoxWorldSky(world);
 
 #if 1
 	rcur=world->region; rfst=NULL;
@@ -614,6 +627,8 @@ BTEIFGL_API void BGBDT_DrawVoxWorld(BGBDT_VoxWorld *world)
 		BGBDT_DrawVoxRegion(world, rcur);
 		rcur=rcur->next;
 	}
+
+	BGBDT_DrawVoxWorldSky(world);
 
 #if 1
 	rcur=world->region;

@@ -256,7 +256,7 @@ static INLINE float V4F_DIST2I(float *a, float *b)
 					(e)[0]=(a)[0]*(b)+(c)[0]*(d);	\
 					(e)[1]=(a)[1]*(b)+(c)[1]*(d);	\
 					(e)[2]=(a)[2]*(b)+(c)[2]*(d);	\
-					(e)[3]=(a)[3]*(B)+(c)[3]*(d);
+					(e)[3]=(a)[3]*(b)+(c)[3]*(d);
 
 #define V2F_ADDSCALEADDSCALE(a, b, c, d, e, f)	\
 				(f)[0]=(a)[0]+(b)[0]*(c)+(d)[0]*(e);	\

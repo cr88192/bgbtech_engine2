@@ -1,0 +1,17 @@
+Possible SW Renderer.
+
+Pixel Format
+* / 0aaa-yyyy yyuu-uvvv	//translucent pixel
+* / 1yyy-yyyy uuuu-vvvv	//opaque pixel
+* 0aaa-gggg rrrr-bbbb	//translucent pixel
+* 1ggg-ggrr rrrb-bbbb	//opaque pixel
+
+If translucent
+* Use PWM to determine whether to skip pixel.
+* Use gamma-adjust table (for translucent pixels).
+* Check Z-Buffer
+* Write if pass
+Else
+* Use gamma-adjust table.
+* Check Z-Buffer
+* Write if pass.
